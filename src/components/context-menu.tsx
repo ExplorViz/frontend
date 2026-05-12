@@ -206,6 +206,17 @@ export default function ContextMenu({ children }: ContextMenuProps) {
           }
         },
       },
+      ...(closedDistrictIds.has(districtId) && district.districtIds.length > 0
+        ? [
+            {
+              id: `district-open-all-${districtId}`,
+              title: 'Open All Districts',
+              action: () => {
+                EntityManipulation.openDistrictAndChildren(districtId);
+              },
+            },
+          ]
+        : []),
       {
         id: `district-highlight-${districtId}`,
         title: districtIsHighlighted

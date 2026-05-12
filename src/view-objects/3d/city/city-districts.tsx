@@ -525,6 +525,11 @@ const CityDistricts = forwardRef<InstancedMesh2, Args>(
       setHoveredEntity(districtId);
     };
 
+    const handleOnPointerOut = (event: ThreeEvent<MouseEvent>) => {
+      event.stopPropagation();
+      setHoveredEntity(null);
+    };
+
     const handleRightClick = (e: ThreeEvent<MouseEvent>) => {
       if (ref === null || typeof ref === 'function') {
         return;
@@ -536,11 +541,6 @@ const CityDistricts = forwardRef<InstancedMesh2, Args>(
       if (!districtId) return;
       e.stopPropagation();
       emitContextMenuFromWorld({ kind: 'district', districtId }, e.nativeEvent);
-    };
-
-    const handleOnPointerOut = (event: ThreeEvent<MouseEvent>) => {
-      event.stopPropagation();
-      setHoveredEntity(null);
     };
 
     const [

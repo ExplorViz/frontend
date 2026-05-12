@@ -78,6 +78,43 @@ export function openDistrict(districtId: string, sendMessage = true) {
   showBuildings(getChildBuildingIds(district));
 }
 
+function collectDistrictSubtreeIds(districtId: string): {
+  districtIds: string[];
+  buildingIds: string[];
+} {
+  const district = useModelStore.getState().getDistrict(districtId);
+  if (!district) {
+    return { districtIds: [], buildingIds: [] };
+  }
+
+  const districtIds = [district.id];
+  const buildingIds = [...district.buildingIds];
+
+  for (const childDistrictId of district.districtIds) {
+    const nested = collectDistrictSubtreeIds(childDistrictId);
+    districtIds.push(...nested.districtIds);
+    buildingIds.push(...nested.buildingIds);
+  }
+
+  return { districtIds, buildingIds };
+}
+
+/**
+ * Opens a district and expands the full subtree: all nested districts and their buildings.
+ */
+export function openDistrictAndChildren(
+  districtId: string,
+  sendMessage = true
+) {
+  const { districtIds, buildingIds } = collectDistrictSubtreeIds(districtId);
+  if (districtIds.length === 0) {
+    return;
+  }
+  openDistricts(districtIds);
+  showDistricts(districtIds);
+  showBuildings(buildingIds);
+}
+
 /**
  * Closes a given district.
  *

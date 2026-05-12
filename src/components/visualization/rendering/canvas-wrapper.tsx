@@ -26,6 +26,12 @@ import SpectateStatusSync from 'explorviz-frontend/src/components/collaboration/
 import PlayroomWrapper from 'explorviz-frontend/src/components/collaboration/visualization/rendering/playroom-wrapper';
 import useLandscapeDataWatcher from 'explorviz-frontend/src/hooks/landscape-data-watcher';
 import {
+  CLICK_PREVENTION_DEFAULTS,
+  maxPointerDriftDuringDelay,
+} from 'explorviz-frontend/src/hooks/useClickPreventionOnDoubleClick';
+import { emitContextMenuFromWorld } from 'explorviz-frontend/src/utils/context-menu-bridge';
+import { contextMenuPickAt } from 'explorviz-frontend/src/utils/context-menu-world-pick';
+import {
   INITIAL_CAMERA_POSITION,
   useCameraControls,
 } from 'explorviz-frontend/src/stores/camera-controls-store';
@@ -55,6 +61,7 @@ import TraceReplayOverlayR3F from 'explorviz-frontend/src/view-objects/3d/city/t
 import ClusterCentroidsR3F from 'explorviz-frontend/src/view-objects/3d/cluster-centroids-r3f';
 import LandscapeR3F from 'explorviz-frontend/src/view-objects/3d/landscape/landscape-r3f';
 import {
+  type MouseEvent as ReactMouseEvent,
   Suspense,
   useCallback,
   useEffect,
@@ -64,7 +71,7 @@ import {
 } from 'react';
 import * as THREE from 'three';
 import { useShallow } from 'zustand/react/shallow';
-import ContextMenuRaycastRegister from './context-menu-raycast-register';
+import ContextMenuWorldPickRegister from './context-menu-world-pick-register';
 import HotkeyHandler from './hotkey-handler';
 import ImmersiveCameraHandler from './immersive-view-camrea-handler';
 import MinimapView from './minimap-view';
@@ -442,6 +449,51 @@ export default function CanvasWrapper({
     (state) => state.visualizationSettings.isMinimapEnabled.value
   );
 
+  const { rightClickDelayMs, allowedDelta } = CLICK_PREVENTION_DEFAULTS;
+  const emptyContextMenuTimeoutRef = useRef<number | null>(null);
+  const emptyContextMenuDriftCleanupRef = useRef<(() => void) | null>(null);
+
+  const clearPendingEmptyContextMenu = useCallback(() => {
+    if (emptyContextMenuTimeoutRef.current !== null) {
+      clearTimeout(emptyContextMenuTimeoutRef.current);
+      emptyContextMenuTimeoutRef.current = null;
+    }
+    emptyContextMenuDriftCleanupRef.current?.();
+    emptyContextMenuDriftCleanupRef.current = null;
+  }, []);
+
+  useEffect(() => () => clearPendingEmptyContextMenu(), [clearPendingEmptyContextMenu]);
+
+  const onCanvasContextMenu = useCallback(
+    (e: ReactMouseEvent<HTMLDivElement>) => {
+      const hit = contextMenuPickAt(e.clientX, e.clientY);
+      if (hit.kind !== 'empty') {
+        return;
+      }
+
+      clearPendingEmptyContextMenu();
+      e.preventDefault();
+
+      const { cleanup, getMaxDistance } = maxPointerDriftDuringDelay(e.nativeEvent);
+      emptyContextMenuDriftCleanupRef.current = cleanup;
+
+      emptyContextMenuTimeoutRef.current = window.setTimeout(() => {
+        emptyContextMenuTimeoutRef.current = null;
+        cleanup();
+        emptyContextMenuDriftCleanupRef.current = null;
+        if (getMaxDistance() >= allowedDelta) {
+          return;
+        }
+        emitContextMenuFromWorld(hit, e.nativeEvent);
+      }, rightClickDelayMs);
+    },
+    [
+      allowedDelta,
+      clearPendingEmptyContextMenu,
+      rightClickDelayMs,
+    ]
+  );
+
   return (
     <>
       <HotkeyHandler />
@@ -454,6 +506,7 @@ export default function CanvasWrapper({
             preserveDrawingBuffer: true,
           }}
           style={{ background: sceneBackgroundColor }}
+          onContextMenu={onCanvasContextMenu}
           onMouseMove={(e) => {
             if (isMagnifierActive) {
               setMousePos({
@@ -463,7 +516,7 @@ export default function CanvasWrapper({
             }
           }}
         >
-          <ContextMenuRaycastRegister />
+          <ContextMenuWorldPickRegister />
           <ImmersiveCameraHandler
             controlsRef={cameraControlsRef}
           ></ImmersiveCameraHandler>
