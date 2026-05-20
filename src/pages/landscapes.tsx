@@ -257,7 +257,7 @@ export default function Landscapes() {
               selectToken={selectToken}
             />
           </Tab> */}
-          <Tab eventKey="snapshots" title="Snapshots" id="snapshot-tab">
+          <Tab eventKey="snapshots" title="Visual Snapshots" id="snapshot-tab">
             <SnapshotSelection
               snapshotInfo={data.snapshotInfo}
               selectPersonalToken={selectPersonalSnapshot}
