@@ -1,5 +1,7 @@
 import CopyButton from 'explorviz-frontend/src/components/copy-button.tsx';
+import EntityStructureStatsTable from 'explorviz-frontend/src/components/visualization/rendering/popups/city-popups/entity-structure-stats-table';
 import PopupData from 'explorviz-frontend/src/components/visualization/rendering/popups/popup-data';
+import { collectDistrictSubtreeIds } from 'explorviz-frontend/src/utils/city-rendering/entity-manipulation';
 import { District } from 'explorviz-frontend/src/utils/landscape-schemes/flat-landscape';
 
 interface DistrictPopupProps {
@@ -8,6 +10,7 @@ interface DistrictPopupProps {
 
 export default function DistrictPopup({ popupData }: DistrictPopupProps) {
   const district = popupData.entity as District;
+  const { districtIds, buildingIds } = collectDistrictSubtreeIds(district.id);
 
   return (
     <>
@@ -20,22 +23,12 @@ export default function DistrictPopup({ popupData }: DistrictPopupProps) {
         </div>
       </h3>
       <div className="popover-body">
-        <table className="w-100">
-          <tbody>
-            <tr>
-              <td>Contained Sub-Districts:</td>
-              <td className="text-right text-break pl-1">
-                {district.districtIds.length}
-              </td>
-            </tr>
-            <tr>
-              <td>Contained Buildings:</td>
-              <td className="text-right text-break pl-1">
-                {district.buildingIds.length}
-              </td>
-            </tr>
-          </tbody>
-        </table>
+        <EntityStructureStatsTable
+          directDistrictCount={district.districtIds.length}
+          containedDistrictCount={Math.max(districtIds.length - 1, 0)}
+          directBuildingCount={district.buildingIds.length}
+          containedBuildingCount={buildingIds.length}
+        />
       </div>
     </>
   );

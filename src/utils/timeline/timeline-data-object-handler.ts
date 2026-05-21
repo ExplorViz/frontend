@@ -32,13 +32,13 @@ const getAutoEvolutionRenderingConfiguration = (
     (timestamps) => timestamps.length > 0
   );
 
-  const hasTwoCommitsInAnyRepository = Array.from(selectedCommits.values()).some(
-    (commits) => commits.length >= 2
-  );
+  const hasTwoCommitsInAnyRepository = Array.from(
+    selectedCommits.values()
+  ).some((commits) => commits.length >= 2);
 
-  const hasAtMostOneCommitPerRepository = Array.from(selectedCommits.values()).every(
-    (commits) => commits.length <= 1
-  );
+  const hasAtMostOneCommitPerRepository = Array.from(
+    selectedCommits.values()
+  ).every((commits) => commits.length <= 1);
 
   if (hasSelectedTimestamp && !hasSelectedCommit) {
     return {
@@ -64,7 +64,11 @@ const getAutoEvolutionRenderingConfiguration = (
     };
   }
 
-  if (!hasSelectedTimestamp && hasSelectedCommit && hasAtMostOneCommitPerRepository) {
+  if (
+    !hasSelectedTimestamp &&
+    hasSelectedCommit &&
+    hasAtMostOneCommitPerRepository
+  ) {
     return {
       renderDynamic: false,
       renderStatic: true,
@@ -129,17 +133,31 @@ export default class TimelineDataObjectHandler {
       useRenderingServiceStore.getState()._userInitiatedStaticDynamicCombination = true;
     }
 
-    const selectedCommits = useCommitTreeStateStore.getState().getSelectedCommits();
+    const selectedCommits = useCommitTreeStateStore
+      .getState()
+      .getSelectedCommits();
+    const previousConfig = useVisibilityServiceStore
+      .getState()
+      .getCloneOfEvolutionModeRenderingConfiguration();
     const autoConfig = getAutoEvolutionRenderingConfiguration(
       selectedCommits,
       commitToSelectedTimestampMap
     );
+    const hasTwoCommitsInAnyRepository = Array.from(
+      selectedCommits.values()
+    ).some((commits) => commits.length >= 2);
+    const mergedConfig = {
+      ...autoConfig,
+      removeUnchangedFromLayout: hasTwoCommitsInAnyRepository
+        ? previousConfig.removeUnchangedFromLayout
+        : false,
+    };
     useVisibilityServiceStore
       .getState()
-      .applyEvolutionModeRenderingConfiguration(autoConfig);
+      .applyEvolutionModeRenderingConfiguration(mergedConfig);
     useRenderingServiceStore
       .getState()
-      .setAnalysisModeFromEvolutionRenderingConfig(autoConfig);
+      .setAnalysisModeFromEvolutionRenderingConfig(mergedConfig);
 
     useRenderingServiceStore
       .getState()

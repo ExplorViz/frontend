@@ -75,6 +75,7 @@ export const useVisibilityServiceStore = create<VisibilityServiceState>(
       renderDynamic: true,
       renderStatic: true,
       renderOnlyDifferences: false,
+      removeUnchangedFromLayout: false,
     },
 
     getCloneOfEvolutionModeRenderingConfiguration: () => {

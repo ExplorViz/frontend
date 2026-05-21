@@ -78,7 +78,7 @@ export function openDistrict(districtId: string, sendMessage = true) {
   showBuildings(getChildBuildingIds(district));
 }
 
-function collectDistrictSubtreeIds(districtId: string): {
+export function collectDistrictSubtreeIds(districtId: string): {
   districtIds: string[];
   buildingIds: string[];
 } {

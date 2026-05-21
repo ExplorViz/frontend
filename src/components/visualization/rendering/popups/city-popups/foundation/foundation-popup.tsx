@@ -1,4 +1,5 @@
 import CopyButton from 'explorviz-frontend/src/components/copy-button.tsx';
+import EntityStructureStatsTable from 'explorviz-frontend/src/components/visualization/rendering/popups/city-popups/entity-structure-stats-table';
 import PopupData from 'explorviz-frontend/src/components/visualization/rendering/popups/popup-data';
 import { City } from 'explorviz-frontend/src/utils/landscape-schemes/flat-landscape';
 
@@ -18,22 +19,12 @@ export default function FoundationPopup({ popupData }: FoundationPopupProps) {
         </div>
       </h3>
       <div className="popover-body">
-        <table className="w-100">
-          <tbody>
-            <tr>
-              <td>Contained Districts:</td>
-              <td className="text-right text-break pl-1">
-                {city.allContainedDistrictIds.length}
-              </td>
-            </tr>
-            <tr>
-              <td>Contained Buildings:</td>
-              <td className="text-right text-break pl-1">
-                {city.allContainedBuildingIds.length}
-              </td>
-            </tr>
-          </tbody>
-        </table>
+        <EntityStructureStatsTable
+          directDistrictCount={city.districtIds.length}
+          containedDistrictCount={city.allContainedDistrictIds.length}
+          directBuildingCount={city.buildingIds.length}
+          containedBuildingCount={city.allContainedBuildingIds.length}
+        />
       </div>
     </>
   );

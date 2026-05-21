@@ -1,13 +1,13 @@
-import { useVisibilityServiceStore } from 'explorviz-frontend/src/stores/visibility-service';
-import { useTimestampStore } from 'explorviz-frontend/src/stores/timestamp';
 import { useRenderingServiceStore } from 'explorviz-frontend/src/stores/rendering-service';
+import { useTimestampStore } from 'explorviz-frontend/src/stores/timestamp';
+import { useVisibilityServiceStore } from 'explorviz-frontend/src/stores/visibility-service';
 import {
   findRepoNameAndBranchNameForCommit,
   getCommitXPosition,
 } from 'explorviz-frontend/src/utils/evolution-data-helpers';
 import {
   Commit,
-  RepoNameCommitTreeMap
+  RepoNameCommitTreeMap,
 } from 'explorviz-frontend/src/utils/evolution-schemes/evolution-data';
 import { create } from 'zustand';
 
@@ -49,13 +49,13 @@ const getAutoEvolutionRenderingConfiguration = (
     (timestamps) => timestamps.length > 0
   );
 
-  const hasTwoCommitsInAnyRepository = Array.from(selectedCommits.values()).some(
-    (commits) => commits.length >= 2
-  );
+  const hasTwoCommitsInAnyRepository = Array.from(
+    selectedCommits.values()
+  ).some((commits) => commits.length >= 2);
 
-  const hasAtMostOneCommitPerRepository = Array.from(selectedCommits.values()).every(
-    (commits) => commits.length <= 1
-  );
+  const hasAtMostOneCommitPerRepository = Array.from(
+    selectedCommits.values()
+  ).every((commits) => commits.length <= 1);
 
   if (hasSelectedTimestamp && !hasSelectedCommit) {
     return {
@@ -81,7 +81,11 @@ const getAutoEvolutionRenderingConfiguration = (
     };
   }
 
-  if (!hasSelectedTimestamp && hasSelectedCommit && hasAtMostOneCommitPerRepository) {
+  if (
+    !hasSelectedTimestamp &&
+    hasSelectedCommit &&
+    hasAtMostOneCommitPerRepository
+  ) {
     return {
       renderDynamic: false,
       renderStatic: true,
@@ -185,16 +189,28 @@ export const useCommitTreeStateStore = create<CommitTreeStateState>(
     setSelectedCommits: (newSelectedCommits: Map<string, SelectedCommit[]>) => {
       set({ _selectedCommits: newSelectedCommits });
       const selectedTimestamps = useTimestampStore.getState().timestamp;
+      const previousConfig = useVisibilityServiceStore
+        .getState()
+        .getCloneOfEvolutionModeRenderingConfiguration();
       const autoConfig = getAutoEvolutionRenderingConfiguration(
         newSelectedCommits,
         selectedTimestamps
       );
+      const hasTwoCommitsInAnyRepository = Array.from(
+        newSelectedCommits.values()
+      ).some((commits) => commits.length >= 2);
+      const mergedConfig = {
+        ...autoConfig,
+        removeUnchangedFromLayout: hasTwoCommitsInAnyRepository
+          ? previousConfig.removeUnchangedFromLayout
+          : false,
+      };
       useVisibilityServiceStore
         .getState()
-        .applyEvolutionModeRenderingConfiguration(autoConfig);
+        .applyEvolutionModeRenderingConfiguration(mergedConfig);
       useRenderingServiceStore
         .getState()
-        .setAnalysisModeFromEvolutionRenderingConfig(autoConfig);
+        .setAnalysisModeFromEvolutionRenderingConfig(mergedConfig);
     },
 
     resetSelectedCommits: () => {
