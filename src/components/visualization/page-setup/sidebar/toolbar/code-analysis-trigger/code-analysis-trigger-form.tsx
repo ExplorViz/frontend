@@ -1,6 +1,8 @@
+import HelpTooltip from 'explorviz-frontend/src/components/help-tooltip';
 import { useToastHandlerStore } from 'explorviz-frontend/src/stores/toast-handler';
+import generateUuidv4 from 'explorviz-frontend/src/utils/helpers/uuid4-generator';
 import React, { useEffect, useMemo, useState } from 'react';
-import { Form, Spinner } from 'react-bootstrap';
+import { Button, Form, Spinner } from 'react-bootstrap';
 import { useSearchParams } from 'react-router-dom';
 import CreatableSelect from 'react-select/creatable';
 
@@ -10,6 +12,44 @@ const codeAgentUrl =
 type InputOption = {
   label: string;
   value: string;
+};
+
+type ApplicationSpec = {
+  name: string;
+  root: string;
+};
+
+type LocalRepositoryInfo = {
+  path: string;
+  branches: string[];
+};
+
+type RepoType = 'remote' | 'local';
+
+interface AnalysisRequestPayload {
+  repoPath?: string;
+  repoRemoteUrl?: string;
+  username?: string;
+  password?: string;
+  branch?: string;
+  includeInAnalysisExpressions?: string;
+  excludeFromAnalysisExpressions?: string;
+  startCommit?: string;
+  endCommit?: string;
+  commitAnalysisLimit?: number;
+  landscapeToken: string;
+  applications?: ApplicationSpec[];
+  calculateMetrics: boolean;
+  sendToRemote: boolean;
+  fetchSocialData: boolean;
+  fetchEndDate?: string;
+  socialDataTimeFrameDays?: number;
+}
+
+type Props = {
+  landscapeToken?: string;
+  assignRandomToken?: boolean;
+  onSubmitSuccess?: (landscapeToken: string) => void;
 };
 
 const EXAMPLE_INCLUSION_EXPRESSIONS: InputOption[] = [
@@ -34,69 +74,197 @@ const EXAMPLE_EXCLUSION_EXPRESSIONS: InputOption[] = [
   { value: 'regex:.*Test\\.java', label: 'regex:.*Test\\.java' },
 ];
 
-interface AnalysisRequest {
-  repoPath?: string;
-  repoRemoteUrl?: string;
-  username?: string;
-  password?: string;
-  branch?: string;
-  applicationRoot?: string;
-  includeInAnalysisExpressions?: string;
-  excludeFromAnalysisExpressions?: string;
-  startCommit?: string;
-  endCommit?: string;
-  commitAnalysisLimit?: number;
-  landscapeToken: string;
-  applicationName: string;
-  calculateMetrics: boolean;
-  sendToRemote: boolean;
+const FILTER_EXAMPLES = [
+  {
+    expression: 'src/main/java/**',
+    description: 'Matches all files and subdirectories under src/main/java.',
+  },
+  {
+    expression: '**/*.java,**/*.kt',
+    description: 'Matches every .java or .kt file.',
+  },
+  {
+    expression: 'some/*/*/path/**',
+    description:
+      'Matches files in paths with exactly 2 directory levels between some and path.',
+  },
+  {
+    expression: '**/target/**',
+    description:
+      'Matches any target folder and its contents (may be useful for exclusion).',
+  },
+  {
+    expression: 'regex:.*Test\\.java',
+    description:
+      'Regular expression that matches all Java test files (ending in Test.java) anywhere.',
+  },
+];
+
+const createApplicationRow = (): ApplicationSpec => ({ name: '', root: '' });
+
+function FormLabelWithHelp({
+  label,
+  help,
+}: {
+  label: string;
+  help: string;
+}) {
+  return (
+    <Form.Label className="d-flex align-items-center mb-1">
+      {label}
+      <HelpTooltip title={help} placement="top" />
+    </Form.Label>
+  );
 }
 
-type Props = {
-  landscapeToken?: string;
-  onSubmitSuccess?: (landscapeToken: string) => void;
-};
+function buildPayload(
+  repoType: RepoType,
+  formData: Omit<
+    AnalysisRequestPayload,
+    'calculateMetrics' | 'sendToRemote' | 'fetchSocialData'
+  > & {
+    calculateMetrics: boolean;
+    sendToRemote: boolean;
+    fetchSocialData: boolean;
+  },
+  inclusionExpressions: readonly InputOption[],
+  exclusionExpressions: readonly InputOption[],
+  applications: ApplicationSpec[]
+): Partial<AnalysisRequestPayload> {
+  const payload: Partial<AnalysisRequestPayload> = {
+    calculateMetrics: formData.calculateMetrics,
+    sendToRemote: formData.sendToRemote,
+    fetchSocialData: formData.fetchSocialData,
+  };
 
-const getInitialFormData = (landscapeToken: string): AnalysisRequest => ({
-  landscapeToken,
-  repoRemoteUrl: '',
-  repoPath: '',
-  username: '',
-  password: '',
-  branch: '',
-  applicationRoot: '',
-  includeInAnalysisExpressions: '',
-  excludeFromAnalysisExpressions: '',
-  startCommit: '',
-  endCommit: '',
-  commitAnalysisLimit: 1,
-  applicationName: '',
-  calculateMetrics: true,
-  sendToRemote: true,
-});
+  const landscapeToken = formData.landscapeToken.trim();
+  if (landscapeToken) {
+    payload.landscapeToken = landscapeToken;
+  }
+
+  if (repoType === 'local' && formData.repoPath?.trim()) {
+    payload.repoPath = formData.repoPath.trim();
+  } else if (repoType === 'remote' && formData.repoRemoteUrl?.trim()) {
+    payload.repoRemoteUrl = formData.repoRemoteUrl.trim();
+  }
+
+  if (formData.username?.trim()) {
+    payload.username = formData.username.trim();
+  }
+  if (formData.password?.trim()) {
+    payload.password = formData.password.trim();
+  }
+  if (formData.branch?.trim()) {
+    payload.branch = formData.branch.trim();
+  }
+  if (formData.startCommit?.trim()) {
+    payload.startCommit = formData.startCommit.trim();
+  }
+  if (formData.endCommit?.trim()) {
+    payload.endCommit = formData.endCommit.trim();
+  }
+  if (formData.fetchEndDate?.trim()) {
+    payload.fetchEndDate = formData.fetchEndDate.trim();
+  }
+
+  if (
+    formData.commitAnalysisLimit !== undefined &&
+    formData.commitAnalysisLimit > 0
+  ) {
+    payload.commitAnalysisLimit = formData.commitAnalysisLimit;
+  }
+  if (
+    formData.socialDataTimeFrameDays !== undefined &&
+    formData.socialDataTimeFrameDays > 0
+  ) {
+    payload.socialDataTimeFrameDays = formData.socialDataTimeFrameDays;
+  }
+
+  if (inclusionExpressions.length > 0) {
+    payload.includeInAnalysisExpressions = inclusionExpressions
+      .map((opt) => opt.value)
+      .join(',');
+  }
+  if (exclusionExpressions.length > 0) {
+    payload.excludeFromAnalysisExpressions = exclusionExpressions
+      .map((opt) => opt.value)
+      .join(',');
+  }
+
+  const resolvedApplications = applications
+    .map((app) => ({
+      name: app.name.trim(),
+      root: app.root.trim(),
+    }))
+    .filter((app) => app.name.length > 0);
+
+  if (resolvedApplications.length > 0) {
+    payload.applications = resolvedApplications;
+  }
+
+  return payload;
+}
 
 export default function CodeAnalysisTriggerForm({
   landscapeToken,
+  assignRandomToken = false,
   onSubmitSuccess,
 }: Props) {
   const [searchParams] = useSearchParams();
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [useLocalRepo, setUseLocalRepo] = useState(false);
+  const [repoType, setRepoType] = useState<RepoType>('remote');
   const [exclusionExpressions, setExclusionExpressions] = useState<
     readonly InputOption[]
   >([]);
   const [inclusionExpressions, setInclusionExpressions] = useState<
     readonly InputOption[]
   >([]);
+  const [applications, setApplications] = useState<ApplicationSpec[]>([
+    createApplicationRow(),
+  ]);
+  const [localRepositories, setLocalRepositories] = useState<
+    LocalRepositoryInfo[]
+  >([]);
+  const [localRepositoriesLoading, setLocalRepositoriesLoading] =
+    useState(false);
+  const [localRepositoriesError, setLocalRepositoriesError] = useState<
+    string | null
+  >(null);
 
-  const landscapeTokenValue = useMemo(() => {
+  const [generatedToken] = useState(() =>
+    assignRandomToken ? generateUuidv4() : ''
+  );
+
+  const externalLandscapeToken = useMemo(() => {
     return landscapeToken || searchParams.get('landscapeToken') || '';
   }, [searchParams, landscapeToken]);
 
-  // form state
-  const [formData, setFormData] = useState<AnalysisRequest>(() =>
-    getInitialFormData(landscapeTokenValue)
-  );
+  const landscapeTokenValue = useMemo(() => {
+    if (externalLandscapeToken) {
+      return externalLandscapeToken;
+    }
+    if (assignRandomToken) {
+      return generatedToken;
+    }
+    return '';
+  }, [externalLandscapeToken, assignRandomToken, generatedToken]);
+
+  const [formData, setFormData] = useState({
+    landscapeToken: landscapeTokenValue,
+    repoRemoteUrl: '',
+    repoPath: '',
+    username: '',
+    password: '',
+    branch: '',
+    startCommit: '',
+    endCommit: '',
+    commitAnalysisLimit: 1 as number | undefined,
+    fetchEndDate: '',
+    socialDataTimeFrameDays: undefined as number | undefined,
+    calculateMetrics: true,
+    sendToRemote: true,
+    fetchSocialData: false,
+  });
 
   useEffect(() => {
     if (landscapeTokenValue) {
@@ -107,8 +275,58 @@ export default function CodeAnalysisTriggerForm({
     }
   }, [landscapeTokenValue]);
 
+  const selectedLocalRepository = useMemo(
+    () =>
+      localRepositories.find(
+        (repository) => repository.path === formData.repoPath
+      ),
+    [localRepositories, formData.repoPath]
+  );
+
+  const payloadPreview = useMemo(
+    () =>
+      buildPayload(
+        repoType,
+        formData,
+        inclusionExpressions,
+        exclusionExpressions,
+        applications
+      ),
+    [repoType, formData, inclusionExpressions, exclusionExpressions, applications]
+  );
+
+  const loadLocalRepositories = async () => {
+    setLocalRepositoriesLoading(true);
+    setLocalRepositoriesError(null);
+
+    try {
+      const response = await fetch(
+        `${codeAgentUrl}/api/analysis/local-repositories`
+      );
+      if (!response.ok) {
+        throw new Error('Unable to load cloned repositories.');
+      }
+
+      const repositories = (await response.json()) as LocalRepositoryInfo[];
+      setLocalRepositories(repositories);
+    } catch (error: any) {
+      setLocalRepositories([]);
+      setLocalRepositoriesError(
+        error.message || 'Unable to load cloned repositories.'
+      );
+    } finally {
+      setLocalRepositoriesLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (repoType === 'local') {
+      loadLocalRepositories();
+    }
+  }, [repoType]);
+
   const handleInputChange = (
-    field: string,
+    field: keyof typeof formData,
     value: string | boolean | number | undefined
   ) => {
     setFormData((prev) => ({
@@ -117,77 +335,80 @@ export default function CodeAnalysisTriggerForm({
     }));
   };
 
+  const handleApplicationChange = (
+    index: number,
+    field: keyof ApplicationSpec,
+    value: string
+  ) => {
+    setApplications((prev) =>
+      prev.map((application, currentIndex) =>
+        currentIndex === index
+          ? { ...application, [field]: value }
+          : application
+      )
+    );
+  };
+
+  const addApplicationRow = () => {
+    setApplications((prev) => [...prev, createApplicationRow()]);
+  };
+
+  const removeApplicationRow = (index: number) => {
+    if (applications.length <= 1) {
+      useToastHandlerStore
+        .getState()
+        .showErrorToastMessage('Keep at least one application row.');
+      return;
+    }
+    setApplications((prev) => prev.filter((_, currentIndex) => currentIndex !== index));
+  };
+
+  const resetForm = () => {
+    setFormData({
+      landscapeToken: landscapeTokenValue,
+      repoRemoteUrl: '',
+      repoPath: '',
+      username: '',
+      password: '',
+      branch: '',
+      startCommit: '',
+      endCommit: '',
+      commitAnalysisLimit: 1,
+      fetchEndDate: '',
+      socialDataTimeFrameDays: undefined,
+      calculateMetrics: true,
+      sendToRemote: true,
+      fetchSocialData: false,
+    });
+    setRepoType('remote');
+    setInclusionExpressions([]);
+    setExclusionExpressions([]);
+    setApplications([createApplicationRow()]);
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    // validation
-    if (!useLocalRepo && !formData.repoRemoteUrl) {
-      useToastHandlerStore
-        .getState()
-        .showErrorToastMessage('Please provide a repository URL');
-      return;
-    }
+    const requestBody = buildPayload(
+      repoType,
+      formData,
+      inclusionExpressions,
+      exclusionExpressions,
+      applications
+    );
 
-    if (useLocalRepo && !formData.repoPath) {
+    if (!requestBody.repoPath && !requestBody.repoRemoteUrl) {
       useToastHandlerStore
         .getState()
-        .showErrorToastMessage('Please provide a local repository path');
+        .showErrorToastMessage(
+          'Provide either a local repository path or a remote URL.'
+        );
       return;
     }
 
     setIsSubmitting(true);
 
     try {
-      // preparing request body
-      const requestBody: Partial<AnalysisRequest> = {
-        landscapeToken: formData.landscapeToken || landscapeTokenValue || '',
-        applicationName: formData.applicationName,
-      };
-
-      if (useLocalRepo && formData.repoPath) {
-        requestBody.repoPath = formData.repoPath;
-      } else if (formData.repoRemoteUrl) {
-        requestBody.repoRemoteUrl = formData.repoRemoteUrl;
-      }
-
-      if (formData.username) {
-        requestBody.username = formData.username;
-      }
-      if (formData.password) {
-        requestBody.password = formData.password;
-      }
-      if (formData.branch) {
-        requestBody.branch = formData.branch;
-      }
-      if (formData.applicationRoot) {
-        requestBody.applicationRoot = formData.applicationRoot;
-      }
-      if (inclusionExpressions.length > 0) {
-        requestBody.includeInAnalysisExpressions = inclusionExpressions
-          .map((opt) => opt.value)
-          .join(',');
-      }
-      if (formData.startCommit) {
-        requestBody.startCommit = formData.startCommit;
-      }
-      if (formData.endCommit) {
-        requestBody.endCommit = formData.endCommit;
-      }
-      if (
-        formData.commitAnalysisLimit !== undefined &&
-        formData.commitAnalysisLimit > 0
-      ) {
-        requestBody.commitAnalysisLimit = formData.commitAnalysisLimit;
-      }
-      if (exclusionExpressions.length > 0) {
-        requestBody.excludeFromAnalysisExpressions = exclusionExpressions
-          .map((opt) => opt.value)
-          .join(',');
-      }
-
-      requestBody.calculateMetrics = formData.calculateMetrics;
-      requestBody.sendToRemote = formData.sendToRemote;
-
       const response = await fetch(`${codeAgentUrl}/api/analysis/trigger`, {
         method: 'POST',
         headers: {
@@ -204,12 +425,8 @@ export default function CodeAnalysisTriggerForm({
             message || 'Analysis triggered successfully'
           );
 
-        // Reset form
-        setFormData(getInitialFormData(landscapeTokenValue));
-        setInclusionExpressions([]);
-        setExclusionExpressions([]);
-
-        onSubmitSuccess?.(formData.landscapeToken);
+        resetForm();
+        onSubmitSuccess?.(requestBody.landscapeToken || landscapeTokenValue);
       } else {
         const errorMessage = await response.text();
         useToastHandlerStore
@@ -230,221 +447,462 @@ export default function CodeAnalysisTriggerForm({
   return (
     <div className="code-analysis-trigger-form p-3">
       <Form onSubmit={handleSubmit}>
-        <Form.Group className="mb-3">
-          <Form.Check
-            type="switch"
-            id="use-local-repo"
-            label="Use Local Repository"
-            checked={useLocalRepo}
-            onChange={(e) => setUseLocalRepo(e.target.checked)}
-          />
-        </Form.Group>
+        <section className="border rounded p-3 mb-3">
+          <h6 className="mb-3">Repository</h6>
 
-        <Form.Group className="mb-3">
-          <Form.Label>Landscape Token</Form.Label>
-          <Form.Control
-            type="text"
-            placeholder="Landscape token"
-            value={formData.landscapeToken}
-            onChange={(e) =>
-              handleInputChange('landscapeToken', e.target.value)
-            }
-            readOnly={!!landscapeTokenValue}
-          />
-          <Form.Text className="text-muted">
-            {landscapeTokenValue
-              ? 'Using current landscape token'
-              : 'No landscape token selected'}
-          </Form.Text>
-        </Form.Group>
-
-        {useLocalRepo ? (
           <Form.Group className="mb-3">
-            <Form.Label>Local Repository Path *</Form.Label>
-            <Form.Control
-              type="text"
-              placeholder="/path/to/local/repository"
-              value={formData.repoPath}
-              onChange={(e) => handleInputChange('repoPath', e.target.value)}
-            />
+            <div className="d-flex flex-wrap gap-3">
+              <Form.Check
+                type="radio"
+                id="repo-type-remote"
+                name="repoType"
+                label={
+                  <span className="d-inline-flex align-items-center">
+                    Remote Repository
+                    <HelpTooltip
+                      title="Clone and analyze a repository from a remote URL."
+                      placement="top"
+                    />
+                  </span>
+                }
+                checked={repoType === 'remote'}
+                onChange={() => setRepoType('remote')}
+              />
+              <Form.Check
+                type="radio"
+                id="repo-type-local"
+                name="repoType"
+                label={
+                  <span className="d-inline-flex align-items-center">
+                    Local Repository
+                    <HelpTooltip
+                      title="Analyze a repository already present on the local file system."
+                      placement="top"
+                    />
+                  </span>
+                }
+                checked={repoType === 'local'}
+                onChange={() => setRepoType('local')}
+              />
+            </div>
           </Form.Group>
-        ) : (
+
+          {repoType === 'remote' ? (
+            <>
+              <Form.Group className="mb-3">
+                <FormLabelWithHelp
+                  label="Remote Repository URL (required)"
+                  help="The URL of the Git repository to analyze. Supports HTTPS and SSH formats (e.g., git@github.com:org/project.git)."
+                />
+                <Form.Control
+                  type="text"
+                  placeholder="https://github.com/org/project.git or git@github.com:org/project.git"
+                  value={formData.repoRemoteUrl}
+                  onChange={(e) =>
+                    handleInputChange('repoRemoteUrl', e.target.value)
+                  }
+                />
+              </Form.Group>
+
+              <div className="row">
+                <Form.Group className="mb-3 col-md-6">
+                  <FormLabelWithHelp
+                    label="Username"
+                    help="Optional: Username for authenticating with the remote repository."
+                  />
+                  <Form.Control
+                    type="text"
+                    autoComplete="username"
+                    value={formData.username}
+                    onChange={(e) =>
+                      handleInputChange('username', e.target.value)
+                    }
+                  />
+                </Form.Group>
+
+                <Form.Group className="mb-3 col-md-6">
+                  <FormLabelWithHelp
+                    label="Password / Token"
+                    help="Optional: Password or Personal Access Token for authentication."
+                  />
+                  <Form.Control
+                    type="password"
+                    autoComplete="current-password"
+                    value={formData.password}
+                    onChange={(e) =>
+                      handleInputChange('password', e.target.value)
+                    }
+                  />
+                </Form.Group>
+              </div>
+            </>
+          ) : (
+            <Form.Group className="mb-3">
+              <FormLabelWithHelp
+                label="Local Repository (required)"
+                help="A repository below the local cloned-repositories folder. The selected value is submitted relative to that folder."
+              />
+              <Form.Select
+                value={formData.repoPath}
+                disabled={localRepositoriesLoading}
+                onChange={(e) => {
+                  handleInputChange('repoPath', e.target.value);
+                  handleInputChange('branch', '');
+                }}
+              >
+                <option value="">
+                  {localRepositoriesLoading
+                    ? 'Loading cloned repositories...'
+                    : localRepositoriesError
+                      ? localRepositoriesError
+                      : localRepositories.length === 0
+                        ? 'No cloned repositories found'
+                        : 'Select a cloned repository'}
+                </option>
+                {localRepositories.map((repository) => (
+                  <option key={repository.path} value={repository.path}>
+                    {repository.path}
+                  </option>
+                ))}
+              </Form.Select>
+            </Form.Group>
+          )}
+
           <Form.Group className="mb-3">
-            <Form.Label>Repository URL *</Form.Label>
+            <FormLabelWithHelp
+              label="Analyze Commit Count"
+              help="Determines how many of the newest commits should be analyzed (remote and local)."
+            />
             <Form.Control
-              type="text"
-              placeholder="https://github.com/user/repository"
-              value={formData.repoRemoteUrl}
+              type="number"
+              min={1}
+              placeholder="all"
+              value={formData.commitAnalysisLimit ?? ''}
               onChange={(e) =>
-                handleInputChange('repoRemoteUrl', e.target.value)
+                handleInputChange(
+                  'commitAnalysisLimit',
+                  e.target.value === ''
+                    ? undefined
+                    : parseInt(e.target.value, 10)
+                )
               }
             />
           </Form.Group>
-        )}
 
-        {!useLocalRepo && (
-          <>
-            <Form.Group className="mb-3">
-              <Form.Label>Username (for private repos)</Form.Label>
+          <div className="row">
+            <Form.Group className="mb-3 col-md-6">
+              <FormLabelWithHelp
+                label="Branch"
+                help={
+                  repoType === 'remote'
+                    ? "The branch to analyze. Uses default branch if none is given (usually 'main' or 'master')."
+                    : 'The branch to analyze from the selected local repository. Uses the current branch if none is selected.'
+                }
+              />
+              {repoType === 'remote' ? (
+                <Form.Control
+                  type="text"
+                  placeholder="default"
+                  value={formData.branch}
+                  onChange={(e) => handleInputChange('branch', e.target.value)}
+                />
+              ) : (
+                <Form.Select
+                  value={formData.branch}
+                  disabled={!selectedLocalRepository}
+                  onChange={(e) => handleInputChange('branch', e.target.value)}
+                >
+                  <option value="">
+                    {!selectedLocalRepository
+                      ? 'Select a repository first'
+                      : selectedLocalRepository.branches.length === 0
+                        ? 'No branches found'
+                        : 'Use current branch'}
+                  </option>
+                  {selectedLocalRepository?.branches.map((branch) => (
+                    <option key={branch} value={branch}>
+                      {branch}
+                    </option>
+                  ))}
+                </Form.Select>
+              )}
+            </Form.Group>
+
+            <Form.Group className="mb-3 col-md-6">
+              <FormLabelWithHelp
+                label="Start Commit"
+                help="Optional: The hash of the commit where the analysis should start."
+              />
               <Form.Control
                 type="text"
-                placeholder="username"
-                value={formData.username}
-                onChange={(e) => handleInputChange('username', e.target.value)}
+                placeholder="Oldest Commit"
+                value={formData.startCommit}
+                onChange={(e) =>
+                  handleInputChange('startCommit', e.target.value)
+                }
               />
             </Form.Group>
 
-            <Form.Group className="mb-3">
-              <Form.Label>Password/Token (for private repos)</Form.Label>
+            <Form.Group className="mb-3 col-md-6">
+              <FormLabelWithHelp
+                label="End Commit"
+                help="Optional: The hash of the commit where the analysis should end."
+              />
               <Form.Control
-                type="password"
-                placeholder="password or access token"
-                value={formData.password}
-                onChange={(e) => handleInputChange('password', e.target.value)}
+                type="text"
+                placeholder="Newest Commit"
+                value={formData.endCommit}
+                onChange={(e) => handleInputChange('endCommit', e.target.value)}
               />
             </Form.Group>
-          </>
-        )}
+          </div>
+        </section>
 
-        <Form.Group className="mb-3">
-          <Form.Label>Application Name</Form.Label>
-          <Form.Control
-            type="text"
-            placeholder="default-application-name"
-            value={formData.applicationName}
-            onChange={(e) =>
-              handleInputChange('applicationName', e.target.value)
-            }
-          />
-        </Form.Group>
+        <section className="border rounded p-3 mb-3">
+          <h6 className="mb-3">Filters</h6>
 
-        <Form.Group className="mb-3">
-          <Form.Label>Branch</Form.Label>
-          <Form.Control
-            type="text"
-            placeholder="default-branch"
-            value={formData.branch}
-            onChange={(e) => handleInputChange('branch', e.target.value)}
-          />
-        </Form.Group>
+          <Form.Group className="mb-3">
+            <FormLabelWithHelp
+              label="Inclusion Search Expressions"
+              help="Limit the analysis to specific subdirectories or files within the repository using a comma-separated list of search expressions relative to the repository root. If empty, all files will be included."
+            />
+            <CreatableSelect<InputOption, true>
+              isMulti
+              options={EXAMPLE_INCLUSION_EXPRESSIONS}
+              value={inclusionExpressions}
+              onChange={(newValue) => setInclusionExpressions(newValue)}
+              getNewOptionData={(inputValue) => ({
+                value: inputValue,
+                label: inputValue,
+              })}
+              placeholder="Include all"
+              noOptionsMessage={() => 'Type an expression or select a default...'}
+            />
+          </Form.Group>
 
-        <Form.Group className="mb-3">
-          <Form.Label>Application Root</Form.Label>
-          <Form.Control
-            type="text"
-            placeholder="e.g. app/src (Project root relative to repository root)"
-            value={formData.applicationRoot}
-            onChange={(e) =>
-              handleInputChange('applicationRoot', e.target.value)
-            }
-          />
-        </Form.Group>
+          <Form.Group className="mb-3">
+            <FormLabelWithHelp
+              label="Exclusion Search Expressions"
+              help="Exclude specific subdirectories or files from the analysis using a comma-separated list of search expressions relative to the repository root. If empty, no files will be excluded."
+            />
+            <CreatableSelect<InputOption, true>
+              isMulti
+              options={EXAMPLE_EXCLUSION_EXPRESSIONS}
+              value={exclusionExpressions}
+              onChange={(newValue) => setExclusionExpressions(newValue)}
+              getNewOptionData={(inputValue) => ({
+                value: inputValue,
+                label: inputValue,
+              })}
+              placeholder="Exclude none"
+              noOptionsMessage={() => 'Type an expression or select a default...'}
+            />
+          </Form.Group>
 
-        <Form.Group className="mb-3">
-          <Form.Label>Inclusion Search Expressions</Form.Label>
-          <CreatableSelect<InputOption, true>
-            isMulti
-            options={EXAMPLE_INCLUSION_EXPRESSIONS}
-            value={inclusionExpressions}
-            onChange={(newValue) => setInclusionExpressions(newValue)}
-            getNewOptionData={(inputValue) => ({
-              value: inputValue,
-              label: inputValue,
-            })}
-            placeholder="Include all if empty (e.g. src/main/java/**)"
-            noOptionsMessage={() => 'Type an expression or select a default...'}
-          />
-          <Form.Text className="text-muted">
-            Limit the analysis to specific folders or files using glob patterns.
-            If empty, all files will be included.
-          </Form.Text>
-        </Form.Group>
+          <div className="table-responsive">
+            <table className="table table-sm table-bordered mb-0">
+              <thead>
+                <tr>
+                  <th>Example Expression</th>
+                  <th>Description</th>
+                </tr>
+              </thead>
+              <tbody>
+                {FILTER_EXAMPLES.map((example) => (
+                  <tr key={example.expression}>
+                    <td>
+                      <code>{example.expression}</code>
+                    </td>
+                    <td>{example.description}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </section>
 
-        <Form.Group className="mb-3">
-          <Form.Label>Exclusion Search Expressions</Form.Label>
-          <CreatableSelect<InputOption, true>
-            isMulti
-            options={EXAMPLE_EXCLUSION_EXPRESSIONS}
-            value={exclusionExpressions}
-            onChange={(newValue) => setExclusionExpressions(newValue)}
-            getNewOptionData={(inputValue) => ({
-              value: inputValue,
-              label: inputValue,
-            })}
-            placeholder="Select or type to add expressions..."
-            noOptionsMessage={() => 'Type an expression or select a default...'}
-          />
-          <Form.Text className="text-muted">
-            Exclude files or folders using glob patterns (e.g.,
-            **/node_modules/**). If empty, no files will be excluded.
-          </Form.Text>
-        </Form.Group>
+        <section className="border rounded p-3 mb-3">
+          <h6 className="mb-3">Analysis Configuration</h6>
 
-        <Form.Group className="mb-3">
-          <Form.Label>Analyze Commit Count</Form.Label>
-          <Form.Control
-            type="number"
-            min={1}
-            placeholder="Leave empty for all commits"
-            value={formData.commitAnalysisLimit}
-            onChange={(e) =>
-              handleInputChange(
-                'commitAnalysisLimit',
-                e.target.value === '' ? undefined : parseInt(e.target.value, 10)
-              )
-            }
-          />
-        </Form.Group>
+          <div className="mb-3">
+            <FormLabelWithHelp
+              label="Applications"
+              help="One or more logical applications: each has a name and an optional project root path relative to the repository root. Use multiple rows for monorepos."
+            />
+            {applications.map((application, index) => (
+              <div
+                key={`application-row-${index}`}
+                className="border rounded p-2 mb-2"
+              >
+                <div className="row g-2 align-items-end">
+                  <Form.Group className="col-md-5">
+                    <Form.Label className="mb-1">Application name</Form.Label>
+                    <Form.Control
+                      type="text"
+                      placeholder="e.g. order-service"
+                      value={application.name}
+                      onChange={(e) =>
+                        handleApplicationChange(index, 'name', e.target.value)
+                      }
+                    />
+                  </Form.Group>
+                  <Form.Group className="col-md-5">
+                    <Form.Label className="mb-1">Application root</Form.Label>
+                    <Form.Control
+                      type="text"
+                      placeholder="relative to repo root, optional"
+                      value={application.root}
+                      onChange={(e) =>
+                        handleApplicationChange(index, 'root', e.target.value)
+                      }
+                    />
+                  </Form.Group>
+                  <Form.Group className="col-md-2">
+                    <Button
+                      type="button"
+                      variant="outline-secondary"
+                      size="sm"
+                      className="w-100"
+                      onClick={() => removeApplicationRow(index)}
+                    >
+                      Remove
+                    </Button>
+                  </Form.Group>
+                </div>
+              </div>
+            ))}
+            <Button
+              type="button"
+              variant="outline-primary"
+              size="sm"
+              onClick={addApplicationRow}
+            >
+              Add application
+            </Button>
+          </div>
 
-        <div className="mb-3 d-flex gap-4">
-          <Form.Group>
+          <Form.Group className="mb-3">
+            <FormLabelWithHelp
+              label="Landscape Token"
+              help="The landscape token for the ExplorViz software landscape."
+            />
+            <Form.Control
+              type={externalLandscapeToken ? 'text' : 'password'}
+              placeholder="mytokenvalue"
+              value={formData.landscapeToken}
+              onChange={(e) =>
+                handleInputChange('landscapeToken', e.target.value)
+              }
+              readOnly={!!externalLandscapeToken}
+            />
+            <Form.Text className="text-muted">
+              {externalLandscapeToken
+                ? 'Using current landscape token'
+                : assignRandomToken
+                  ? 'A random landscape token was generated for this analysis'
+                  : 'No landscape token selected'}
+            </Form.Text>
+          </Form.Group>
+
+          <div className="row">
+            <Form.Group className="mb-3 col-md-6">
+              <FormLabelWithHelp
+                label="Social Fetch End Date"
+                help="Optional: Date to end fetching social data (e.g. 2026-05-10 or ISO timestamp)."
+              />
+              <Form.Control
+                type="text"
+                placeholder="current date"
+                value={formData.fetchEndDate}
+                onChange={(e) =>
+                  handleInputChange('fetchEndDate', e.target.value)
+                }
+              />
+            </Form.Group>
+
+            <Form.Group className="mb-3 col-md-6">
+              <FormLabelWithHelp
+                label="Social Fetch Time Frame"
+                help="How many days in the past social data will be fetched."
+              />
+              <Form.Control
+                type="number"
+                min={1}
+                placeholder="365"
+                value={formData.socialDataTimeFrameDays ?? ''}
+                onChange={(e) =>
+                  handleInputChange(
+                    'socialDataTimeFrameDays',
+                    e.target.value === ''
+                      ? undefined
+                      : parseInt(e.target.value, 10)
+                  )
+                }
+              />
+            </Form.Group>
+          </div>
+
+          <div className="d-flex flex-wrap gap-3 mb-3">
             <Form.Check
-              type="switch"
+              type="checkbox"
               id="calculate-metrics"
-              label="Calculate Metrics"
+              label={
+                <span className="d-inline-flex align-items-center">
+                  Calculate Metrics
+                  <HelpTooltip
+                    title="Whether to calculate code metrics (e.g., lines of code)."
+                    placement="top"
+                  />
+                </span>
+              }
               checked={formData.calculateMetrics}
               onChange={(e) =>
                 handleInputChange('calculateMetrics', e.target.checked)
               }
             />
-          </Form.Group>
-
-          <Form.Group>
             <Form.Check
-              type="switch"
+              type="checkbox"
               id="send-to-remote"
-              label="Send Results via gRPC"
+              label={
+                <span className="d-inline-flex align-items-center">
+                  Send Results via gRPC
+                  <HelpTooltip
+                    title="Whether to push the analysis results to the persistence-service."
+                    placement="top"
+                  />
+                </span>
+              }
               checked={formData.sendToRemote}
               onChange={(e) =>
                 handleInputChange('sendToRemote', e.target.checked)
               }
             />
-          </Form.Group>
-        </div>
-
-        <div className="mb-3">
-          <h6>Commit Range (Optional)</h6>
-
-          <Form.Group className="mb-3">
-            <Form.Label>Start Commit SHA</Form.Label>
-            <Form.Control
-              type="text"
-              placeholder="e.g. abc123def456..."
-              value={formData.startCommit}
-              onChange={(e) => handleInputChange('startCommit', e.target.value)}
+            <Form.Check
+              type="checkbox"
+              id="fetch-social-data"
+              label={
+                <span className="d-inline-flex align-items-center">
+                  Fetch Social Data
+                  <HelpTooltip
+                    title="Whether to fetch social data."
+                    placement="top"
+                  />
+                </span>
+              }
+              checked={formData.fetchSocialData}
+              onChange={(e) =>
+                handleInputChange('fetchSocialData', e.target.checked)
+              }
             />
-          </Form.Group>
+          </div>
+        </section>
 
-          <Form.Group className="mb-3">
-            <Form.Label>End Commit SHA</Form.Label>
-            <Form.Control
-              type="text"
-              placeholder="e.g. xyz789uvw012..."
-              value={formData.endCommit}
-              onChange={(e) => handleInputChange('endCommit', e.target.value)}
-            />
-          </Form.Group>
-        </div>
+        <details className="border rounded p-3 mb-3">
+          <summary className="fw-semibold">Payload Preview (read-only)</summary>
+          <pre className="mt-3 mb-0 small bg-light p-2 rounded">
+            {JSON.stringify(payloadPreview, null, 2)}
+          </pre>
+        </details>
 
         <div className="d-flex justify-content-end">
           <button
@@ -465,7 +923,7 @@ export default function CodeAnalysisTriggerForm({
                 Analyzing...
               </>
             ) : (
-              'Trigger Analysis'
+              'Run Analysis'
             )}
           </button>
         </div>

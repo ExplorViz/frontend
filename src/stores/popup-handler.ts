@@ -179,7 +179,8 @@ export const usePopupHandlerStore = create<PopupHandlerState>((set, get) => ({
               isPinned: pd.isPinned || updatedPopup.isPinned,
               sharedBy: updatedPopup.sharedBy,
               hovered: updatedPopup.hovered,
-              fileDetailedData: updatedPopup.fileDetailedData,
+              fileDetailedData:
+                updatedPopup.fileDetailedData ?? pd.fileDetailedData,
             }
           : pd
       ),

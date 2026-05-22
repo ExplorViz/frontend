@@ -60,16 +60,40 @@ export default function BuildingPopup({ popupData }: BuildingPopupProps) {
       building.originOfData === TypeOfAnalysis.Static ||
       building.originOfData === TypeOfAnalysis.StaticAndDynamic;
 
-    if (!popupData.fileDetailedData && isStatic && building.id) {
-      requestFileDetailedData(building.id)
-        .then((data) => {
-          updatePopup({ ...popupData, fileDetailedData: data });
-        })
-        .catch((err) => {
-          console.error('Failed to fetch detailed file data:', err);
-        });
+    if (popupData.fileDetailedData || !isStatic || !building.id) {
+      return;
     }
-  }, [building.id, building.originOfData, popupData, updatePopup]);
+
+    let cancelled = false;
+
+    requestFileDetailedData(building.id)
+      .then((data) => {
+        if (cancelled) {
+          return;
+        }
+
+        const currentPopup = usePopupHandlerStore
+          .getState()
+          .popupData.find((popup) => popup.entityId === popupData.entityId);
+
+        if (currentPopup) {
+          updatePopup({ ...currentPopup, fileDetailedData: data });
+        }
+      })
+      .catch((err) => {
+        console.error('Failed to fetch detailed file data:', err);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [
+    building.id,
+    building.originOfData,
+    popupData.entityId,
+    popupData.fileDetailedData,
+    updatePopup,
+  ]);
 
   const detailedData = popupData.fileDetailedData;
 
@@ -176,9 +200,9 @@ export default function BuildingPopup({ popupData }: BuildingPopupProps) {
                       </Accordion.Header>
                       <Accordion.Body>
                         <h6>Fields</h6>
-                        {clazz.fields.length > 0 ? (
+                        {(clazz.fields ?? []).length > 0 ? (
                           <ul>
-                            {clazz.fields.map((f) => (
+                            {(clazz.fields ?? []).map((f) => (
                               <li key={f.name}>
                                 <span className="entity-name">{f.name}</span>:{' '}
                                 <span className="entity-type">{f.type}</span>
@@ -189,9 +213,9 @@ export default function BuildingPopup({ popupData }: BuildingPopupProps) {
                           <p className="text-muted small">No fields</p>
                         )}
                         <h6>Functions</h6>
-                        {clazz.functions.length > 0 ? (
+                        {(clazz.functions ?? []).length > 0 ? (
                           <ul>
-                            {clazz.functions.map((f) => (
+                            {(clazz.functions ?? []).map((f) => (
                               <li key={f.name}>
                                 <span className="entity-name">{f.name}</span>:{' '}
                                 <span className="entity-type">
