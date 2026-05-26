@@ -28,6 +28,20 @@ export interface ImmersiveInfo {
   variables: VariableData[];
 }
 
+export function buildFallbackImmersiveInfo(building: {
+  name: string;
+  fqn?: string;
+}): ImmersiveInfo {
+  return {
+    name: building.name,
+    fqn: building.fqn ?? building.name,
+    extends: [],
+    implements: [],
+    methods: [],
+    variables: [],
+  };
+}
+
 interface ImmersiveViewState {
   activeMeshId: string | null;
   targetPosition: THREE.Vector3 | null;

@@ -6,15 +6,20 @@ import {
   HeatmapValueMapping,
   useHeatmapStore,
 } from 'explorviz-frontend/src/stores/heatmap/heatmap-store';
-import { useImmersiveViewStore } from 'explorviz-frontend/src/stores/immersive-view-store';
+import {
+  buildFallbackImmersiveInfo,
+  useImmersiveViewStore,
+} from 'explorviz-frontend/src/stores/immersive-view-store';
 import { useLayoutStore } from 'explorviz-frontend/src/stores/layout-store';
 import { usePopupHandlerStore } from 'explorviz-frontend/src/stores/popup-handler';
 import { useModelStore } from 'explorviz-frontend/src/stores/repos/model-repository';
+import { useToastHandlerStore } from 'explorviz-frontend/src/stores/toast-handler';
 import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
 import { useVisibilityServiceStore } from 'explorviz-frontend/src/stores/visibility-service';
 import { useVisualizationStore } from 'explorviz-frontend/src/stores/visualization-store';
 import { isBuildingVisible } from 'explorviz-frontend/src/utils/city-rendering/building-visibility';
 import { getHighlightingColorForEntity } from 'explorviz-frontend/src/utils/city-rendering/highlighting';
+import { getImmersiveTargetWorldPosition } from 'explorviz-frontend/src/utils/city-rendering/immersive-target-position';
 import { emitContextMenuFromWorld } from 'explorviz-frontend/src/utils/context-menu-bridge';
 import { getMetricValues } from 'explorviz-frontend/src/utils/heatmap/building-heatmap-helper';
 import { getSimpleHeatmapColor } from 'explorviz-frontend/src/utils/heatmap/simple-heatmap';
@@ -691,10 +696,18 @@ const GeometryGroup: React.FC<GeometryGroupProps> = ({
     const building = useModelStore.getState().getBuilding(buildingId);
     if (!building) return;
 
-    const targetPos = new THREE.Vector3();
-    const tempMatrix = new THREE.Matrix4();
-    meshRef.current.getMatrixAt(instanceId, tempMatrix);
-    targetPos.setFromMatrixPosition(tempMatrix);
+    const mesh = meshRef.current;
+    const sphereRadius =
+      useUserSettingsStore.getState().visualizationSettings.sphereRadius
+        ?.value ?? 0.7;
+    const targetPos = getImmersiveTargetWorldPosition(
+      mesh,
+      instanceId,
+      sphereRadius
+    );
+    if (!targetPos) {
+      return;
+    }
 
     // Check if we have data in an existing popup
     const existingPopup = popupData.find((p) => p.entityId === buildingId);
@@ -723,7 +736,18 @@ const GeometryGroup: React.FC<GeometryGroupProps> = ({
             'Failed to fetch detailed file data for immersive view:',
             err
           );
-          enterImmersive(buildingId, targetPos);
+          useToastHandlerStore
+            .getState()
+            .showErrorToastMessage(
+              err instanceof Error
+                ? err.message
+                : 'Could not load file details for immersive view.'
+            );
+          enterImmersive(
+            buildingId,
+            targetPos,
+            buildFallbackImmersiveInfo(building)
+          );
         });
     } else {
       enterImmersive(buildingId, targetPos);

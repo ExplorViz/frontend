@@ -11,6 +11,7 @@ import XrRendering from 'explorviz-frontend/src/components/visualization/renderi
 import { useLocalUserStore } from 'explorviz-frontend/src/stores/collaboration/local-user';
 import { useRoomSerializerStore } from 'explorviz-frontend/src/stores/collaboration/room-serializer';
 import { useCommitTreeStateStore } from 'explorviz-frontend/src/stores/commit-tree-state';
+import { useImmersiveViewStore } from 'explorviz-frontend/src/stores/immersive-view-store';
 import { useLandscapeRestructureStore } from 'explorviz-frontend/src/stores/landscape-restructure';
 import { useLandscapeTokenStore } from 'explorviz-frontend/src/stores/landscape-token';
 import { useReloadHandlerStore } from 'explorviz-frontend/src/stores/reload-handler';
@@ -528,6 +529,7 @@ export default function Visualization() {
   // #region Cleanup
 
   const willDestroy = () => {
+    useImmersiveViewStore.getState().exitImmersive();
     useLandscapeRestructureStore.getState().resetLandscapeRestructure();
     useTimestampPollingStore.getState().resetState();
     useTimestampRepositoryStore.setState({ commitToTimestampMap: new Map() });

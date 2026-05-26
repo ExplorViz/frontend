@@ -1,8 +1,8 @@
+import { getCodeAgentUrl } from 'explorviz-frontend/src/utils/code-agent-url';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useToastHandlerStore } from '../stores/toast-handler';
 
-const codeAgentUrl =
-  import.meta.env.VITE_CODE_AGENT_URL || 'http://localhost:8078';
+const codeAgentUrl = getCodeAgentUrl();
 
 export type ProgressState = {
   status: 'pending' | 'running' | 'finished' | 'failed';

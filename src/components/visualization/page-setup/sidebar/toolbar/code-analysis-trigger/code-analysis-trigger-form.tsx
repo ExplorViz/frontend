@@ -1,13 +1,13 @@
 import HelpTooltip from 'explorviz-frontend/src/components/help-tooltip';
 import { useToastHandlerStore } from 'explorviz-frontend/src/stores/toast-handler';
+import { getCodeAgentUrl } from 'explorviz-frontend/src/utils/code-agent-url';
 import generateUuidv4 from 'explorviz-frontend/src/utils/helpers/uuid4-generator';
 import React, { useEffect, useMemo, useState } from 'react';
 import { Button, Form, Spinner } from 'react-bootstrap';
 import { useSearchParams } from 'react-router-dom';
 import CreatableSelect from 'react-select/creatable';
 
-const codeAgentUrl =
-  import.meta.env.VITE_CODE_AGENT_URL || 'http://localhost:8078';
+const codeAgentUrl = getCodeAgentUrl();
 
 type InputOption = {
   label: string;

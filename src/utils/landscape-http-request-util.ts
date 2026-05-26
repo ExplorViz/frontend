@@ -4,7 +4,18 @@ import { AggregatedBuildingCommunication } from 'explorviz-frontend/src/utils/la
 import { EntityPairCommunicationDto } from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/entity-pair-communication';
 import { FlatLandscape } from 'explorviz-frontend/src/utils/landscape-schemes/flat-landscape';
 
-const persistenceService = import.meta.env.VITE_PERSISTENCE_SERV_URL;
+/** Base URL for persistence API. Empty string uses same-origin (Vite dev proxy in development). */
+export function getPersistenceServiceUrl(): string {
+  const configured = import.meta.env.VITE_PERSISTENCE_SERV_URL as
+    | string
+    | undefined;
+  if (configured === undefined || configured === '') {
+    return '';
+  }
+  return configured.replace(/\/$/, '');
+}
+
+const persistenceService = getPersistenceServiceUrl();
 
 // Helper functions to convert between nanoseconds and milliseconds
 // The backend now uses nanoseconds, but frontend Date objects use milliseconds
@@ -162,8 +173,17 @@ export function requestFileDetailedData(fileRevisionId: string) {
         reject(new Error('No landscape token selected'));
         return;
       }
+      if (import.meta.env.VITE_PERSISTENCE_SERV_URL === undefined) {
+        reject(
+          new Error(
+            'VITE_PERSISTENCE_SERV_URL is not configured. Set it in .env or leave it empty to use the Vite dev proxy.'
+          )
+        );
+        return;
+      }
+      const url = `${persistenceService}/v3/landscapes/${token.value}/structure/evolution/file-revision/${fileRevisionId}`;
       fetch(
-        `${persistenceService}/v3/landscapes/${token.value}/structure/evolution/file-revision/${fileRevisionId}`,
+        url,
         {
           headers: {
             Authorization: `Bearer ${useAuthStore.getState().accessToken}`,
@@ -184,7 +204,17 @@ export function requestFileDetailedData(fileRevisionId: string) {
             );
           }
         })
-        .catch((e) => reject(e));
+        .catch((e) => {
+          if (e instanceof TypeError) {
+            reject(
+              new Error(
+                `Could not reach persistence service at ${url}. Ensure the persistence-service (or backend-mock with v3 support) is running.`
+              )
+            );
+            return;
+          }
+          reject(e);
+        });
     }
   );
 }

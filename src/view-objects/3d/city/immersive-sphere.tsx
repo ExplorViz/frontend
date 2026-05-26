@@ -1,4 +1,5 @@
 import { Sphere } from '@react-three/drei';
+import { getImmersiveBackgroundSphereRadius } from 'explorviz-frontend/src/utils/city-rendering/immersive-target-position';
 import { useImmersiveViewStore } from 'explorviz-frontend/src/stores/immersive-view-store';
 import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
 import * as THREE from 'three';
@@ -22,8 +23,7 @@ export default function ImmersiveSphere() {
         targetPosition.z
     );
 
-    // The sphere is slightly greater the the user radius so that the cards and the sphere does not overlap
-    const backgroundRadius = userRadius + 0.2;
+    const backgroundRadius = getImmersiveBackgroundSphereRadius(userRadius);
 
     return (
         <group position={spherePosition}>
