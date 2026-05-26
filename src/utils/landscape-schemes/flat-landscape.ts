@@ -50,8 +50,8 @@ export type Building = FlatBaseModel & {
 };
 
 export type MetricValue = {
-  current: number;
-  previous?: number;
+  current: number | null;
+  previous?: number | null;
 };
 
 export function isCity(x: any): x is City {

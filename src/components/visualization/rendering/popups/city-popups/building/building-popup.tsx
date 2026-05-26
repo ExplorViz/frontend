@@ -12,12 +12,33 @@ interface BuildingPopupProps {
   popupData: PopupData;
 }
 
-function formatInteger(value: number): string {
-  return Math.round(value).toLocaleString('en-US');
+const NULL_METRIC_DISPLAY = '—';
+
+function coerceMetricNumber(value: number | null | undefined): number | null {
+  if (value == null) {
+    return null;
+  }
+
+  const numericValue = typeof value === 'number' ? value : Number(value);
+  return Number.isFinite(numericValue) ? numericValue : null;
 }
 
-function formatWithUpToTwoDecimals(value: number): string {
-  return value.toLocaleString('en-US', {
+function formatInteger(value: number | null | undefined): string {
+  const numericValue = coerceMetricNumber(value);
+  if (numericValue === null) {
+    return NULL_METRIC_DISPLAY;
+  }
+
+  return Math.round(numericValue).toLocaleString('en-US');
+}
+
+function formatWithUpToTwoDecimals(value: number | null | undefined): string {
+  const numericValue = coerceMetricNumber(value);
+  if (numericValue === null) {
+    return NULL_METRIC_DISPLAY;
+  }
+
+  return numericValue.toLocaleString('en-US', {
     minimumFractionDigits: 0,
     maximumFractionDigits: 2,
   });
@@ -38,7 +59,10 @@ function formatSizeMetric(valueInBytes: number): string {
   return `${formatWithUpToTwoDecimals(valueInBytes)} Bytes`;
 }
 
-function formatMetricValue(name: string, value: number): string {
+function formatMetricValue(
+  name: string,
+  value: number | null | undefined
+): string {
   if (name.trim().toLowerCase() === 'size') {
     return formatSizeMetric(value);
   }
@@ -140,14 +164,19 @@ export default function BuildingPopup({ popupData }: BuildingPopupProps) {
                   </tr>
                   {building.metrics &&
                     Object.entries(building.metrics).map(([name, value]) => {
+                      const currentValue = coerceMetricNumber(value.current);
+                      const previousValue = coerceMetricNumber(value.previous);
                       const hasChanged =
-                        value.previous !== undefined &&
-                        value.current !== value.previous;
+                        previousValue !== null &&
+                        currentValue !== previousValue;
                       const diff =
-                        value.previous !== undefined
-                          ? value.current - value.previous
+                        previousValue !== null
+                          ? (currentValue ?? 0) - previousValue
                           : 0;
-                      const diffText = diff > 0 ? `+${formatInteger(diff)}` : `${formatInteger(diff)}`;
+                      const diffText =
+                        diff > 0
+                          ? `+${formatInteger(diff)}`
+                          : `${formatInteger(diff)}`;
 
                       return (
                         <tr key={name}>
@@ -165,8 +194,9 @@ export default function BuildingPopup({ popupData }: BuildingPopupProps) {
                                   {diffText}
                                 </span>
                                 <span className="ml-2 small text-muted">
-                                  (C1: {formatMetricValue(name, value.previous!)},
-                                  {' '}C2: {formatMetricValue(name, value.current)})
+                                  (C1: {formatMetricValue(name, value.previous)}
+                                  , C2: {formatMetricValue(name, value.current)}
+                                  )
                                 </span>
                               </>
                             )}
