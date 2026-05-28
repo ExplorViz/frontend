@@ -95,7 +95,7 @@ export default function TraceReplayOverlayR3F() {
 
       const pathColor = mkColorById(node.id, idx, active.length);
 
-      // Check if line already exists for this node (for afterimage persistence)
+      // Check if line already exists for this node
       const existingLine = lineGroup.children.find(
         (child) => child.userData?.nodeId === node.id
       );

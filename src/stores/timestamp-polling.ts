@@ -18,7 +18,7 @@ import { CROSS_COMMIT_IDENTIFIER } from 'explorviz-frontend/src/utils/evolution-
 import { Timestamp } from 'explorviz-frontend/src/utils/landscape-schemes/timestamp';
 import { create } from 'zustand';
 
-const persistenceService = import.meta.env.VITE_PERSISTENCE_SERV_URL;
+const landscapeService = import.meta.env.VITE_LANDSCAPE_SERV_URL;
 const vsCodeService = import.meta.env.VITE_VSCODE_SERV_URL;
 
 export const TIMESTAMP_POLLING_START_EVENT = 'timestamp_polling_start';
@@ -287,7 +287,7 @@ export const useTimestampPollingStore = create<TimestampPollingState>(
           return;
         }
 
-        let url = `${persistenceService}/v3/landscapes/${useLandscapeTokenStore.getState().token!.value}/timestamps`;
+        let url = `${landscapeService}/v3/landscapes/${useLandscapeTokenStore.getState().token!.value}/timestamps`;
 
         let parameter = '?';
 

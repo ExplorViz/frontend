@@ -13,9 +13,9 @@ sed -i "s|\${RESOLVER}|$RESOLVER|g" /etc/nginx/templates/default.conf.template
 
 echo "FRONTEND_HOST_URL: $FRONTEND_HOST_URL"
 
-find /usr/share/nginx/html -type f \( -name '*.js' -o -name '*.css' \) -exec sed -i "s|change-code-agent-url|$FRONTEND_HOST_URL|g" '{}' +
+find /usr/share/nginx/html -type f \( -name '*.js' -o -name '*.css' \) -exec sed -i "s|change-code-analyzer-url|$FRONTEND_HOST_URL|g" '{}' +
 
-find /usr/share/nginx/html -type f \( -name '*.js' -o -name '*.css' \) -exec sed -i "s|change-persistence-url|$FRONTEND_HOST_URL|g" '{}' +
+find /usr/share/nginx/html -type f \( -name '*.js' -o -name '*.css' \) -exec sed -i "s|change-landscape-url|$FRONTEND_HOST_URL|g" '{}' +
 
 find /usr/share/nginx/html -type f \( -name '*.js' -o -name '*.css' \) -exec sed -i "s|change-vscode-url|$FRONTEND_HOST_URL|g" '{}' +
 

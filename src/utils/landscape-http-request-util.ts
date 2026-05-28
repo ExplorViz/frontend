@@ -4,9 +4,9 @@ import { AggregatedBuildingCommunication } from 'explorviz-frontend/src/utils/la
 import { EntityPairCommunicationDto } from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/entity-pair-communication';
 import { FlatLandscape } from 'explorviz-frontend/src/utils/landscape-schemes/flat-landscape';
 
-/** Base URL for persistence API. Empty string uses same-origin (Vite dev proxy in development). */
-export function getPersistenceServiceUrl(): string {
-  const configured = import.meta.env.VITE_PERSISTENCE_SERV_URL as
+/** Base URL for landscape API. Empty string uses same-origin (Vite dev proxy in development). */
+export function getLandscapeServiceUrl(): string {
+  const configured = import.meta.env.VITE_LANDSCAPE_SERV_URL as
     | string
     | undefined;
   if (configured === undefined || configured === '') {
@@ -15,7 +15,7 @@ export function getPersistenceServiceUrl(): string {
   return configured.replace(/\/$/, '');
 }
 
-const persistenceService = getPersistenceServiceUrl();
+const landscapeService = getLandscapeServiceUrl();
 
 // Helper functions to convert between nanoseconds and milliseconds
 // The backend now uses nanoseconds, but frontend Date objects use milliseconds
@@ -52,7 +52,7 @@ export function requestStructureData(/* fromTimestamp: number, toTimestamp: numb
       return;
     }
     fetch(
-      `${persistenceService}/v3/landscapes/${useLandscapeTokenStore.getState().token!.value}/structure/runtime`,
+      `${landscapeService}/v3/landscapes/${useLandscapeTokenStore.getState().token!.value}/structure/runtime`,
       {
         headers: {
           Authorization: `Bearer ${useAuthStore.getState().accessToken}`,
@@ -83,7 +83,7 @@ export function requestDynamicData(
       return;
     }
     fetch(
-      `${persistenceService}/v3/landscapes/${useLandscapeTokenStore.getState().token!.value}/file-communication?from=${fromTimestamp}&to=${toTimestamp}`,
+      `${landscapeService}/v3/landscapes/${useLandscapeTokenStore.getState().token!.value}/file-communication?from=${fromTimestamp}&to=${toTimestamp}`,
       {
         headers: {
           Authorization: `Bearer ${useAuthStore.getState().accessToken}`,
@@ -113,7 +113,7 @@ export function deleteTraceData(): Promise<void> {
       return;
     }
     fetch(
-      `${persistenceService}/v3/landscapes/${useLandscapeTokenStore.getState().token!.value}/trace-data`,
+      `${landscapeService}/v3/landscapes/${useLandscapeTokenStore.getState().token!.value}/trace-data`,
       {
         method: 'DELETE',
         headers: {
@@ -145,7 +145,7 @@ export function requestCommunicationFunctions(
       return;
     }
     fetch(
-      `${persistenceService}/v3/landscapes/${useLandscapeTokenStore.getState().token!.value}/communication/${sourceEntityId}/${targetEntityId}?from=${fromTimestamp}&to=${toTimestamp}`,
+      `${landscapeService}/v3/landscapes/${useLandscapeTokenStore.getState().token!.value}/communication/${sourceEntityId}/${targetEntityId}?from=${fromTimestamp}&to=${toTimestamp}`,
       {
         headers: {
           Authorization: `Bearer ${useAuthStore.getState().accessToken}`,
@@ -166,55 +166,52 @@ export function requestCommunicationFunctions(
 }
 
 export function requestFileDetailedData(fileRevisionId: string) {
-  return new Promise<import('explorviz-frontend/src/utils/landscape-schemes/file-detailed-data').FileDetailedDto>(
-    (resolve, reject) => {
-      const token = useLandscapeTokenStore.getState().token;
-      if (token === null) {
-        reject(new Error('No landscape token selected'));
-        return;
-      }
-      if (import.meta.env.VITE_PERSISTENCE_SERV_URL === undefined) {
-        reject(
-          new Error(
-            'VITE_PERSISTENCE_SERV_URL is not configured. Set it in .env or leave it empty to use the Vite dev proxy.'
-          )
-        );
-        return;
-      }
-      const url = `${persistenceService}/v3/landscapes/${token.value}/structure/evolution/file-revision/${fileRevisionId}`;
-      fetch(
-        url,
-        {
-          headers: {
-            Authorization: `Bearer ${useAuthStore.getState().accessToken}`,
-            'Access-Control-Allow-Origin': '*',
-          },
-        }
-      )
-        .then(async (response: Response) => {
-          if (response.ok) {
-            const data =
-              (await response.json()) as import('explorviz-frontend/src/utils/landscape-schemes/file-detailed-data').FileDetailedDto;
-            resolve(data);
-          } else {
-            reject(
-              new Error(
-                `Failed to fetch file detailed data: ${response.statusText}`
-              )
-            );
-          }
-        })
-        .catch((e) => {
-          if (e instanceof TypeError) {
-            reject(
-              new Error(
-                `Could not reach persistence service at ${url}. Ensure the persistence-service (or backend-mock with v3 support) is running.`
-              )
-            );
-            return;
-          }
-          reject(e);
-        });
+  return new Promise<
+    import('explorviz-frontend/src/utils/landscape-schemes/file-detailed-data').FileDetailedDto
+  >((resolve, reject) => {
+    const token = useLandscapeTokenStore.getState().token;
+    if (token === null) {
+      reject(new Error('No landscape token selected'));
+      return;
     }
-  );
+    if (import.meta.env.VITE_LANDSCAPE_SERV_URL === undefined) {
+      reject(
+        new Error(
+          'VITE_LANDSCAPE_SERV_URL is not configured. Set it in .env or leave it empty to use the Vite dev proxy.'
+        )
+      );
+      return;
+    }
+    const url = `${landscapeService}/v3/landscapes/${token.value}/structure/evolution/file-revision/${fileRevisionId}`;
+    fetch(url, {
+      headers: {
+        Authorization: `Bearer ${useAuthStore.getState().accessToken}`,
+        'Access-Control-Allow-Origin': '*',
+      },
+    })
+      .then(async (response: Response) => {
+        if (response.ok) {
+          const data =
+            (await response.json()) as import('explorviz-frontend/src/utils/landscape-schemes/file-detailed-data').FileDetailedDto;
+          resolve(data);
+        } else {
+          reject(
+            new Error(
+              `Failed to fetch file detailed data: ${response.statusText}`
+            )
+          );
+        }
+      })
+      .catch((e) => {
+        if (e instanceof TypeError) {
+          reject(
+            new Error(
+              `Could not reach landscape service at ${url}. Ensure the landscape-service (or backend-mock with v3 support) is running.`
+            )
+          );
+          return;
+        }
+        reject(e);
+      });
+  });
 }

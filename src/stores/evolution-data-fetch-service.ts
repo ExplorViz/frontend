@@ -41,7 +41,7 @@ export const useEvolutionDataFetchServiceStore =
       body: EvolutionStructureBatchRequestBody
     ): Promise<FlatLandscape> => {
       const landscapeToken = get()._getLandscapeToken();
-      const url = `${import.meta.env.VITE_PERSISTENCE_SERV_URL}/v3/landscapes/${landscapeToken}/structure/evolution/batch`;
+      const url = `${import.meta.env.VITE_LANDSCAPE_SERV_URL}/v3/landscapes/${landscapeToken}/structure/evolution/batch`;
       return await get()._postJsonToService<FlatLandscape>(url, body);
     },
 
@@ -55,7 +55,7 @@ export const useEvolutionDataFetchServiceStore =
 
     _constructUrl: (endpoint: string, ...params: string[]): string => {
       const landscapeToken = get()._getLandscapeToken();
-      return `${import.meta.env.VITE_PERSISTENCE_SERV_URL}/v3/landscapes/${landscapeToken}/${endpoint}/${params.join('/')}`;
+      return `${import.meta.env.VITE_LANDSCAPE_SERV_URL}/v3/landscapes/${landscapeToken}/${endpoint}/${params.join('/')}`;
     },
 
     _fetchFromService: async <T>(url: string): Promise<T> => {

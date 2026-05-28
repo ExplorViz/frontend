@@ -8,7 +8,7 @@ import {
 import { FlatLandscape } from 'explorviz-frontend/src/utils/landscape-schemes/flat-landscape';
 import { create } from 'zustand';
 
-/** Older commit first, newer second — matches persistence-service comparison semantics. */
+/** Older commit first, newer second — matches landscape-service comparison semantics. */
 function sortSelectedCommitsForComparison(
   repoNameCommitTreeMap: RepoNameCommitTreeMap,
   repositoryName: string,

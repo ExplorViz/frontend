@@ -5,7 +5,7 @@ services:
     image: explorviz/backend-mock
     ports:
       - ${USER_PORT}:8084
-      - ${PERSISTENCE_PORT}:8085
+      - ${LANDSCAPE_PORT}:8085
 
   kubediagrams:
     build:

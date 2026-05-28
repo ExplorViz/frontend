@@ -1,13 +1,13 @@
 import HelpTooltip from 'explorviz-frontend/src/components/help-tooltip';
 import { useToastHandlerStore } from 'explorviz-frontend/src/stores/toast-handler';
-import { getCodeAgentUrl } from 'explorviz-frontend/src/utils/code-agent-url';
+import { getCodeAnalyzerUrl } from 'explorviz-frontend/src/utils/code-analyzer-url';
 import generateUuidv4 from 'explorviz-frontend/src/utils/helpers/uuid4-generator';
 import React, { useEffect, useMemo, useState } from 'react';
 import { Button, Form, Spinner } from 'react-bootstrap';
 import { useSearchParams } from 'react-router-dom';
 import CreatableSelect from 'react-select/creatable';
 
-const codeAgentUrl = getCodeAgentUrl();
+const codeAnalyzerUrl = getCodeAnalyzerUrl();
 
 type InputOption = {
   label: string;
@@ -102,13 +102,7 @@ const FILTER_EXAMPLES = [
 
 const createApplicationRow = (): ApplicationSpec => ({ name: '', root: '' });
 
-function FormLabelWithHelp({
-  label,
-  help,
-}: {
-  label: string;
-  help: string;
-}) {
+function FormLabelWithHelp({ label, help }: { label: string; help: string }) {
   return (
     <Form.Label className="d-flex align-items-center mb-1">
       {label}
@@ -292,7 +286,13 @@ export default function CodeAnalysisTriggerForm({
         exclusionExpressions,
         applications
       ),
-    [repoType, formData, inclusionExpressions, exclusionExpressions, applications]
+    [
+      repoType,
+      formData,
+      inclusionExpressions,
+      exclusionExpressions,
+      applications,
+    ]
   );
 
   const loadLocalRepositories = async () => {
@@ -301,7 +301,7 @@ export default function CodeAnalysisTriggerForm({
 
     try {
       const response = await fetch(
-        `${codeAgentUrl}/api/analysis/local-repositories`
+        `${codeAnalyzerUrl}/api/analysis/local-repositories`
       );
       if (!response.ok) {
         throw new Error('Unable to load cloned repositories.');
@@ -360,7 +360,9 @@ export default function CodeAnalysisTriggerForm({
         .showErrorToastMessage('Keep at least one application row.');
       return;
     }
-    setApplications((prev) => prev.filter((_, currentIndex) => currentIndex !== index));
+    setApplications((prev) =>
+      prev.filter((_, currentIndex) => currentIndex !== index)
+    );
   };
 
   const resetForm = () => {
@@ -409,7 +411,7 @@ export default function CodeAnalysisTriggerForm({
     setIsSubmitting(true);
 
     try {
-      const response = await fetch(`${codeAgentUrl}/api/analysis/trigger`, {
+      const response = await fetch(`${codeAnalyzerUrl}/api/analysis/trigger`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -676,7 +678,9 @@ export default function CodeAnalysisTriggerForm({
                 label: inputValue,
               })}
               placeholder="Include all"
-              noOptionsMessage={() => 'Type an expression or select a default...'}
+              noOptionsMessage={() =>
+                'Type an expression or select a default...'
+              }
             />
           </Form.Group>
 
@@ -695,7 +699,9 @@ export default function CodeAnalysisTriggerForm({
                 label: inputValue,
               })}
               placeholder="Exclude none"
-              noOptionsMessage={() => 'Type an expression or select a default...'}
+              noOptionsMessage={() =>
+                'Type an expression or select a default...'
+              }
             />
           </Form.Group>
 
@@ -867,7 +873,7 @@ export default function CodeAnalysisTriggerForm({
                 <span className="d-inline-flex align-items-center">
                   Send Results via gRPC
                   <HelpTooltip
-                    title="Whether to push the analysis results to the persistence-service."
+                    title="Whether to push the analysis results to the landscape-service."
                     placement="top"
                   />
                 </span>

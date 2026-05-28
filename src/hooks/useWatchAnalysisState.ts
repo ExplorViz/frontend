@@ -1,8 +1,8 @@
-import { getCodeAgentUrl } from 'explorviz-frontend/src/utils/code-agent-url';
+import { getCodeAnalyzerUrl } from 'explorviz-frontend/src/utils/code-analyzer-url';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useToastHandlerStore } from '../stores/toast-handler';
 
-const codeAgentUrl = getCodeAgentUrl();
+const codeAnalyzerUrl = getCodeAnalyzerUrl();
 
 export type ProgressState = {
   status: 'pending' | 'running' | 'finished' | 'failed';
@@ -64,29 +64,29 @@ export const useWatchAnalysisState = ({
         return false;
       }
 
-    clearStatusStream();
-    const eventSource = new EventSource(
-        `${codeAgentUrl}/api/analysis/state/stream/${tokenToUse}`
-    );
+      clearStatusStream();
+      const eventSource = new EventSource(
+        `${codeAnalyzerUrl}/api/analysis/state/stream/${tokenToUse}`
+      );
       setIsStreaming(true);
 
-    eventSource.onmessage = (event) => {
-      try {
-        const state: ProgressState = JSON.parse(event.data) as ProgressState;
-        setState(state);
-        onUpdate?.(state);
+      eventSource.onmessage = (event) => {
+        try {
+          const state: ProgressState = JSON.parse(event.data) as ProgressState;
+          setState(state);
+          onUpdate?.(state);
 
-        if (state.status === 'finished') {
-          onFinished?.(state);
-          clearStatusStream();
-        } else if (state.status === 'failed') {
-          onFailed?.(state);
-          clearStatusStream();
-        }
-      } catch {
+          if (state.status === 'finished') {
+            onFinished?.(state);
+            clearStatusStream();
+          } else if (state.status === 'failed') {
+            onFailed?.(state);
+            clearStatusStream();
+          }
+        } catch {
           showError('Received invalid progress update.');
-      }
-    };
+        }
+      };
 
       eventSource.onerror = () => {
         if (eventSource.readyState === EventSource.CLOSED) {
@@ -95,7 +95,7 @@ export const useWatchAnalysisState = ({
         }
       };
 
-    eventSourceRef.current = eventSource;
+      eventSourceRef.current = eventSource;
       return true;
     },
     [
@@ -108,10 +108,7 @@ export const useWatchAnalysisState = ({
     ]
   );
 
-  useEffect(
-    () => () => clearStatusStream(),
-    [clearStatusStream]
-  );
+  useEffect(() => () => clearStatusStream(), [clearStatusStream]);
 
   return {
     state,

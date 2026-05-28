@@ -57,7 +57,7 @@ export default function TokenSelection({
 
   const user = useAuthStore((state) => state.user);
 
-  const persistenceService = import.meta.env.VITE_PERSISTENCE_SERV_URL;
+  const landscapeService = import.meta.env.VITE_LANDSCAPE_SERV_URL;
 
   const sortBy = (property: keyof LandscapeToken) => {
     if (property === sortProperty) {
@@ -85,7 +85,7 @@ export default function TokenSelection({
     event?.stopPropagation();
     // Fetch repository names first to know what else to download
     const repoNamesResponse = await fetch(
-      `${persistenceService}/v3/landscapes/${token.value}/repositories`,
+      `${landscapeService}/v3/landscapes/${token.value}/repositories`,
       {
         headers: {
           Authorization: `Bearer ${useAuthStore.getState().accessToken}`,
@@ -100,7 +100,7 @@ export default function TokenSelection({
 
     const treePromises = repoNames.map(async (repoName) => {
       const response = await fetch(
-        `${persistenceService}/v3/landscapes/${token.value}/commit-tree/${repoName}`,
+        `${landscapeService}/v3/landscapes/${token.value}/commit-tree/${repoName}`,
         {
           headers: {
             Authorization: `Bearer ${useAuthStore.getState().accessToken}`,
@@ -134,20 +134,20 @@ export default function TokenSelection({
       uniqueCommits.forEach((commitId) => {
         commitDataPromises.push(
           getJsonBlob(
-            `${persistenceService}/v3/landscapes/${token.value}/structure/evolution/${repoName}/${commitId}`
+            `${landscapeService}/v3/landscapes/${token.value}/structure/evolution/${repoName}/${commitId}`
           ).then((blob) => ({ repoName, commitId, blob }))
         );
       });
     });
 
     const structurePromise = getJsonBlob(
-      `${persistenceService}/v3/landscapes/${token.value}/structure/runtime`
+      `${landscapeService}/v3/landscapes/${token.value}/structure/runtime`
     );
     const dynamicPromise = getJsonBlob(
-      `${persistenceService}/v3/landscapes/${token.value}/file-communication`
+      `${landscapeService}/v3/landscapes/${token.value}/file-communication`
     );
     const timestampPromise = getJsonBlob(
-      `${persistenceService}/v3/landscapes/${token.value}/timestamps`
+      `${landscapeService}/v3/landscapes/${token.value}/timestamps`
     );
 
     // Wait on all downloads
