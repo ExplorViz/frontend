@@ -6,8 +6,8 @@ server {
 
   # BEGIN code-analyzer
   location /api/analysis/ {
-    set $upstream_code_agent ${CODE_ANALYZER_URL};
-    proxy_pass $upstream_code_agent;
+    set $upstream_code_analyzer ${CODE_ANALYZER_URL};
+    proxy_pass $upstream_code_analyzer;
     proxy_http_version 1.1;
     proxy_set_header Host $host;
 
@@ -47,22 +47,22 @@ server {
   # BEGIN landscape-service
 
   location /v2/code {
-    set $upstream_persistence ${LANDSCAPE_SERV_URL};
-    proxy_pass $upstream_persistence;
+    set $upstream_landscape ${LANDSCAPE_SERV_URL};
+    proxy_pass $upstream_landscape;
     proxy_http_version 1.1;
     proxy_set_header Host $host;
   }
 
   location /v2/landscapes {
-    set $upstream_persistence ${LANDSCAPE_SERV_URL};
-    proxy_pass $upstream_persistence;
+    set $upstream_landscape ${LANDSCAPE_SERV_URL};
+    proxy_pass $upstream_landscape;
     proxy_http_version 1.1;
     proxy_set_header Host $host;
   }
 
   location /v3/landscapes {
-    set $upstream_persistence ${LANDSCAPE_SERV_URL};
-    proxy_pass $upstream_persistence;
+    set $upstream_landscape ${LANDSCAPE_SERV_URL};
+    proxy_pass $upstream_landscape;
     proxy_http_version 1.1;
     proxy_set_header Host $host;
   }
