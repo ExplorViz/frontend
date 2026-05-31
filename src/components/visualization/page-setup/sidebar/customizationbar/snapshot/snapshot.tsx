@@ -1,19 +1,14 @@
 import React, { useState } from 'react';
 
 import Button from 'react-bootstrap/Button';
-import { useRoomSerializerStore } from 'explorviz-frontend/src/stores/collaboration/room-serializer';
 import { useAuthStore } from 'explorviz-frontend/src/stores/auth';
 import {
   useSnapshotTokenStore,
-  SnapshotToken,
 } from 'explorviz-frontend/src/stores/snapshot-token';
 import { LandscapeToken } from 'explorviz-frontend/src/stores/landscape-token';
 import AnnotationData from 'explorviz-frontend/src/components/visualization/rendering/annotations/annotation-data';
-import { useLocalUserStore } from 'explorviz-frontend/src/stores/collaboration/local-user';
-import { useTimestampRepositoryStore } from 'explorviz-frontend/src/stores/repos/timestamp-repository';
 import { LandscapeData } from 'explorviz-frontend/src/utils/landscape-schemes/landscape-data';
-import { usePopupHandlerStore } from 'explorviz-frontend/src/stores/popup-handler';
-import { useShallow } from 'zustand/react/shallow';
+import { buildSnapshotToken } from 'explorviz-frontend/src/utils/snapshot/snapshot-helpers';
 
 interface SnapshotProps {
   landscapeData: LandscapeData;
@@ -25,24 +20,12 @@ interface SnapshotProps {
 export default function Snapshot({
   landscapeData,
   landscapeToken,
-  annotationData,
-  minimizedAnnotations,
 }: SnapshotProps) {
-  const serializeRoom = useRoomSerializerStore((state) => state.serializeRoom);
-  const getTimestampsForCommitId = useTimestampRepositoryStore(
-    (state) => state.getTimestampsForCommitId
-  );
   const authUser = useAuthStore((state) => state.user);
-  const getLocalUserCamera = useLocalUserStore((state) => state.getCamera);
   const saveSnapshotToStore = useSnapshotTokenStore(
     (state) => state.saveSnapshot
   );
   const exportFile = useSnapshotTokenStore((state) => state.exportFile);
-  const popupHandlerState = usePopupHandlerStore(
-    useShallow((state) => ({
-      popupData: state.popupData,
-    }))
-  );
 
   const [saveSnaphotBtnDisabled, setSaveSnaphotBtnDisabled] =
     useState<boolean>(true);
@@ -61,76 +44,24 @@ export default function Snapshot({
   };
 
   const saveSnapshot = async () => {
-    const allAnnotations = annotationData.concat(minimizedAnnotations);
-
-    const createdAt: number = new Date().getTime();
-    const saveRoom = serializeRoom(
-      popupHandlerState.popupData,
-      allAnnotations,
-      true
-    );
-
-    const timestamps = getTimestampsForCommitId('cross-commit');
-    const localUserCamera = getLocalUserCamera();
-
-    const content: SnapshotToken = {
-      owner: authUser!.sub,
-      createdAt: createdAt,
+    const content = buildSnapshotToken({
       name: snapshotName,
-      landscapeToken: landscapeToken,
-      structureData: {
-        structureLandscapeData: landscapeData.structureLandscapeData,
-        dynamicLandscapeData: landscapeData.dynamicLandscapeData,
-      },
-      serializedRoom: saveRoom,
-      timestamps: { timestamps: timestamps },
-      camera: {
-        x: localUserCamera.position.x,
-        y: localUserCamera.position.y,
-        z: localUserCamera.position.z,
-      },
-      isShared: false,
-      subscribedUsers: { subscriberList: [] },
-      deleteAt: 0,
-    };
+      owner: authUser!.sub,
+      landscapeToken,
+      landscapeData,
+    });
 
-    saveSnapshotToStore(content);
+    await saveSnapshotToStore(content);
     reset();
   };
 
   const exportSnapshot = () => {
-    const allAnnotations = annotationData.concat(minimizedAnnotations);
-
-    const createdAt: number = new Date().getTime();
-    const saveRoom = serializeRoom(
-      popupHandlerState.popupData,
-      allAnnotations,
-      true
-    );
-
-    const timestamps = getTimestampsForCommitId('cross-commit');
-    const localUserCamera = getLocalUserCamera();
-
-    const content: SnapshotToken = {
-      owner: authUser!.sub,
-      createdAt: createdAt,
+    const content = buildSnapshotToken({
       name: snapshotName,
-      landscapeToken: landscapeToken,
-      structureData: {
-        structureLandscapeData: landscapeData.structureLandscapeData,
-        dynamicLandscapeData: landscapeData.dynamicLandscapeData,
-      },
-      serializedRoom: saveRoom,
-      timestamps: { timestamps: timestamps },
-      camera: {
-        x: localUserCamera.position.x,
-        y: localUserCamera.position.y,
-        z: localUserCamera.position.z,
-      },
-      isShared: false,
-      subscribedUsers: { subscriberList: [] },
-      deleteAt: 0,
-    };
+      owner: authUser!.sub,
+      landscapeToken,
+      landscapeData,
+    });
     exportFile(content);
     reset();
   };

@@ -22,6 +22,7 @@ import ImmersiveStateSync from 'explorviz-frontend/src/components/collaboration/
 import LocalHighlightSync from 'explorviz-frontend/src/components/collaboration/sync/local-highlight-sync';
 import SpectateStatusSync from 'explorviz-frontend/src/components/collaboration/sync/spectate-status-sync';
 import PlayroomWrapper from 'explorviz-frontend/src/components/collaboration/visualization/rendering/playroom-wrapper';
+import SnapshotCameraRestore from 'explorviz-frontend/src/components/visualization/rendering/snapshot-camera-restore';
 import SpectateCameraController from 'explorviz-frontend/src/components/visualization/rendering/spectate-camera-controller';
 import RemoteImmersiveIndicators from 'explorviz-frontend/src/components/visualization/rendering/remote-immersive-indicators';
 import useLandscapeDataWatcher from 'explorviz-frontend/src/hooks/landscape-data-watcher';
@@ -548,6 +549,7 @@ export default function CanvasWrapper({
               />
               {/* Insert Layer Handler here inside the Canvas */}
               <CameraLayerHandler />
+              <SnapshotCameraRestore />
 
               {minimapEnabled && (
                 <MinimapView

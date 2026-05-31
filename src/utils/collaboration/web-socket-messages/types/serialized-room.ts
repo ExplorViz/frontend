@@ -2,6 +2,7 @@ import { EntityType } from 'explorviz-frontend/src/utils/collaboration/web-socke
 import { Position } from 'explorviz-frontend/src/utils/collaboration/web-socket-messages/types/position';
 import { Quaternion } from 'explorviz-frontend/src/utils/collaboration/web-socket-messages/types/quaternion';
 import { Scale } from 'explorviz-frontend/src/utils/collaboration/web-socket-messages/types/Scale';
+import { VisualizationSettings } from 'explorviz-frontend/src/utils/settings/settings-schemas';
 
 export type SerializedRoom = {
   landscape: SerializedLandscape;
@@ -9,6 +10,7 @@ export type SerializedRoom = {
   closedComponentIds: string[];
   popups: SerializedPopup[];
   annotations?: SerializedAnnotation[];
+  visualizationSettings?: VisualizationSettings;
 };
 
 export type SerializedLandscape = {
@@ -25,6 +27,8 @@ export type SerializedPopup = {
   userId: string | null;
   entityId: string;
   menuId: string | null | undefined;
+  mouseX?: number;
+  mouseY?: number;
 };
 
 export type SerializedAnnotation = {
@@ -39,6 +43,11 @@ export type SerializedAnnotation = {
   shared: boolean;
   inEdit: boolean;
   lastEditor: string;
+  mouseX?: number;
+  mouseY?: number;
+  wasMoved?: boolean;
+  hidden?: boolean;
+  minimized?: boolean;
 };
 
 export type SerializedDetachedMenu = {

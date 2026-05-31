@@ -188,18 +188,38 @@ export const usePopupHandlerStore = create<PopupHandlerState>((set, get) => ({
   },
 
   onRestorePopups: (popups: SerializedPopup[]) => {
-    if (get().deactivated) return;
-    set({ popupData: [] });
+    if (get().deactivated) {
+      return;
+    }
+
+    const restoredPopups: PopupData[] = [];
 
     for (const popup of popups) {
-      get().addPopup({
-        entityId: popup.entityId,
-        wasMoved: true,
-        pinned: true,
-        sharedBy: popup.userId || undefined,
-        menuId: popup.menuId,
-      });
+      const entity = useModelStore.getState().getModel(popup.entityId);
+      if (!entity) {
+        console.warn(
+          'Could not restore popup, entity not found for:',
+          popup.entityId
+        );
+        continue;
+      }
+
+      restoredPopups.push(
+        new PopupData({
+          mouseX: popup.mouseX ?? 100,
+          mouseY: popup.mouseY ?? 200 + restoredPopups.length * 50,
+          entityId: popup.entityId,
+          entity,
+          wasMoved: true,
+          isPinned: true,
+          menuId: popup.menuId ?? null,
+          sharedBy: popup.userId ?? '',
+          hovered: false,
+        })
+      );
     }
+
+    set({ popupData: restoredPopups });
   },
 
   cleanup: () => {

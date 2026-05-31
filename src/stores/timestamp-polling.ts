@@ -1,4 +1,5 @@
 import { useAuthStore } from 'explorviz-frontend/src/stores/auth';
+import { useSnapshotTokenStore } from 'explorviz-frontend/src/stores/snapshot-token';
 import {
   SelectedCommit,
   useCommitTreeStateStore,
@@ -155,11 +156,9 @@ export const useTimestampPollingStore = create<TimestampPollingState>(
         timestampsForDebugSnapshots?: Timestamp[]
       ) => void
     ) => {
-      //       if (useSnapshotTokenStore.getState().snapshotToken) {
-      //         const timestamps =
-      //           useSnapshotTokenStore.getState().snapshotToken!.timestamps.timestamps;
-      //         callback(timestamps);
-      //   }
+      if (useSnapshotTokenStore.getState().snapshotSelected) {
+        return;
+      }
 
       const polledCommitToTimestampMap: Map<string, Timestamp[]> = new Map();
 

@@ -3,24 +3,40 @@ import { LandscapeToken } from 'explorviz-frontend/src/stores/landscape-token';
 import { useToastHandlerStore } from 'explorviz-frontend/src/stores/toast-handler';
 import { getCircularReplacer } from 'explorviz-frontend/src/utils/circularReplacer';
 import { SerializedRoom } from 'explorviz-frontend/src/utils/collaboration/web-socket-messages/types/serialized-room';
+import { AggregatedBuildingCommunication } from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/aggregated-file-communication';
 import { DynamicLandscapeData } from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/dynamic-data';
+import { FlatLandscape } from 'explorviz-frontend/src/utils/landscape-schemes/flat-landscape';
 import { StructureLandscapeData } from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
 import { Timestamp } from 'explorviz-frontend/src/utils/landscape-schemes/timestamp';
 import { reject } from 'rsvp';
 import { create } from 'zustand';
+
+export type SnapshotStructureData = {
+  flatLandscapeData?: FlatLandscape;
+  aggregatedFileCommunication?: AggregatedBuildingCommunication;
+  structureLandscapeData?: StructureLandscapeData;
+  dynamicLandscapeData?: DynamicLandscapeData;
+};
+
+/** Camera pose from the browser CameraControls (position + orbit target). */
+export type SnapshotCamera = {
+  x: number;
+  y: number;
+  z: number;
+  targetX?: number;
+  targetY?: number;
+  targetZ?: number;
+};
 
 export type SnapshotToken = {
   owner: string;
   createdAt: number;
   name: string;
   landscapeToken: LandscapeToken;
-  structureData: {
-    structureLandscapeData: StructureLandscapeData;
-    dynamicLandscapeData: DynamicLandscapeData;
-  };
+  structureData: SnapshotStructureData;
   serializedRoom: SerializedRoom;
   timestamps: { timestamps: Timestamp[] };
-  camera: { x: number; y: number; z: number };
+  camera: SnapshotCamera;
   isShared: boolean;
   subscribedUsers: { subscriberList: string[] };
   deleteAt: number;
@@ -41,6 +57,17 @@ export type SnapshotInfo = {
 
 const userService = import.meta.env.VITE_USER_SERV_URL;
 const shareSnapshot = import.meta.env.VITE_SHARE_SNAPSHOT_URL;
+
+function snapshotAuthHeaders(
+  contentType = 'application/json; charset=UTF-8'
+): Record<string, string> {
+  const headers: Record<string, string> = { 'Content-Type': contentType };
+  const accessToken = useAuthStore.getState().accessToken;
+  if (accessToken) {
+    headers.Authorization = `Bearer ${accessToken}`;
+  }
+  return headers;
+}
 
 interface SnapshotTokenState {
   snapshotToken: SnapshotToken | null;
@@ -171,7 +198,7 @@ export const useSnapshotTokenStore = create<SnapshotTokenState>((set, get) => ({
     await fetch(url, {
       method: 'POST',
       body: JSON.stringify(snapshotToken, getCircularReplacer()),
-      headers: { 'Content-Type': 'application/json; charset=UTF-8' },
+      headers: snapshotAuthHeaders(),
     })
       .then(async (response: Response) => {
         if (response.ok) {
@@ -202,7 +229,7 @@ export const useSnapshotTokenStore = create<SnapshotTokenState>((set, get) => ({
 
     await fetch(url, {
       method: 'PUT',
-      headers: { 'Content-Type': 'application/json; charset=UTF-8' },
+      headers: snapshotAuthHeaders(),
     })
       .then(async (response: Response) => {
         if (!response.ok) {
@@ -234,7 +261,7 @@ export const useSnapshotTokenStore = create<SnapshotTokenState>((set, get) => ({
 
     await fetch(url, {
       method: 'PUT',
-      headers: { 'Content-Type': 'application/json; charset=UTF-8' },
+      headers: snapshotAuthHeaders(),
     })
       .then(async (response: Response) => {
         if (response.status === 200) {
@@ -272,7 +299,7 @@ export const useSnapshotTokenStore = create<SnapshotTokenState>((set, get) => ({
 
       await fetch(url, {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json; charset=UTF-8' },
+        headers: snapshotAuthHeaders(),
       }).then(async (response: Response) => {
         if (!response.ok) {
           useToastHandlerStore
@@ -291,6 +318,7 @@ export const useSnapshotTokenStore = create<SnapshotTokenState>((set, get) => ({
 
       await fetch(url, {
         method: 'DELETE',
+        headers: snapshotAuthHeaders(),
       })
         .then(async (response: Response) => {
           if (response.ok) {

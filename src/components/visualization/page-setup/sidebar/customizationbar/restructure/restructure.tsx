@@ -11,16 +11,13 @@ import WideCheckbox from 'explorviz-frontend/src/components/visualization/page-s
 import AnnotationData from 'explorviz-frontend/src/components/visualization/rendering/annotations/annotation-data';
 import { useAuthStore } from 'explorviz-frontend/src/stores/auth';
 import { useChangelogStore } from 'explorviz-frontend/src/stores/changelog';
-import { useLocalUserStore } from 'explorviz-frontend/src/stores/collaboration/local-user';
-import { useRoomSerializerStore } from 'explorviz-frontend/src/stores/collaboration/room-serializer';
 import { useLandscapeRestructureStore } from 'explorviz-frontend/src/stores/landscape-restructure';
 import { LandscapeToken } from 'explorviz-frontend/src/stores/landscape-token';
-import { usePopupHandlerStore } from 'explorviz-frontend/src/stores/popup-handler';
-import { useTimestampRepositoryStore } from 'explorviz-frontend/src/stores/repos/timestamp-repository';
 import {
   SnapshotToken,
   useSnapshotTokenStore,
 } from 'explorviz-frontend/src/stores/snapshot-token';
+import { buildSnapshotToken } from 'explorviz-frontend/src/utils/snapshot/snapshot-helpers';
 import { useToastHandlerStore } from 'explorviz-frontend/src/stores/toast-handler';
 import { ApiToken } from 'explorviz-frontend/src/stores/user-api-token';
 import eventEmitter from 'explorviz-frontend/src/utils/event-emitter';
@@ -103,11 +100,6 @@ export default function Restructure({
   const userCount = usePlayersList().length;
   const isOnline = userCount > 0;
   const authUser = useAuthStore((state) => state.user);
-  const serializeRoom = useRoomSerializerStore((state) => state.serializeRoom);
-  const getTimestampsForCommitId = useTimestampRepositoryStore(
-    (state) => state.getTimestampsForCommitId
-  );
-  const getLocalUserCamera = useLocalUserStore((state) => state.getCamera);
   const saveSnapshot = useSnapshotTokenStore((state) => state.saveSnapshot);
 
   const {
@@ -115,12 +107,6 @@ export default function Restructure({
     showSuccessToastMessage,
     showErrorToastMessage,
   } = useToastHandlerStore();
-
-  const popupHandlerState = usePopupHandlerStore(
-    useShallow((state) => ({
-      popupData: state.popupData,
-    }))
-  );
 
   // MARK: Constants
 
@@ -509,43 +495,20 @@ export default function Restructure({
   };
 
   const createSnapshot = () => {
-    const allAnnotations = annotationData.concat(minimizedAnnotations);
-
-    const createdAt: number = new Date().getTime();
-    const saveRoom = serializeRoom(
-      popupHandlerState.popupData,
-      allAnnotations,
-      true
-    );
-
-    const timestamps = getTimestampsForCommitId(landscapeToken.value);
-    const localUserCamera = getLocalUserCamera();
-
-    const sharedToken: SnapshotToken = {
-      owner: authUser!.sub,
-      createdAt: createdAt,
+    const sharedToken = buildSnapshotToken({
       name: snapshotName!,
-      landscapeToken: landscapeToken,
-      structureData: {
-        structureLandscapeData: landscapeData.structureLandscapeData,
-        dynamicLandscapeData: landscapeData.dynamicLandscapeData,
-      },
-      serializedRoom: saveRoom,
-      timestamps: { timestamps: timestamps },
-      camera: {
-        x: localUserCamera.position.x,
-        y: localUserCamera.position.y,
-        z: localUserCamera.position.z,
-      },
+      owner: authUser!.sub,
+      landscapeToken,
+      landscapeData,
       isShared: true,
-      subscribedUsers: { subscriberList: [] },
       deleteAt: expDate !== null ? expDate : 0,
-    };
+    });
 
     if (createPersonalSnapshot) {
       const personalToken: SnapshotToken = {
         ...sharedToken,
         isShared: false,
+        deleteAt: 0,
       };
       saveSnapshot(personalToken);
     }

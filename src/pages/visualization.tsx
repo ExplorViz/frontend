@@ -9,7 +9,6 @@ import BrowserRendering from 'explorviz-frontend/src/components/visualization/re
 import PlayPauseButton from 'explorviz-frontend/src/components/visualization/rendering/play-pause-button';
 import XrRendering from 'explorviz-frontend/src/components/visualization/rendering/xr-rendering';
 import { useLocalUserStore } from 'explorviz-frontend/src/stores/collaboration/local-user';
-import { useRoomSerializerStore } from 'explorviz-frontend/src/stores/collaboration/room-serializer';
 import { useCommitTreeStateStore } from 'explorviz-frontend/src/stores/commit-tree-state';
 import { useImmersiveViewStore } from 'explorviz-frontend/src/stores/immersive-view-store';
 import { useLandscapeRestructureStore } from 'explorviz-frontend/src/stores/landscape-restructure';
@@ -34,15 +33,8 @@ import {
   useUserApiTokenStore,
 } from 'explorviz-frontend/src/stores/user-api-token';
 import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
-import { useVisualizationStore } from 'explorviz-frontend/src/stores/visualization-store';
-import { closeDistrictsByList } from 'explorviz-frontend/src/utils/city-rendering/entity-manipulation';
-import { removeAllHighlighting } from 'explorviz-frontend/src/utils/city-rendering/highlighting';
-import {
-  SerializedAnnotation,
-  SerializedDetachedMenu,
-  SerializedPopup,
-} from 'explorviz-frontend/src/utils/collaboration/web-socket-messages/types/serialized-room';
 import eventEmitter from 'explorviz-frontend/src/utils/event-emitter';
+import { restoreSnapshotFromToken } from 'explorviz-frontend/src/utils/snapshot/snapshot-helpers';
 import { DynamicLandscapeData } from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/dynamic-data';
 import TimelineDataObjectHandler from 'explorviz-frontend/src/utils/timeline/timeline-data-object-handler';
 import { Button } from 'react-bootstrap';
@@ -236,8 +228,6 @@ export default function Visualization() {
     (state) => state.showErrorToastMessage
   );
   const snapshotToken = useSnapshotTokenStore((state) => state.snapshotToken);
-  const defaultCamera = useLocalUserStore((state) => state.defaultCamera);
-  const setDefaultCamera = useLocalUserStore((state) => state.setDefaultCamera);
   const visualizationSettings = useUserSettingsStore(
     (state) => state.visualizationSettings
   );
@@ -252,13 +242,6 @@ export default function Visualization() {
   );
   const currentSelectedRepositoryName = useCommitTreeStateStore(
     (state) => state._currentSelectedRepositoryName
-  );
-
-  const roomSerializer = useRoomSerializerStore(
-    useShallow((state) => ({
-      serializeRoom: state.serializeRoom,
-      setSerializedRoom: state.setSerializedRoom,
-    }))
   );
 
   // # endregion
@@ -362,33 +345,47 @@ export default function Visualization() {
 
     setVisualizationPausedRenderingService(false);
 
-    if (snapshotSelected) {
-      const snapshotToken = await useSnapshotTokenStore
-        .getState()
-        .retrieveToken(
-          searchParams.get('owner')!,
-          Number(searchParams.get('createdAt')!),
-          searchParams.get('isShared')! === 'true' ? true : false
+    const snapshotOwner = searchParams.get('owner');
+    const snapshotCreatedAt = searchParams.get('createdAt');
+    const isSharedSnapshot = searchParams.get('sharedSnapshot') === 'true';
+    const shouldRestoreSnapshot =
+      snapshotSelected || (snapshotOwner !== null && snapshotCreatedAt !== null);
+
+    if (shouldRestoreSnapshot) {
+      let loadedSnapshot = useSnapshotTokenStore.getState().snapshotToken;
+
+      if (!loadedSnapshot && snapshotOwner && snapshotCreatedAt) {
+        loadedSnapshot = await useSnapshotTokenStore.getState().retrieveToken(
+          snapshotOwner,
+          Number(snapshotCreatedAt),
+          isSharedSnapshot
         );
-      if (snapshotToken === null) {
+      }
+
+      if (loadedSnapshot === null) {
         useToastHandlerStore
           .getState()
           .showErrorToastMessage('Snapshot could not be loaded');
         navigate('/landscapes');
-      } else {
-        useSnapshotTokenStore.setState({ snapshotToken: snapshotToken });
+        return;
       }
 
-      if (useSnapshotTokenStore.getState().snapshotToken !== null) {
-        useLandscapeTokenStore.setState({
-          token: useSnapshotTokenStore.getState().snapshotToken?.landscapeToken,
-        });
-        loadSnapshot();
-      }
+      useSnapshotTokenStore.setState({
+        snapshotToken: loadedSnapshot,
+        snapshotSelected: true,
+      });
+      useLandscapeTokenStore.setState({
+        token: loadedSnapshot.landscapeToken,
+      });
+
+      await restoreSnapshotFromToken(loadedSnapshot);
+    } else {
+      restartTimestampPollingAndVizUpdate([]);
     }
 
-    // Start main loop
-    restartTimestampPollingAndVizUpdate([]);
+    if (shouldRestoreSnapshot) {
+      return;
+    }
 
     // Fetch repositories for evolution mode
     await fetchAndStoreRepositoryCommitTrees();
@@ -432,7 +429,6 @@ export default function Visualization() {
     if (showEvolutionVisualization) {
       renderingServiceTriggerRenderingForSelectedCommits();
     } else {
-      // start main loop for cross-commit runtime
       restartTimestampPollingAndVizUpdate([]);
     }
   };
@@ -444,48 +440,6 @@ export default function Visualization() {
   // collaboration start
   // user handling end
 
-  /**
-   * Applies room state (closed components, highlighted entities, detached menus, annotations, popups)
-   * to the visualization. This is shared logic used by both initial landscape and sync room state handlers.
-   */
-  const applyRoomState = (
-    closedComponentIds: string[] | undefined,
-    highlightedEntities:
-      | Array<{ userId: string; entityId: string }>
-      | undefined,
-    detachedMenus: SerializedDetachedMenu[],
-    annotations: SerializedAnnotation[],
-    popups: SerializedPopup[] | undefined
-  ): void => {
-    useVisualizationStore.getState().actions.resetVisualizationState();
-
-    // Apply closed components if provided
-    if (closedComponentIds && closedComponentIds.length > 0) {
-      closeDistrictsByList(closedComponentIds, false, false);
-    }
-
-    // Reset all highlights first
-    removeAllHighlighting(false);
-  };
-
-  const loadSnapshot = async () => {
-    if (snapshotToken === null) {
-      return;
-    }
-    /**
-     * Serialized room is used in landscape-data-watcher to load the landscape with
-     * all highlights and popUps.
-     */
-    roomSerializer.setSerializedRoom(snapshotToken.serializedRoom);
-
-    let dc = defaultCamera;
-    dc.position.set(
-      snapshotToken.camera!.x,
-      snapshotToken.camera!.y,
-      snapshotToken.camera!.z
-    );
-    setDefaultCamera(dc);
-  };
   // #endregion
 
   const refreshCommitTreeData = async () => {

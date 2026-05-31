@@ -1,17 +1,21 @@
 import { useAnnotationHandlerStore } from 'explorviz-frontend/src/stores/annotation-handler';
+import { useSnapshotTokenStore } from 'explorviz-frontend/src/stores/snapshot-token';
 import { getState, myPlayer, setState, useMultiplayerState } from 'playroomkit';
 import { useEffect, useRef } from 'react';
 
-
-
 // This component syncs the globally shared annpotations with the local annotations list
 export function CollaborationAnnotationSync() {
+    const snapshotSelected = useSnapshotTokenStore(
+        (state) => state.snapshotSelected
+    );
     const [globalAnnotations] = useMultiplayerState('sharedAnnotations', {});
-    // The currently shared refs.
     const lastSharedRefs = useRef<number[]>([]);
 
-    // Execute this code when something changes in the global state
     useEffect(() => {
+        if (snapshotSelected) {
+            return;
+        }
+
         const currentGlobal = globalAnnotations || {};
         const store = useAnnotationHandlerStore.getState();
         const localAnnotations = store.annotationData;
@@ -48,10 +52,13 @@ export function CollaborationAnnotationSync() {
                 store.removeAnnotation(localAnno.annotationId);
             }
         });
-    }, [globalAnnotations]);
+    }, [globalAnnotations, snapshotSelected]);
 
-    // update the global state, when an annotation is modified locally
     useEffect(() => {
+        if (snapshotSelected) {
+            return;
+        }
+
         const me = myPlayer();
         if (!me) return;
 
@@ -96,7 +103,7 @@ export function CollaborationAnnotationSync() {
         });
 
         return () => unsubscribe();
-    }, []);
+    }, [snapshotSelected]);
 
     return null;
 }

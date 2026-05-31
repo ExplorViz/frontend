@@ -1,4 +1,5 @@
 import AnnotationData from 'explorviz-frontend/src/components/visualization/rendering/annotations/annotation-data';
+import { SerializedAnnotation } from 'explorviz-frontend/src/utils/collaboration/web-socket-messages/types/serialized-room';
 import { useModelStore } from 'explorviz-frontend/src/stores/repos/model-repository';
 import AggregatedCommunication from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/aggregated-communication';
 
@@ -66,6 +67,7 @@ interface AnnotationHandlerState {
   cleanup: () => void;
   setAnnotationData: (annotations: AnnotationData[]) => void;
   setMinimizedAnnotationData: (minimizedAnnotations: AnnotationData[]) => void;
+  onRestoreAnnotations: (annotations: SerializedAnnotation[]) => void;
   init: () => void;
 }
 
@@ -282,6 +284,57 @@ export const useAnnotationHandlerStore = create<AnnotationHandlerState>(
       });
     },
 
+
+    onRestoreAnnotations: (annotations: SerializedAnnotation[]) => {
+      const openAnnotations: AnnotationData[] = [];
+      const minimized: AnnotationData[] = [];
+
+      for (const annotation of annotations) {
+        const entity =
+          annotation.entityId !== undefined
+            ? useModelStore.getState().getModel(annotation.entityId)
+            : undefined;
+
+        const restored = new AnnotationData({
+          annotationId: annotation.annotationId,
+          mouseX: annotation.mouseX ?? 100,
+          mouseY: annotation.mouseY ?? 200,
+          wasMoved: annotation.wasMoved ?? true,
+          isAssociated: annotation.entityId !== undefined,
+          entityId: annotation.entityId,
+          entity,
+          menuId: annotation.menuId ?? null,
+          hovered: false,
+          annotationText: annotation.annotationText,
+          annotationTitle: annotation.annotationTitle,
+          hidden: annotation.hidden ?? false,
+          sharedBy: annotation.userId,
+          owner: annotation.owner,
+          shared: annotation.shared,
+          inEdit: annotation.inEdit,
+          lastEditor: annotation.lastEditor,
+        });
+
+        if (annotation.minimized) {
+          minimized.push(restored);
+        } else {
+          openAnnotations.push(restored);
+        }
+      }
+
+      const maxId = annotations.reduce(
+        (max, annotation) => Math.max(max, annotation.annotationId),
+        0
+      );
+      if (maxId >= AnnotationData.incrementer) {
+        AnnotationData.incrementer = maxId + 1;
+      }
+
+      set({
+        annotationData: openAnnotations,
+        minimizedAnnotations: minimized,
+      });
+    },
 
     cleanup: () => {
       set({ annotationData: [] });

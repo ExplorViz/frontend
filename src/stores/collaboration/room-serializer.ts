@@ -3,6 +3,7 @@ import { useLocalUserStore } from 'explorviz-frontend/src/stores/collaboration/l
 import { useLandscapeTokenStore } from 'explorviz-frontend/src/stores/landscape-token';
 import { usePopupHandlerStore } from 'explorviz-frontend/src/stores/popup-handler';
 import { useTimestampStore } from 'explorviz-frontend/src/stores/timestamp';
+import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
 import { useVisualizationStore } from 'explorviz-frontend/src/stores/visualization-store';
 import {
   SerializedAnnotation,
@@ -30,7 +31,7 @@ export const useRoomSerializerStore = create<RoomSerializerState>(
     },
 
     serializeRoom: (snapshot: boolean = false): SerializedRoom => {
-      const serializedRoom = {
+      const serializedRoom: SerializedRoom = {
         landscape: get()._serializeLandscape(),
         closedComponentIds: Array.from(
           useVisualizationStore.getState().closedDistrictIds
@@ -46,6 +47,15 @@ export const useRoomSerializerStore = create<RoomSerializerState>(
         popups: get()._serializeOpenPopups(snapshot),
         annotations: get()._serializeOpenAnnotations(snapshot),
       };
+
+      if (snapshot) {
+        serializedRoom.visualizationSettings = JSON.parse(
+          JSON.stringify(
+            useUserSettingsStore.getState().visualizationSettings
+          )
+        );
+      }
+
       return serializedRoom;
     },
 
@@ -71,46 +81,57 @@ export const useRoomSerializerStore = create<RoomSerializerState>(
       return usePopupHandlerStore
         .getState()
         .popupData.filter((popup) => {
-          return (
-            (popup.isPinned && popup.sharedBy) || (popup.isPinned && snapshot)
-          );
+          if (snapshot) {
+            return true;
+          }
+          return popup.isPinned && !!popup.sharedBy;
         })
         .map((popup) => {
           return {
             userId: popup.sharedBy,
             entityId: popup.entityId,
             menuId: popup.menuId,
+            mouseX: popup.mouseX,
+            mouseY: popup.mouseY,
           };
         });
     },
 
     // private
     _serializeOpenAnnotations: (snapshot: boolean): SerializedAnnotation[] => {
-      return useAnnotationHandlerStore
-        .getState()
-        .annotationData.filter((annotation) => {
-          return annotation.shared || snapshot;
-        })
-        .map((annotation) => {
-          let entityId = undefined;
+      const { annotationData, minimizedAnnotations } =
+        useAnnotationHandlerStore.getState();
 
-          if (annotation.entity !== undefined) {
-            entityId = annotation.entity.id;
-          }
-          return {
-            objectId: null,
-            annotationId: annotation.annotationId,
-            userId: annotation.sharedBy,
-            entityId: entityId,
-            menuId: annotation.menuId,
-            annotationText: annotation.annotationText,
-            annotationTitle: annotation.annotationTitle,
-            owner: annotation.owner,
-            shared: snapshot ? false : true,
-            inEdit: annotation.inEdit,
-            lastEditor: annotation.lastEditor,
-          };
-        });
+      const annotationsToSerialize = snapshot
+        ? [...annotationData, ...minimizedAnnotations]
+        : annotationData.filter((annotation) => annotation.shared);
+
+      return annotationsToSerialize.map((annotation) => {
+        const entityId =
+          annotation.entityId ?? annotation.entity?.id ?? undefined;
+        const isMinimized = minimizedAnnotations.some(
+          (minimized) => minimized.annotationId === annotation.annotationId
+        );
+
+        return {
+          objectId: null,
+          annotationId: annotation.annotationId,
+          userId: annotation.sharedBy,
+          entityId,
+          menuId: annotation.menuId,
+          annotationText: annotation.annotationText,
+          annotationTitle: annotation.annotationTitle,
+          owner: annotation.owner,
+          shared: snapshot ? annotation.shared : true,
+          inEdit: annotation.inEdit,
+          lastEditor: annotation.lastEditor,
+          mouseX: annotation.mouseX,
+          mouseY: annotation.mouseY,
+          wasMoved: annotation.wasMoved,
+          hidden: annotation.hidden,
+          minimized: isMinimized,
+        };
+      });
     },
   })
 );

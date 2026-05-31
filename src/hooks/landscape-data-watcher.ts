@@ -15,6 +15,7 @@ import {
 } from 'explorviz-frontend/src/utils/landscape-schemes/flat-landscape';
 import { LandscapeData } from 'explorviz-frontend/src/utils/landscape-schemes/landscape-data';
 import layoutLandscape from 'explorviz-frontend/src/utils/layout/elk-layouter';
+import { tryApplyPendingSerializedRoom } from 'explorviz-frontend/src/utils/snapshot/snapshot-helpers';
 
 export default function useLandscapeDataWatcher(
   landscapeData: LandscapeData | null
@@ -71,6 +72,8 @@ export default function useLandscapeDataWatcher(
 
     // Update layout store after model repository is populated
     useLayoutStore.getState().updateLayouts(boxLayoutMap);
+
+    tryApplyPendingSerializedRoom();
   }, [
     dynamicLandscapeData,
     aggregatedFileCommunication,

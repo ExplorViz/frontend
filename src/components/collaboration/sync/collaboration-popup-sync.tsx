@@ -1,74 +1,83 @@
 import { usePopupHandlerStore } from 'explorviz-frontend/src/stores/popup-handler';
+import { useSnapshotTokenStore } from 'explorviz-frontend/src/stores/snapshot-token';
 import { getState, myPlayer, setState, useMultiplayerState } from 'playroomkit';
 import { useEffect, useRef } from 'react';
 
-// This component snychronizes the global popup list with the local popup list
+// This component synchronizes the global popup list with the local popup list
 export function CollaborationPopupSync() {
-    const [globalPopups] = useMultiplayerState('sharedPopups', {});
-    // Safe the curently opened popups (locally)
-    const lastPinnedRefs = useRef<string[]>([]);
+  const snapshotSelected = useSnapshotTokenStore(
+    (state) => state.snapshotSelected
+  );
+  const [globalPopups] = useMultiplayerState('sharedPopups', {});
+  const lastPinnedRefs = useRef<string[]>([]);
 
-    // Observe the global popups list
-    useEffect(() => {
-        const currentGlobal = globalPopups || {};
+  useEffect(() => {
+    if (snapshotSelected) {
+      return;
+    }
 
-        // Open the new popups locally
-        Object.keys(currentGlobal).forEach((entityId) => {
-            const isLocallyOpen = usePopupHandlerStore.getState().popupData.find((p) => p.entityId === entityId);
-            if (!isLocallyOpen) {
-                usePopupHandlerStore.getState().addPopup({
-                    entityId: entityId,
-                    pinned: true,
-                    sharedBy: currentGlobal[entityId],
-                });
-            }
+    const currentGlobal = globalPopups || {};
+
+    Object.keys(currentGlobal).forEach((entityId) => {
+      const isLocallyOpen = usePopupHandlerStore
+        .getState()
+        .popupData.find((p) => p.entityId === entityId);
+      if (!isLocallyOpen) {
+        usePopupHandlerStore.getState().addPopup({
+          entityId: entityId,
+          pinned: true,
+          sharedBy: currentGlobal[entityId],
         });
+      }
+    });
 
-        // close popups that has been closed
-        usePopupHandlerStore.getState().popupData.forEach((popup) => {
-            if (popup.isPinned && currentGlobal[popup.entityId] === undefined) {
-                usePopupHandlerStore.getState().removePopup(popup.entityId);
-            }
-        });
-    }, [globalPopups]);
+    usePopupHandlerStore.getState().popupData.forEach((popup) => {
+      if (popup.isPinned && currentGlobal[popup.entityId] === undefined) {
+        usePopupHandlerStore.getState().removePopup(popup.entityId);
+      }
+    });
+  }, [globalPopups, snapshotSelected]);
 
-    // Use this effect whenever a popup is opened/closed locally
-    useEffect(() => {
-        const me = myPlayer();
-        if (!me) return;
+  useEffect(() => {
+    if (snapshotSelected) {
+      return;
+    }
 
-        // Listen to the ocal popup handler
-        const unsubscribe = usePopupHandlerStore.subscribe((state) => {
-            const currentGlobal = { ...(getState('sharedPopups') || {}) };
-            const currentSharedIds = state.popupData.filter(p => p.sharedBy == null || p.sharedBy == "" ? false : true).map(p => p.entityId);
-            let hasChanges = false;
+    const me = myPlayer();
+    if (!me) {
+      return;
+    }
 
-            // Did the user opened somethiong locally? Or did the change occured because of someone else in the room
-            currentSharedIds.forEach(id => {
-                if (currentGlobal[id] === undefined) {
-                    currentGlobal[id] = me.getState('name') || me.id;
-                    hasChanges = true;
-                }
-            });
+    const unsubscribe = usePopupHandlerStore.subscribe((state) => {
+      const currentGlobal = { ...(getState('sharedPopups') || {}) };
+      const currentSharedIds = state.popupData
+        .filter((p) => p.sharedBy != null && p.sharedBy !== '')
+        .map((p) => p.entityId);
+      let hasChanges = false;
 
-            // Did the user closed somethiong locally? Or did the change occured because of someone else in the room
-            lastPinnedRefs.current.forEach(id => {
-                if (!currentSharedIds.includes(id) && currentGlobal[id] !== undefined) {
-                    delete currentGlobal[id];
-                    hasChanges = true;
-                }
-            });
+      currentSharedIds.forEach((id) => {
+        if (currentGlobal[id] === undefined) {
+          currentGlobal[id] = me.getState('name') || me.id;
+          hasChanges = true;
+        }
+      });
 
-            // If there has been changes (locally), then upload them
-            if (hasChanges) {
-                setState('sharedPopups', currentGlobal);
-            }
+      lastPinnedRefs.current.forEach((id) => {
+        if (!currentSharedIds.includes(id) && currentGlobal[id] !== undefined) {
+          delete currentGlobal[id];
+          hasChanges = true;
+        }
+      });
 
-            lastPinnedRefs.current = currentSharedIds;
-        });
+      if (hasChanges) {
+        setState('sharedPopups', currentGlobal);
+      }
 
-        return () => unsubscribe();
-    }, []);
+      lastPinnedRefs.current = currentSharedIds;
+    });
 
-    return null;
+    return () => unsubscribe();
+  }, [snapshotSelected]);
+
+  return null;
 }

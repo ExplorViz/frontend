@@ -72,6 +72,7 @@ export default function Application() {
 
         if (token !== null) {
           setSnapshotToken(token);
+          useSnapshotTokenStore.setState({ snapshotSelected: true });
           navigate('/visualization');
         } else {
           navigate('/landscapes');
