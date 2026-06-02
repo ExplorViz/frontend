@@ -7,6 +7,7 @@ import {
   getLanguageColorSettingId,
   LANGUAGE_SETTING_CONFIG,
   normalizeLanguage,
+  sortLanguages,
 } from 'explorviz-frontend/src/utils/settings/language-settings';
 import { ColorSettingId } from 'explorviz-frontend/src/utils/settings/settings-schemas';
 import { useMemo } from 'react';
@@ -56,7 +57,10 @@ export default function LanguageFiltering() {
       counts.set(lang, (counts.get(lang) ?? 0) + 1);
     }
 
-    return Array.from(counts.entries()).sort((a, b) => b[1] - a[1]);
+    return sortLanguages(Array.from(counts.keys())).map((language) => [
+      language,
+      counts.get(language)!,
+    ] as const);
   }, [allBuildings]);
 
   if (languageStats.length === 0) {

@@ -3,27 +3,15 @@ import LanguageBuildingSettings, {
   useLanguagesInLandscape,
 } from 'explorviz-frontend/src/components/visualization/page-setup/sidebar/customizationbar/building-config/language-building-settings';
 import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
-import { Language } from 'explorviz-frontend/src/utils/landscape-schemes/flat-landscape';
 import {
   getLanguageColor,
   LANGUAGE_DISPLAY_ORDER,
   LANGUAGE_SETTING_CONFIG,
+  sortLanguages,
 } from 'explorviz-frontend/src/utils/settings/language-settings';
 import { useMemo, useState } from 'react';
 import Accordion from 'react-bootstrap/Accordion';
 import Form from 'react-bootstrap/Form';
-
-function sortLanguages(languages: Language[]): Language[] {
-  const order = new Map(
-    LANGUAGE_DISPLAY_ORDER.map((language, index) => [language, index])
-  );
-
-  return [...languages].sort(
-    (a, b) =>
-      (order.get(a) ?? Number.MAX_SAFE_INTEGER) -
-      (order.get(b) ?? Number.MAX_SAFE_INTEGER)
-  );
-}
 
 export default function BuildingConfig() {
   const visualizationSettings = useUserSettingsStore(

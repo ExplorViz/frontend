@@ -88,9 +88,31 @@ export const LANGUAGE_SETTING_CONFIG: Record<Language, LanguageSettingConfig> =
     },
   };
 
-export const LANGUAGE_DISPLAY_ORDER = Object.keys(
-  LANGUAGE_SETTING_CONFIG
-) as Language[];
+const TRAILING_LANGUAGES: Language[] = ['PLAINTEXT', 'LANGUAGE_UNSPECIFIED'];
+
+export function compareLanguages(a: Language, b: Language): number {
+  const aTrailingIndex = TRAILING_LANGUAGES.indexOf(a);
+  const bTrailingIndex = TRAILING_LANGUAGES.indexOf(b);
+
+  if (aTrailingIndex !== -1 || bTrailingIndex !== -1) {
+    if (aTrailingIndex !== -1 && bTrailingIndex !== -1) {
+      return aTrailingIndex - bTrailingIndex;
+    }
+    return aTrailingIndex !== -1 ? 1 : -1;
+  }
+
+  return LANGUAGE_SETTING_CONFIG[a].label.localeCompare(
+    LANGUAGE_SETTING_CONFIG[b].label
+  );
+}
+
+export function sortLanguages(languages: Language[]): Language[] {
+  return [...languages].sort(compareLanguages);
+}
+
+export const LANGUAGE_DISPLAY_ORDER = sortLanguages(
+  Object.keys(LANGUAGE_SETTING_CONFIG) as Language[]
+);
 
 export const LANGUAGE_COLOR_SETTING_IDS = Object.values(
   LANGUAGE_SETTING_CONFIG
