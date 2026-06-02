@@ -20,13 +20,20 @@ type FlatBaseModel = {
 };
 
 export type Language =
-  | 'JAVA'
+  | 'LANGUAGE_UNSPECIFIED'
+  | 'C'
   | 'CPP'
+  | 'CSHARP'
+  | 'GO'
+  | 'JAVA'
   | 'JAVASCRIPT'
-  | 'TYPESCRIPT'
-  | 'PYTHON'
+  | 'KOTLIN'
+  | 'PHP'
   | 'PLAINTEXT'
-  | 'LANGUAGE_UNSPECIFIED';
+  | 'PYTHON'
+  | 'RUST'
+  | 'SWIFT'
+  | 'TYPESCRIPT';
 
 export type City = FlatBaseModel & {
   buildingIds: string[];

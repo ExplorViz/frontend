@@ -399,7 +399,7 @@ export function CopilotTools() {
   useFrontendTool({
     name: 'open-close-settings-component',
     description:
-      'Opens or closes a component inside the settings sidebar. Opening the component will also open the sidebar. Allowed component ids: Collaboration, Chatbot, VSCode-Extension-Settings, Restructure-Landscape, Persist-Landscape, Settings.',
+      'Opens or closes a component inside the settings sidebar. Opening the component will also open the sidebar. Allowed component ids: Collaboration, Chatbot, VSCode-Extension-Settings, Restructure-Landscape, Persist-Landscape, Building-Config, Settings.',
     parameters: z.object({
       id: z.string(),
       open: z.boolean(),

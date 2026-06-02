@@ -63,6 +63,14 @@
   right: 0;
   top: 100%;
   margin-top: 4px;
+
+  &--portal {
+    position: fixed;
+    z-index: 10000002;
+    margin-top: 0;
+    right: auto;
+    top: auto;
+  }
 }
 
 .chevron::before {
@@ -149,4 +157,193 @@
 
 #toolsSidebarButtonContainer {
   margin-left: 1rem;
+}
+
+.building-config {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.building-config-intro,
+.building-config-section-description {
+  font-size: 0.875rem;
+  margin-bottom: 0;
+}
+
+.building-config-section {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.building-config-section-title {
+  font-weight: 600;
+  margin-bottom: 0;
+}
+
+.building-config-section-heading {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  justify-content: space-between;
+}
+
+.building-config-show-all-toggle {
+  font-size: 0.85rem;
+  margin-bottom: 0;
+}
+
+.building-config-metrics {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.building-config-metric-card,
+.building-config-language-body {
+  background: rgba(248, 249, 250, 0.95);
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  border-radius: 0.5rem;
+  padding: 0.75rem;
+}
+
+.building-config-dimension-header {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  margin-bottom: 0.5rem;
+}
+
+.building-config-dimension-label {
+  font-weight: 600;
+}
+
+.building-config-dimension-caption {
+  color: rgba(33, 37, 41, 0.65);
+  font-size: 0.8rem;
+}
+
+.building-config-language-accordion .accordion-item {
+  border-color: rgba(0, 0, 0, 0.08);
+}
+
+.building-config-language-accordion .accordion-button {
+  align-items: center;
+  font-weight: 500;
+  padding: 0.65rem 0.85rem;
+}
+
+.building-config-language-accordion .accordion-button:not(.collapsed) {
+  background-color: rgba(13, 110, 253, 0.08);
+  box-shadow: none;
+}
+
+.building-config-language-accordion .accordion-body {
+  overflow: visible;
+}
+
+.building-config-language-header {
+  align-items: center;
+  display: inline-flex;
+  gap: 0.65rem;
+}
+
+.building-config-language-name {
+  font-weight: 600;
+}
+
+.building-config-language-swatch {
+  border: 1px solid rgba(0, 0, 0, 0.15);
+  border-radius: 0.25rem;
+  display: inline-block;
+  flex-shrink: 0;
+  height: 1rem;
+  width: 1rem;
+}
+
+.building-config-language-swatch--header {
+  height: 0.9rem;
+  width: 0.9rem;
+}
+
+.building-config-language-body {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+}
+
+.building-config-language-preview {
+  align-items: center;
+  display: flex;
+  gap: 0.5rem;
+}
+
+.building-config-language-preview-label {
+  color: rgba(33, 37, 41, 0.65);
+  font-size: 0.8rem;
+}
+
+.building-config-language-controls {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+}
+
+.building-config-control-block {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.building-config-control-label {
+  font-size: 0.8rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+
+.building-config-geometry-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  width: 100%;
+}
+
+.building-config-geometry-button {
+  flex: 1 1 calc(50% - 0.35rem);
+  min-width: 4.5rem;
+}
+
+.building-config-reset-link {
+  align-self: flex-start;
+  padding-left: 0;
+  text-decoration: none;
+}
+
+.building-config-empty {
+  font-size: 0.875rem;
+  padding: 1rem 0;
+}
+
+.language-filter-list {
+  display: flex;
+  flex-direction: column;
+}
+
+.language-filter-item {
+  min-height: 1.5rem;
+}
+
+.language-filter-color-swatch {
+  border: 1px solid rgba(0, 0, 0, 0.15);
+  border-radius: 0.2rem;
+  flex-shrink: 0;
+  height: 0.85rem;
+  width: 0.85rem;
+}
+
+.language-filter-checkbox.form-check {
+  padding-left: 1.75em;
 }

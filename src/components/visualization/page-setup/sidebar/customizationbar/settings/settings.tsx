@@ -135,7 +135,11 @@ export default function Settings({
       ) {
         // Check if dependency condition is met
         if (isDependencyMet(setting.dependsOn, visualizationSettings)) {
-          settingGroupToSettingIds[setting.group].push(settingId);
+          const groupSettings = settingGroupToSettingIds[setting.group];
+          if (!groupSettings) {
+            continue;
+          }
+          groupSettings.push(settingId);
         }
       }
     }

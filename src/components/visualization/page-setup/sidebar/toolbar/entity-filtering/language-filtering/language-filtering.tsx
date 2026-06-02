@@ -2,29 +2,28 @@ import { useModelStore } from 'explorviz-frontend/src/stores/repos/model-reposit
 import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
 import { useVisualizationStore } from 'explorviz-frontend/src/stores/visualization-store';
 import { Language } from 'explorviz-frontend/src/utils/landscape-schemes/flat-landscape';
+import { defaultColors } from 'explorviz-frontend/src/utils/settings/color-schemes';
+import {
+  getLanguageColorSettingId,
+  LANGUAGE_SETTING_CONFIG,
+  normalizeLanguage,
+} from 'explorviz-frontend/src/utils/settings/language-settings';
+import { ColorSettingId } from 'explorviz-frontend/src/utils/settings/settings-schemas';
 import { useMemo } from 'react';
 import Form from 'react-bootstrap/Form';
 import { useShallow } from 'zustand/react/shallow';
 
-const LANGUAGE_LABELS: Record<Language, string> = {
-  CPP: 'CPP',
-  JAVA: 'Java',
-  PYTHON: 'Python',
-  TYPESCRIPT: 'TypeScript',
-  JAVASCRIPT: 'JavaScript',
-  PLAINTEXT: 'Plain Text',
-  LANGUAGE_UNSPECIFIED: 'Other',
-};
-
-const LANGUAGE_COLOR_KEYS: Record<Language, string> = {
-  CPP: 'languageColorCPP',
-  JAVA: 'languageColorJava',
-  PYTHON: 'languageColorPython',
-  TYPESCRIPT: 'languageColorTypeScript',
-  JAVASCRIPT: 'languageColorTypeScript',
-  PLAINTEXT: 'languageColorOther',
-  LANGUAGE_UNSPECIFIED: 'languageColorOther',
-};
+function resolveLanguageDisplayColor(
+  language: Language,
+  languageColors: Partial<Record<ColorSettingId, string>>
+): string {
+  const colorSettingId = getLanguageColorSettingId(language);
+  return (
+    languageColors[colorSettingId] ??
+    languageColors.otherBuildingColor ??
+    defaultColors.otherBuildingColor
+  );
+}
 
 export default function LanguageFiltering() {
   const allBuildings = useModelStore((state) => state.getAllBuildings);
@@ -35,8 +34,17 @@ export default function LanguageFiltering() {
     }))
   );
 
-  const visualizationSettings = useUserSettingsStore(
-    (state) => state.visualizationSettings
+  const languageColors = useUserSettingsStore(
+    useShallow((state) => {
+      const colors: Partial<Record<ColorSettingId, string>> = {};
+
+      for (const config of Object.values(LANGUAGE_SETTING_CONFIG)) {
+        colors[config.colorSettingId] =
+          state.visualizationSettings[config.colorSettingId]?.value;
+      }
+
+      return colors;
+    })
   );
 
   const languageStats = useMemo(() => {
@@ -44,7 +52,7 @@ export default function LanguageFiltering() {
     const counts = new Map<Language, number>();
 
     for (const building of buildings) {
-      const lang: Language = building.language ?? 'LANGUAGE_UNSPECIFIED';
+      const lang = normalizeLanguage(building.language);
       counts.set(lang, (counts.get(lang) ?? 0) + 1);
     }
 
@@ -60,46 +68,39 @@ export default function LanguageFiltering() {
   }
 
   return (
-    <div>
+    <div className="language-filter-list">
       {languageStats.map(([language, count]) => {
-        const colorKey = LANGUAGE_COLOR_KEYS[language];
-        const colorSetting = visualizationSettings[
-          colorKey as keyof typeof visualizationSettings
-        ] as { value: string } | undefined;
-        const color = colorSetting?.value ?? '#999';
+        const color = resolveLanguageDisplayColor(language, languageColors);
         const isVisible = !hiddenLanguages.has(language);
 
         return (
-          <Form.Check
+          <div
             key={language}
-            type="checkbox"
-            id={`lang-filter-${language}`}
-            className="d-flex align-items-center gap-2 mb-1"
-            style={{ paddingLeft: '1.75em' }}
-            label={
-              <span className="d-flex align-items-center gap-2">
-                <span
-                  style={{
-                    display: 'inline-block',
-                    width: 12,
-                    height: 12,
-                    borderRadius: 2,
-                    backgroundColor: color,
-                    border: '1px solid rgba(0,0,0,0.15)',
-                    flexShrink: 0,
-                  }}
-                />
-                <span>
-                  {LANGUAGE_LABELS[language] ?? language}
+            className="language-filter-item d-flex align-items-center gap-2 mb-2"
+          >
+            <span
+              className="language-filter-color-swatch"
+              style={{ backgroundColor: color }}
+              aria-hidden
+            />
+            <Form.Check
+              type="checkbox"
+              id={`lang-filter-${language}`}
+              className="language-filter-checkbox mb-0 flex-grow-1"
+              label={
+                <span className="d-flex align-items-center gap-2">
+                  <span>
+                    {LANGUAGE_SETTING_CONFIG[language]?.label ?? language}
+                  </span>
+                  <span className="text-muted" style={{ fontSize: '0.8rem' }}>
+                    ({count})
+                  </span>
                 </span>
-                <span className="text-muted" style={{ fontSize: '0.8rem' }}>
-                  ({count})
-                </span>
-              </span>
-            }
-            checked={isVisible}
-            onChange={() => toggleLanguageVisibility(language)}
-          />
+              }
+              checked={isVisible}
+              onChange={() => toggleLanguageVisibility(language)}
+            />
+          </div>
         );
       })}
     </div>

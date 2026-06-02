@@ -87,7 +87,11 @@ export default function SettingsMenu() {
           .value as unknown as SettingLevel)
       ) {
         if (isDependencyMet(setting.dependsOn, visualizationSettings)) {
-          settingGroupToSettingIds[setting.group].push(settingId);
+          const groupSettings = settingGroupToSettingIds[setting.group];
+          if (!groupSettings) {
+            continue;
+          }
+          groupSettings.push(settingId);
         }
       }
     }

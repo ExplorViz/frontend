@@ -193,86 +193,17 @@ export const useUserSettingsStore = create<UserSettingsState>()(
 
       setColorsFromSettings: () => {
         const visualizationSettings = get().visualizationSettings;
+        const colors = {} as ExplorVizColors;
 
-        set({
-          colors: {
-            foundationColor: new THREE.Color(
-              visualizationSettings.foundationColor.value
-            ),
-            districtRootLevelColor: new THREE.Color(
-              visualizationSettings.districtRootLevelColor.value
-            ),
-            districtDeepestLevelColor: new THREE.Color(
-              visualizationSettings.districtDeepestLevelColor.value
-            ),
-            javaBuildingColor: new THREE.Color(
-              visualizationSettings.javaBuildingColor.value
-            ),
-            cppBuildingColor: new THREE.Color(
-              visualizationSettings.cppBuildingColor.value
-            ),
-            pythonBuildingColor: new THREE.Color(
-              visualizationSettings.pythonBuildingColor.value
-            ),
-            typescriptBuildingColor: new THREE.Color(
-              visualizationSettings.typescriptBuildingColor.value
-            ),
-            otherBuildingColor: new THREE.Color(
-              visualizationSettings.otherBuildingColor.value
-            ),
-            highlightedEntityColor: new THREE.Color(
-              visualizationSettings.highlightedEntityColor.value
-            ),
-            districtTextColor: new THREE.Color(
-              visualizationSettings.districtTextColor.value
-            ),
-            buildingTextColor: new THREE.Color(
-              visualizationSettings.buildingTextColor.value
-            ),
-            foundationTextColor: new THREE.Color(
-              visualizationSettings.foundationTextColor.value
-            ),
-            communicationColor: new THREE.Color(
-              visualizationSettings.communicationColor.value
-            ),
-            communicationStartColor: new THREE.Color(
-              visualizationSettings.communicationStartColor.value
-            ),
-            communicationEndColor: new THREE.Color(
-              visualizationSettings.communicationEndColor.value
-            ),
-            communicationArrowColor: new THREE.Color(
-              visualizationSettings.communicationArrowColor.value
-            ),
-            backgroundColor: new THREE.Color(
-              visualizationSettings.backgroundColor.value
-            ),
-            addedDistrictColor: new THREE.Color(
-              visualizationSettings.addedDistrictColor.value
-            ),
-            removedDistrictColor: new THREE.Color(
-              visualizationSettings.removedDistrictColor.value
-            ),
-            unchangedDistrictColor: new THREE.Color(
-              visualizationSettings.unchangedDistrictColor.value
-            ),
-            addedBuildingColor: new THREE.Color(
-              visualizationSettings.addedBuildingColor.value
-            ),
-            modifiedBuildingColor: new THREE.Color(
-              visualizationSettings.modifiedBuildingColor.value
-            ),
-            removedBuildingColor: new THREE.Color(
-              visualizationSettings.removedBuildingColor.value
-            ),
-            unchangedBuildingColor: new THREE.Color(
-              visualizationSettings.unchangedBuildingColor.value
-            ),
-            k8sDiagramColor: new THREE.Color(
-              visualizationSettings.k8sDiagramColor.value
-            ),
-          },
-        });
+        let settingId: keyof VisualizationSettings;
+        for (settingId in visualizationSettings) {
+          const setting = visualizationSettings[settingId];
+          if (isColorSetting(setting)) {
+            colors[settingId as ColorSettingId] = new THREE.Color(setting.value);
+          }
+        }
+
+        set({ colors });
       },
 
       // ----------------------------
@@ -384,7 +315,7 @@ export const useUserSettingsStore = create<UserSettingsState>()(
     }),
     {
       name: 'ExplorVizSettings',
-      version: 30, // increment to overwrite existing storage (if needed)
+      version: 31, // increment to overwrite existing storage (if needed)
       partialize: (state) =>
         Object.fromEntries(
           Object.entries(state).filter(

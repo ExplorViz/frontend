@@ -1,4 +1,5 @@
 export type SettingGroup =
+  | 'Building Config'
   | 'Camera'
   | 'Colors'
   | 'Communication'
@@ -30,9 +31,18 @@ export type CameraSettingId = keyof CameraSettings;
 export type ColorSettingId =
   | 'backgroundColor'
   | 'javaBuildingColor'
+  | 'cBuildingColor'
   | 'cppBuildingColor'
+  | 'csharpBuildingColor'
+  | 'goBuildingColor'
+  | 'javascriptBuildingColor'
+  | 'kotlinBuildingColor'
+  | 'phpBuildingColor'
   | 'pythonBuildingColor'
+  | 'rustBuildingColor'
+  | 'swiftBuildingColor'
   | 'typescriptBuildingColor'
+  | 'plaintextBuildingColor'
   | 'otherBuildingColor'
   | 'buildingTextColor'
   | 'communicationArrowColor'
@@ -225,9 +235,18 @@ export type XrSettings = Record<XrSettingId, FlagSetting>;
 
 export type GeometrySettings = {
   languageGeometryJava: SelectSetting<string>;
+  languageGeometryC: SelectSetting<string>;
   languageGeometryCpp: SelectSetting<string>;
+  languageGeometryCsharp: SelectSetting<string>;
+  languageGeometryGo: SelectSetting<string>;
+  languageGeometryJavaScript: SelectSetting<string>;
+  languageGeometryKotlin: SelectSetting<string>;
+  languageGeometryPhp: SelectSetting<string>;
   languageGeometryPython: SelectSetting<string>;
+  languageGeometryRust: SelectSetting<string>;
+  languageGeometrySwift: SelectSetting<string>;
   languageGeometryTypeScript: SelectSetting<string>;
+  languageGeometryPlaintext: SelectSetting<string>;
   languageGeometryOther: SelectSetting<string>;
 };
 export type GeometrySettingId = keyof GeometrySettings;

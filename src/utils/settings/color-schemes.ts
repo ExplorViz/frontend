@@ -1,13 +1,24 @@
 export type ColorSchemeId = 'default' | 'classic' | 'blue' | 'dark' | 'desert';
 export type ColorScheme = typeof defaultColors;
 
+const defaultLanguageBuildingColor = '#a7cffb'; // light pastel blue
+
 export const defaultColors = {
   backgroundColor: '#ffffff', // white
-  javaBuildingColor: '#a7cffb', // light pastel blue
-  cppBuildingColor: '#a7cffb',
-  pythonBuildingColor: '#a7cffb',
-  typescriptBuildingColor: '#a7cffb',
-  otherBuildingColor: '#a7cffb',
+  javaBuildingColor: defaultLanguageBuildingColor,
+  cBuildingColor: defaultLanguageBuildingColor,
+  cppBuildingColor: defaultLanguageBuildingColor,
+  csharpBuildingColor: defaultLanguageBuildingColor,
+  goBuildingColor: defaultLanguageBuildingColor,
+  javascriptBuildingColor: defaultLanguageBuildingColor,
+  kotlinBuildingColor: defaultLanguageBuildingColor,
+  phpBuildingColor: defaultLanguageBuildingColor,
+  pythonBuildingColor: defaultLanguageBuildingColor,
+  rustBuildingColor: defaultLanguageBuildingColor,
+  swiftBuildingColor: defaultLanguageBuildingColor,
+  typescriptBuildingColor: defaultLanguageBuildingColor,
+  plaintextBuildingColor: defaultLanguageBuildingColor,
+  otherBuildingColor: defaultLanguageBuildingColor,
   buildingTextColor: '#000000', // black
   communicationArrowColor: '#000000', // black
   communicationColor: '#d6d48b', // light yellow
@@ -29,48 +40,92 @@ export const defaultColors = {
   k8sDiagramColor: '#326ce5', // bright blue
 };
 
+const classicLanguageBuildingColor = '#3e14a0'; // purple-blue
+
 // The following color schemes might also be partial color schemes
 
 export const classicColors = {
-  javaBuildingColor: '#3e14a0', // purple-blue
-  cppBuildingColor: '#3e14a0',
-  pythonBuildingColor: '#3e14a0',
-  typescriptBuildingColor: '#3e14a0',
-  otherBuildingColor: '#3e14a0',
+  javaBuildingColor: classicLanguageBuildingColor,
+  cBuildingColor: classicLanguageBuildingColor,
+  cppBuildingColor: classicLanguageBuildingColor,
+  csharpBuildingColor: classicLanguageBuildingColor,
+  goBuildingColor: classicLanguageBuildingColor,
+  javascriptBuildingColor: classicLanguageBuildingColor,
+  kotlinBuildingColor: classicLanguageBuildingColor,
+  phpBuildingColor: classicLanguageBuildingColor,
+  pythonBuildingColor: classicLanguageBuildingColor,
+  rustBuildingColor: classicLanguageBuildingColor,
+  swiftBuildingColor: classicLanguageBuildingColor,
+  typescriptBuildingColor: classicLanguageBuildingColor,
+  plaintextBuildingColor: classicLanguageBuildingColor,
+  otherBuildingColor: classicLanguageBuildingColor,
   communicationColor: '#f49100', // orange
   districtRootLevelColor: '#169e2b', // dark green
   districtDeepestLevelColor: '#4efa79', // light green
 };
 
+const blueLanguageBuildingColor = '#FDB882'; // light orange
+
 export const blueColors = {
-  javaBuildingColor: '#FDB882', // light orange
-  cppBuildingColor: '#FDB882',
-  pythonBuildingColor: '#FDB882',
-  typescriptBuildingColor: '#FDB882',
-  otherBuildingColor: '#FDB882',
+  javaBuildingColor: blueLanguageBuildingColor,
+  cBuildingColor: blueLanguageBuildingColor,
+  cppBuildingColor: blueLanguageBuildingColor,
+  csharpBuildingColor: blueLanguageBuildingColor,
+  goBuildingColor: blueLanguageBuildingColor,
+  javascriptBuildingColor: blueLanguageBuildingColor,
+  kotlinBuildingColor: blueLanguageBuildingColor,
+  phpBuildingColor: blueLanguageBuildingColor,
+  pythonBuildingColor: blueLanguageBuildingColor,
+  rustBuildingColor: blueLanguageBuildingColor,
+  swiftBuildingColor: blueLanguageBuildingColor,
+  typescriptBuildingColor: blueLanguageBuildingColor,
+  plaintextBuildingColor: blueLanguageBuildingColor,
+  otherBuildingColor: blueLanguageBuildingColor,
 
   districtRootLevelColor: '#031e7f', // deep teal
   districtDeepestLevelColor: '#82c7fd', // light blue
 };
 
+const darkLanguageBuildingColor = '#4073b6'; // blue
+
 export const darkColors = {
-  javaBuildingColor: '#4073b6', // blue
-  cppBuildingColor: '#4073b6',
-  pythonBuildingColor: '#4073b6',
-  typescriptBuildingColor: '#4073b6',
-  otherBuildingColor: '#4073b6',
+  javaBuildingColor: darkLanguageBuildingColor,
+  cBuildingColor: darkLanguageBuildingColor,
+  cppBuildingColor: darkLanguageBuildingColor,
+  csharpBuildingColor: darkLanguageBuildingColor,
+  goBuildingColor: darkLanguageBuildingColor,
+  javascriptBuildingColor: darkLanguageBuildingColor,
+  kotlinBuildingColor: darkLanguageBuildingColor,
+  phpBuildingColor: darkLanguageBuildingColor,
+  pythonBuildingColor: darkLanguageBuildingColor,
+  rustBuildingColor: darkLanguageBuildingColor,
+  swiftBuildingColor: darkLanguageBuildingColor,
+  typescriptBuildingColor: darkLanguageBuildingColor,
+  plaintextBuildingColor: darkLanguageBuildingColor,
+  otherBuildingColor: darkLanguageBuildingColor,
   communicationColor: '#e3e3e3', // light grey
   districtRootLevelColor: '#2f3d3b', // dark grey
   districtDeepestLevelColor: '#5B7B88', // blue-grey
 };
 
+const desertLanguageBuildingColor = '#e0e0e0'; // light grey
+
 export const desertCity = {
   foundationColor: '#ffffff', // white
-  javaBuildingColor: '#e0e0e0', // light grey
-  cppBuildingColor: '#e0e0e0',
-  pythonBuildingColor: '#e0e0e0',
-  typescriptBuildingColor: '#e0e0e0',
-  otherBuildingColor: '#e0e0e0',
+  javaBuildingColor: desertLanguageBuildingColor,
+  cBuildingColor: desertLanguageBuildingColor,
+  cppBuildingColor: desertLanguageBuildingColor,
+  csharpBuildingColor: desertLanguageBuildingColor,
+  goBuildingColor: desertLanguageBuildingColor,
+  javascriptBuildingColor: desertLanguageBuildingColor,
+  kotlinBuildingColor: desertLanguageBuildingColor,
+  phpBuildingColor: desertLanguageBuildingColor,
+  pythonBuildingColor: desertLanguageBuildingColor,
+  rustBuildingColor: desertLanguageBuildingColor,
+  swiftBuildingColor: desertLanguageBuildingColor,
+  typescriptBuildingColor: desertLanguageBuildingColor,
+  plaintextBuildingColor: desertLanguageBuildingColor,
+  otherBuildingColor: desertLanguageBuildingColor,
   districtRootLevelColor: '#afbac2', // light blue-grey
   districtDeepestLevelColor: '#f2ed59', // sand yellow
 };

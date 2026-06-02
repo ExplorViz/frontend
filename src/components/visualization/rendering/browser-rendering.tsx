@@ -5,6 +5,8 @@ import VscodeExtensionOpener from 'explorviz-frontend/src/components/collaborati
 import HeatmapInfo from 'explorviz-frontend/src/components/heatmap/heatmap-info';
 import RestructureOpener from 'explorviz-frontend/src/components/visualization/page-setup/sidebar/customizationbar/restructure/restructure-opener';
 import Settings from 'explorviz-frontend/src/components/visualization/page-setup/sidebar/customizationbar/settings/settings';
+import BuildingConfigOpener from 'explorviz-frontend/src/components/visualization/page-setup/sidebar/customizationbar/building-config/building-config-opener';
+import BuildingConfig from 'explorviz-frontend/src/components/visualization/page-setup/sidebar/customizationbar/building-config/building-config';
 import SettingsOpener from 'explorviz-frontend/src/components/visualization/page-setup/sidebar/customizationbar/settings/settings-opener';
 import SnapshotOpener from 'explorviz-frontend/src/components/visualization/page-setup/sidebar/customizationbar/snapshot/snapshot-opener';
 import CodeAnalysisTriggerOpener from 'explorviz-frontend/src/components/visualization/page-setup/sidebar/toolbar/code-analysis-trigger/code-analysis-trigger-opener';
@@ -431,6 +433,12 @@ export default function BrowserRendering({
                 >
                   <div className="explorviz-visualization-navbar">
                     <ul className="nav justify-content-center">
+                      <BuildingConfigOpener
+                        openedComponent={openedSettingComponent}
+                        toggleSettingsSidebarComponent={
+                          toggleSettingsSidebarComponent
+                        }
+                      />
                       <CollaborationOpener
                         openedComponent={openedSettingComponent!}
                         toggleSettingsSidebarComponent={
@@ -511,6 +519,9 @@ export default function BrowserRendering({
                           }
                           landscapeToken={landscapeToken}
                         />
+                      )}
+                      {openedSettingComponent === 'Building-Config' && (
+                        <BuildingConfig />
                       )}
                       {openedSettingComponent === 'Settings' && (
                         <Settings

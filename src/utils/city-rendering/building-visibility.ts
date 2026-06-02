@@ -2,6 +2,7 @@ import {
   Building,
   Language,
 } from 'explorviz-frontend/src/utils/landscape-schemes/flat-landscape';
+import { normalizeLanguage } from 'explorviz-frontend/src/utils/settings/language-settings';
 
 type BuildingVisibilityArgs = {
   buildingId: string;
@@ -18,7 +19,7 @@ export function isBuildingVisible({
   removedDistrictIds,
   hiddenLanguages,
 }: BuildingVisibilityArgs): boolean {
-  const language = building?.language ?? 'LANGUAGE_UNSPECIFIED';
+  const language = normalizeLanguage(building?.language);
 
   return (
     !hiddenBuildingIds.has(buildingId) &&

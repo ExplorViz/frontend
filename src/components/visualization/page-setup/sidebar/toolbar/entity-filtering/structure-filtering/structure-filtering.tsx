@@ -20,6 +20,7 @@ import {
 } from 'explorviz-frontend/src/utils/landscape-schemes/flat-landscape';
 import { LandscapeData } from 'explorviz-frontend/src/utils/landscape-schemes/landscape-data';
 import { BuildingMetrics } from 'explorviz-frontend/src/utils/settings/settings-schemas';
+import { normalizeLanguage } from 'explorviz-frontend/src/utils/settings/language-settings';
 
 interface StructureFilteringProps {
   readonly landscapeData: LandscapeData;
@@ -173,8 +174,7 @@ const StructureFiltering = forwardRef<
     const buildingIdsToFilter = Object.values(
       baselineFlatLandscape.buildings
     ).filter((building) => {
-      const language = (building.language ??
-        'LANGUAGE_UNSPECIFIED') as Language;
+      const language = normalizeLanguage(building.language);
       const isFilteredByLanguage =
         filterMode === 'Remove' && hiddenLanguages.has(language);
       const isFilteredByMetric = metricOptions.some(
