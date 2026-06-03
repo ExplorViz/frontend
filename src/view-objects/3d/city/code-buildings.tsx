@@ -208,13 +208,14 @@ const GeometryGroup: React.FC<GeometryGroupProps> = ({
   );
 
   const geometry = useMemo(() => {
+    // Round primitives default to radius 1 (diameter 2); use 0.5 to match BoxGeometry's 1×1 footprint.
     switch (geometryType) {
       case 'Cone':
-        return new ConeGeometry();
+        return new ConeGeometry(0.5, 1);
       case 'Sphere':
-        return new SphereGeometry();
+        return new SphereGeometry(0.5);
       case 'Cylinder':
-        return new CylinderGeometry();
+        return new CylinderGeometry(0.5, 0.5, 1);
       case 'Box':
       default:
         return new BoxGeometry();
