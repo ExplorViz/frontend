@@ -1,4 +1,9 @@
 import CopyButton from 'explorviz-frontend/src/components/copy-button.tsx';
+import {
+  coerceMetricNumber,
+  formatInteger,
+  formatMetricValue,
+} from 'explorviz-frontend/src/components/visualization/rendering/popups/city-popups/building-metrics-utils';
 import PopupData from 'explorviz-frontend/src/components/visualization/rendering/popups/popup-data';
 import { usePopupHandlerStore } from 'explorviz-frontend/src/stores/popup-handler';
 import generateUuidv4 from 'explorviz-frontend/src/utils/helpers/uuid4-generator';
@@ -10,64 +15,6 @@ import { Accordion, Tab, Tabs } from 'react-bootstrap';
 
 interface BuildingPopupProps {
   popupData: PopupData;
-}
-
-const NULL_METRIC_DISPLAY = '—';
-
-function coerceMetricNumber(value: number | null | undefined): number | null {
-  if (value == null) {
-    return null;
-  }
-
-  const numericValue = typeof value === 'number' ? value : Number(value);
-  return Number.isFinite(numericValue) ? numericValue : null;
-}
-
-function formatInteger(value: number | null | undefined): string {
-  const numericValue = coerceMetricNumber(value);
-  if (numericValue === null) {
-    return NULL_METRIC_DISPLAY;
-  }
-
-  return Math.round(numericValue).toLocaleString('en-US');
-}
-
-function formatWithUpToTwoDecimals(value: number | null | undefined): string {
-  const numericValue = coerceMetricNumber(value);
-  if (numericValue === null) {
-    return NULL_METRIC_DISPLAY;
-  }
-
-  return numericValue.toLocaleString('en-US', {
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 2,
-  });
-}
-
-function formatSizeMetric(valueInBytes: number): string {
-  const kiloBytes = 1024;
-  const megaBytes = kiloBytes * 1024;
-
-  if (Math.abs(valueInBytes) >= megaBytes) {
-    return `${formatWithUpToTwoDecimals(valueInBytes / megaBytes)} MegaBytes`;
-  }
-
-  if (Math.abs(valueInBytes) >= kiloBytes) {
-    return `${formatWithUpToTwoDecimals(valueInBytes / kiloBytes)} KiloBytes`;
-  }
-
-  return `${formatWithUpToTwoDecimals(valueInBytes)} Bytes`;
-}
-
-function formatMetricValue(
-  name: string,
-  value: number | null | undefined
-): string {
-  if (name.trim().toLowerCase() === 'size') {
-    return formatSizeMetric(value);
-  }
-
-  return formatInteger(value);
 }
 
 export default function BuildingPopup({ popupData }: BuildingPopupProps) {
