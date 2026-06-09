@@ -10,6 +10,11 @@ on:
         description: "Docker image tag to publish (e.g. v1.2.3)"
         required: true
         type: string
+      ref:
+        description: "Git ref to build (branch, tag, or commit SHA). Defaults to main."
+        required: false
+        type: string
+        default: main
 
 jobs:
   pnpm-install:
@@ -17,6 +22,8 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v5
+        with:
+          ref: ${{ github.event_name == 'workflow_dispatch' && inputs.ref || github.ref }}
       - name: Install pnpm
         uses: pnpm/action-setup@v5
       - name: Set up Node.js
@@ -44,6 +51,8 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v5
+        with:
+          ref: ${{ github.event_name == 'workflow_dispatch' && inputs.ref || github.ref }}
       - name: Install pnpm
         uses: pnpm/action-setup@v5
       - name: Set up Node.js
@@ -76,6 +85,8 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v5
+        with:
+          ref: ${{ github.event_name == 'workflow_dispatch' && inputs.ref || github.ref }}
       - name: Download dist artifact
         uses: actions/download-artifact@v5
         with:
