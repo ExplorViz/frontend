@@ -24,27 +24,35 @@ export default function EvolutionPlaybackControls() {
   // Render current frame whenever index changes
   useEffect(() => {
     const frame = frames[currentFrameIndex];
-    if (!frame) {
-      return;
-    }
-    triggerRendering(frame, [], { metrics: {}, communications: [] });
+    //masterFrame = frame with all buildings
+    const masterFrame = frames[frames.length - 1];
+    if (!frame || !masterFrame) return;
 
-    // Check what the store has after the call
-    setTimeout(() => {
-      const landscapeData = useRenderingServiceStore.getState()._landscapeData;
-      console.log(
-        'LandscapeData in store after render:',
-        landscapeData?.flatLandscapeData?.buildings
-          ? Object.values(landscapeData.flatLandscapeData.buildings)
-              .filter((b: any) => b.commitComparison)
-              .slice(0, 3)
-              .map((b: any) => ({
-                name: b.name,
-                comparison: b.commitComparison,
-              }))
-          : 'no buildings'
-      );
-    }, 100);
+    const mergedBuildings = {...masterFrame.buildings};
+    Object.keys(mergedBuildings).forEach((id) => {
+      const exisitsInCurrentFrame = !!frame.buildings[id];
+
+      mergedBuildings[id] = {
+        ...mergedBuildings[id],
+          commitComparison: currentFrameIndex === 0
+            ? 'ADDED'
+            : exisitsInCurrentFrame
+              ? frame.buildings[id].commitComparison ?? undefined
+              : undefined,
+      };
+    });
+
+    const mergedFrame = {
+      ...masterFrame,
+      buildings: mergedBuildings,
+    };
+
+    triggerRendering(mergedFrame, [], { metrics: {}, communications: [] });
+    console.log('Frame 0 building IDs:', Object.keys(frame.buildings).length);
+    console.log(
+      'Master frame building IDs:',
+      Object.keys(masterFrame.buildings).length
+    );
   }, [currentFrameIndex, frames]);
 
   // Auto-advance timer
@@ -68,13 +76,13 @@ export default function EvolutionPlaybackControls() {
     <div
       style={{
         position: 'fixed',
-        top: '150px',
+        top: '500px',
         left: '20px',
         backgroundColor: '#1a1a1a',
         border: '1px solid #444',
         borderRadius: '8px',
         padding: '16px',
-        width: '220px',
+        width: '300px',
         zIndex: 9999,
         color: 'white',
         boxShadow: '0 4px 12px rgba(0,0,0,0.5)',
@@ -86,7 +94,7 @@ export default function EvolutionPlaybackControls() {
         disabled={currentFrameIndex === 0}
         style={btnStyle}
       >
-        ⏮
+        Back
       </button>
 
       {/* Play/Pause */}
@@ -94,7 +102,7 @@ export default function EvolutionPlaybackControls() {
         onClick={isPlaying ? actions.pause : actions.play}
         style={btnStyle}
       >
-        {isPlaying ? '⏸' : '▶'}
+        {isPlaying ? 'Pause' : 'Play'}
       </button>
 
       {/* Step forward */}
@@ -103,7 +111,7 @@ export default function EvolutionPlaybackControls() {
         disabled={currentFrameIndex === frames.length - 1}
         style={btnStyle}
       >
-        ⏭
+        Forward
       </button>
 
       {/* Frame counter */}
@@ -118,7 +126,7 @@ export default function EvolutionPlaybackControls() {
         max={frames.length - 1}
         value={currentFrameIndex}
         onChange={(e) => actions.seekTo(Number(e.target.value))}
-        style={{ width: '150px' }}
+        style={{ width: '225px' }}
       />
 
       {/* Close */}
@@ -128,7 +136,7 @@ export default function EvolutionPlaybackControls() {
         }}
         style={{ ...btnStyle, marginLeft: '8px', color: '#aaa' }}
       >
-        ✕
+        Close
       </button>
     </div>,
     document.body
