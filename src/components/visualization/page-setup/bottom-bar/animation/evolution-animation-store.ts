@@ -1,10 +1,15 @@
 import { FlatLandscape } from 'explorviz-frontend/src/utils/landscape-schemes/flat-landscape';
 import { create } from 'zustand';
 
+
+
+
 interface EvolutionAnimationState {
   frames: FlatLandscape[];
   currentFrameIndex: number;
   isPlaying: boolean;
+  layoutMode: 'city' | 'spiral';
+  timeMode: 'commit' | 'time';
   speedMs: number;
   actions: {
     setFrames: (frames: FlatLandscape[]) => void;
@@ -13,6 +18,8 @@ interface EvolutionAnimationState {
     stepForward: () => void;
     stepBack: () => void;
     seekTo: (index: number) => void;
+    setLayoutMode: (mode: 'city' | 'spiral') => void;
+    setTimeMode: (mode: 'commit' | 'time') => void;
     setSpeed: (ms: number) => void;
     reset: () => void;
   };
@@ -23,6 +30,8 @@ export const useEvolutionAnimationStore = create<EvolutionAnimationState>(
     frames: [],
     currentFrameIndex: 0,
     isPlaying: false,
+    layoutMode: 'spiral',
+    timeMode: 'commit',
     speedMs: 1000,
     actions: {
       setFrames: (frames) =>
@@ -44,6 +53,8 @@ export const useEvolutionAnimationStore = create<EvolutionAnimationState>(
         set((s) => ({
           currentFrameIndex: Math.max(0, Math.min(index, s.frames.length - 1)),
         })),
+      setLayoutMode: (mode: 'city' |'spiral') => set({layoutMode: mode}),
+      setTimeMode: (mode: 'commit' | 'time' ) => set({timeMode: mode}),
       setSpeed: (ms) => set({ speedMs: ms }),
       reset: () => set({ frames: [], currentFrameIndex: 0, isPlaying: false }),
     },

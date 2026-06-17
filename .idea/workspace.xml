@@ -1,14 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="39d009b9-8e16-4a92-8b03-7ba7754ce0d5" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/src/components/visualization/page-setup/bottom-bar/animation/animation-rendering-buttons.tsx" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/components/visualization/page-setup/bottom-bar/animation/evolution-animation-fetch-service.ts" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/components/visualization/page-setup/bottom-bar/animation/evolution-animation-panel.tsx" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/components/visualization/page-setup/bottom-bar/animation/evolution-animation-store.ts" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/components/visualization/page-setup/bottom-bar/animation/evolution-playback-controls.tsx" afterDir="false" />
+    <list default="true" id="39d009b9-8e16-4a92-8b03-7ba7754ce0d5" name="Changes" comment="Fixed the API call, wired up the first frontend changes">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/pages/visualization.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/pages/visualization.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/components/visualization/page-setup/bottom-bar/animation/animation-rendering-buttons.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/components/visualization/page-setup/bottom-bar/animation/animation-rendering-buttons.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/components/visualization/page-setup/bottom-bar/animation/evolution-animation-panel.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/components/visualization/page-setup/bottom-bar/animation/evolution-animation-panel.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/components/visualization/page-setup/bottom-bar/animation/evolution-animation-store.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/components/visualization/page-setup/bottom-bar/animation/evolution-animation-store.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/components/visualization/page-setup/bottom-bar/animation/evolution-playback-controls.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/components/visualization/page-setup/bottom-bar/animation/evolution-playback-controls.tsx" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -71,11 +69,24 @@
       <workItem from="1774533420432" duration="320000" />
       <workItem from="1780830115128" duration="11443000" />
       <workItem from="1781072336412" duration="3367000" />
-      <workItem from="1781078810448" duration="10636000" />
+      <workItem from="1781078810448" duration="14968000" />
     </task>
+    <task id="LOCAL-00001" summary="Fixed the API call, wired up the first frontend changes">
+      <option name="closed" value="true" />
+      <created>1781658685536</created>
+      <option name="number" value="00001" />
+      <option name="presentableId" value="LOCAL-00001" />
+      <option name="project" value="LOCAL" />
+      <updated>1781658685537</updated>
+    </task>
+    <option name="localTasksCounter" value="2" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
     <option name="version" value="3" />
+  </component>
+  <component name="VcsManagerConfiguration">
+    <MESSAGE value="Fixed the API call, wired up the first frontend changes" />
+    <option name="LAST_COMMIT_MESSAGE" value="Fixed the API call, wired up the first frontend changes" />
   </component>
 </project>

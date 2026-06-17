@@ -1,13 +1,15 @@
 import { useCommitTreeStateStore } from 'explorviz-frontend/src/stores/commit-tree-state';
 import { useEvolutionAnimationFetchServiceStore } from 'explorviz-frontend/src/components/visualization/page-setup/bottom-bar/animation/evolution-animation-fetch-service';
 import { useEvolutionAnimationStore } from 'explorviz-frontend/src/components/visualization/page-setup/bottom-bar/animation/evolution-animation-store';
-import { FlatLandscape } from 'explorviz-frontend/src/utils/landscape-schemes/flat-landscape';
 import { useState } from 'react';
+import { useShallow } from 'zustand/react/shallow';
 import { createPortal } from 'react-dom';
 import Button from 'react-bootstrap/Button';
 import Form from 'react-bootstrap/Form';
 import { useRenderingServiceStore } from 'explorviz-frontend/src/stores/rendering-service';
-import { useVisibilityServiceStore } from 'explorviz-frontend/src/stores/visibility-service.ts';
+import { useVisibilityServiceStore } from 'explorviz-frontend/src/stores/visibility-service';
+import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
+
 
 
 export default function EvolutionAnimationPanel({
@@ -15,11 +17,16 @@ export default function EvolutionAnimationPanel({
 }: {
   onClose: () => void;
 }) {
-  const [layoutMode, setLayoutMode] = useState<'city' | 'spiral'>('spiral');
-  const [timeMode, setTimeMode] = useState<'commit' | 'time'>('commit');
-  const [speedMs, setSpeedMs] = useState(1000);
+  const { layoutMode, timeMode, speedMs } = useEvolutionAnimationStore(
+    useShallow((state) => ({
+      layoutMode: state.layoutMode,
+      timeMode: state.timeMode,
+      speedMs: state.speedMs,
+    }))
+  );
+  const { setLayoutMode, setTimeMode, setSpeed } =
+    useEvolutionAnimationStore.getState().actions;
   const [isLoading, setIsLoading] = useState(false);
-  const [frames, setFrames] = useState<FlatLandscape[]>([]);
 
   const repositoryName = useCommitTreeStateStore(
     (state) => state._currentSelectedRepositoryName
@@ -51,9 +58,11 @@ export default function EvolutionAnimationPanel({
           renderOnlyDifferences: true,
           removeUnchangedFromLayout: false,
         });
+      useUserSettingsStore.getState().updateSetting(
+        'buildingLayoutAlgorithm',
+        layoutMode === 'spiral' ? 'spiral' : 'None');
       useEvolutionAnimationStore.getState().actions.setSpeed(speedMs);
       useEvolutionAnimationStore.getState().actions.play(); // 🆕 auto-start
-      console.log(`Loaded ${result.length} frames for ${repositoryName}`);
       onClose(); // 🆕 close the panel
     } catch (e) {
       console.error('Failed to fetch animation frames:', e);
@@ -162,15 +171,10 @@ export default function EvolutionAnimationPanel({
           max={3000}
           step={100}
           value={speedMs}
-          onChange={(e) => setSpeedMs(Number(e.target.value))}
+          onChange={(e) => setSpeed(Number(e.target.value))}
         />
       </Form.Group>
 
-      {frames.length > 0 && (
-        <p style={{ fontSize: '12px', color: '#aaa', marginBottom: '8px' }}>
-          {frames.length} frames loaded
-        </p>
-      )}
 
       <Button
         variant="primary"

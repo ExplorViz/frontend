@@ -27,9 +27,7 @@ export default function EvolutionAnimationButton() {
       {showPanel && (
         <EvolutionAnimationPanel
           onClose={() => setShowPanel(false)}
-          onStart={(config) => {
-            console.log('Starting animation with config:', config);
-          }}
+          onStart={(config) => {}}
         />
       )}
       {/*Show playback controls once frames are loaded*/}

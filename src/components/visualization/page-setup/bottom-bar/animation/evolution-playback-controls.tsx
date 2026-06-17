@@ -25,19 +25,8 @@ export default function EvolutionPlaybackControls() {
   useEffect(() => {
     const frame = frames[currentFrameIndex];
     if (!frame) {
-      //Test
-      console.log('No frame found at index', currentFrameIndex);
       return;
     }
-    console.log(
-      'Frame',
-      currentFrameIndex,
-      'buildings with commitComparison:',
-      Object.values(frame.buildings)
-        .filter((b) => b.commitComparison)
-        .map((b) => ({ name: b.name, comparison: b.commitComparison }))
-    );
-    console.log('Rendering frame', currentFrameIndex, frame);
     triggerRendering(frame, [], { metrics: {}, communications: [] });
 
     // Check what the store has after the call
