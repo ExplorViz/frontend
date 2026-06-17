@@ -2,7 +2,13 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="39d009b9-8e16-4a92-8b03-7ba7754ce0d5" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/.env" beforeDir="false" afterPath="$PROJECT_DIR$/.env" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/components/visualization/page-setup/bottom-bar/animation/animation-rendering-buttons.tsx" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/components/visualization/page-setup/bottom-bar/animation/evolution-animation-fetch-service.ts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/components/visualization/page-setup/bottom-bar/animation/evolution-animation-panel.tsx" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/components/visualization/page-setup/bottom-bar/animation/evolution-animation-store.ts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/components/visualization/page-setup/bottom-bar/animation/evolution-playback-controls.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/pages/visualization.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/pages/visualization.tsx" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -20,22 +26,29 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent">{
-  &quot;keyToString&quot;: {
-    &quot;ModuleVcsDetector.initialDetectionPerformed&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.typescript.service.memoryLimit.init&quot;: &quot;true&quot;,
-    &quot;git-widget-placeholder&quot;: &quot;main&quot;,
-    &quot;ignore.virus.scanning.warn.message&quot;: &quot;true&quot;,
-    &quot;kotlin-language-version-configured&quot;: &quot;true&quot;,
-    &quot;last_opened_file_path&quot;: &quot;C:/Users/ceste/Desktop/frontend&quot;,
-    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
-    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
-    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
-    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "ModuleVcsDetector.initialDetectionPerformed": "true",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "RunOnceActivity.git.unshallow": "true",
+    "RunOnceActivity.typescript.service.memoryLimit.init": "true",
+    "git-widget-placeholder": "animation__evolution",
+    "ignore.virus.scanning.warn.message": "true",
+    "kotlin-language-version-configured": "true",
+    "last_opened_file_path": "C:/Users/ceste/Desktop/frontend",
+    "node.js.detected.package.eslint": "true",
+    "node.js.selected.package.eslint": "(autodetect)",
+    "nodejs_package_manager_path": "npm",
+    "prettierjs.PrettierConfiguration.Package": "C:\\Users\\Daniel\\UNI\\BAExploVis\\frontend\\node_modules\\prettier",
+    "ts.external.directory.path": "C:\\Users\\Daniel\\UNI\\BAExploVis\\frontend\\node_modules\\typescript\\lib",
+    "vue.rearranger.settings.migration": "true"
   }
-}</component>
+}]]></component>
+  <component name="RecentsManager">
+    <key name="MoveFile.RECENT_KEYS">
+      <recent name="C:\Users\Daniel\UNI\BAExploVis\frontend\src\components\visualization\page-setup\bottom-bar\animation" />
+    </key>
+  </component>
   <component name="SharedIndexes">
     <attachedChunks>
       <set>
@@ -56,6 +69,9 @@
       <workItem from="1774098674060" duration="471000" />
       <workItem from="1774118338822" duration="153000" />
       <workItem from="1774533420432" duration="320000" />
+      <workItem from="1780830115128" duration="11443000" />
+      <workItem from="1781072336412" duration="3367000" />
+      <workItem from="1781078810448" duration="10636000" />
     </task>
     <servers />
   </component>
