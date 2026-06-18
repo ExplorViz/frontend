@@ -1,4 +1,4 @@
-import CopyButton from 'explorviz-frontend/src/components/copy-button.tsx';
+import LinkButton from 'explorviz-frontend/src/components/link-button.tsx';
 import {
   coerceMetricNumber,
   formatInteger,
@@ -270,6 +270,16 @@ export default function BuildingPopup({ popupData }: BuildingPopupProps) {
 
   const detailedData = popupData.fileDetailedData;
 
+  const isStatic =
+    building.originOfData === TypeOfAnalysis.Static ||
+    building.originOfData === TypeOfAnalysis.StaticAndDynamic;
+  const showSourceLink = isStatic && !!building.id;
+  const sourceLinkTooltip = detailedData?.fileUrl
+    ? 'Open source file'
+    : detailedData
+      ? 'Source file unavailable'
+      : 'Loading source file...';
+
   return (
     <>
       <h3 className="popover-header">
@@ -277,7 +287,13 @@ export default function BuildingPopup({ popupData }: BuildingPopupProps) {
           <div className="text-center text-break fw-bold pl-1">
             {building.name}
           </div>
-          <CopyButton text={building.name} />
+          {showSourceLink && (
+            <LinkButton
+              url={detailedData?.fileUrl}
+              disabled={!detailedData?.fileUrl}
+              tooltip={sourceLinkTooltip}
+            />
+          )}
         </div>
       </h3>
       <div className="popover-body">

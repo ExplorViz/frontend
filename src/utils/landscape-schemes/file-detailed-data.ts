@@ -30,4 +30,5 @@ export interface FileDetailedDto {
   metrics: Record<string, number>;
   classes: ClazzDto[];
   functions: FunctionDto[];
+  fileUrl?: string;
 }
