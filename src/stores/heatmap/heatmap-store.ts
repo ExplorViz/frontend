@@ -25,23 +25,39 @@ function getMinMaxMetricValues(metricName: BuildingMetricIds): {
 
 export enum SelectedBuildingHeatmapMetric {
   None = 'None',
+  size = 'size',
   loc = 'loc',
   sloc = 'sloc',
   cloc = 'cloc',
+  importCount = 'importCount',
+  classCount = 'classCount',
   functionCount = 'functionCount',
   variableCount = 'variableCount',
-  size = 'size',
 }
 
 export enum BuildingMetricIds {
   None = 'None',
+  size = 'size',
   loc = 'loc',
   sloc = 'sloc',
   cloc = 'cloc',
+  importCount = 'importCount',
+  classCount = 'classCount',
   functionCount = 'functionCount',
   variableCount = 'variableCount',
-  size = 'size',
 }
+
+export const ORDERED_BUILDING_METRIC_IDS: BuildingMetricIds[] = [
+  BuildingMetricIds.None,
+  BuildingMetricIds.size,
+  BuildingMetricIds.loc,
+  BuildingMetricIds.sloc,
+  BuildingMetricIds.cloc,
+  BuildingMetricIds.importCount,
+  BuildingMetricIds.classCount,
+  BuildingMetricIds.functionCount,
+  BuildingMetricIds.variableCount,
+];
 
 const NO_SELECTED_METRIC: BuildingMetric = {
   name: BuildingMetricIds.None,
@@ -125,12 +141,14 @@ export const useHeatmapStore = create<HeatmapConfigurationState>(
 
     setSelectedBuildingMetric: (metricName: BuildingMetricIds) => {
       switch (metricName) {
+        case BuildingMetricIds.size:
         case BuildingMetricIds.loc:
         case BuildingMetricIds.sloc:
         case BuildingMetricIds.cloc:
+        case BuildingMetricIds.importCount:
+        case BuildingMetricIds.classCount:
         case BuildingMetricIds.functionCount:
-        case BuildingMetricIds.variableCount:
-        case BuildingMetricIds.size: {
+        case BuildingMetricIds.variableCount: {
           const { min, max } = getMinMaxMetricValues(metricName);
           set({
             selectedBuildingMetric: {

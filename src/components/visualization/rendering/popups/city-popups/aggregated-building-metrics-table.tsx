@@ -5,6 +5,7 @@ import {
   formatMetricValue,
 } from 'explorviz-frontend/src/components/visualization/rendering/popups/city-popups/building-metrics-utils';
 import { useLiveBuildings } from 'explorviz-frontend/src/components/visualization/rendering/popups/city-popups/use-live-flat-entity';
+import { getOrderedBuildingMetricEntries } from 'explorviz-frontend/src/utils/settings/settings-schemas';
 import { useMemo } from 'react';
 
 interface AggregatedBuildingMetricsTableProps {
@@ -22,7 +23,10 @@ export default function AggregatedBuildingMetricsTable({
     [buildingIds, buildingIdsKey, buildings]
   );
 
-  const metricEntries = Object.entries(aggregatedMetrics);
+  const metricEntries = useMemo(
+    () => getOrderedBuildingMetricEntries(aggregatedMetrics),
+    [aggregatedMetrics]
+  );
 
   if (buildingIds.length === 0) {
     return (

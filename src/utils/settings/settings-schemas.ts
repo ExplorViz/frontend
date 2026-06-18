@@ -378,22 +378,64 @@ export interface ButtonSetting extends Setting<boolean> {
 }
 
 export enum BuildingMetrics {
+  size = 'size',
   loc = 'loc',
   sloc = 'sloc',
   cloc = 'cloc',
+  importCount = 'importCount',
+  classCount = 'classCount',
   functionCount = 'functionCount',
   variableCount = 'variableCount',
-  size = 'size',
 }
+
+export const BUILDING_METRIC_NAMES = Object.values(BuildingMetrics);
 
 export enum SelectedBuildingMetric {
   None = 'None',
+  size = 'size',
   loc = 'loc',
   sloc = 'sloc',
   cloc = 'cloc',
+  importCount = 'importCount',
+  classCount = 'classCount',
   functionCount = 'functionCount',
   variableCount = 'variableCount',
-  size = 'size',
+}
+
+export const SELECTED_BUILDING_METRIC_OPTIONS: SelectedBuildingMetric[] = [
+  SelectedBuildingMetric.None,
+  SelectedBuildingMetric.size,
+  SelectedBuildingMetric.loc,
+  SelectedBuildingMetric.sloc,
+  SelectedBuildingMetric.cloc,
+  SelectedBuildingMetric.importCount,
+  SelectedBuildingMetric.classCount,
+  SelectedBuildingMetric.functionCount,
+  SelectedBuildingMetric.variableCount,
+];
+
+export function sortBuildingMetricNames(names: Iterable<string>): string[] {
+  const orderIndex = new Map(
+    BUILDING_METRIC_NAMES.map((name, index) => [name, index])
+  );
+
+  return [...names].sort((a, b) => {
+    const indexA = orderIndex.get(a) ?? Number.MAX_SAFE_INTEGER;
+    const indexB = orderIndex.get(b) ?? Number.MAX_SAFE_INTEGER;
+    if (indexA !== indexB) {
+      return indexA - indexB;
+    }
+    return a.localeCompare(b);
+  });
+}
+
+export function getOrderedBuildingMetricEntries<T>(
+  metrics: Record<string, T>
+): [string, T][] {
+  return sortBuildingMetricNames(Object.keys(metrics)).map((name) => [
+    name,
+    metrics[name],
+  ]);
 }
 
 export enum BuildingMetricMapping {

@@ -54,18 +54,22 @@ export function getMetricValues(
   };
 
   switch (classHeatmapMetric.name) {
+    case BuildingMetricIds.size:
+    case SelectedBuildingHeatmapMetric.size:
     case BuildingMetricIds.loc:
     case SelectedBuildingHeatmapMetric.loc:
     case BuildingMetricIds.sloc:
     case SelectedBuildingHeatmapMetric.sloc:
     case BuildingMetricIds.cloc:
     case SelectedBuildingHeatmapMetric.cloc:
+    case BuildingMetricIds.importCount:
+    case SelectedBuildingHeatmapMetric.importCount:
+    case BuildingMetricIds.classCount:
+    case SelectedBuildingHeatmapMetric.classCount:
     case BuildingMetricIds.functionCount:
     case SelectedBuildingHeatmapMetric.functionCount:
     case BuildingMetricIds.variableCount:
     case SelectedBuildingHeatmapMetric.variableCount:
-    case BuildingMetricIds.size:
-    case SelectedBuildingHeatmapMetric.size:
       return {
         min: classHeatmapMetric.min,
         max: classHeatmapMetric.max,

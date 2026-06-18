@@ -1,6 +1,7 @@
 import { defaultColors } from 'explorviz-frontend/src/utils/settings/color-schemes';
 import {
   BuildingMetricMapping,
+  SELECTED_BUILDING_METRIC_OPTIONS,
   SelectedBuildingMetric,
   SettingLevel,
   VisualizationSettings,
@@ -9,21 +10,25 @@ import {
 export const metricMappingMultipliers = {
   [BuildingMetricMapping.Linear]: {
     [SelectedBuildingMetric.None]: 1,
+    [SelectedBuildingMetric.size]: 0.001,
     [SelectedBuildingMetric.loc]: 1,
     [SelectedBuildingMetric.sloc]: 1,
     [SelectedBuildingMetric.cloc]: 1,
+    [SelectedBuildingMetric.importCount]: 10,
+    [SelectedBuildingMetric.classCount]: 10,
     [SelectedBuildingMetric.functionCount]: 10,
     [SelectedBuildingMetric.variableCount]: 10,
-    [SelectedBuildingMetric.size]: 0.001,
   },
   [BuildingMetricMapping.Logarithmic]: {
     [SelectedBuildingMetric.None]: 1,
+    [SelectedBuildingMetric.size]: 10,
     [SelectedBuildingMetric.loc]: 20,
     [SelectedBuildingMetric.sloc]: 20,
     [SelectedBuildingMetric.cloc]: 20,
+    [SelectedBuildingMetric.importCount]: 20,
+    [SelectedBuildingMetric.classCount]: 20,
     [SelectedBuildingMetric.functionCount]: 25,
     [SelectedBuildingMetric.variableCount]: 20,
-    [SelectedBuildingMetric.size]: 10,
   },
 } as const;
 
@@ -48,7 +53,7 @@ export function getMetricMappingMultiplier(
 ): number {
   return metricMappingMultipliers[mapping][metric];
 }
-export const metricKeys = Object.values(SelectedBuildingMetric);
+export const metricKeys = SELECTED_BUILDING_METRIC_OPTIONS;
 export const MOUSE_ACTIONS = [
   'NONE',
   'ROTATE',

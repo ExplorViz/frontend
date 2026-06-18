@@ -19,7 +19,7 @@ import {
   Language,
 } from 'explorviz-frontend/src/utils/landscape-schemes/flat-landscape';
 import { LandscapeData } from 'explorviz-frontend/src/utils/landscape-schemes/landscape-data';
-import { BuildingMetrics } from 'explorviz-frontend/src/utils/settings/settings-schemas';
+import { BUILDING_METRIC_NAMES } from 'explorviz-frontend/src/utils/settings/settings-schemas';
 import { normalizeLanguage } from 'explorviz-frontend/src/utils/settings/language-settings';
 
 interface StructureFilteringProps {
@@ -57,7 +57,7 @@ const StructureFiltering = forwardRef<
     building.metrics?.[metricKey]?.current ?? 0;
 
   const getAvailableMetricKeys = (_landscape: FlatLandscape): string[] =>
-    Object.values(BuildingMetrics);
+    [...BUILDING_METRIC_NAMES];
 
   const getMetricBounds = (
     landscape: FlatLandscape
@@ -65,7 +65,7 @@ const StructureFiltering = forwardRef<
     const buildings = Object.values(landscape.buildings);
     const metricBounds: Record<string, { min: number; max: number }> = {};
 
-    Object.values(BuildingMetrics).forEach((metricName) => {
+    BUILDING_METRIC_NAMES.forEach((metricName) => {
       if (buildings.length === 0) {
         metricBounds[metricName] = { min: 0, max: 0 };
         return;

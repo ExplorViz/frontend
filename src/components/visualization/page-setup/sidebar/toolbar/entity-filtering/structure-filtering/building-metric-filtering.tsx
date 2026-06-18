@@ -2,6 +2,7 @@ import React, { forwardRef, useImperativeHandle } from 'react';
 
 import HelpTooltip from 'explorviz-frontend/src/components/help-tooltip';
 import { useRenderingServiceStore } from 'explorviz-frontend/src/stores/rendering-service';
+import { sortBuildingMetricNames } from 'explorviz-frontend/src/utils/settings/settings-schemas';
 
 interface BuildingMetricFilteringProps {
   metricBounds: Record<string, { min: number; max: number }>;
@@ -71,7 +72,8 @@ const BuildingMetricFiltering = forwardRef<
         </b>
         )
       </label>
-      {Object.entries(metricBounds).map(([metricName, bounds]) => {
+      {sortBuildingMetricNames(Object.keys(metricBounds)).map((metricName) => {
+        const bounds = metricBounds[metricName];
         const selected = selectedMetricThresholds[metricName] ?? bounds.min;
         return (
           <div

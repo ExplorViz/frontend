@@ -16,12 +16,14 @@ export interface ClazzDto {
   functions: FunctionDto[];
   fields: FieldDto[];
   innerClasses: ClazzDto[];
+  superclassFqns?: string[];
 }
 
 export interface FileDetailedDto {
   name: string;
   language: string;
   packageName: string;
+  importNames?: string[];
   addedLines: number;
   modifiedLines: number;
   deletedLines: number;

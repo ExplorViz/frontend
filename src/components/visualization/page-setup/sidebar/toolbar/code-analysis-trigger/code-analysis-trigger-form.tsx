@@ -37,6 +37,7 @@ interface AnalysisRequestPayload {
   startCommit?: string;
   endCommit?: string;
   commitAnalysisLimit?: number;
+  maxLocForFullAnalysis?: number;
   landscapeToken: string;
   applications?: ApplicationSpec[];
   calculateMetrics: boolean;
@@ -168,6 +169,12 @@ function buildPayload(
     payload.commitAnalysisLimit = formData.commitAnalysisLimit;
   }
   if (
+    formData.maxLocForFullAnalysis !== undefined &&
+    formData.maxLocForFullAnalysis > 0
+  ) {
+    payload.maxLocForFullAnalysis = formData.maxLocForFullAnalysis;
+  }
+  if (
     formData.socialDataTimeFrameDays !== undefined &&
     formData.socialDataTimeFrameDays > 0
   ) {
@@ -253,6 +260,7 @@ export default function CodeAnalysisTriggerForm({
     startCommit: '',
     endCommit: '',
     commitAnalysisLimit: 1 as number | undefined,
+    maxLocForFullAnalysis: undefined as number | undefined,
     fetchEndDate: '',
     socialDataTimeFrameDays: undefined as number | undefined,
     calculateMetrics: true,
@@ -376,6 +384,7 @@ export default function CodeAnalysisTriggerForm({
       startCommit: '',
       endCommit: '',
       commitAnalysisLimit: 1,
+      maxLocForFullAnalysis: undefined,
       fetchEndDate: '',
       socialDataTimeFrameDays: undefined,
       calculateMetrics: true,
@@ -583,6 +592,27 @@ export default function CodeAnalysisTriggerForm({
               onChange={(e) =>
                 handleInputChange(
                   'commitAnalysisLimit',
+                  e.target.value === ''
+                    ? undefined
+                    : parseInt(e.target.value, 10)
+                )
+              }
+            />
+          </Form.Group>
+
+          <Form.Group className="mb-3">
+            <FormLabelWithHelp
+              label="Max LOC for Full Analysis"
+              help="Optional limit on lines of code for full source analysis. Files with more lines are still included, but only programming language, LOC, and size are computed. Leave empty to analyze all files fully."
+            />
+            <Form.Control
+              type="number"
+              min={1}
+              placeholder="all"
+              value={formData.maxLocForFullAnalysis ?? ''}
+              onChange={(e) =>
+                handleInputChange(
+                  'maxLocForFullAnalysis',
                   e.target.value === ''
                     ? undefined
                     : parseInt(e.target.value, 10)
