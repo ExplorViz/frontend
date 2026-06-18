@@ -11,7 +11,7 @@ export const metricMappingMultipliers = {
   [BuildingMetricMapping.Linear]: {
     [SelectedBuildingMetric.None]: 1,
     [SelectedBuildingMetric.size]: 0.001,
-    [SelectedBuildingMetric.loc]: 1,
+    [SelectedBuildingMetric.lineCount]: 1,
     [SelectedBuildingMetric.sloc]: 1,
     [SelectedBuildingMetric.cloc]: 1,
     [SelectedBuildingMetric.importCount]: 10,
@@ -22,7 +22,7 @@ export const metricMappingMultipliers = {
   [BuildingMetricMapping.Logarithmic]: {
     [SelectedBuildingMetric.None]: 1,
     [SelectedBuildingMetric.size]: 10,
-    [SelectedBuildingMetric.loc]: 20,
+    [SelectedBuildingMetric.lineCount]: 20,
     [SelectedBuildingMetric.sloc]: 20,
     [SelectedBuildingMetric.cloc]: 20,
     [SelectedBuildingMetric.importCount]: 20,

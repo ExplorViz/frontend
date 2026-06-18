@@ -15,20 +15,20 @@ export type ApplicationMetrics = {
 };
 
 export type ClassMetricCode = {
-  loc: string;
+  lineCount: string;
   LCOM4: string;
   cyclomatic_complexity_weighted: string;
   cyclomatic_complexity: string;
 };
 
 export type MethodMetricCode = {
-  loc: string;
+  lineCount: string;
   nestedBlockDepth: string;
   cyclomatic_complexity: string;
 };
 
 export type FileMetricCode = {
-  loc: string;
+  lineCount: string;
   cyclomatic_complexity: string;
 };
 
@@ -63,7 +63,7 @@ export type CommitComparisonMetric = {
           newValue: string;
         }
       | undefined;
-    loc:
+    lineCount:
       | {
           // used to identify which communication line needs to be marked as modified
           // during the commit comparison

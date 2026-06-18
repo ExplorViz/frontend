@@ -56,8 +56,8 @@ export function getMetricValues(
   switch (classHeatmapMetric.name) {
     case BuildingMetricIds.size:
     case SelectedBuildingHeatmapMetric.size:
-    case BuildingMetricIds.loc:
-    case SelectedBuildingHeatmapMetric.loc:
+    case BuildingMetricIds.lineCount:
+    case SelectedBuildingHeatmapMetric.lineCount:
     case BuildingMetricIds.sloc:
     case SelectedBuildingHeatmapMetric.sloc:
     case BuildingMetricIds.cloc:

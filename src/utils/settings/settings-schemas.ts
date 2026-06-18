@@ -379,7 +379,7 @@ export interface ButtonSetting extends Setting<boolean> {
 
 export enum BuildingMetrics {
   size = 'size',
-  loc = 'loc',
+  lineCount = 'lineCount',
   sloc = 'sloc',
   cloc = 'cloc',
   importCount = 'importCount',
@@ -393,7 +393,7 @@ export const BUILDING_METRIC_NAMES = Object.values(BuildingMetrics);
 export enum SelectedBuildingMetric {
   None = 'None',
   size = 'size',
-  loc = 'loc',
+  lineCount = 'lineCount',
   sloc = 'sloc',
   cloc = 'cloc',
   importCount = 'importCount',
@@ -405,7 +405,7 @@ export enum SelectedBuildingMetric {
 export const SELECTED_BUILDING_METRIC_OPTIONS: SelectedBuildingMetric[] = [
   SelectedBuildingMetric.None,
   SelectedBuildingMetric.size,
-  SelectedBuildingMetric.loc,
+  SelectedBuildingMetric.lineCount,
   SelectedBuildingMetric.sloc,
   SelectedBuildingMetric.cloc,
   SelectedBuildingMetric.importCount,
