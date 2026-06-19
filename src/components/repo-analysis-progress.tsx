@@ -1,6 +1,9 @@
 import { ProgressBar, Spinner } from "react-bootstrap";
 import { ProgressState } from "../hooks/useWatchAnalysisState";
 
+const CURRENT_FILE_AREA_HEIGHT = "3rem";
+const CURRENT_FILE_LINE_HEIGHT = "1.5rem";
+
 export const RepoAnalysisProgress = ({ state }: { state: ProgressState | null }) => {
   if (!state || state.status === 'pending') return (
     <div className='d-flex justify-content-center'>
@@ -13,14 +16,23 @@ export const RepoAnalysisProgress = ({ state }: { state: ProgressState | null })
     : 0;
 
   const percentage = filesProgressInCurrentCommit * 100;
+  const currentFile = state.currentAnalysingFile ?? '';
 
   return (
-    <div>
-      <p>Analysed commits: {state.analyzedCommits}/{state.totalCommits}</p>      
+    <div className="repo-analysis-progress overflow-hidden w-100" style={{ minWidth: 0 }}>
+      <p className="mb-2">Analysed commits: {state.analyzedCommits}/{state.totalCommits}</p>
       <ProgressBar now={percentage} label={`${percentage.toFixed(2)}%`} animated striped />
-      {state.currentAnalysingFile && (
-        <p className='mt-3'>{state.currentAnalysingFile}</p>
-      )}
+      <p
+        className="mt-3 mb-0 text-break overflow-hidden"
+        style={{
+          minHeight: CURRENT_FILE_AREA_HEIGHT,
+          maxHeight: CURRENT_FILE_AREA_HEIGHT,
+          lineHeight: CURRENT_FILE_LINE_HEIGHT,
+        }}
+        title={currentFile || undefined}
+      >
+        {currentFile}
+      </p>
     </div>
   );
 }

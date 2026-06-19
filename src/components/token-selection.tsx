@@ -128,7 +128,7 @@ export default function TokenSelection({
     trees.forEach(({ repoName, tree }) => {
       const uniqueCommits = new Set<string>();
       tree.branches.forEach((branch) => {
-        branch.commits.forEach((commitId) => uniqueCommits.add(commitId));
+        branch.commits.forEach((commit) => uniqueCommits.add(commit.hash));
       });
 
       uniqueCommits.forEach((commitId) => {

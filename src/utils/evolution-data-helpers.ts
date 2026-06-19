@@ -1,6 +1,7 @@
 import {
   Branch,
   Commit,
+  CommitNode,
   RepoNameCommitTreeMap,
 } from 'explorviz-frontend/src/utils/evolution-schemes/evolution-data';
 
@@ -10,7 +11,7 @@ export function findRepoNameAndBranchNameForCommit(
 ): { repoName: string; branchName: string } | undefined {
   for (const [repoName, commitTree] of repoCommitMap.entries()) {
     for (const branch of commitTree.branches) {
-      if (branch.commits.includes(targetCommit)) {
+      if (branch.commits.some((commit) => commit.hash === targetCommit)) {
         return { repoName, branchName: branch.name };
       }
     }
@@ -36,7 +37,7 @@ export function calculateCommitOffset(
         if (b.name === fromBranch) {
           for (const commit of b.commits) {
             counter++;
-            if (commit === fromCommit) {
+            if (commit.hash === fromCommit) {
               counter += calculateCommitOffset(
                 repoNameCommitTreeMap,
                 selectedRepoName,
@@ -65,7 +66,9 @@ export function getCommitXPosition(
   const branch = commitTree.branches.find((b) => b.name === branchName);
   if (!branch) return -1;
 
-  const pointNumber = branch.commits.indexOf(commitId);
+  const pointNumber = branch.commits.findIndex(
+    (commit) => commit.hash === commitId
+  );
   if (pointNumber === -1) return -1;
 
   return (
@@ -87,16 +90,16 @@ export function buildNewestCommitSelectionMap(
     let bestX = -Infinity;
 
     for (const branch of commitTree.branches) {
-      for (const commitId of branch.commits) {
+      for (const commit of branch.commits) {
         const x = getCommitXPosition(
           repoNameCommitTreeMap,
           repoName,
           branch.name,
-          commitId
+          commit.hash
         );
         if (x !== -1 && x >= bestX) {
           bestX = x;
-          best = { commitId, branchName: branch.name };
+          best = { commitId: commit.hash, branchName: branch.name };
         }
       }
     }
@@ -107,4 +110,18 @@ export function buildNewestCommitSelectionMap(
   }
 
   return result;
+}
+
+export function getFirstBranchWithCommits(
+  commitTree: { branches: Branch[] } | undefined
+): Branch | undefined {
+  return commitTree?.branches.find((branch) => branch.commits.length > 0);
+}
+
+export function getMetricValue(
+  commit: CommitNode,
+  metricName: string
+): number | null {
+  const value = commit.metrics?.[metricName];
+  return value == null || Number.isNaN(value) ? null : value;
 }

@@ -7,9 +7,15 @@ export type CommitTree = {
   branches: Branch[];
 };
 
+export type CommitNode = {
+  hash: string;
+  metrics?: Record<string, number>;
+  hasAccumulatedMetrics?: boolean;
+};
+
 export type Branch = {
   name: string;
-  commits: string[];
+  commits: CommitNode[];
   branchPoint: BranchPoint;
 };
 
@@ -24,12 +30,35 @@ export type Commit = {
 };
 
 export type CommitComparison = {
-  modified: string[]; // the component id's from the components of the first commit that got modified in the second commit
-  added: string[]; // the component id's from the second commit components that are missing in the first commit
-  deleted: string[]; // the component id's from the first commit components that got deleted in the second commit
+  modified: string[];
+  added: string[];
+  deleted: string[];
   addedPackages: string[];
   deletedPackages: string[];
   metrics: CommitComparisonMetric[];
 };
 
 export const CROSS_COMMIT_IDENTIFIER = 'cross-commit';
+
+export const NONE_METRIC = 'None';
+
+export function getAvailableMetricNames(branch: Branch): string[] {
+  const names = new Set<string>();
+  for (const commit of branch.commits) {
+    if (commit.metrics) {
+      Object.keys(commit.metrics).forEach((name) => names.add(name));
+    }
+  }
+  return [...names].sort((a, b) => a.localeCompare(b));
+}
+
+export function getDefaultMetricName(branch: Branch): string {
+  const availableMetrics = getAvailableMetricNames(branch);
+  if (availableMetrics.includes('lineCount')) {
+    return 'lineCount';
+  }
+  if (availableMetrics.length > 0) {
+    return availableMetrics[0];
+  }
+  return NONE_METRIC;
+}
