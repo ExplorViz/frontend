@@ -7,6 +7,7 @@ import {
 } from 'explorviz-frontend/src/utils/evolution-data-helpers';
 import {
   Commit,
+  CommitXAxisPlacement,
   RepoNameCommitTreeMap,
 } from 'explorviz-frontend/src/utils/evolution-schemes/evolution-data';
 import { create } from 'zustand';
@@ -17,8 +18,11 @@ interface CommitTreeStateState {
   _selectedCommits: Map<string, SelectedCommit[]>; // tracked
   _repoNameAndBranchNameToColorMap: Map<string, string>;
   _currentSelectedRepositoryName: string;
+  _xAxisPlacement: CommitXAxisPlacement;
   getSelectedCommits: () => Map<string, Commit[]>;
   getCurrentSelectedRepositoryName: () => string;
+  getXAxisPlacement: () => CommitXAxisPlacement;
+  setXAxisPlacement: (placement: CommitXAxisPlacement) => void;
   setDefaultState: (
     currentRepoNameCommitTreeMap: RepoNameCommitTreeMap,
     commit1: string,
@@ -105,6 +109,7 @@ export const useCommitTreeStateStore = create<CommitTreeStateState>(
     _selectedCommits: new Map(),
     _repoNameAndBranchNameToColorMap: new Map(),
     _currentSelectedRepositoryName: '',
+    _xAxisPlacement: 'equidistant',
 
     getSelectedCommits: () => {
       return get()._selectedCommits;
@@ -112,6 +117,14 @@ export const useCommitTreeStateStore = create<CommitTreeStateState>(
 
     getCurrentSelectedRepositoryName: () => {
       return get()._currentSelectedRepositoryName;
+    },
+
+    getXAxisPlacement: () => {
+      return get()._xAxisPlacement;
+    },
+
+    setXAxisPlacement: (placement: CommitXAxisPlacement) => {
+      set({ _xAxisPlacement: placement });
     },
 
     setDefaultState(
@@ -155,6 +168,7 @@ export const useCommitTreeStateStore = create<CommitTreeStateState>(
       }
 
       // Sort commits within each repo if there are two
+      const xAxisPlacement = get()._xAxisPlacement;
       for (const [repoName, commits] of defaultSelectedCommits.entries()) {
         if (commits.length === 2) {
           commits.sort((a, b) => {
@@ -162,13 +176,15 @@ export const useCommitTreeStateStore = create<CommitTreeStateState>(
               currentRepoNameCommitTreeMap,
               repoName,
               a.branchName,
-              a.commitId
+              a.commitId,
+              xAxisPlacement
             );
             const xB = getCommitXPosition(
               currentRepoNameCommitTreeMap,
               repoName,
               b.branchName,
-              b.commitId
+              b.commitId,
+              xAxisPlacement
             );
             return xA - xB;
           });

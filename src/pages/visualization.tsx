@@ -13,6 +13,7 @@ import { useCommitTreeStateStore } from 'explorviz-frontend/src/stores/commit-tr
 import { useImmersiveViewStore } from 'explorviz-frontend/src/stores/immersive-view-store';
 import { useLandscapeRestructureStore } from 'explorviz-frontend/src/stores/landscape-restructure';
 import { useLandscapeTokenStore } from 'explorviz-frontend/src/stores/landscape-token';
+import { usePopupHandlerStore } from 'explorviz-frontend/src/stores/popup-handler';
 import { useReloadHandlerStore } from 'explorviz-frontend/src/stores/reload-handler';
 import {
   AnalysisMode,
@@ -34,12 +35,11 @@ import {
 } from 'explorviz-frontend/src/stores/user-api-token';
 import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
 import eventEmitter from 'explorviz-frontend/src/utils/event-emitter';
-import { restoreSnapshotFromToken } from 'explorviz-frontend/src/utils/snapshot/snapshot-helpers';
 import { DynamicLandscapeData } from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/dynamic-data';
+import { restoreSnapshotFromToken } from 'explorviz-frontend/src/utils/snapshot/snapshot-helpers';
 import TimelineDataObjectHandler from 'explorviz-frontend/src/utils/timeline/timeline-data-object-handler';
 import { Button } from 'react-bootstrap';
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
-import { useShallow } from 'zustand/react/shallow';
 import { useDebugSnapshotRepositoryStore } from '../stores/repos/debug-snapshot-repository';
 import { FlatLandscape } from '../utils/landscape-schemes/flat-landscape';
 
@@ -349,17 +349,20 @@ export default function Visualization() {
     const snapshotCreatedAt = searchParams.get('createdAt');
     const isSharedSnapshot = searchParams.get('sharedSnapshot') === 'true';
     const shouldRestoreSnapshot =
-      snapshotSelected || (snapshotOwner !== null && snapshotCreatedAt !== null);
+      snapshotSelected ||
+      (snapshotOwner !== null && snapshotCreatedAt !== null);
 
     if (shouldRestoreSnapshot) {
       let loadedSnapshot = useSnapshotTokenStore.getState().snapshotToken;
 
       if (!loadedSnapshot && snapshotOwner && snapshotCreatedAt) {
-        loadedSnapshot = await useSnapshotTokenStore.getState().retrieveToken(
-          snapshotOwner,
-          Number(snapshotCreatedAt),
-          isSharedSnapshot
-        );
+        loadedSnapshot = await useSnapshotTokenStore
+          .getState()
+          .retrieveToken(
+            snapshotOwner,
+            Number(snapshotCreatedAt),
+            isSharedSnapshot
+          );
       }
 
       if (loadedSnapshot === null) {
@@ -483,15 +486,15 @@ export default function Visualization() {
   // #region Cleanup
 
   const willDestroy = () => {
+    useCommitTreeStateStore.getState().resetSelectedCommits();
+    useEvolutionDataRepositoryStore.getState().resetAllEvolutionData();
     useImmersiveViewStore.getState().exitImmersive();
     useLandscapeRestructureStore.getState().resetLandscapeRestructure();
+    useModelStore.getState().clearAll();
+    usePopupHandlerStore.getState().cleanup();
+    useRenderingServiceStore.getState().resetAllRenderingStates();
     useTimestampPollingStore.getState().resetState();
     useTimestampRepositoryStore.setState({ commitToTimestampMap: new Map() });
-    useRenderingServiceStore.getState().resetAllRenderingStates();
-    useModelStore.getState().clearAll();
-
-    useEvolutionDataRepositoryStore.getState().resetAllEvolutionData();
-    useCommitTreeStateStore.getState().resetSelectedCommits();
 
     setVisualizationMode('browser');
   };

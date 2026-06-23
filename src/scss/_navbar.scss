@@ -2,16 +2,33 @@
   all: unset;
 }
 
-.navbar-middle-row {
-  float: none;
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
+.navbar-layout {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  width: 100%;
+}
+
+.navbar-left {
+  justify-self: start;
+}
+
+.navbar-logo {
+  height: 30px;
+  cursor: pointer;
+}
+
+.navbar-center {
+  justify-self: center;
+  text-align: center;
 }
 
 .navbar-token-link {
   color: var(--bs-primary, #0d6efd);
+
+  .d-flex-center {
+    justify-content: center;
+  }
 }
 
 .navbar-rendering-mode {
@@ -49,7 +66,7 @@
   position: static;
   align-items: center;
   height: 100%;
-  float: right;
+  justify-self: end;
   margin-top: 0.5rem;
 }
 

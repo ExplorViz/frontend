@@ -7,8 +7,11 @@ export type CommitTree = {
   branches: Branch[];
 };
 
+export type CommitXAxisPlacement = 'equidistant' | 'time';
+
 export type CommitNode = {
   hash: string;
+  commitDate?: string;
   metrics?: Record<string, number>;
   hasAccumulatedMetrics?: boolean;
 };
@@ -41,6 +44,59 @@ export type CommitComparison = {
 export const CROSS_COMMIT_IDENTIFIER = 'cross-commit';
 
 export const NONE_METRIC = 'None';
+
+const NO_BRANCH_POINT: BranchPoint = { name: 'NONE', commit: '' };
+
+export function getCommitHash(commit: CommitNode | string): string {
+  return typeof commit === 'string' ? commit : commit.hash;
+}
+
+/** Normalizes legacy string commits and fills defaults for the branch-based metrics chart. */
+export function normalizeCommitNode(commit: CommitNode | string): CommitNode {
+  if (typeof commit === 'string') {
+    return { hash: commit, hasAccumulatedMetrics: false };
+  }
+
+  const metrics =
+    commit.metrics && Object.keys(commit.metrics).length > 0
+      ? commit.metrics
+      : undefined;
+
+  return {
+    hash: commit.hash,
+    ...(commit.commitDate != null && { commitDate: commit.commitDate }),
+    ...(metrics && { metrics }),
+    hasAccumulatedMetrics:
+      commit.hasAccumulatedMetrics ??
+      (metrics != null && Object.keys(metrics).length > 0),
+  };
+}
+
+export function normalizeCommitTree(
+  tree: Partial<CommitTree> | null | undefined,
+  repositoryName = ''
+): CommitTree {
+  return {
+    name: tree?.name ?? repositoryName,
+    branches: (tree?.branches ?? []).map((branch) => ({
+      name: branch.name,
+      branchPoint: branch.branchPoint ?? NO_BRANCH_POINT,
+      commits: (branch.commits ?? []).map((commit) =>
+        normalizeCommitNode(commit as CommitNode | string)
+      ),
+    })),
+  };
+}
+
+export function collectUniqueCommitHashes(tree: CommitTree): Set<string> {
+  const hashes = new Set<string>();
+  for (const branch of tree.branches) {
+    for (const commit of branch.commits) {
+      hashes.add(commit.hash);
+    }
+  }
+  return hashes;
+}
 
 export function getAvailableMetricNames(branch: Branch): string[] {
   const names = new Set<string>();

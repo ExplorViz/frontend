@@ -16,7 +16,11 @@ import {
   useLandscapeTokenStore,
 } from 'explorviz-frontend/src/stores/landscape-token';
 import { useToastHandlerStore } from 'explorviz-frontend/src/stores/toast-handler';
-import { CommitTree } from 'explorviz-frontend/src/utils/evolution-schemes/evolution-data';
+import {
+  CommitTree,
+  collectUniqueCommitHashes,
+  normalizeCommitTree,
+} from 'explorviz-frontend/src/utils/evolution-schemes/evolution-data';
 import JSZip from 'jszip';
 import React, { useState } from 'react';
 import { Button, OverlayTrigger, Tooltip } from 'react-bootstrap';
@@ -115,9 +119,14 @@ export default function TokenSelection({
       return null;
     });
 
-    const trees = (await Promise.all(treePromises)).filter(
-      (t): t is { repoName: string; tree: CommitTree } => t !== null
-    );
+    const trees = (await Promise.all(treePromises))
+      .filter(
+        (t): t is { repoName: string; tree: CommitTree } => t !== null
+      )
+      .map(({ repoName, tree }) => ({
+        repoName,
+        tree: normalizeCommitTree(tree, repoName),
+      }));
 
     const commitDataPromises: Promise<{
       repoName: string;
@@ -126,12 +135,7 @@ export default function TokenSelection({
     }>[] = [];
 
     trees.forEach(({ repoName, tree }) => {
-      const uniqueCommits = new Set<string>();
-      tree.branches.forEach((branch) => {
-        branch.commits.forEach((commit) => uniqueCommits.add(commit.hash));
-      });
-
-      uniqueCommits.forEach((commitId) => {
+      collectUniqueCommitHashes(tree).forEach((commitId) => {
         commitDataPromises.push(
           getJsonBlob(
             `${landscapeService}/v3/landscapes/${token.value}/structure/evolution/${repoName}/${commitId}`

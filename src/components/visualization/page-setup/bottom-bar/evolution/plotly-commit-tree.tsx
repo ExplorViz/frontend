@@ -1,12 +1,15 @@
-import { SelectedCommit } from 'explorviz-frontend/src/stores/commit-tree-state';
+import { useCommitTreeStateStore } from 'explorviz-frontend/src/stores/commit-tree-state';
 import {
+  buildBranchChartSeries,
+  formatCommitDate,
   getCommitXPosition,
   getFirstBranchWithCommits,
   getMetricValue,
 } from 'explorviz-frontend/src/utils/evolution-data-helpers';
 import {
-  Branch,
   Commit,
+  CommitNode,
+  CommitXAxisPlacement,
   CROSS_COMMIT_IDENTIFIER,
   getAvailableMetricNames,
   getDefaultMetricName,
@@ -20,9 +23,9 @@ import Button from 'react-bootstrap/Button';
 interface PlotlyCommitTreeArgs {
   repoNameCommitTreeMap: RepoNameCommitTreeMap;
   selectedRepoName: string;
-  selectedCommits: Map<string, SelectedCommit[]>;
+  selectedCommits: Map<string, Commit[]>;
   triggerVizRenderingForSelectedCommits(): void;
-  setSelectedCommits(newSelectedCommits: Map<string, SelectedCommit[]>): void;
+  setSelectedCommits(newSelectedCommits: Map<string, Commit[]>): void;
   getCloneOfRepoNameAndBranchNameToColorMap(): Map<string, string>;
   setRepoNameAndBranchNameToColorMap(
     newRepoNameAndBranchNameToColorMap: Map<string, string>
@@ -35,6 +38,14 @@ const COMMIT_SELECTED_SIZE = 20;
 const HIGHLIGHTED_MARKER_COLOR = 'red';
 const BRANCH_LINE_COLOR = 'rgba(70, 130, 180, 1)';
 
+const X_AXIS_PLACEMENT_OPTIONS: Array<{
+  value: CommitXAxisPlacement;
+  label: string;
+}> = [
+  { value: 'equidistant', label: 'Equidistant' },
+  { value: 'time', label: 'Time-based' },
+];
+
 export default function PlotlyCommitTree({
   repoNameCommitTreeMap,
   selectedRepoName,
@@ -45,6 +56,10 @@ export default function PlotlyCommitTree({
   const plotlyCommitDivRef = useRef<HTMLDivElement>(null);
   const [selectedBranchName, setSelectedBranchName] = useState('');
   const [selectedMetric, setSelectedMetric] = useState(NONE_METRIC);
+  const xAxisPlacement = useCommitTreeStateStore((state) => state._xAxisPlacement);
+  const setXAxisPlacement = useCommitTreeStateStore(
+    (state) => state.setXAxisPlacement
+  );
 
   const commitTree = repoNameCommitTreeMap.get(selectedRepoName);
   const selectedBranch = commitTree?.branches.find(
@@ -86,7 +101,13 @@ export default function PlotlyCommitTree({
     }
 
     renderChart(false);
-  }, [selectedBranch, selectedMetric, selectedRepoName, repoNameCommitTreeMap]);
+  }, [
+    selectedBranch,
+    selectedMetric,
+    selectedRepoName,
+    repoNameCommitTreeMap,
+    xAxisPlacement,
+  ]);
 
   useEffect(() => {
     if (!selectedBranch || !plotlyCommitDivRef.current) {
@@ -101,27 +122,26 @@ export default function PlotlyCommitTree({
       return;
     }
 
-    const xValues = selectedBranch.commits.map((_, index) => index);
-    const yValues =
-      selectedMetric === NONE_METRIC
-        ? selectedBranch.commits.map(() => 0)
-        : selectedBranch.commits.map(
-            (commit) => getMetricValue(commit, selectedMetric) ?? null
-          );
+    const chartSeries = buildBranchChartSeries(
+      selectedBranch,
+      xAxisPlacement,
+      selectedMetric
+    );
+    const { commits: chartCommits, xValues, yValues } = chartSeries;
 
-    const colors = selectedBranch.commits.map(() => BRANCH_LINE_COLOR);
-    const sizes = selectedBranch.commits.map(() => COMMIT_UNSELECTED_SIZE);
-    const texts = selectedBranch.commits.map(() => '');
+    const colors = chartCommits.map(() => BRANCH_LINE_COLOR);
+    const sizes = chartCommits.map(() => COMMIT_UNSELECTED_SIZE);
+    const texts = chartCommits.map(() => '');
 
     markSelectedCommits(
       selectedCommits.get(selectedRepoName) || [],
-      selectedBranch,
+      chartCommits,
       colors,
       sizes,
       texts
     );
 
-    const layout = buildLayout(selectedMetric, yValues);
+    const layout = buildLayout(selectedMetric, yValues, xValues, xAxisPlacement);
     const plotlyDiv = plotlyCommitDivRef.current as HTMLDivElement & {
       layout?: { xaxis?: { range?: number[] }; yaxis?: { range?: number[] } };
       removeAllListeners?: (event: string) => void;
@@ -149,7 +169,7 @@ export default function PlotlyCommitTree({
           text: texts,
           texttemplate: '%{text}',
           cliponaxis: false,
-          hovertext: buildHoverText(selectedBranch, selectedMetric),
+          hovertext: buildHoverText(chartCommits, selectedMetric),
           textposition: 'middle center',
           textfont: {
             color: 'white',
@@ -170,7 +190,7 @@ export default function PlotlyCommitTree({
       }
     );
 
-    setupPlotlyListener(selectedBranch);
+    setupPlotlyListener(selectedBranch.name, chartCommits);
   };
 
   const refocusChart = () => {
@@ -178,13 +198,17 @@ export default function PlotlyCommitTree({
       return;
     }
 
-    const yValues =
-      selectedMetric === NONE_METRIC
-        ? selectedBranch.commits.map(() => 0)
-        : selectedBranch.commits.map(
-            (commit) => getMetricValue(commit, selectedMetric) ?? null
-          );
-    const layout = buildLayout(selectedMetric, yValues);
+    const chartSeries = buildBranchChartSeries(
+      selectedBranch,
+      xAxisPlacement,
+      selectedMetric
+    );
+    const layout = buildLayout(
+      selectedMetric,
+      chartSeries.yValues,
+      chartSeries.xValues,
+      xAxisPlacement
+    );
 
     Plotly.relayout(plotlyCommitDivRef.current, {
       'xaxis.range': layout.xaxis.range,
@@ -192,7 +216,7 @@ export default function PlotlyCommitTree({
     });
   };
 
-  const setupPlotlyListener = (branch: Branch) => {
+  const setupPlotlyListener = (branchName: string, chartCommits: CommitNode[]) => {
     const plotlyDiv = plotlyCommitDivRef.current as HTMLDivElement & {
       layout?: object;
       removeAllListeners?: (event: string) => void;
@@ -228,10 +252,10 @@ export default function PlotlyCommitTree({
         return;
       }
 
-      const commitId = branch.commits[pointNumber]?.hash ?? CROSS_COMMIT_IDENTIFIER;
+      const commitId = chartCommits[pointNumber]?.hash ?? CROSS_COMMIT_IDENTIFIER;
       const selectedCommit: Commit = {
         commitId,
-        branchName: branch.name,
+        branchName,
       };
 
       const newSelectedCommits = new Map(selectedCommits);
@@ -260,13 +284,15 @@ export default function PlotlyCommitTree({
             repoNameCommitTreeMap,
             selectedRepoName,
             a.branchName,
-            a.commitId
+            a.commitId,
+            xAxisPlacement
           );
           const xB = getCommitXPosition(
             repoNameCommitTreeMap,
             selectedRepoName,
             b.branchName,
-            b.commitId
+            b.commitId,
+            xAxisPlacement
           );
           return xA - xB;
         });
@@ -344,6 +370,23 @@ export default function PlotlyCommitTree({
             ))}
           </select>
         </label>
+        <label className="commit-metrics-chart-control">
+          <span className="commit-metrics-chart-control-label">X-axis</span>
+          <select
+            value={xAxisPlacement}
+            onChange={(event) =>
+              setXAxisPlacement(event.target.value as CommitXAxisPlacement)
+            }
+            aria-label="Select x-axis placement"
+            className="commit-metrics-chart-select"
+          >
+            {X_AXIS_PLACEMENT_OPTIONS.map((option) => (
+              <option key={option.value} value={option.value}>
+                {option.label}
+              </option>
+            ))}
+          </select>
+        </label>
         <Button
           variant="outline-secondary"
           size="sm"
@@ -361,13 +404,13 @@ export default function PlotlyCommitTree({
 
 function markSelectedCommits(
   allSelectedCommits: Commit[],
-  branch: Branch,
+  chartCommits: CommitNode[],
   colors: string[],
   sizes: number[],
   texts: string[]
 ) {
   allSelectedCommits.forEach((selectedCommit, selectionIndex) => {
-    const index = branch.commits.findIndex(
+    const index = chartCommits.findIndex(
       (commit) => commit.hash === selectedCommit.commitId
     );
     if (index !== -1) {
@@ -378,9 +421,16 @@ function markSelectedCommits(
   });
 }
 
-function buildHoverText(branch: Branch, metricName: string): string[] {
-  return branch.commits.map((commit) => {
+function buildHoverText(
+  chartCommits: CommitNode[],
+  metricName: string
+): string[] {
+  return chartCommits.map((commit) => {
     const lines = [`Commit ID: ${commit.hash}`];
+    const formattedCommitDate = formatCommitDate(commit);
+    if (formattedCommitDate) {
+      lines.push(`Date: ${formattedCommitDate}`);
+    }
     if (metricName !== NONE_METRIC) {
       const metricValue = getMetricValue(commit, metricName);
       lines.push(
@@ -396,7 +446,12 @@ function buildHoverText(branch: Branch, metricName: string): string[] {
   });
 }
 
-function buildLayout(metricName: string, yValues: Array<number | null>) {
+function buildLayout(
+  metricName: string,
+  yValues: Array<number | null>,
+  xValues: number[],
+  placement: CommitXAxisPlacement
+) {
   const numericValues = yValues.filter(
     (value): value is number => value != null && Number.isFinite(value)
   );
@@ -414,38 +469,120 @@ function buildLayout(metricName: string, yValues: Array<number | null>) {
         : 1;
   const yPadding = metricName === NONE_METRIC ? 0 : (maxY - minY || 1) * 0.1;
 
+  const xAxis =
+    placement === 'time'
+      ? buildTimeXAxis(xValues)
+      : buildEquidistantXAxis(yValues.length);
+
   return {
     hovermode: 'closest',
     hoverdistance: 3,
     dragmode: 'pan',
     margin: {
-      b: 40,
+      b: placement === 'time' ? 70 : 50,
       l: metricName === NONE_METRIC ? 20 : 60,
       pad: 5,
       t: 10,
       r: 20,
     },
-    xaxis: {
-      range: [-0.5, Math.max(yValues.length - 0.5, 0.5)],
-      showline: false,
-      showgrid: false,
-      showticklabels: false,
-      title: {
-        text: 'Commits',
-        font: { color: '#7f7f7f', size: 13 },
-      },
-    },
+    xaxis: xAxis,
     yaxis: {
       range: [minY - yPadding, maxY + yPadding],
       showgrid: metricName !== NONE_METRIC,
       zeroline: metricName !== NONE_METRIC,
       showline: metricName !== NONE_METRIC,
       showticklabels: metricName !== NONE_METRIC,
+      automargin: metricName !== NONE_METRIC,
+      tickformat: metricName === NONE_METRIC ? undefined : '.2s',
+      tickfont: { color: '#7f7f7f', size: 11 },
       title: {
         font: { color: '#7f7f7f', size: 13 },
         text: metricName === NONE_METRIC ? '' : metricName,
       },
     },
     annotations: [],
+  };
+}
+
+function buildEquidistantXAxis(commitCount: number) {
+  const tickvals = getEquidistantTickValues(commitCount, 6);
+
+  return {
+    range: [-0.5, Math.max(commitCount - 0.5, 0.5)],
+    showline: true,
+    linecolor: '#adb5bd',
+    showgrid: false,
+    showticklabels: true,
+    tickmode: 'array' as const,
+    tickvals,
+    ticktext: tickvals.map((value) => String(value + 1)),
+    tickangle: 0,
+    tickfont: { color: '#7f7f7f', size: 11 },
+    title: {
+      text: 'Commits',
+      font: { color: '#7f7f7f', size: 13 },
+      standoff: 12,
+    },
+  };
+}
+
+function getEquidistantTickValues(
+  commitCount: number,
+  maxTicks: number
+): number[] {
+  if (commitCount <= 0) {
+    return [0];
+  }
+
+  if (commitCount <= maxTicks) {
+    return Array.from({ length: commitCount }, (_, index) => index);
+  }
+
+  const step = Math.ceil((commitCount - 1) / (maxTicks - 1));
+  const tickvals: number[] = [];
+
+  for (let index = 0; index < commitCount; index += step) {
+    tickvals.push(index);
+  }
+
+  if (tickvals[tickvals.length - 1] !== commitCount - 1) {
+    tickvals.push(commitCount - 1);
+  }
+
+  return tickvals;
+}
+
+function buildTimeXAxis(xValues: number[]) {
+  const numericXValues = xValues.filter((value) => Number.isFinite(value));
+  const minX =
+    numericXValues.length > 0 ? Math.min(...numericXValues) : Date.now();
+  const maxX =
+    numericXValues.length > 0 ? Math.max(...numericXValues) : minX + 86_400_000;
+  const spanMs = maxX - minX;
+  const xPadding = Math.max(spanMs * 0.05, 86_400_000);
+  const tickFormat =
+    spanMs > 365 * 86_400_000
+      ? '%b %Y'
+      : spanMs > 30 * 86_400_000
+        ? '%b %d, %Y'
+        : '%b %d<br>%Y';
+
+  return {
+    type: 'date' as const,
+    range: [minX - xPadding, maxX + xPadding],
+    showline: true,
+    linecolor: '#adb5bd',
+    showgrid: true,
+    gridcolor: '#e9ecef',
+    showticklabels: true,
+    automargin: true,
+    tickangle: 0,
+    tickformat: tickFormat,
+    tickfont: { color: '#7f7f7f', size: 11 },
+    title: {
+      text: 'Commit date',
+      font: { color: '#7f7f7f', size: 13 },
+      standoff: 16,
+    },
   };
 }

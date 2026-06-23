@@ -55,7 +55,10 @@ export default function EvolutionRenderingButtons({
   };
 
   const selectNewestCommitsEveryRepo = () => {
-    const newestPerRepo = buildNewestCommitSelectionMap(repoNameCommitTreeMap);
+    const newestPerRepo = buildNewestCommitSelectionMap(
+      repoNameCommitTreeMap,
+      useCommitTreeStateStore.getState().getXAxisPlacement()
+    );
     commitTreeState.setSelectedCommits(newestPerRepo);
     renderingService.triggerRenderingForSelectedCommits();
   };
