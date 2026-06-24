@@ -40,7 +40,7 @@ interface AnalysisRequestPayload {
   maxLocForFullAnalysis?: number;
   landscapeToken: string;
   applications?: ApplicationSpec[];
-  calculateMetrics: boolean;
+  includeDataStructures: boolean;
   sendToRemote: boolean;
   fetchSocialData: boolean;
   fetchEndDate?: string;
@@ -116,9 +116,9 @@ function buildPayload(
   repoType: RepoType,
   formData: Omit<
     AnalysisRequestPayload,
-    'calculateMetrics' | 'sendToRemote' | 'fetchSocialData'
+    'includeDataStructures' | 'sendToRemote' | 'fetchSocialData'
   > & {
-    calculateMetrics: boolean;
+    includeDataStructures: boolean;
     sendToRemote: boolean;
     fetchSocialData: boolean;
   },
@@ -127,7 +127,7 @@ function buildPayload(
   applications: ApplicationSpec[]
 ): Partial<AnalysisRequestPayload> {
   const payload: Partial<AnalysisRequestPayload> = {
-    calculateMetrics: formData.calculateMetrics,
+    includeDataStructures: formData.includeDataStructures,
     sendToRemote: formData.sendToRemote,
     fetchSocialData: formData.fetchSocialData,
   };
@@ -263,7 +263,7 @@ export default function CodeAnalysisTriggerForm({
     maxLocForFullAnalysis: undefined as number | undefined,
     fetchEndDate: '',
     socialDataTimeFrameDays: undefined as number | undefined,
-    calculateMetrics: true,
+    includeDataStructures: true,
     sendToRemote: true,
     fetchSocialData: false,
   });
@@ -387,7 +387,7 @@ export default function CodeAnalysisTriggerForm({
       maxLocForFullAnalysis: undefined,
       fetchEndDate: '',
       socialDataTimeFrameDays: undefined,
-      calculateMetrics: true,
+      includeDataStructures: true,
       sendToRemote: true,
       fetchSocialData: false,
     });
@@ -881,19 +881,19 @@ export default function CodeAnalysisTriggerForm({
           <div className="d-flex flex-wrap gap-3 mb-3">
             <Form.Check
               type="checkbox"
-              id="calculate-metrics"
+              id="include-data-structures"
               label={
                 <span className="d-inline-flex align-items-center">
-                  Calculate Metrics
+                  Include Data Structures
                   <HelpTooltip
-                    title="Whether to calculate code metrics (e.g., lines of code)."
+                    title="Whether to include classes, functions, and parameters in exported file data. Metrics are always computed; when disabled, only file-level metadata and metrics are sent."
                     placement="top"
                   />
                 </span>
               }
-              checked={formData.calculateMetrics}
+              checked={formData.includeDataStructures}
               onChange={(e) =>
-                handleInputChange('calculateMetrics', e.target.checked)
+                handleInputChange('includeDataStructures', e.target.checked)
               }
             />
             <Form.Check
