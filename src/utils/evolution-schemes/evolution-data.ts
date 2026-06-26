@@ -5,6 +5,7 @@ export type RepoNameCommitTreeMap = Map<string, CommitTree>;
 export type CommitTree = {
   name: string;
   branches: Branch[];
+  remoteUrl?: string;
 };
 
 export type CommitXAxisPlacement = 'equidistant' | 'time';
@@ -78,6 +79,7 @@ export function normalizeCommitTree(
 ): CommitTree {
   return {
     name: tree?.name ?? repositoryName,
+    ...(tree?.remoteUrl != null && { remoteUrl: tree.remoteUrl }),
     branches: (tree?.branches ?? []).map((branch) => ({
       name: branch.name,
       branchPoint: branch.branchPoint ?? NO_BRANCH_POINT,

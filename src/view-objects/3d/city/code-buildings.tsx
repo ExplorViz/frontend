@@ -24,6 +24,7 @@ import { emitContextMenuFromWorld } from 'explorviz-frontend/src/utils/context-m
 import { getMetricValues } from 'explorviz-frontend/src/utils/heatmap/building-heatmap-helper';
 import { getSimpleHeatmapColor } from 'explorviz-frontend/src/utils/heatmap/simple-heatmap';
 import calculateColorBrightness from 'explorviz-frontend/src/utils/helpers/threejs-helpers';
+import { getSourceReferenceCommitHash } from 'explorviz-frontend/src/utils/evolution-data-helpers';
 import { requestFileDetailedData } from 'explorviz-frontend/src/utils/landscape-http-request-util';
 import {
   type Building,
@@ -672,7 +673,10 @@ const GeometryGroup: React.FC<GeometryGroupProps> = ({
       building.originOfData === TypeOfAnalysis.Static ||
       building.originOfData === TypeOfAnalysis.StaticAndDynamic
     ) {
-      requestFileDetailedData(buildingId)
+      requestFileDetailedData(
+        buildingId,
+        getSourceReferenceCommitHash(_selectedCommits, currentSelectedRepo)
+      )
         .then((data) => {
           enterImmersive(buildingId, targetPos, undefined, data);
           // Also update popup if it exists

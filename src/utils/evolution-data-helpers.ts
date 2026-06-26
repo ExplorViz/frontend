@@ -7,6 +7,23 @@ import {
   RepoNameCommitTreeMap,
 } from 'explorviz-frontend/src/utils/evolution-schemes/evolution-data';
 
+/** Commit hash to use for source-file links in the current repository selection. */
+export function getSourceReferenceCommitHash(
+  selectedCommits: Map<string, Commit[]>,
+  repositoryName: string
+): string | undefined {
+  const commitsForRepo = selectedCommits.get(repositoryName);
+  if (!commitsForRepo?.length) {
+    return undefined;
+  }
+
+  if (commitsForRepo.length >= 2) {
+    return commitsForRepo[1].commitId;
+  }
+
+  return commitsForRepo[0].commitId;
+}
+
 export function findRepoNameAndBranchNameForCommit(
   repoCommitMap: RepoNameCommitTreeMap,
   targetCommit: string

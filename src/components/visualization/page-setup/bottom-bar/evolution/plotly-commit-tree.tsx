@@ -1,3 +1,4 @@
+import LinkButton from 'explorviz-frontend/src/components/link-button.tsx';
 import { useCommitTreeStateStore } from 'explorviz-frontend/src/stores/commit-tree-state';
 import {
   buildBranchChartSeries,
@@ -16,8 +17,13 @@ import {
   NONE_METRIC,
   RepoNameCommitTreeMap,
 } from 'explorviz-frontend/src/utils/evolution-schemes/evolution-data';
+import {
+  buildCommitChartLinkUrl,
+  getCommitChartLinkLabel,
+  getCommitChartLinkTooltip,
+} from 'explorviz-frontend/src/utils/repository-file-url';
 import Plotly from 'plotly.js-dist';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import Button from 'react-bootstrap/Button';
 
 interface PlotlyCommitTreeArgs {
@@ -37,6 +43,7 @@ const COMMIT_UNSELECTED_SIZE = 8;
 const COMMIT_SELECTED_SIZE = 20;
 const HIGHLIGHTED_MARKER_COLOR = 'red';
 const BRANCH_LINE_COLOR = 'rgba(70, 130, 180, 1)';
+const EMPTY_SELECTED_COMMITS: Commit[] = [];
 
 const X_AXIS_PLACEMENT_OPTIONS: Array<{
   value: CommitXAxisPlacement;
@@ -62,6 +69,16 @@ export default function PlotlyCommitTree({
   );
 
   const commitTree = repoNameCommitTreeMap.get(selectedRepoName);
+  const selectedCommitsForRepo =
+    selectedCommits.get(selectedRepoName) ?? EMPTY_SELECTED_COMMITS;
+  const chartLinkUrl = useMemo(
+    () => buildCommitChartLinkUrl(commitTree?.remoteUrl, selectedCommitsForRepo),
+    [commitTree?.remoteUrl, selectedCommitsForRepo]
+  );
+  const chartLinkLabel = getCommitChartLinkLabel(selectedCommitsForRepo.length);
+  const chartLinkTooltip = getCommitChartLinkTooltip(
+    selectedCommitsForRepo.length
+  );
   const selectedBranch = commitTree?.branches.find(
     (branch) => branch.name === selectedBranchName
   );
@@ -396,6 +413,16 @@ export default function PlotlyCommitTree({
         >
           Re-focus
         </Button>
+        <LinkButton
+          url={chartLinkUrl}
+          disabled={!chartLinkUrl}
+          appearance="outline-button"
+          className="commit-metrics-chart-refocus-button"
+          label={chartLinkUrl ? chartLinkLabel : 'Open Repository'}
+          tooltip={
+            chartLinkUrl ? chartLinkTooltip : 'Repository URL unavailable'
+          }
+        />
       </div>
       <div ref={plotlyCommitDivRef} className="plotlyCommitDiv" />
     </div>

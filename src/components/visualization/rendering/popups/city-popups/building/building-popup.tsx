@@ -1,4 +1,5 @@
 import LinkButton from 'explorviz-frontend/src/components/link-button.tsx';
+import { useCommitTreeStateStore } from 'explorviz-frontend/src/stores/commit-tree-state';
 import {
   coerceMetricNumber,
   formatInteger,
@@ -7,6 +8,7 @@ import {
 import PopupData from 'explorviz-frontend/src/components/visualization/rendering/popups/popup-data';
 import { usePopupHandlerStore } from 'explorviz-frontend/src/stores/popup-handler';
 import generateUuidv4 from 'explorviz-frontend/src/utils/helpers/uuid4-generator';
+import { getSourceReferenceCommitHash } from 'explorviz-frontend/src/utils/evolution-data-helpers';
 import { requestFileDetailedData } from 'explorviz-frontend/src/utils/landscape-http-request-util';
 import { Building } from 'explorviz-frontend/src/utils/landscape-schemes/flat-landscape';
 import {
@@ -16,6 +18,7 @@ import {
 } from 'explorviz-frontend/src/utils/landscape-schemes/file-detailed-data';
 import { TypeOfAnalysis } from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
 import { getOrderedBuildingMetricEntries } from 'explorviz-frontend/src/utils/settings/settings-schemas';
+import { applyCommitHashToRepositoryFileUrl } from 'explorviz-frontend/src/utils/repository-file-url';
 import { useEffect, useMemo } from 'react';
 import { Accordion, Tab, Tabs } from 'react-bootstrap';
 
@@ -227,6 +230,20 @@ export default function BuildingPopup({ popupData }: BuildingPopupProps) {
   const uuid = useMemo(() => generateUuidv4(), []);
 
   const updatePopup = usePopupHandlerStore((state) => state.updatePopup);
+  const selectedCommits = useCommitTreeStateStore(
+    (state) => state._selectedCommits
+  );
+  const currentSelectedRepositoryName = useCommitTreeStateStore(
+    (state) => state._currentSelectedRepositoryName
+  );
+  const sourceReferenceCommitHash = useMemo(
+    () =>
+      getSourceReferenceCommitHash(
+        selectedCommits,
+        currentSelectedRepositoryName
+      ),
+    [selectedCommits, currentSelectedRepositoryName]
+  );
 
   useEffect(() => {
     const isStatic =
@@ -239,7 +256,7 @@ export default function BuildingPopup({ popupData }: BuildingPopupProps) {
 
     let cancelled = false;
 
-    requestFileDetailedData(building.id)
+    requestFileDetailedData(building.id, sourceReferenceCommitHash)
       .then((data) => {
         if (cancelled) {
           return;
@@ -265,6 +282,7 @@ export default function BuildingPopup({ popupData }: BuildingPopupProps) {
     building.originOfData,
     popupData.entityId,
     popupData.fileDetailedData,
+    sourceReferenceCommitHash,
     updatePopup,
   ]);
 
@@ -273,8 +291,12 @@ export default function BuildingPopup({ popupData }: BuildingPopupProps) {
   const isStatic =
     building.originOfData === TypeOfAnalysis.Static ||
     building.originOfData === TypeOfAnalysis.StaticAndDynamic;
+  const sourceFileUrl = applyCommitHashToRepositoryFileUrl(
+    detailedData?.fileUrl,
+    sourceReferenceCommitHash
+  );
   const showSourceLink = isStatic && !!building.id;
-  const sourceLinkTooltip = detailedData?.fileUrl
+  const sourceLinkTooltip = sourceFileUrl
     ? 'Open source file'
     : detailedData
       ? 'Source file unavailable'
@@ -289,8 +311,8 @@ export default function BuildingPopup({ popupData }: BuildingPopupProps) {
           </div>
           {showSourceLink && (
             <LinkButton
-              url={detailedData?.fileUrl}
-              disabled={!detailedData?.fileUrl}
+              url={sourceFileUrl}
+              disabled={!sourceFileUrl}
               tooltip={sourceLinkTooltip}
             />
           )}
