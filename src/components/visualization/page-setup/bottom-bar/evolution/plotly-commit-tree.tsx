@@ -1,11 +1,13 @@
 import LinkButton from 'explorviz-frontend/src/components/link-button.tsx';
+import CommitChartSearch from 'explorviz-frontend/src/components/visualization/page-setup/bottom-bar/evolution/commit-chart-search';
 import { useCommitTreeStateStore } from 'explorviz-frontend/src/stores/commit-tree-state';
 import {
+  addCommitToSelection,
   buildBranchChartSeries,
   formatCommitDate,
-  getCommitXPosition,
   getFirstBranchWithCommits,
   getMetricValue,
+  toggleCommitInSelection,
 } from 'explorviz-frontend/src/utils/evolution-data-helpers';
 import {
   Commit,
@@ -275,55 +277,42 @@ export default function PlotlyCommitTree({
         branchName,
       };
 
-      const newSelectedCommits = new Map(selectedCommits);
-      let selectedCommitsForRepo = [
-        ...(newSelectedCommits.get(selectedRepoName) || []),
-      ];
-
-      const isAlreadySelected = selectedCommitsForRepo.some(
-        (commit) => commit.commitId === selectedCommit.commitId
+      const newSelectedCommits = toggleCommitInSelection(
+        selectedCommits,
+        selectedRepoName,
+        selectedCommit,
+        repoNameCommitTreeMap,
+        xAxisPlacement,
+        MAX_COMMIT_SELECTION_PER_APP
       );
-
-      if (isAlreadySelected) {
-        selectedCommitsForRepo = selectedCommitsForRepo.filter(
-          (commit) => commit.commitId !== selectedCommit.commitId
-        );
-      } else {
-        if (selectedCommitsForRepo.length === MAX_COMMIT_SELECTION_PER_APP) {
-          selectedCommitsForRepo.shift();
-        }
-        selectedCommitsForRepo.push(selectedCommit);
-      }
-
-      if (selectedCommitsForRepo.length === 2) {
-        selectedCommitsForRepo.sort((a, b) => {
-          const xA = getCommitXPosition(
-            repoNameCommitTreeMap,
-            selectedRepoName,
-            a.branchName,
-            a.commitId,
-            xAxisPlacement
-          );
-          const xB = getCommitXPosition(
-            repoNameCommitTreeMap,
-            selectedRepoName,
-            b.branchName,
-            b.commitId,
-            xAxisPlacement
-          );
-          return xA - xB;
-        });
-      }
-
-      if (selectedCommitsForRepo.length === 0) {
-        newSelectedCommits.delete(selectedRepoName);
-      } else {
-        newSelectedCommits.set(selectedRepoName, selectedCommitsForRepo);
-      }
 
       setSelectedCommits(newSelectedCommits);
       triggerVizRenderingForSelectedCommits();
     });
+  };
+
+  const handleSearchSelectCommit = (commit: Commit) => {
+    if (commit.branchName !== selectedBranchName) {
+      const branch = commitTree?.branches.find(
+        (candidate) => candidate.name === commit.branchName
+      );
+      setSelectedBranchName(commit.branchName);
+      if (branch) {
+        setSelectedMetric(getDefaultMetricName(branch));
+      }
+    }
+
+    const newSelectedCommits = addCommitToSelection(
+      selectedCommits,
+      selectedRepoName,
+      commit,
+      repoNameCommitTreeMap,
+      xAxisPlacement,
+      MAX_COMMIT_SELECTION_PER_APP
+    );
+
+    setSelectedCommits(newSelectedCommits);
+    triggerVizRenderingForSelectedCommits();
   };
 
   if (
@@ -422,6 +411,10 @@ export default function PlotlyCommitTree({
           tooltip={
             chartLinkUrl ? chartLinkTooltip : 'Repository URL unavailable'
           }
+        />
+        <CommitChartSearch
+          commitTree={commitTree}
+          onSelectCommit={handleSearchSelectCommit}
         />
       </div>
       <div ref={plotlyCommitDivRef} className="plotlyCommitDiv" />

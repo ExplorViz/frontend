@@ -53,6 +53,67 @@
   min-height: 31px;
 }
 
+.commit-metrics-chart-search {
+  flex: 0 0 auto;
+  margin-left: auto;
+}
+
+.commit-metrics-chart-search-input {
+  width: 300px;
+  flex: 0 0 300px;
+}
+
+.commit-metrics-chart-search__control {
+  min-height: 31px;
+  width: 100%;
+  border: 1px solid var(--bs-border-color, #adb5bd);
+  border-radius: var(--ev-radius-md);
+  background-color: var(--bs-body-bg, #f8f9fa);
+  box-shadow: none;
+}
+
+.commit-metrics-chart-search__control:hover {
+  border-color: var(--bs-border-color, #adb5bd);
+}
+
+.commit-metrics-chart-search__control--is-focused {
+  border-color: var(--bs-primary, #0d6efd);
+  box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.15);
+}
+
+.commit-metrics-chart-search__value-container {
+  padding: 0 0.5rem;
+  overflow: hidden;
+}
+
+.commit-metrics-chart-search__input {
+  margin: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.commit-metrics-chart-search__input-container {
+  margin: 0;
+  padding: 0;
+}
+
+.commit-metrics-chart-search__placeholder {
+  color: var(--bs-secondary-color, #6c757d);
+  font-size: 0.875rem;
+}
+
+.commit-metrics-chart-search__menu {
+  z-index: 10000001;
+  width: 300px;
+}
+
+.commit-metrics-chart-search__option {
+  cursor: pointer;
+  font-size: 0.8125rem;
+  white-space: normal;
+  word-break: break-all;
+}
+
 .bottom-bar-chart-commitTree {
   height: 360px !important;
 }
