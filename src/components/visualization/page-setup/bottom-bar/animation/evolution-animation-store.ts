@@ -6,6 +6,7 @@ import { create } from 'zustand';
 
 interface EvolutionAnimationState {
   frames: FlatLandscape[];
+  masterFrame: FlatLandscape | null;
   currentFrameIndex: number;
   isPlaying: boolean;
   layoutMode: 'city' | 'spiral';
@@ -28,14 +29,22 @@ interface EvolutionAnimationState {
 export const useEvolutionAnimationStore = create<EvolutionAnimationState>(
   (set, get) => ({
     frames: [],
+    masterFrame: null,
     currentFrameIndex: 0,
     isPlaying: false,
     layoutMode: 'spiral',
     timeMode: 'commit',
     speedMs: 1000,
     actions: {
-      setFrames: (frames) =>
-        set({ frames, currentFrameIndex: 0, isPlaying: false }),
+      setFrames: (frames) =>{
+        const masterFrame: FlatLandscape | null = frames.length === 0 ? null : {
+          ...frames[0],
+          buildings: Object.assign({}, ...frames.map((f) => f.buildings)),
+          districts: Object.assign({}, ...frames.map((f) => f.districts)),
+          cities: Object.assign({}, ...frames.map((f) => f.cities)),
+        };
+        set({ frames, masterFrame, currentFrameIndex: 0, isPlaying: false });
+      },
       play: () => set({ isPlaying: true }),
       pause: () => set({ isPlaying: false }),
       stepForward: () =>

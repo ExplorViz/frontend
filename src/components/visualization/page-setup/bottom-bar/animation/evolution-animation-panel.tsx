@@ -1,7 +1,7 @@
 import { useCommitTreeStateStore } from 'explorviz-frontend/src/stores/commit-tree-state';
 import { useEvolutionAnimationFetchServiceStore } from 'explorviz-frontend/src/components/visualization/page-setup/bottom-bar/animation/evolution-animation-fetch-service';
 import { useEvolutionAnimationStore } from 'explorviz-frontend/src/components/visualization/page-setup/bottom-bar/animation/evolution-animation-store';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useShallow } from 'zustand/react/shallow';
 import { createPortal } from 'react-dom';
 import Button from 'react-bootstrap/Button';
@@ -36,6 +36,56 @@ export default function EvolutionAnimationPanel({
     (state) => state.fetchAnimationFramesForRepository
   );
 
+    //Sync when layout is toggeled
+  useEffect(() => {
+
+    useUserSettingsStore
+      .getState()
+      .updateSetting(
+        'buildingLayoutAlgorithm',
+        layoutMode === 'spiral' ? 'spiral' : 'None'
+      );
+  }, [layoutMode]);
+
+ //On mount
+  useEffect(() => {
+    if (!repositoryName) return;
+
+    useCommitTreeStateStore.getState().resetSelectedCommits();
+
+    let cancelled = false;
+    setIsLoading(true);
+    fetchFrames(repositoryName)
+      .then((result) => {
+        if (cancelled) return;
+        useEvolutionAnimationStore.getState().actions.setFrames(result);
+        useRenderingServiceStore.getState()
+          .setAnalysisModeFromEvolutionRenderingConfig({
+            renderDynamic: false,
+            renderStatic: true,
+            renderOnlyDifferences: true,
+            removeUnchangedFromLayout: false,
+          });
+        useVisibilityServiceStore
+          .getState()
+          .applyEvolutionModeRenderingConfiguration({
+            renderDynamic: false,
+            renderStatic: true,
+            renderOnlyDifferences: true,
+            removeUnchangedFromLayout: false,
+          });
+      })
+      .catch((e) => console.error('Failed to fetch animation frames:', e))
+      .finally(() => {
+        if (!cancelled) setIsLoading(false);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  },[]);
+
+
   const handleStart = async () => {
     if (!repositoryName) return;
     setIsLoading(true);
@@ -58,12 +108,8 @@ export default function EvolutionAnimationPanel({
           renderOnlyDifferences: true,
           removeUnchangedFromLayout: false,
         });
-      useUserSettingsStore.getState().updateSetting(
-        'buildingLayoutAlgorithm',
-        layoutMode === 'spiral' ? 'spiral' : 'None');
       useEvolutionAnimationStore.getState().actions.setSpeed(speedMs);
-      useEvolutionAnimationStore.getState().actions.play(); // 🆕 auto-start
-      onClose(); // 🆕 close the panel
+      useEvolutionAnimationStore.getState().actions.play(); // auto-start
     } catch (e) {
       console.error('Failed to fetch animation frames:', e);
     } finally {

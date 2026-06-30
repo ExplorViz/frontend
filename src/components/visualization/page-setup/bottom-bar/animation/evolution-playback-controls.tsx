@@ -6,10 +6,11 @@ import { createPortal } from 'react-dom';
 
 
 export default function EvolutionPlaybackControls() {
-  const { frames, currentFrameIndex, isPlaying, speedMs, actions } =
+  const { frames, masterFrame, currentFrameIndex, isPlaying, speedMs, actions } =
     useEvolutionAnimationStore(
       useShallow((state) => ({
         frames: state.frames,
+        masterFrame: state.masterFrame,
         currentFrameIndex: state.currentFrameIndex,
         isPlaying: state.isPlaying,
         speedMs: state.speedMs,
@@ -25,18 +26,16 @@ export default function EvolutionPlaybackControls() {
   useEffect(() => {
     const frame = frames[currentFrameIndex];
     //masterFrame = frame with all buildings
-    const masterFrame = frames[frames.length - 1];
     if (!frame || !masterFrame) return;
 
     const mergedBuildings = {...masterFrame.buildings};
     Object.keys(mergedBuildings).forEach((id) => {
-      const exisitsInCurrentFrame = !!frame.buildings[id];
+      const existsInCurrentFrame = !!frame.buildings[id];
 
       mergedBuildings[id] = {
         ...mergedBuildings[id],
-          commitComparison: currentFrameIndex === 0
-            ? 'ADDED'
-            : exisitsInCurrentFrame
+          isPlaceholder: !existsInCurrentFrame,
+        commitComparison: existsInCurrentFrame
               ? frame.buildings[id].commitComparison ?? undefined
               : undefined,
       };
@@ -53,7 +52,7 @@ export default function EvolutionPlaybackControls() {
       'Master frame building IDs:',
       Object.keys(masterFrame.buildings).length
     );
-  }, [currentFrameIndex, frames]);
+  }, [currentFrameIndex, frames, masterFrame]);
 
   // Auto-advance timer
   useEffect(() => {
