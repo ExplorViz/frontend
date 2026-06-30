@@ -372,6 +372,9 @@ const GeometryGroup: React.FC<GeometryGroupProps> = ({
       );
 
       const visibleDueToEvo = (() => {
+        if (building.isPlaceholder) {
+          return false;
+        }
         if (isDiffMode || evoConfig.renderOnlyDifferences) {
           return !!building.commitComparison;
         }
@@ -567,7 +570,7 @@ const GeometryGroup: React.FC<GeometryGroupProps> = ({
           hiddenBuildingIds,
           removedDistrictIds,
           hiddenLanguages,
-        })
+        }) && !building?.isPlaceholder
       );
     });
   }, [

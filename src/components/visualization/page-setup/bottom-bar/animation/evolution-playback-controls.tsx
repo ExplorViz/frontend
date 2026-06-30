@@ -28,16 +28,31 @@ export default function EvolutionPlaybackControls() {
     //masterFrame = frame with all buildings
     if (!frame || !masterFrame) return;
 
-    const mergedBuildings = {...masterFrame.buildings};
+
+    //Build Fqn map for the visibility
+    const currentFrameByFqn = new Map<
+      string,
+      (typeof frame.buildings)[string]
+    >();
+    Object.values(frame.buildings).forEach((building) => {
+      if (building.fqn) currentFrameByFqn.set(building.fqn, building);
+    });
+
+    const mergedBuildings = { ...masterFrame.buildings };
     Object.keys(mergedBuildings).forEach((id) => {
-      const existsInCurrentFrame = !!frame.buildings[id];
+      const fqn = mergedBuildings[id].fqn;
+      const currentBuilding = fqn
+        ? currentFrameByFqn.get(fqn)
+        : frame.buildings[id];
+      const existsInCurrentFrame = !!currentBuilding;
 
       mergedBuildings[id] = {
         ...mergedBuildings[id],
-          isPlaceholder: !existsInCurrentFrame,
+        isPlaceholder: !existsInCurrentFrame,
         commitComparison: existsInCurrentFrame
-              ? frame.buildings[id].commitComparison ?? undefined
-              : undefined,
+          ? currentBuilding?.commitComparison
+          ?? (currentFrameIndex === 0 ? 'ADDED' : 'UNCHANGED')
+          : undefined,
       };
     });
 
