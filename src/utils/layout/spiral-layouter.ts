@@ -4,6 +4,9 @@ import {
   FlatLandscape,
 } from 'explorviz-frontend/src/utils/landscape-schemes/flat-landscape';
 import BoxLayout from 'explorviz-frontend/src/utils/layout/box-layout';
+import {
+  useEvolutionAnimationStore
+} from 'explorviz-frontend/src/components/visualization/page-setup/bottom-bar/animation/evolution-animation-store.ts';
 
 type SpiralState = {
   x: number;
@@ -118,7 +121,16 @@ export function applySpiralLayoutToClasses(
     const buildings = city.allContainedBuildingIds
       .map((id) => flatLandscape.buildings[id])
       .filter((building) => building !== undefined)
-      .sort((a, b) => (a.fqn ?? a.name).localeCompare(b.fqn ?? b.name));
+      //.sort((a, b) => {(a.fqn ?? a.name).localeCompare(b.fqn ?? b.name))};
+      .sort((a, b) => {
+          const {fqnToFirstFrame} = useEvolutionAnimationStore.getState();
+          const aFirst = fqnToFirstFrame.get(a.fqn ?? '') ?? Infinity;
+          const bFirst = fqnToFirstFrame.get(b.fqn ?? '') ?? Infinity;
+          if (aFirst !== bFirst) return aFirst - bFirst;
+          // fallback to name sort (non-animation mode or tie)
+          return (a.fqn ?? a.name).localeCompare(b.fqn ?? b.name);
+        });
+
 
     if (buildings.length === 0) {
       return;

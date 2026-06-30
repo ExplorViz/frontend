@@ -97,7 +97,7 @@ export default function EvolutionAnimationPanel({
         .setAnalysisModeFromEvolutionRenderingConfig({
           renderDynamic: false,
           renderStatic: true,
-          renderOnlyDifferences: false,
+          renderOnlyDifferences: true,
           removeUnchangedFromLayout: false,
         });
       useVisibilityServiceStore
@@ -105,7 +105,7 @@ export default function EvolutionAnimationPanel({
         .applyEvolutionModeRenderingConfiguration({
           renderDynamic: false,
           renderStatic: true,
-          renderOnlyDifferences: false,
+          renderOnlyDifferences: true,
           removeUnchangedFromLayout: false,
         });
       useEvolutionAnimationStore.getState().actions.setSpeed(speedMs);

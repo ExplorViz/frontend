@@ -7,6 +7,7 @@ import { create } from 'zustand';
 interface EvolutionAnimationState {
   frames: FlatLandscape[];
   masterFrame: FlatLandscape | null;
+  fqnToFirstFrame: Map<string, number>;
   currentFrameIndex: number;
   isPlaying: boolean;
   layoutMode: 'city' | 'spiral';
@@ -30,6 +31,7 @@ export const useEvolutionAnimationStore = create<EvolutionAnimationState>(
   (set, get) => ({
     frames: [],
     masterFrame: null,
+    fqnToFirstFrame: new Map(),
     currentFrameIndex: 0,
     isPlaying: false,
     layoutMode: 'spiral',
@@ -37,13 +39,26 @@ export const useEvolutionAnimationStore = create<EvolutionAnimationState>(
     speedMs: 1000,
     actions: {
       setFrames: (frames) =>{
-        const masterFrame: FlatLandscape | null = frames.length === 0 ? null : {
-          ...frames[0],
-          buildings: Object.assign({}, ...frames.map((f) => f.buildings)),
-          districts: Object.assign({}, ...frames.map((f) => f.districts)),
-          cities: Object.assign({}, ...frames.map((f) => f.cities)),
-        };
-        set({ frames, masterFrame, currentFrameIndex: 0, isPlaying: false });
+        const masterFrame: FlatLandscape | null =
+          frames.length === 0
+            ? null
+            : {
+                ...frames[0],
+                buildings: Object.assign({}, ...frames.map((f) => f.buildings)),
+                districts: Object.assign({}, ...frames.map((f) => f.districts)),
+                cities: Object.assign({}, ...frames.map((f) => f.cities)),
+              };
+
+        const fqnToFirstFrame = new Map<string, number>();
+        frames.forEach((frame, index) => {
+          Object.values(frame.buildings).forEach((building) => {
+            if (building.fqn && !fqnToFirstFrame.has(building.fqn)) {
+              fqnToFirstFrame.set(building.fqn, index);
+            }
+          });
+        });
+
+        set({ frames, masterFrame, fqnToFirstFrame ,currentFrameIndex: 0, isPlaying: false });
       },
       play: () => set({ isPlaying: true }),
       pause: () => set({ isPlaying: false }),
