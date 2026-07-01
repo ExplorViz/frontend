@@ -6,11 +6,11 @@ import { createPortal } from 'react-dom';
 
 
 export default function EvolutionPlaybackControls() {
-  const { frames, masterFrame, currentFrameIndex, isPlaying, speedMs, actions } =
+  const { frames, stableFrame, currentFrameIndex, isPlaying, speedMs, actions } =
     useEvolutionAnimationStore(
       useShallow((state) => ({
         frames: state.frames,
-        masterFrame: state.masterFrame,
+        stableFrame: state.stableFrame,
         currentFrameIndex: state.currentFrameIndex,
         isPlaying: state.isPlaying,
         speedMs: state.speedMs,
@@ -25,8 +25,8 @@ export default function EvolutionPlaybackControls() {
   // Render current frame whenever index changes
   useEffect(() => {
     const frame = frames[currentFrameIndex];
-    //masterFrame = frame with all buildings
-    if (!frame || !masterFrame) return;
+    //stableFrame = frame with all buildings
+    if (!frame || !stableFrame) return;
 
 
     //Build Fqn map for the visibility
@@ -38,7 +38,7 @@ export default function EvolutionPlaybackControls() {
       if (building.fqn) currentFrameByFqn.set(building.fqn, building);
     });
 
-    const mergedBuildings = { ...masterFrame.buildings };
+    const mergedBuildings = { ...stableFrame.buildings };
     Object.keys(mergedBuildings).forEach((id) => {
       const fqn = mergedBuildings[id].fqn;
       const currentBuilding = fqn
@@ -57,17 +57,17 @@ export default function EvolutionPlaybackControls() {
     });
 
     const mergedFrame = {
-      ...masterFrame,
+      ...stableFrame,
       buildings: mergedBuildings,
     };
 
     triggerRendering(mergedFrame, [], { metrics: {}, communications: [] });
     console.log('Frame 0 building IDs:', Object.keys(frame.buildings).length);
     console.log(
-      'Master frame building IDs:',
-      Object.keys(masterFrame.buildings).length
+      'stable frame building IDs:',
+      Object.keys(stableFrame.buildings).length
     );
-  }, [currentFrameIndex, frames, masterFrame]);
+  }, [currentFrameIndex, frames, stableFrame]);
 
   // Auto-advance timer
   useEffect(() => {
