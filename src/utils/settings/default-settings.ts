@@ -666,7 +666,7 @@ export const defaultVizSettings: VisualizationSettings = {
   },
   buildingLabelFontSize: {
     level: SettingLevel.EXTENDED,
-    value: 2.0,
+    value: 1.0,
     range: { min: 0.0, max: 5.0, step: 0.01 },
     group: 'Label',
     displayName: 'Building Label Font Size',
@@ -675,7 +675,7 @@ export const defaultVizSettings: VisualizationSettings = {
   },
   buildingLabelLength: {
     level: SettingLevel.EXTENDED,
-    value: 10,
+    value: 15,
     range: { min: 0, max: 50, step: 1 },
     group: 'Label',
     displayName: 'Building Label Length',
@@ -897,7 +897,7 @@ export const defaultVizSettings: VisualizationSettings = {
   },
   buildingFootprint: {
     level: SettingLevel.DEFAULT,
-    value: 5.0,
+    value: 10.0,
     range: { min: 0.5, max: 20.0, step: 0.5 },
     group: 'Building Config',
     displayName: 'Building Footprint',
@@ -1409,7 +1409,7 @@ export const defaultVizSettings: VisualizationSettings = {
   // Debug Settings
   showExtendedSettings: {
     level: SettingLevel.DEFAULT,
-    value: false,
+    value: true,
     group: 'Debugging',
     displayName: 'Show Extended Settings',
     description: 'Shows/hides additional settings',
