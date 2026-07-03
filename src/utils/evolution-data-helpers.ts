@@ -131,40 +131,315 @@ export type BranchChartSeries = {
   commits: CommitNode[];
   xValues: number[];
   yValues: Array<number | null>;
+  /** Index of each chart point in the branch's full commit list. */
+  originalIndices: number[];
 };
+
+export type BranchChartSeriesOptions = {
+  metricChangeThreshold?: number;
+};
+
+export function getMetricChangeMagnitude(
+  commit: CommitNode,
+  previousCommit: CommitNode | undefined,
+  metricName: string
+): number {
+  if (!previousCommit) {
+    return Number.POSITIVE_INFINITY;
+  }
+
+  const current = getMetricValue(commit, metricName);
+  const previous = getMetricValue(previousCommit, metricName);
+
+  if (current == null && previous == null) {
+    return 0;
+  }
+  if (current == null || previous == null) {
+    return Number.POSITIVE_INFINITY;
+  }
+
+  return Math.abs(current - previous);
+}
+
+export function meetsMetricChangeThreshold(
+  commit: CommitNode,
+  previousCommit: CommitNode | undefined,
+  metricName: string,
+  threshold: number
+): boolean {
+  if (!previousCommit) {
+    return true;
+  }
+
+  const magnitude = getMetricChangeMagnitude(
+    commit,
+    previousCommit,
+    metricName
+  );
+
+  if (!Number.isFinite(magnitude)) {
+    return true;
+  }
+
+  return magnitude >= threshold;
+}
+
+export function isMetricChangeTriggerAtIndex(
+  branch: Branch,
+  index: number,
+  metricName: string,
+  threshold: number
+): boolean {
+  if (index <= 0) {
+    return false;
+  }
+
+  return meetsMetricChangeThreshold(
+    branch.commits[index],
+    branch.commits[index - 1],
+    metricName,
+    threshold
+  );
+}
+
+/**
+ * For each metric change >= threshold between consecutive commits, keep the
+ * commit before and after the change (the pair surrounding the jump).
+ */
+export function getCommitIndicesMeetingMetricChangeThreshold(
+  branch: Branch,
+  metricName: string,
+  threshold: number
+): number[] {
+  const visibleIndices = new Set<number>();
+
+  for (let index = 1; index < branch.commits.length; index++) {
+    if (!isMetricChangeTriggerAtIndex(branch, index, metricName, threshold)) {
+      continue;
+    }
+
+    visibleIndices.add(index - 1);
+    visibleIndices.add(index);
+  }
+
+  return [...visibleIndices].sort((left, right) => left - right);
+}
+
+export function isCommitVisibleWithMetricChangeFilter(
+  branch: Branch,
+  commitId: string,
+  metricName: string,
+  threshold: number
+): boolean {
+  if (threshold <= 0 || metricName === NONE_METRIC) {
+    return true;
+  }
+
+  return getCommitIndicesMeetingMetricChangeThreshold(
+    branch,
+    metricName,
+    threshold
+  ).some((index) => branch.commits[index].hash === commitId);
+}
+
+export function removeFilteredCommitsFromSelection(
+  selectedCommits: Map<string, Commit[]>,
+  repoName: string,
+  repoNameCommitTreeMap: RepoNameCommitTreeMap,
+  metricName: string,
+  threshold: number
+): Map<string, Commit[]> {
+  if (threshold <= 0 || metricName === NONE_METRIC) {
+    return selectedCommits;
+  }
+
+  const commitTree = repoNameCommitTreeMap.get(repoName);
+  if (!commitTree) {
+    return selectedCommits;
+  }
+
+  const selectedForRepo = selectedCommits.get(repoName) ?? [];
+  if (selectedForRepo.length === 0) {
+    return selectedCommits;
+  }
+
+  const visibleSelectedCommits = selectedForRepo.filter((commit) => {
+    const branch = commitTree.branches.find(
+      (candidate) => candidate.name === commit.branchName
+    );
+    if (!branch) {
+      return true;
+    }
+
+    return isCommitVisibleWithMetricChangeFilter(
+      branch,
+      commit.commitId,
+      metricName,
+      threshold
+    );
+  });
+
+  if (visibleSelectedCommits.length === selectedForRepo.length) {
+    return selectedCommits;
+  }
+
+  const newSelectedCommits = new Map(selectedCommits);
+  if (visibleSelectedCommits.length === 0) {
+    newSelectedCommits.delete(repoName);
+  } else {
+    newSelectedCommits.set(repoName, visibleSelectedCommits);
+  }
+
+  return newSelectedCommits;
+}
+
+function buildBranchChartSeriesForIndices(
+  branch: Branch,
+  placement: CommitXAxisPlacement,
+  metricName: string,
+  indices: number[]
+): BranchChartSeries {
+  const commits = indices.map((index) => branch.commits[index]);
+
+  if (placement === 'equidistant') {
+    return {
+      commits,
+      originalIndices: indices,
+      xValues: commits.map((_, chartIndex) => chartIndex),
+      yValues:
+        metricName === NONE_METRIC
+          ? commits.map(() => 0)
+          : commits.map((commit) => getMetricValue(commit, metricName) ?? null),
+    };
+  }
+
+  return {
+    commits,
+    originalIndices: indices,
+    xValues: commits.map((commit, chartIndex) => {
+      const dateMs = getCommitDateMs(commit);
+      return dateMs ?? indices[chartIndex];
+    }),
+    yValues:
+      metricName === NONE_METRIC
+        ? commits.map(() => 0)
+        : commits.map((commit) => getMetricValue(commit, metricName) ?? null),
+  };
+}
 
 /** Chart points use branch order; in time mode the x-axis uses commit dates without re-sorting. */
 export function buildBranchChartSeries(
   branch: Branch,
   placement: CommitXAxisPlacement,
-  metricName: string
+  metricName: string,
+  options: BranchChartSeriesOptions = {}
 ): BranchChartSeries {
-  if (placement === 'equidistant') {
-    return {
-      commits: branch.commits,
-      xValues: branch.commits.map((_, index) => index),
-      yValues:
-        metricName === NONE_METRIC
-          ? branch.commits.map(() => 0)
-          : branch.commits.map(
-              (commit) => getMetricValue(commit, metricName) ?? null
-            ),
-    };
+  const shouldFilterByMetricChange =
+    options.metricChangeThreshold != null &&
+    options.metricChangeThreshold > 0 &&
+    metricName !== NONE_METRIC;
+  const indices = shouldFilterByMetricChange
+    ? getCommitIndicesMeetingMetricChangeThreshold(
+        branch,
+        metricName,
+        options.metricChangeThreshold!
+      )
+    : branch.commits.map((_, index) => index);
+
+  return buildBranchChartSeriesForIndices(
+    branch,
+    placement,
+    metricName,
+    indices
+  );
+}
+
+export type BranchChartLineSegments = {
+  solid: { x: Array<number | null>; y: Array<number | null> };
+  dashed: { x: Array<number | null>; y: Array<number | null> };
+};
+
+type BranchChartLineSegment = {
+  x: number[];
+  y: Array<number | null>;
+  dashed: boolean;
+};
+
+function appendSegmentToTrace(
+  traceX: Array<number | null>,
+  traceY: Array<number | null>,
+  segment: BranchChartLineSegment
+) {
+  if (traceX.length > 0) {
+    traceX.push(null);
+    traceY.push(null);
   }
 
-  return {
-    commits: branch.commits,
-    xValues: branch.commits.map((commit, index) => {
-      const dateMs = getCommitDateMs(commit);
-      return dateMs ?? index;
-    }),
-    yValues:
-      metricName === NONE_METRIC
-        ? branch.commits.map(() => 0)
-        : branch.commits.map(
-            (commit) => getMetricValue(commit, metricName) ?? null
-          ),
+  traceX.push(...segment.x);
+  traceY.push(...segment.y);
+}
+
+export function buildBranchChartLineSegments(
+  xValues: number[],
+  yValues: Array<number | null>,
+  originalIndices: number[]
+): BranchChartLineSegments {
+  const segments: BranchChartLineSegment[] = [];
+
+  for (let chartIndex = 1; chartIndex < originalIndices.length; chartIndex++) {
+    const previousOriginalIndex = originalIndices[chartIndex - 1];
+    const currentOriginalIndex = originalIndices[chartIndex];
+
+    segments.push({
+      x: [xValues[chartIndex - 1], xValues[chartIndex]],
+      y: [yValues[chartIndex - 1], yValues[chartIndex]],
+      dashed: previousOriginalIndex + 1 !== currentOriginalIndex,
+    });
+  }
+
+  const solid = {
+    x: [] as Array<number | null>,
+    y: [] as Array<number | null>,
   };
+  const dashed = {
+    x: [] as Array<number | null>,
+    y: [] as Array<number | null>,
+  };
+
+  let currentSolidSegment: BranchChartLineSegment | undefined;
+
+  const flushSolidSegment = () => {
+    if (!currentSolidSegment) {
+      return;
+    }
+
+    appendSegmentToTrace(solid.x, solid.y, currentSolidSegment);
+    currentSolidSegment = undefined;
+  };
+
+  for (const segment of segments) {
+    if (segment.dashed) {
+      flushSolidSegment();
+      appendSegmentToTrace(dashed.x, dashed.y, segment);
+      continue;
+    }
+
+    if (!currentSolidSegment) {
+      currentSolidSegment = {
+        x: [...segment.x],
+        y: [...segment.y],
+        dashed: false,
+      };
+      continue;
+    }
+
+    currentSolidSegment.x.push(segment.x[1]);
+    currentSolidSegment.y.push(segment.y[1]);
+  }
+
+  flushSolidSegment();
+
+  return { solid, dashed };
 }
 
 /** Latest commit on the chart for each repo (maximum Plotly x position). */
