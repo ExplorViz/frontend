@@ -499,7 +499,7 @@ function buildLayout(
     hoverdistance: 3,
     dragmode: 'pan',
     margin: {
-      b: placement === 'time' ? 70 : 50,
+      b: placement === 'time' ? 90 : 50,
       l: metricName === NONE_METRIC ? 20 : 60,
       pad: 5,
       t: 10,
@@ -581,11 +581,7 @@ function buildTimeXAxis(xValues: number[]) {
   const spanMs = maxX - minX;
   const xPadding = Math.max(spanMs * 0.05, 86_400_000);
   const tickFormat =
-    spanMs > 365 * 86_400_000
-      ? '%b %Y'
-      : spanMs > 30 * 86_400_000
-        ? '%b %d, %Y'
-        : '%b %d<br>%Y';
+    spanMs > 365 * 86_400_000 ? '%b %Y' : '%b %d, %Y';
 
   return {
     type: 'date' as const,
@@ -602,7 +598,7 @@ function buildTimeXAxis(xValues: number[]) {
     title: {
       text: 'Commit date',
       font: { color: '#7f7f7f', size: 13 },
-      standoff: 16,
+      standoff: 8,
     },
   };
 }
