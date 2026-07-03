@@ -38,6 +38,7 @@ interface AnalysisRequestPayload {
   endCommit?: string;
   commitAnalysisLimit?: number;
   maxLocForFullAnalysis?: number;
+  firstParentCommitsOnly: boolean;
   landscapeToken: string;
   applications?: ApplicationSpec[];
   includeDataStructures: boolean;
@@ -116,11 +117,15 @@ function buildPayload(
   repoType: RepoType,
   formData: Omit<
     AnalysisRequestPayload,
-    'includeDataStructures' | 'sendToRemote' | 'fetchSocialData'
+    | 'includeDataStructures'
+    | 'sendToRemote'
+    | 'fetchSocialData'
+    | 'firstParentCommitsOnly'
   > & {
     includeDataStructures: boolean;
     sendToRemote: boolean;
     fetchSocialData: boolean;
+    firstParentCommitsOnly: boolean;
   },
   inclusionExpressions: readonly InputOption[],
   exclusionExpressions: readonly InputOption[],
@@ -130,6 +135,7 @@ function buildPayload(
     includeDataStructures: formData.includeDataStructures,
     sendToRemote: formData.sendToRemote,
     fetchSocialData: formData.fetchSocialData,
+    firstParentCommitsOnly: formData.firstParentCommitsOnly,
   };
 
   const landscapeToken = formData.landscapeToken.trim();
@@ -261,6 +267,7 @@ export default function CodeAnalysisTriggerForm({
     endCommit: '',
     commitAnalysisLimit: 1 as number | undefined,
     maxLocForFullAnalysis: undefined as number | undefined,
+    firstParentCommitsOnly: true,
     fetchEndDate: '',
     socialDataTimeFrameDays: undefined as number | undefined,
     includeDataStructures: true,
@@ -385,6 +392,7 @@ export default function CodeAnalysisTriggerForm({
       endCommit: '',
       commitAnalysisLimit: 1,
       maxLocForFullAnalysis: undefined,
+      firstParentCommitsOnly: true,
       fetchEndDate: '',
       socialDataTimeFrameDays: undefined,
       includeDataStructures: true,
@@ -596,6 +604,26 @@ export default function CodeAnalysisTriggerForm({
                     ? undefined
                     : parseInt(e.target.value, 10)
                 )
+              }
+            />
+          </Form.Group>
+
+          <Form.Group className="mb-3">
+            <Form.Check
+              type="checkbox"
+              id="first-parent-commits-only"
+              label={
+                <span className="d-inline-flex align-items-center">
+                  First-Parent Commits Only
+                  <HelpTooltip
+                    title="When enabled, only commits on the first-parent chain are analyzed. Commits from merged feature branches are excluded."
+                    placement="top"
+                  />
+                </span>
+              }
+              checked={formData.firstParentCommitsOnly}
+              onChange={(e) =>
+                handleInputChange('firstParentCommitsOnly', e.target.checked)
               }
             />
           </Form.Group>
