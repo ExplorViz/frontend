@@ -37,9 +37,11 @@ interface AnalysisRequestPayload {
   startCommit?: string;
   endCommit?: string;
   commitAnalysisLimit?: number;
+  maxLocForFullAnalysis?: number;
+  firstParentCommitsOnly: boolean;
   landscapeToken: string;
   applications?: ApplicationSpec[];
-  calculateMetrics: boolean;
+  includeDataStructures: boolean;
   sendToRemote: boolean;
   fetchSocialData: boolean;
   fetchEndDate?: string;
@@ -115,20 +117,25 @@ function buildPayload(
   repoType: RepoType,
   formData: Omit<
     AnalysisRequestPayload,
-    'calculateMetrics' | 'sendToRemote' | 'fetchSocialData'
+    | 'includeDataStructures'
+    | 'sendToRemote'
+    | 'fetchSocialData'
+    | 'firstParentCommitsOnly'
   > & {
-    calculateMetrics: boolean;
+    includeDataStructures: boolean;
     sendToRemote: boolean;
     fetchSocialData: boolean;
+    firstParentCommitsOnly: boolean;
   },
   inclusionExpressions: readonly InputOption[],
   exclusionExpressions: readonly InputOption[],
   applications: ApplicationSpec[]
 ): Partial<AnalysisRequestPayload> {
   const payload: Partial<AnalysisRequestPayload> = {
-    calculateMetrics: formData.calculateMetrics,
+    includeDataStructures: formData.includeDataStructures,
     sendToRemote: formData.sendToRemote,
     fetchSocialData: formData.fetchSocialData,
+    firstParentCommitsOnly: formData.firstParentCommitsOnly,
   };
 
   const landscapeToken = formData.landscapeToken.trim();
@@ -166,6 +173,12 @@ function buildPayload(
     formData.commitAnalysisLimit > 0
   ) {
     payload.commitAnalysisLimit = formData.commitAnalysisLimit;
+  }
+  if (
+    formData.maxLocForFullAnalysis !== undefined &&
+    formData.maxLocForFullAnalysis > 0
+  ) {
+    payload.maxLocForFullAnalysis = formData.maxLocForFullAnalysis;
   }
   if (
     formData.socialDataTimeFrameDays !== undefined &&
@@ -253,9 +266,11 @@ export default function CodeAnalysisTriggerForm({
     startCommit: '',
     endCommit: '',
     commitAnalysisLimit: 1 as number | undefined,
+    maxLocForFullAnalysis: undefined as number | undefined,
+    firstParentCommitsOnly: true,
     fetchEndDate: '',
     socialDataTimeFrameDays: undefined as number | undefined,
-    calculateMetrics: true,
+    includeDataStructures: true,
     sendToRemote: true,
     fetchSocialData: false,
   });
@@ -376,9 +391,11 @@ export default function CodeAnalysisTriggerForm({
       startCommit: '',
       endCommit: '',
       commitAnalysisLimit: 1,
+      maxLocForFullAnalysis: undefined,
+      firstParentCommitsOnly: true,
       fetchEndDate: '',
       socialDataTimeFrameDays: undefined,
-      calculateMetrics: true,
+      includeDataStructures: true,
       sendToRemote: true,
       fetchSocialData: false,
     });
@@ -583,6 +600,47 @@ export default function CodeAnalysisTriggerForm({
               onChange={(e) =>
                 handleInputChange(
                   'commitAnalysisLimit',
+                  e.target.value === ''
+                    ? undefined
+                    : parseInt(e.target.value, 10)
+                )
+              }
+            />
+          </Form.Group>
+
+          <Form.Group className="mb-3">
+            <Form.Check
+              type="checkbox"
+              id="first-parent-commits-only"
+              label={
+                <span className="d-inline-flex align-items-center">
+                  First-Parent Commits Only
+                  <HelpTooltip
+                    title="When enabled, only commits on the first-parent chain are analyzed. Commits from merged feature branches are excluded."
+                    placement="top"
+                  />
+                </span>
+              }
+              checked={formData.firstParentCommitsOnly}
+              onChange={(e) =>
+                handleInputChange('firstParentCommitsOnly', e.target.checked)
+              }
+            />
+          </Form.Group>
+
+          <Form.Group className="mb-3">
+            <FormLabelWithHelp
+              label="Max LOC for Full Analysis"
+              help="Optional limit on lines of code for full source analysis. Files with more lines are still included, but only programming language, LOC, and size are computed. Leave empty to analyze all files fully."
+            />
+            <Form.Control
+              type="number"
+              min={1}
+              placeholder="all"
+              value={formData.maxLocForFullAnalysis ?? ''}
+              onChange={(e) =>
+                handleInputChange(
+                  'maxLocForFullAnalysis',
                   e.target.value === ''
                     ? undefined
                     : parseInt(e.target.value, 10)
@@ -851,19 +909,19 @@ export default function CodeAnalysisTriggerForm({
           <div className="d-flex flex-wrap gap-3 mb-3">
             <Form.Check
               type="checkbox"
-              id="calculate-metrics"
+              id="include-data-structures"
               label={
                 <span className="d-inline-flex align-items-center">
-                  Calculate Metrics
+                  Include Data Structures
                   <HelpTooltip
-                    title="Whether to calculate code metrics (e.g., lines of code)."
+                    title="Whether to include classes, functions, and parameters in exported file data. Metrics are always computed; when disabled, only file-level metadata and metrics are sent."
                     placement="top"
                   />
                 </span>
               }
-              checked={formData.calculateMetrics}
+              checked={formData.includeDataStructures}
               onChange={(e) =>
-                handleInputChange('calculateMetrics', e.target.checked)
+                handleInputChange('includeDataStructures', e.target.checked)
               }
             />
             <Form.Check

@@ -87,16 +87,16 @@ export default function HotkeyHandler() {
           break;
         }
         case 'm': {
-          const newValue = !visualizationSettings.isMinimapEnabled.value;
-          updateSetting('isMinimapEnabled', newValue);
-          showInfoToastMessage(`Minimap ${newValue ? 'enabled' : 'disabled'}`);
+          const newValue = !visualizationSettings.isMagnifierActive.value;
+          updateSetting('isMagnifierActive', newValue);
+          showInfoToastMessage(
+            `Magnifier ${newValue ? 'enabled' : 'disabled'}`
+          );
           break;
         }
         case 'o':
           resetCamera();
           showInfoToastMessage('Returned to origin');
-          break;
-        default:
           break;
         case 'r':
           resetVisualizationState();
@@ -110,14 +110,8 @@ export default function HotkeyHandler() {
           );
           break;
         }
-        case '+': {
-          const newValue = !visualizationSettings.isMagnifierActive.value;
-          updateSetting('isMagnifierActive', newValue);
-          showInfoToastMessage(
-            `Magnifier ${newValue ? 'enabled' : 'disabled'}`
-          );
+        default:
           break;
-        }
       }
     };
 

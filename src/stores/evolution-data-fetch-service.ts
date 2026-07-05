@@ -1,6 +1,9 @@
 import { useAuthStore } from 'explorviz-frontend/src/stores/auth';
 import { useLandscapeTokenStore } from 'explorviz-frontend/src/stores/landscape-token';
-import { CommitTree } from 'explorviz-frontend/src/utils/evolution-schemes/evolution-data';
+import {
+  CommitTree,
+  normalizeCommitTree,
+} from 'explorviz-frontend/src/utils/evolution-schemes/evolution-data';
 import { FlatLandscape } from 'explorviz-frontend/src/utils/landscape-schemes/flat-landscape';
 import { create } from 'zustand';
 
@@ -34,7 +37,8 @@ export const useEvolutionDataFetchServiceStore =
       repoName: string
     ): Promise<CommitTree> => {
       const url = get()._constructUrl('commit-tree', repoName);
-      return await get()._fetchFromService<CommitTree>(url);
+      const tree = await get()._fetchFromService<CommitTree>(url);
+      return normalizeCommitTree(tree, repoName);
     },
 
     fetchFlatLandscapeForRepositoriesAndCommits: async (

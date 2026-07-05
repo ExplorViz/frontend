@@ -1,4 +1,7 @@
-import { SelectedCommit } from 'explorviz-frontend/src/stores/commit-tree-state';
+import {
+  SelectedCommit,
+  useCommitTreeStateStore,
+} from 'explorviz-frontend/src/stores/commit-tree-state';
 import { useEvolutionDataFetchServiceStore } from 'explorviz-frontend/src/stores/evolution-data-fetch-service';
 import { getCommitXPosition } from 'explorviz-frontend/src/utils/evolution-data-helpers';
 import {
@@ -17,19 +20,23 @@ function sortSelectedCommitsForComparison(
   if (commits.length !== 2) {
     return commits;
   }
+
+  const xAxisPlacement = useCommitTreeStateStore.getState().getXAxisPlacement();
   return [...commits].sort(
     (a, b) =>
       getCommitXPosition(
         repoNameCommitTreeMap,
         repositoryName,
         a.branchName,
-        a.commitId
+        a.commitId,
+        xAxisPlacement
       ) -
       getCommitXPosition(
         repoNameCommitTreeMap,
         repositoryName,
         b.branchName,
-        b.commitId
+        b.commitId,
+        xAxisPlacement
       )
   );
 }

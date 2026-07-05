@@ -125,34 +125,36 @@ export default function Navbar() {
       className="p-3 disable-select pointer-events-none"
       style={{ position: 'absolute', width: '100vw', zIndex: 1000 }}
     >
-      <img
-        className="pointer-events-all"
-        style={{ height: '30px', float: 'left', cursor: 'pointer' }}
-        src="images/explorviz-30px.png"
-        alt="ExplorViz"
-        draggable="false"
-        onClick={goToLandscapeSelection}
-      />
-      {!isSingleLandscapeMode() && landscapeToken && (
-        <div className="navbar-middle-row d-none d-md-block">
-          <div className="navbar-token-link pointer-events-all text-center">
-            <span
-              className="d-flex-center"
-              role="button"
-              onClick={goToLandscapeSelection}
-            >
-              <UndoIcon size="small" />
-              &nbsp;{landscapeToken.alias}
-            </span>
-          </div>
-          <div className="navbar-rendering-mode text-center">
-            {_analysisMode}
-          </div>
+      <div className="navbar-layout">
+        <div className="navbar-left">
+          <img
+            className="pointer-events-all navbar-logo"
+            src="images/explorviz-30px.png"
+            alt="ExplorViz"
+            draggable="false"
+            onClick={goToLandscapeSelection}
+          />
         </div>
-      )}
-      <div id="navbar-user-options" className="btn-group pointer-events-all">
-        <StatusIcons />
-        <div className="btn-group" style={{ marginLeft: '1rem' }}>
+        <div className="navbar-center d-none d-md-block">
+          {!isSingleLandscapeMode() && landscapeToken && (
+            <>
+              <div className="navbar-token-link pointer-events-all">
+                <span
+                  className="d-flex-center"
+                  role="button"
+                  onClick={goToLandscapeSelection}
+                >
+                  <UndoIcon size="small" />
+                  &nbsp;{landscapeToken.alias}
+                </span>
+              </div>
+              <div className="navbar-rendering-mode">{_analysisMode}</div>
+            </>
+          )}
+        </div>
+        <div id="navbar-user-options" className="btn-group pointer-events-all">
+          <StatusIcons />
+          <div className="btn-group" style={{ marginLeft: '1rem' }}>
           <button
             type="button"
             className="dropdown-toggle navbar-user-button"
@@ -263,6 +265,7 @@ export default function Navbar() {
               </li>
             </ul>
           )}
+          </div>
         </div>
       </div>
     </div>

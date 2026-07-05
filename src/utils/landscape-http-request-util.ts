@@ -165,7 +165,10 @@ export function requestCommunicationFunctions(
   });
 }
 
-export function requestFileDetailedData(fileRevisionId: string) {
+export function requestFileDetailedData(
+  fileRevisionId: string,
+  commitHash?: string
+) {
   return new Promise<
     import('explorviz-frontend/src/utils/landscape-schemes/file-detailed-data').FileDetailedDto
   >((resolve, reject) => {
@@ -182,7 +185,10 @@ export function requestFileDetailedData(fileRevisionId: string) {
       );
       return;
     }
-    const url = `${landscapeService}/v3/landscapes/${token.value}/structure/evolution/file-revision/${fileRevisionId}`;
+    const query = commitHash
+      ? `?commitHash=${encodeURIComponent(commitHash)}`
+      : '';
+    const url = `${landscapeService}/v3/landscapes/${token.value}/structure/evolution/file-revision/${fileRevisionId}${query}`;
     fetch(url, {
       headers: {
         Authorization: `Bearer ${useAuthStore.getState().accessToken}`,

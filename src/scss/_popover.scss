@@ -53,6 +53,16 @@
         border-color: rgba(255, 255, 255, 0.5);
         transform: none;
       }
+
+      &:disabled {
+        cursor: not-allowed;
+        opacity: 0.55;
+
+        &:hover {
+          background: rgba(255, 255, 255, 0.2);
+          border-color: rgba(255, 255, 255, 0.3);
+        }
+      }
     }
   }
 

@@ -358,7 +358,10 @@ async function selectNewestCommit(): Promise<boolean> {
   const repoNameCommitTreeMap =
     useEvolutionDataRepositoryStore.getState()._repoNameCommitTreeMap;
 
-  const selectedCommits = buildNewestCommitSelectionMap(repoNameCommitTreeMap);
+  const selectedCommits = buildNewestCommitSelectionMap(
+    repoNameCommitTreeMap,
+    useCommitTreeStateStore.getState().getXAxisPlacement()
+  );
 
   if (selectedCommits.size === 0) {
     return false;

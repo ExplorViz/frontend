@@ -10,7 +10,7 @@ export type ProgressState = {
   analyzedCommits: number;
   totalFiles: number;
   analyzedFiles: number;
-  currentAnalysingFile: string | null;
+  currentAnalyzingFile: string | null;
 };
 
 type UseWatchAnalysisStateArgs = {

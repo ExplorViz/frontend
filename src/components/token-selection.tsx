@@ -16,9 +16,13 @@ import {
   useLandscapeTokenStore,
 } from 'explorviz-frontend/src/stores/landscape-token';
 import { useToastHandlerStore } from 'explorviz-frontend/src/stores/toast-handler';
-import { CommitTree } from 'explorviz-frontend/src/utils/evolution-schemes/evolution-data';
+import {
+  CommitTree,
+  collectUniqueCommitHashes,
+  normalizeCommitTree,
+} from 'explorviz-frontend/src/utils/evolution-schemes/evolution-data';
 import JSZip from 'jszip';
-import React, { useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Button, OverlayTrigger, Tooltip } from 'react-bootstrap';
 interface TokenSelectionArgs {
   tokens: LandscapeToken[];
@@ -44,6 +48,18 @@ export default function TokenSelection({
     null
   );
   const [editAliasValue, setEditAliasValue] = useState<string>('');
+  const editAliasInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (editingTokenValue === null) return;
+
+    const input = editAliasInputRef.current;
+    if (!input) return;
+
+    input.focus();
+    const length = input.value.length;
+    input.setSelectionRange(length, length);
+  }, [editingTokenValue]);
 
   const updateTokenAlias = useLandscapeTokenStore(
     (state) => state.updateTokenAlias
@@ -115,9 +131,14 @@ export default function TokenSelection({
       return null;
     });
 
-    const trees = (await Promise.all(treePromises)).filter(
-      (t): t is { repoName: string; tree: CommitTree } => t !== null
-    );
+    const trees = (await Promise.all(treePromises))
+      .filter(
+        (t): t is { repoName: string; tree: CommitTree } => t !== null
+      )
+      .map(({ repoName, tree }) => ({
+        repoName,
+        tree: normalizeCommitTree(tree, repoName),
+      }));
 
     const commitDataPromises: Promise<{
       repoName: string;
@@ -126,12 +147,7 @@ export default function TokenSelection({
     }>[] = [];
 
     trees.forEach(({ repoName, tree }) => {
-      const uniqueCommits = new Set<string>();
-      tree.branches.forEach((branch) => {
-        branch.commits.forEach((commitId) => uniqueCommits.add(commitId));
-      });
-
-      uniqueCommits.forEach((commitId) => {
+      collectUniqueCommitHashes(tree).forEach((commitId) => {
         commitDataPromises.push(
           getJsonBlob(
             `${landscapeService}/v3/landscapes/${token.value}/structure/evolution/${repoName}/${commitId}`
@@ -253,8 +269,11 @@ export default function TokenSelection({
     setEditAliasValue('');
   };
 
-  const saveAlias = async (token: LandscapeToken, event: React.MouseEvent) => {
-    event.stopPropagation();
+  const saveAlias = async (
+    token: LandscapeToken,
+    event?: React.SyntheticEvent
+  ) => {
+    event?.stopPropagation();
     try {
       await updateTokenAlias(token.value, editAliasValue);
       showSuccessToastMessage('Token alias updated successfully.');
@@ -301,11 +320,17 @@ export default function TokenSelection({
                 {editingTokenValue === token.value ? (
                   <div className="d-flex gap-1 align-items-center">
                     <input
+                      ref={editAliasInputRef}
                       type="text"
                       className="form-control form-control-sm"
                       value={editAliasValue}
                       onChange={(e) => setEditAliasValue(e.target.value)}
                       onClick={(e) => e.stopPropagation()}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') {
+                          void saveAlias(token, e);
+                        }
+                      }}
                     />
                     <button
                       className="button-svg-with-hover"

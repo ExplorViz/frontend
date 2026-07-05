@@ -1,5 +1,6 @@
 import {
   BuildingMetricIds,
+  ORDERED_BUILDING_METRIC_IDS,
   useHeatmapStore,
 } from 'explorviz-frontend/src/stores/heatmap/heatmap-store';
 import { useShallow } from 'zustand/react/shallow';
@@ -25,7 +26,7 @@ export default function MetricSelector() {
       aria-label="Select metric"
       className="border rounded-md px-2 py-1 w-full"
     >
-      {Object.values(BuildingMetricIds).map((name) => (
+      {ORDERED_BUILDING_METRIC_IDS.map((name) => (
         <option key={name} value={name}>
           {name}
         </option>

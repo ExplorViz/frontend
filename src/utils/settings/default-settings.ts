@@ -1,6 +1,7 @@
 import { defaultColors } from 'explorviz-frontend/src/utils/settings/color-schemes';
 import {
   BuildingMetricMapping,
+  SELECTED_BUILDING_METRIC_OPTIONS,
   SelectedBuildingMetric,
   SettingLevel,
   VisualizationSettings,
@@ -9,21 +10,25 @@ import {
 export const metricMappingMultipliers = {
   [BuildingMetricMapping.Linear]: {
     [SelectedBuildingMetric.None]: 1,
-    [SelectedBuildingMetric.loc]: 1,
+    [SelectedBuildingMetric.size]: 0.001,
+    [SelectedBuildingMetric.lineCount]: 1,
     [SelectedBuildingMetric.sloc]: 1,
     [SelectedBuildingMetric.cloc]: 1,
+    [SelectedBuildingMetric.importCount]: 10,
+    [SelectedBuildingMetric.classCount]: 10,
     [SelectedBuildingMetric.functionCount]: 10,
     [SelectedBuildingMetric.variableCount]: 10,
-    [SelectedBuildingMetric.size]: 0.001,
   },
   [BuildingMetricMapping.Logarithmic]: {
     [SelectedBuildingMetric.None]: 1,
-    [SelectedBuildingMetric.loc]: 20,
+    [SelectedBuildingMetric.size]: 10,
+    [SelectedBuildingMetric.lineCount]: 20,
     [SelectedBuildingMetric.sloc]: 20,
     [SelectedBuildingMetric.cloc]: 20,
+    [SelectedBuildingMetric.importCount]: 20,
+    [SelectedBuildingMetric.classCount]: 20,
     [SelectedBuildingMetric.functionCount]: 25,
     [SelectedBuildingMetric.variableCount]: 20,
-    [SelectedBuildingMetric.size]: 10,
   },
 } as const;
 
@@ -48,7 +53,7 @@ export function getMetricMappingMultiplier(
 ): number {
   return metricMappingMultipliers[mapping][metric];
 }
-export const metricKeys = Object.values(SelectedBuildingMetric);
+export const metricKeys = SELECTED_BUILDING_METRIC_OPTIONS;
 export const MOUSE_ACTIONS = [
   'NONE',
   'ROTATE',
@@ -661,7 +666,7 @@ export const defaultVizSettings: VisualizationSettings = {
   },
   buildingLabelFontSize: {
     level: SettingLevel.EXTENDED,
-    value: 2.0,
+    value: 1.0,
     range: { min: 0.0, max: 5.0, step: 0.01 },
     group: 'Label',
     displayName: 'Building Label Font Size',
@@ -670,7 +675,7 @@ export const defaultVizSettings: VisualizationSettings = {
   },
   buildingLabelLength: {
     level: SettingLevel.EXTENDED,
-    value: 10,
+    value: 15,
     range: { min: 0, max: 50, step: 1 },
     group: 'Label',
     displayName: 'Building Label Length',
@@ -892,7 +897,7 @@ export const defaultVizSettings: VisualizationSettings = {
   },
   buildingFootprint: {
     level: SettingLevel.DEFAULT,
-    value: 5.0,
+    value: 10.0,
     range: { min: 0.5, max: 20.0, step: 0.5 },
     group: 'Building Config',
     displayName: 'Building Footprint',
@@ -1404,7 +1409,7 @@ export const defaultVizSettings: VisualizationSettings = {
   // Debug Settings
   showExtendedSettings: {
     level: SettingLevel.DEFAULT,
-    value: false,
+    value: true,
     group: 'Debugging',
     displayName: 'Show Extended Settings',
     description: 'Shows/hides additional settings',
