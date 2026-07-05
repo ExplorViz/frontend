@@ -1,4 +1,4 @@
-import { FlatLandscape, City, District } from 'explorviz-frontend/src/utils/landscape-schemes/flat-landscape';
+import { FlatLandscape, City, District, Building } from 'explorviz-frontend/src/utils/landscape-schemes/flat-landscape';
 import { create } from 'zustand';
 
 
@@ -38,19 +38,66 @@ export const useEvolutionAnimationStore = create<EvolutionAnimationState>(
     timeMode: 'commit',
     speedMs: 1000,
     actions: {
-      setFrames: (frames) =>{
+      setFrames: (frames) => {
+        const fqnToCanonicalId = new Map<string, string>();
+        const stableBuildings: Record<string, Building> = {};
+        frames.forEach((frame) => {
+          Object.values(frame.buildings).forEach((building) => {
+            if (building.fqn) {
+              if (!fqnToCanonicalId.has(building.fqn)) {
+                fqnToCanonicalId.set(building.fqn, building.id);
+                stableBuildings[building.id] = building;
+              }
+            } else {
+              stableBuildings[building.id] = building;
+            }
+          });
+        });
+
+        // Helper: translate a frame-local building ID to its canonical stable ID
+        const toCanonicalId = (
+          frameId: string,
+          frame: FlatLandscape
+        ): string => {
+          const building = frame.buildings[frameId];
+          if (building?.fqn)
+            return fqnToCanonicalId.get(building.fqn) ?? frameId;
+          return frameId;
+        };
 
         const stableCities: Record<string, City> = {};
         frames.forEach((frame) => {
           Object.values(frame.cities).forEach((city) => {
             if (!stableCities[city.id]) {
-              stableCities[city.id] = { ...city };
+              stableCities[city.id] = {
+                ...city,
+                buildingIds: city.buildingIds.map((id) => toCanonicalId(id,frame)),
+                allContainedBuildingIds: city.allContainedBuildingIds.map((id) => toCanonicalId(id,frame)),
+              };
             } else {
               const existing = stableCities[city.id];
-              existing.buildingIds = [...new Set([...existing.buildingIds, ...city.buildingIds])];
-              existing.allContainedBuildingIds = [...new Set([...existing.allContainedBuildingIds, ...city.allContainedBuildingIds])];
-              existing.districtIds = [...new Set([...existing.districtIds, ...city.districtIds])];
-              existing.allContainedDistrictIds = [...new Set([...existing.allContainedDistrictIds, ...city.allContainedDistrictIds])];
+              const canonicalBuildingIds = city.buildingIds.map((id) => toCanonicalId(id,frame));
+              const canonicalAllBuildingIds = city.allContainedBuildingIds.map((id) => toCanonicalId(id,frame));
+              existing.buildingIds = [
+                ...new Set([
+                  ...existing.buildingIds,
+                  ...canonicalBuildingIds])
+              ];
+              existing.allContainedBuildingIds = [
+                ...new Set([
+                  ...existing.allContainedBuildingIds,
+                  ...canonicalAllBuildingIds]),
+              ];
+              existing.districtIds = [
+                ...new Set([
+                  ...existing.districtIds,
+                  ...city.districtIds]),
+              ];
+              existing.allContainedDistrictIds = [
+                ...new Set([
+                  ...existing.allContainedDistrictIds,
+                  ...city.allContainedDistrictIds]),
+              ];
             }
           });
         });
@@ -59,22 +106,33 @@ export const useEvolutionAnimationStore = create<EvolutionAnimationState>(
         frames.forEach((frame) => {
           Object.values(frame.districts).forEach((district) => {
             if (!stableDistricts[district.id]) {
-              stableDistricts[district.id] = { ...district };
+              stableDistricts[district.id] = {
+                ...district,
+                buildingIds: district.buildingIds.map((id) => toCanonicalId(id,frame)),
+              };
             } else {
               const existing = stableDistricts[district.id];
-              existing.buildingIds = [...new Set([...existing.buildingIds, ...district.buildingIds])];
-              existing.districtIds = [...new Set([...existing.districtIds, ...district.districtIds])];
+              const canonicalBuildingIds = district.buildingIds.map((id) => toCanonicalId(id,frame));
+              existing.buildingIds = [
+                ...new Set([
+                  ...existing.buildingIds,
+                  ...canonicalBuildingIds]),
+              ];
+              existing.districtIds = [
+                ...new Set([
+                  ...existing.districtIds,
+                  ...district.districtIds]),
+              ];
             }
           });
         });
 
         const stableFrame: FlatLandscape = {
           ...frames[0],
-          buildings: Object.assign({}, ...frames.map((f) => f.buildings)),
+          buildings: stableBuildings,
           districts: stableDistricts,
           cities: stableCities,
         };
-
 
         const fqnToFirstFrame = new Map<string, number>();
         frames.forEach((frame, index) => {
@@ -85,8 +143,14 @@ export const useEvolutionAnimationStore = create<EvolutionAnimationState>(
           });
         });
 
-        set({ frames, stableFrame, fqnToFirstFrame ,currentFrameIndex: 0, isPlaying: false });
-      },
+        set({
+          frames,
+          stableFrame,
+          fqnToFirstFrame,
+          currentFrameIndex: 0,
+          isPlaying: false,
+        });
+        },
       play: () => set({ isPlaying: true }),
       pause: () => set({ isPlaying: false }),
       stepForward: () =>

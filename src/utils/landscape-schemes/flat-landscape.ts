@@ -17,7 +17,7 @@ type FlatBaseModel = {
   originOfData?: TypeOfAnalysis;
   commitComparison?: CommitComparison; // For two selected commits
   editingState?: 'added' | 'removed'; // Reflect changes from restructuring
-  isPlaceholder?: boolean; // Flag to make it invisble in animation
+  isPlaceholder?: boolean; // Flag to make it invisible in animation
 };
 
 export type Language =
