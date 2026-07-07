@@ -1,13 +1,13 @@
 import { useAuthStore } from 'explorviz-frontend/src/stores/auth';
 import { useLandscapeTokenStore } from 'explorviz-frontend/src/stores/landscape-token';
-import { FlatLandscape } from 'explorviz-frontend/src/utils/landscape-schemes/flat-landscape';
+import { AnimationFrame } from 'explorviz-frontend/src/utils/landscape-schemes/flat-landscape';
 import { create } from 'zustand';
 
 interface EvolutionAnimationFetchState {
   fetchAnimationFramesForRepository(
     repositoryName: string
-  ): Promise<FlatLandscape[]>;
-  _getLandscapeToken(): string;
+  ): Promise<AnimationFrame[]>;
+  _getLandscapeToken() : string;
   _constructUrl(endpoint: string, ...params: string[]): string;
   _fetchFromService<T>(url: string): Promise<T>;
 }
@@ -16,13 +16,13 @@ export const useEvolutionAnimationFetchServiceStore =
   create<EvolutionAnimationFetchState>((set, get) => ({
     fetchAnimationFramesForRepository: async (
       repositoryName: string
-    ): Promise<FlatLandscape[]> => {
+    ): Promise<AnimationFrame[]> => {
       const url = get()._constructUrl(
         'structure/evolution',
         repositoryName,
         'animation'
       );
-      return await get()._fetchFromService<FlatLandscape[]>(url);
+      return await get()._fetchFromService<AnimationFrame[]>(url);
     },
 
     _getLandscapeToken: (): string => {

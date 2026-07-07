@@ -24,29 +24,9 @@ export default function EvolutionPlaybackControls() {
 
   // Render current frame whenever index changes
   useEffect(() => {
-    const frame = frames[currentFrameIndex];
-
-    //stableFrame = frame with all buildings
+    const active = frames[currentFrameIndex];
+    const frame = active?.landscape;
     if (!frame || !stableFrame) return;
-    //Debugging
-    if (currentFrameIndex === 0) {
-      const fqnCounts = new Map<string, number>();
-      Object.values(stableFrame.buildings).forEach(b => {
-        if (b.fqn) fqnCounts.set(b.fqn, (fqnCounts.get(b.fqn) ?? 0) + 1);
-      });
-      const dupes = [...fqnCounts.entries()].filter(([, count]) => count > 1);
-      console.log('duplicate FQNs in stableFrame:', dupes.length, dupes[0]);
-
-
-      console.log(
-        'frame 0 district IDs:',
-        Object.keys(frames[0].districts).slice(0, 3)
-      );
-      console.log(
-        'frame 1 district IDs:',
-        Object.keys(frames[1].districts).slice(0, 3)
-      );
-    }
 
 
     //Build Fqn map for the visibility
@@ -71,7 +51,7 @@ export default function EvolutionPlaybackControls() {
         isPlaceholder: !existsInCurrentFrame,
         commitComparison: existsInCurrentFrame
           ? currentBuilding?.commitComparison
-          ?? (currentFrameIndex === 0 ? 'ADDED' : 'UNCHANGED')
+          ?? 'UNCHANGED'
           : undefined,
       };
     });
@@ -105,6 +85,8 @@ export default function EvolutionPlaybackControls() {
   }, [isPlaying, speedMs]);
 
   if (frames.length === 0) return null;
+
+  const active = frames[currentFrameIndex];
 
   return createPortal(
     <div
@@ -172,6 +154,18 @@ export default function EvolutionPlaybackControls() {
       >
         Close
       </button>
+
+      {/* Current commit */}
+      {active && (
+        <div style={{ fontSize: '12px', marginTop: '8px' }}>
+          <code style={{ color: 'blue' }}>
+            {active.commitHash.slice(0, 7)}
+          </code>
+          <span style={{ color: '#aaa', marginLeft: '8px' }}>
+            {new Date(active.authorDate).toLocaleString()}
+          </span>
+        </div>
+      )}
     </div>,
     document.body
   );

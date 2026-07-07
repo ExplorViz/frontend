@@ -1,11 +1,11 @@
-import { FlatLandscape, City, District, Building } from 'explorviz-frontend/src/utils/landscape-schemes/flat-landscape';
+import { FlatLandscape, City, District, Building, AnimationFrame} from 'explorviz-frontend/src/utils/landscape-schemes/flat-landscape';
 import { create } from 'zustand';
 
 
 
 
 interface EvolutionAnimationState {
-  frames: FlatLandscape[];
+  frames: AnimationFrame[];
   stableFrame: FlatLandscape | null;
   fqnToFirstFrame: Map<string, number>;
   currentFrameIndex: number;
@@ -14,7 +14,7 @@ interface EvolutionAnimationState {
   timeMode: 'commit' | 'time';
   speedMs: number;
   actions: {
-    setFrames: (frames: FlatLandscape[]) => void;
+    setFrames: (frames: AnimationFrame[]) => void;
     play: () => void;
     pause: () => void;
     stepForward: () => void;
@@ -28,7 +28,7 @@ interface EvolutionAnimationState {
 }
 
 export const useEvolutionAnimationStore = create<EvolutionAnimationState>(
-  (set, get) => ({
+  (set) => ({
     frames: [],
     stableFrame: null,
     fqnToFirstFrame: new Map(),
@@ -42,7 +42,7 @@ export const useEvolutionAnimationStore = create<EvolutionAnimationState>(
         const fqnToCanonicalId = new Map<string, string>();
         const stableBuildings: Record<string, Building> = {};
         frames.forEach((frame) => {
-          Object.values(frame.buildings).forEach((building) => {
+          Object.values(frame.landscape.buildings).forEach((building) => {
             if (building.fqn) {
               if (!fqnToCanonicalId.has(building.fqn)) {
                 fqnToCanonicalId.set(building.fqn, building.id);
@@ -54,7 +54,6 @@ export const useEvolutionAnimationStore = create<EvolutionAnimationState>(
           });
         });
 
-        // Helper: translate a frame-local building ID to its canonical stable ID
         const toCanonicalId = (
           frameId: string,
           frame: FlatLandscape
@@ -67,36 +66,42 @@ export const useEvolutionAnimationStore = create<EvolutionAnimationState>(
 
         const stableCities: Record<string, City> = {};
         frames.forEach((frame) => {
-          Object.values(frame.cities).forEach((city) => {
+          Object.values(frame.landscape.cities).forEach((city) => {
             if (!stableCities[city.id]) {
               stableCities[city.id] = {
                 ...city,
-                buildingIds: city.buildingIds.map((id) => toCanonicalId(id,frame)),
-                allContainedBuildingIds: city.allContainedBuildingIds.map((id) => toCanonicalId(id,frame)),
+                buildingIds: city.buildingIds.map((id) =>
+                  toCanonicalId(id, frame.landscape)
+                ),
+                allContainedBuildingIds: city.allContainedBuildingIds.map(
+                  (id) => toCanonicalId(id, frame.landscape)
+                ),
               };
             } else {
               const existing = stableCities[city.id];
-              const canonicalBuildingIds = city.buildingIds.map((id) => toCanonicalId(id,frame));
-              const canonicalAllBuildingIds = city.allContainedBuildingIds.map((id) => toCanonicalId(id,frame));
+              const canonicalBuildingIds = city.buildingIds.map((id) =>
+                toCanonicalId(id, frame.landscape)
+              );
+              const canonicalAllBuildingIds = city.allContainedBuildingIds.map(
+                (id) => toCanonicalId(id, frame.landscape)
+              );
               existing.buildingIds = [
-                ...new Set([
-                  ...existing.buildingIds,
-                  ...canonicalBuildingIds])
+                ...new Set([...existing.buildingIds, ...canonicalBuildingIds]),
               ];
               existing.allContainedBuildingIds = [
                 ...new Set([
                   ...existing.allContainedBuildingIds,
-                  ...canonicalAllBuildingIds]),
+                  ...canonicalAllBuildingIds,
+                ]),
               ];
               existing.districtIds = [
-                ...new Set([
-                  ...existing.districtIds,
-                  ...city.districtIds]),
+                ...new Set([...existing.districtIds, ...city.districtIds]),
               ];
               existing.allContainedDistrictIds = [
                 ...new Set([
                   ...existing.allContainedDistrictIds,
-                  ...city.allContainedDistrictIds]),
+                  ...city.allContainedDistrictIds,
+                ]),
               ];
             }
           });
@@ -104,41 +109,41 @@ export const useEvolutionAnimationStore = create<EvolutionAnimationState>(
 
         const stableDistricts: Record<string, District> = {};
         frames.forEach((frame) => {
-          Object.values(frame.districts).forEach((district) => {
+          Object.values(frame.landscape.districts).forEach((district) => {
             if (!stableDistricts[district.id]) {
               stableDistricts[district.id] = {
                 ...district,
-                buildingIds: district.buildingIds.map((id) => toCanonicalId(id,frame)),
+                buildingIds: district.buildingIds.map((id) =>
+                  toCanonicalId(id, frame.landscape)
+                ),
               };
             } else {
               const existing = stableDistricts[district.id];
-              const canonicalBuildingIds = district.buildingIds.map((id) => toCanonicalId(id,frame));
+              const canonicalBuildingIds = district.buildingIds.map((id) =>
+                toCanonicalId(id, frame.landscape)
+              );
               existing.buildingIds = [
-                ...new Set([
-                  ...existing.buildingIds,
-                  ...canonicalBuildingIds]),
+                ...new Set([...existing.buildingIds, ...canonicalBuildingIds]),
               ];
               existing.districtIds = [
-                ...new Set([
-                  ...existing.districtIds,
-                  ...district.districtIds]),
+                ...new Set([...existing.districtIds, ...district.districtIds]),
               ];
             }
           });
         });
 
         const stableFrame: FlatLandscape = {
-          ...frames[0],
+          ...frames[0].landscape,
           buildings: stableBuildings,
           districts: stableDistricts,
           cities: stableCities,
         };
 
         const fqnToFirstFrame = new Map<string, number>();
-        frames.forEach((frame, index) => {
-          Object.values(frame.buildings).forEach((building) => {
+        frames.forEach((frame) => {
+          Object.values(frame.landscape.buildings).forEach((building) => {
             if (building.fqn && !fqnToFirstFrame.has(building.fqn)) {
-              fqnToFirstFrame.set(building.fqn, index);
+              fqnToFirstFrame.set(building.fqn, frame.ordinal); // ← global ordinal, not array index
             }
           });
         });
@@ -150,7 +155,8 @@ export const useEvolutionAnimationStore = create<EvolutionAnimationState>(
           currentFrameIndex: 0,
           isPlaying: false,
         });
-        },
+      },
+
       play: () => set({ isPlaying: true }),
       pause: () => set({ isPlaying: false }),
       stepForward: () =>
@@ -168,8 +174,8 @@ export const useEvolutionAnimationStore = create<EvolutionAnimationState>(
         set((s) => ({
           currentFrameIndex: Math.max(0, Math.min(index, s.frames.length - 1)),
         })),
-      setLayoutMode: (mode: 'city' |'spiral') => set({layoutMode: mode}),
-      setTimeMode: (mode: 'commit' | 'time' ) => set({timeMode: mode}),
+      setLayoutMode: (mode: 'city' | 'spiral') => set({ layoutMode: mode }),
+      setTimeMode: (mode: 'commit' | 'time') => set({ timeMode: mode }),
       setSpeed: (ms) => set({ speedMs: ms }),
       reset: () => set({ frames: [], currentFrameIndex: 0, isPlaying: false }),
     },
@@ -178,5 +184,5 @@ export const useEvolutionAnimationStore = create<EvolutionAnimationState>(
 
 export const getCurrentFrame = (): FlatLandscape | null => {
   const { frames, currentFrameIndex } = useEvolutionAnimationStore.getState();
-  return frames[currentFrameIndex] ?? null;
+  return frames[currentFrameIndex]?.landscape ?? null;
 };

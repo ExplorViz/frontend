@@ -10,6 +10,13 @@ export type FlatLandscape = {
   buildings: Record<string, Building>;
 };
 
+export type AnimationFrame = {
+  commitHash: string;
+  authorDate: number; // epoch ms → new Date(authorDate)
+  ordinal: number; // global index in commit history (authorDate ASC)
+  landscape: FlatLandscape;
+};
+
 type FlatBaseModel = {
   id: string;
   name: string;
