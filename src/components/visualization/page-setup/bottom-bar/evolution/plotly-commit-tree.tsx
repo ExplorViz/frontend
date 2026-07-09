@@ -44,6 +44,7 @@ interface PlotlyCommitTreeArgs {
 
 const MAX_COMMIT_SELECTION_PER_APP = 2;
 const COMMIT_UNSELECTED_SIZE = 8;
+const COMMIT_TAGGED_SIZE = 16;
 const COMMIT_SELECTED_SIZE = 20;
 const HIGHLIGHTED_MARKER_COLOR = 'red';
 const BRANCH_LINE_COLOR = 'rgba(70, 130, 180, 1)';
@@ -214,6 +215,7 @@ export default function PlotlyCommitTree({
     const sizes = chartCommits.map(() => COMMIT_UNSELECTED_SIZE);
     const texts = chartCommits.map(() => '');
 
+    markTaggedCommits(chartCommits, sizes, texts);
     markSelectedCommits(
       selectedCommits.get(selectedRepoName) || [],
       chartCommits,
@@ -626,6 +628,19 @@ function parseMetricChangeThreshold(input: string): number | null {
   return parsed;
 }
 
+function markTaggedCommits(
+  chartCommits: CommitNode[],
+  sizes: number[],
+  texts: string[]
+) {
+  chartCommits.forEach((commit, index) => {
+    if (commit.tags?.length) {
+      sizes[index] = COMMIT_TAGGED_SIZE;
+      texts[index] = 'T';
+    }
+  });
+}
+
 function markSelectedCommits(
   allSelectedCommits: Commit[],
   chartCommits: CommitNode[],
@@ -662,6 +677,9 @@ function buildHoverText(
           ? `${metricName}: pending`
           : `${metricName}: ${metricValue.toLocaleString('en-US')}`
       );
+    }
+    if (commit.tags?.length) {
+      lines.push(`Tags: ${commit.tags.join(', ')}`);
     }
     if (!commit.hasAccumulatedMetrics) {
       lines.push('Metrics pending');

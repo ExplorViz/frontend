@@ -15,6 +15,7 @@ export type CommitNode = {
   commitDate?: string;
   metrics?: Record<string, number>;
   hasAccumulatedMetrics?: boolean;
+  tags?: string[];
 };
 
 export type Branch = {
@@ -63,10 +64,16 @@ export function normalizeCommitNode(commit: CommitNode | string): CommitNode {
       ? commit.metrics
       : undefined;
 
+  const tags =
+    commit.tags?.filter((tag) => tag.trim().length > 0).sort((a, b) =>
+      a.localeCompare(b)
+    ) ?? [];
+
   return {
     hash: commit.hash,
     ...(commit.commitDate != null && { commitDate: commit.commitDate }),
     ...(metrics && { metrics }),
+    ...(tags.length > 0 && { tags }),
     hasAccumulatedMetrics:
       commit.hasAccumulatedMetrics ??
       (metrics != null && Object.keys(metrics).length > 0),
