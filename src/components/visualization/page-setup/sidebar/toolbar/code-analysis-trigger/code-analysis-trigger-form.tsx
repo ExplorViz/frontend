@@ -26,6 +26,8 @@ type LocalRepositoryInfo = {
 
 type RepoType = 'remote' | 'local';
 
+type CommitSamplingPeriod = 'DAY' | 'WEEK' | 'MONTH' | 'YEAR';
+
 interface AnalysisRequestPayload {
   repoPath?: string;
   repoRemoteUrl?: string;
@@ -37,6 +39,8 @@ interface AnalysisRequestPayload {
   startCommit?: string;
   endCommit?: string;
   commitAnalysisLimit?: number;
+  commitSamplingInterval?: number;
+  commitSamplingPeriod?: CommitSamplingPeriod;
   maxLocForFullAnalysis?: number;
   firstParentCommitsOnly: boolean;
   landscapeToken: string;
@@ -186,6 +190,15 @@ function buildPayload(
   ) {
     payload.socialDataTimeFrameDays = formData.socialDataTimeFrameDays;
   }
+  if (
+    formData.commitSamplingInterval !== undefined &&
+    formData.commitSamplingInterval > 1
+  ) {
+    payload.commitSamplingInterval = formData.commitSamplingInterval;
+  }
+  if (formData.commitSamplingPeriod) {
+    payload.commitSamplingPeriod = formData.commitSamplingPeriod;
+  }
 
   if (inclusionExpressions.length > 0) {
     payload.includeInAnalysisExpressions = inclusionExpressions
@@ -266,6 +279,8 @@ export default function CodeAnalysisTriggerForm({
     startCommit: '',
     endCommit: '',
     commitAnalysisLimit: 1 as number | undefined,
+    commitSamplingInterval: undefined as number | undefined,
+    commitSamplingPeriod: '' as CommitSamplingPeriod | '',
     maxLocForFullAnalysis: undefined as number | undefined,
     firstParentCommitsOnly: true,
     fetchEndDate: '',
@@ -391,6 +406,8 @@ export default function CodeAnalysisTriggerForm({
       startCommit: '',
       endCommit: '',
       commitAnalysisLimit: 1,
+      commitSamplingInterval: undefined,
+      commitSamplingPeriod: '',
       maxLocForFullAnalysis: undefined,
       firstParentCommitsOnly: true,
       fetchEndDate: '',
@@ -762,6 +779,56 @@ export default function CodeAnalysisTriggerForm({
               }
             />
           </Form.Group>
+
+          <div className="row">
+            <Form.Group className="mb-3 col-md-6">
+              <FormLabelWithHelp
+                label="Commit Sampling Interval"
+                help="Analyze every Nth commit (e.g. 5 = commits 1, 6, 11, …). All commits are still stored in the history; only sampled commits receive full file analysis. Leave empty to disable interval sampling."
+              />
+              <Form.Control
+                type="number"
+                min={2}
+                placeholder="disabled"
+                value={formData.commitSamplingInterval ?? ''}
+                disabled={!!formData.commitSamplingPeriod}
+                onChange={(e) =>
+                  handleInputChange(
+                    'commitSamplingInterval',
+                    e.target.value === ''
+                      ? undefined
+                      : parseInt(e.target.value, 10)
+                  )
+                }
+              />
+            </Form.Group>
+
+            <Form.Group className="mb-3 col-md-6">
+              <FormLabelWithHelp
+                label="Commit Sampling Period"
+                help="Alternative to interval sampling: analyze the first commit in each day, week, month, or year. All other commits are stored as metadata-only entries."
+              />
+              <Form.Select
+                value={formData.commitSamplingPeriod}
+                disabled={
+                  formData.commitSamplingInterval != null &&
+                  formData.commitSamplingInterval > 1
+                }
+                onChange={(e) =>
+                  handleInputChange(
+                    'commitSamplingPeriod',
+                    e.target.value as CommitSamplingPeriod | ''
+                  )
+                }
+              >
+                <option value="">disabled</option>
+                <option value="DAY">Day</option>
+                <option value="WEEK">Week</option>
+                <option value="MONTH">Month</option>
+                <option value="YEAR">Year</option>
+              </Form.Select>
+            </Form.Group>
+          </div>
 
           <div className="table-responsive">
             <table className="table table-sm table-bordered mb-0">

@@ -65,18 +65,20 @@ export function normalizeCommitNode(commit: CommitNode | string): CommitNode {
       : undefined;
 
   const tags =
-    commit.tags?.filter((tag) => tag.trim().length > 0).sort((a, b) =>
-      a.localeCompare(b)
-    ) ?? [];
+    commit.tags
+      ?.filter((tag) => tag.trim().length > 0)
+      .sort((a, b) => a.localeCompare(b)) ?? [];
+
+  const hasAccumulatedMetrics =
+    commit.hasAccumulatedMetrics ??
+    (metrics != null && Object.keys(metrics).length > 0);
 
   return {
     hash: commit.hash,
     ...(commit.commitDate != null && { commitDate: commit.commitDate }),
-    ...(metrics && { metrics }),
+    ...(hasAccumulatedMetrics && metrics && { metrics }),
     ...(tags.length > 0 && { tags }),
-    hasAccumulatedMetrics:
-      commit.hasAccumulatedMetrics ??
-      (metrics != null && Object.keys(metrics).length > 0),
+    hasAccumulatedMetrics,
   };
 }
 
@@ -110,9 +112,10 @@ export function collectUniqueCommitHashes(tree: CommitTree): Set<string> {
 export function getAvailableMetricNames(branch: Branch): string[] {
   const names = new Set<string>();
   for (const commit of branch.commits) {
-    if (commit.metrics) {
-      Object.keys(commit.metrics).forEach((name) => names.add(name));
+    if (!commit.hasAccumulatedMetrics || !commit.metrics) {
+      continue;
     }
+    Object.keys(commit.metrics).forEach((name) => names.add(name));
   }
   return [...names].sort((a, b) => a.localeCompare(b));
 }

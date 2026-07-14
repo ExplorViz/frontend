@@ -206,6 +206,19 @@ export function isMetricChangeTriggerAtIndex(
  * For each metric change >= threshold between consecutive commits, keep the
  * commit before and after the change (the pair surrounding the jump).
  */
+export function commitHasAnalyzedMetrics(commit: CommitNode): boolean {
+  return commit.hasAccumulatedMetrics === true;
+}
+
+export function getCommitIndicesWithAnalyzedMetrics(branch: Branch): number[] {
+  return branch.commits.reduce<number[]>((indices, commit, index) => {
+    if (commitHasAnalyzedMetrics(commit)) {
+      indices.push(index);
+    }
+    return indices;
+  }, []);
+}
+
 export function getCommitIndicesMeetingMetricChangeThreshold(
   branch: Branch,
   metricName: string,
@@ -214,6 +227,15 @@ export function getCommitIndicesMeetingMetricChangeThreshold(
   const visibleIndices = new Set<number>();
 
   for (let index = 1; index < branch.commits.length; index++) {
+    const commit = branch.commits[index];
+    const previousCommit = branch.commits[index - 1];
+    if (
+      !commitHasAnalyzedMetrics(commit) ||
+      !commitHasAnalyzedMetrics(previousCommit)
+    ) {
+      continue;
+    }
+
     if (!isMetricChangeTriggerAtIndex(branch, index, metricName, threshold)) {
       continue;
     }
@@ -231,6 +253,16 @@ export function isCommitVisibleWithMetricChangeFilter(
   metricName: string,
   threshold: number
 ): boolean {
+  const commitIndex = branch.commits.findIndex(
+    (commit) => commit.hash === commitId
+  );
+  if (
+    commitIndex === -1 ||
+    !commitHasAnalyzedMetrics(branch.commits[commitIndex])
+  ) {
+    return false;
+  }
+
   if (threshold <= 0 || metricName === NONE_METRIC) {
     return true;
   }
@@ -239,7 +271,7 @@ export function isCommitVisibleWithMetricChangeFilter(
     branch,
     metricName,
     threshold
-  ).some((index) => branch.commits[index].hash === commitId);
+  ).includes(commitIndex);
 }
 
 export function removeFilteredCommitsFromSelection(
@@ -249,10 +281,6 @@ export function removeFilteredCommitsFromSelection(
   metricName: string,
   threshold: number
 ): Map<string, Commit[]> {
-  if (threshold <= 0 || metricName === NONE_METRIC) {
-    return selectedCommits;
-  }
-
   const commitTree = repoNameCommitTreeMap.get(repoName);
   if (!commitTree) {
     return selectedCommits;
@@ -344,7 +372,7 @@ export function buildBranchChartSeries(
         metricName,
         options.metricChangeThreshold!
       )
-    : branch.commits.map((_, index) => index);
+    : getCommitIndicesWithAnalyzedMetrics(branch);
 
   return buildBranchChartSeriesForIndices(
     branch,
@@ -458,6 +486,10 @@ export function buildNewestCommitSelectionMap(
 
     for (const branch of commitTree.branches) {
       for (const commit of branch.commits) {
+        if (!commitHasAnalyzedMetrics(commit)) {
+          continue;
+        }
+
         const x = getCommitXPosition(
           repoNameCommitTreeMap,
           repoName,
@@ -483,7 +515,22 @@ export function buildNewestCommitSelectionMap(
 export function getFirstBranchWithCommits(
   commitTree: { branches: Branch[] } | undefined
 ): Branch | undefined {
-  return commitTree?.branches.find((branch) => branch.commits.length > 0);
+  return commitTree?.branches.find((branch) =>
+    branch.commits.some((commit) => commitHasAnalyzedMetrics(commit))
+  );
+}
+
+export function branchHasAnalyzedCommits(branch: Branch): boolean {
+  return branch.commits.some((commit) => commitHasAnalyzedMetrics(commit));
+}
+
+export function hasSkippedCommitsBetweenVisiblePoints(
+  originalIndices: number[]
+): boolean {
+  return originalIndices.some(
+    (index, chartIndex) =>
+      chartIndex > 0 && originalIndices[chartIndex - 1] + 1 !== index
+  );
 }
 
 export function getMetricValue(
@@ -523,7 +570,10 @@ export function searchCommitsInRepository(
 
   for (const branch of commitTree.branches) {
     for (const commit of branch.commits) {
-      if (!commit.hash.toLowerCase().includes(normalizedQuery)) {
+      if (
+        !commitHasAnalyzedMetrics(commit) ||
+        !commit.hash.toLowerCase().includes(normalizedQuery)
+      ) {
         continue;
       }
 

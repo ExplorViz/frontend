@@ -3,11 +3,13 @@ import CommitChartSearch from 'explorviz-frontend/src/components/visualization/p
 import { useCommitTreeStateStore } from 'explorviz-frontend/src/stores/commit-tree-state';
 import {
   addCommitToSelection,
+  branchHasAnalyzedCommits,
   buildBranchChartLineSegments,
   buildBranchChartSeries,
   formatCommitDate,
   getFirstBranchWithCommits,
   getMetricValue,
+  hasSkippedCommitsBetweenVisiblePoints,
   removeFilteredCommitsFromSelection,
   toggleCommitInSelection,
 } from 'explorviz-frontend/src/utils/evolution-data-helpers';
@@ -135,11 +137,7 @@ export default function PlotlyCommitTree({
     metricChangeThreshold > 0;
 
   useEffect(() => {
-    if (
-      !selectedRepoName ||
-      !isMetricChangeFilterActive ||
-      metricChangeThreshold == null
-    ) {
+    if (!selectedRepoName) {
       return;
     }
 
@@ -148,7 +146,9 @@ export default function PlotlyCommitTree({
       selectedRepoName,
       repoNameCommitTreeMap,
       selectedMetric,
-      metricChangeThreshold
+      isMetricChangeFilterActive && metricChangeThreshold != null
+        ? metricChangeThreshold
+        : 0
     );
 
     if (updatedSelectedCommits === selectedCommits) {
@@ -260,6 +260,9 @@ export default function PlotlyCommitTree({
         originalIndices,
         selectedMetric,
         isMetricChangeFilterActive,
+        useSegmentedLines:
+          isMetricChangeFilterActive ||
+          hasSkippedCommitsBetweenVisiblePoints(originalIndices),
       }),
       layout,
       {
@@ -392,7 +395,7 @@ export default function PlotlyCommitTree({
   if (
     !repoNameCommitTreeMap ||
     !selectedRepoName ||
-    !commitTree?.branches?.some((branch) => branch.commits.length > 0)
+    !commitTree?.branches?.some((branch) => branchHasAnalyzedCommits(branch))
   ) {
     return repoNameCommitTreeMap && repoNameCommitTreeMap.size > 0 ? (
       <div className="commit-tree-no-data-container">
@@ -426,7 +429,7 @@ export default function PlotlyCommitTree({
             className="commit-metrics-chart-select"
           >
             {commitTree.branches
-              .filter((branch) => branch.commits.length > 0)
+              .filter((branch) => branchHasAnalyzedCommits(branch))
               .map((branch) => (
                 <option key={branch.name} value={branch.name}>
                   {branch.name}
@@ -467,7 +470,7 @@ export default function PlotlyCommitTree({
             title={
               selectedMetric === NONE_METRIC
                 ? 'Select a metric to filter commits by minimum change'
-                : 'Show the two commits surrounding each metric change of at least this amount. 0 shows all commits.'
+                : 'Show the two commits surrounding each metric change of at least this amount. 0 shows all analyzed commits.'
             }
             className="commit-metrics-chart-threshold-input"
           />
@@ -529,6 +532,7 @@ function buildPlotlyTraces({
   originalIndices,
   selectedMetric,
   isMetricChangeFilterActive,
+  useSegmentedLines,
 }: {
   branchName: string;
   chartCommits: CommitNode[];
@@ -540,6 +544,7 @@ function buildPlotlyTraces({
   originalIndices: number[];
   selectedMetric: string;
   isMetricChangeFilterActive: boolean;
+  useSegmentedLines: boolean;
 }): Plotly.Data[] {
   const hoverText = buildHoverText(chartCommits, selectedMetric);
   const markerTrace: Plotly.Data = {
@@ -563,7 +568,7 @@ function buildPlotlyTraces({
     y: yValues,
   };
 
-  if (!isMetricChangeFilterActive) {
+  if (!useSegmentedLines) {
     return [
       {
         ...markerTrace,
@@ -680,9 +685,6 @@ function buildHoverText(
     }
     if (commit.tags?.length) {
       lines.push(`Tags: ${commit.tags.join(', ')}`);
-    }
-    if (!commit.hasAccumulatedMetrics) {
-      lines.push('Metrics pending');
     }
     return lines.join('<br>');
   });

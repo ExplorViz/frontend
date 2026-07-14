@@ -1,7 +1,10 @@
 import { useCommitTreeStateStore } from 'explorviz-frontend/src/stores/commit-tree-state';
 import { useRenderingServiceStore } from 'explorviz-frontend/src/stores/rendering-service';
 import { useVisibilityServiceStore } from 'explorviz-frontend/src/stores/visibility-service';
-import { buildNewestCommitSelectionMap } from 'explorviz-frontend/src/utils/evolution-data-helpers';
+import {
+  branchHasAnalyzedCommits,
+  buildNewestCommitSelectionMap,
+} from 'explorviz-frontend/src/utils/evolution-data-helpers';
 import { RepoNameCommitTreeMap } from 'explorviz-frontend/src/utils/evolution-schemes/evolution-data';
 import Button from 'react-bootstrap/Button';
 import Form from 'react-bootstrap/Form';
@@ -41,7 +44,7 @@ export default function EvolutionRenderingButtons({
     );
 
   const hasSelectableCommits = Array.from(repoNameCommitTreeMap.values()).some(
-    (tree) => tree.branches.some((branch) => branch.commits.length > 0)
+    (tree) => tree.branches.some((branch) => branchHasAnalyzedCommits(branch))
   );
 
   const isDiffMode =
