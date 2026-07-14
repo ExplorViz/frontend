@@ -13,6 +13,21 @@ export type ProgressState = {
   currentAnalyzingFile: string | null;
 };
 
+type RawProgressState = Omit<ProgressState, 'currentAnalyzingFile'> & {
+  currentAnalyzingFile?: string | null;
+  currentAnalysingFile?: string | null;
+};
+
+const toProgressState = (raw: RawProgressState): ProgressState => ({
+  status: raw.status,
+  totalCommits: raw.totalCommits,
+  analyzedCommits: raw.analyzedCommits,
+  totalFiles: raw.totalFiles,
+  analyzedFiles: raw.analyzedFiles,
+  currentAnalyzingFile:
+    raw.currentAnalyzingFile ?? raw.currentAnalysingFile ?? null,
+});
+
 type UseWatchAnalysisStateArgs = {
   landscapeToken?: string;
   onUpdate?: (state: ProgressState) => void;
@@ -72,7 +87,9 @@ export const useWatchAnalysisState = ({
 
       eventSource.onmessage = (event) => {
         try {
-          const state: ProgressState = JSON.parse(event.data) as ProgressState;
+          const state = toProgressState(
+            JSON.parse(event.data) as RawProgressState
+          );
           setState(state);
           onUpdate?.(state);
 
