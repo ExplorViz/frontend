@@ -17,6 +17,12 @@ export type AnimationFrame = {
   landscape: FlatLandscape;
 };
 
+export type AnimationWindow = {
+  totalCount: number;
+  windowStart: number;
+  frames: AnimationFrame[];
+};
+
 type FlatBaseModel = {
   id: string;
   name: string;

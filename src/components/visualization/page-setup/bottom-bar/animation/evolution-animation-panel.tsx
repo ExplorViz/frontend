@@ -32,8 +32,11 @@ export default function EvolutionAnimationPanel({
     (state) => state._currentSelectedRepositoryName
   );
 
-  const fetchFrames = useEvolutionAnimationFetchServiceStore(
-    (state) => state.fetchAnimationFramesForRepository
+  const fetchWindow = useEvolutionAnimationFetchServiceStore(
+    (state) => state.fetchAnimationWindow
+  );
+  const fetchSkeleton = useEvolutionAnimationFetchServiceStore(
+    (state) => state.fetchAnimationSkeleton
   );
 
     //Sync when layout is toggeled
@@ -55,11 +58,15 @@ export default function EvolutionAnimationPanel({
 
     let cancelled = false;
     setIsLoading(true);
-    fetchFrames(repositoryName)
-      .then((result) => {
+    Promise.all([fetchSkeleton(repositoryName), fetchWindow(repositoryName)])
+      .then(([skeleton, animationWindow]) => {
         if (cancelled) return;
-        useEvolutionAnimationStore.getState().actions.setFrames(result);
-        useRenderingServiceStore.getState()
+        const actions = useEvolutionAnimationStore.getState().actions;
+        actions.setSkeleton(skeleton);
+        actions.setFrames(animationWindow.frames);
+
+        useRenderingServiceStore
+          .getState()
           .setAnalysisModeFromEvolutionRenderingConfig({
             renderDynamic: false,
             renderStatic: true,
@@ -90,8 +97,13 @@ export default function EvolutionAnimationPanel({
     if (!repositoryName) return;
     setIsLoading(true);
     try {
-      const result = await fetchFrames(repositoryName);
-      useEvolutionAnimationStore.getState().actions.setFrames(result);
+      const [skeleton, animationWindow] = await Promise.all([
+        fetchSkeleton(repositoryName),
+        fetchWindow(repositoryName),
+      ]);
+      const actions = useEvolutionAnimationStore.getState().actions;
+      actions.setSkeleton(skeleton);
+      actions.setFrames(animationWindow.frames);
       useRenderingServiceStore
         .getState()
         .setAnalysisModeFromEvolutionRenderingConfig({

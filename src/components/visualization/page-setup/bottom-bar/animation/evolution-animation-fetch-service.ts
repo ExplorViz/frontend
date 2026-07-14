@@ -1,30 +1,50 @@
 import { useAuthStore } from 'explorviz-frontend/src/stores/auth';
 import { useLandscapeTokenStore } from 'explorviz-frontend/src/stores/landscape-token';
-import { AnimationFrame } from 'explorviz-frontend/src/utils/landscape-schemes/flat-landscape';
+import { AnimationFrame, AnimationWindow, FlatLandscape } from 'explorviz-frontend/src/utils/landscape-schemes/flat-landscape';
 import { create } from 'zustand';
 
 interface EvolutionAnimationFetchState {
-  fetchAnimationFramesForRepository(
-    repositoryName: string
-  ): Promise<AnimationFrame[]>;
-  _getLandscapeToken() : string;
+  fetchAnimationWindow(
+    repositoryName: string,
+    start?: number,
+    count?: number
+  ): Promise<AnimationWindow>;
+  fetchAnimationSkeleton(repositoryName: string): Promise<FlatLandscape>;
+  _getLandscapeToken(): string;
   _constructUrl(endpoint: string, ...params: string[]): string;
   _fetchFromService<T>(url: string): Promise<T>;
 }
 
 export const useEvolutionAnimationFetchServiceStore =
   create<EvolutionAnimationFetchState>((set, get) => ({
-    fetchAnimationFramesForRepository: async (
-      repositoryName: string
-    ): Promise<AnimationFrame[]> => {
-      const url = get()._constructUrl(
+    fetchAnimationWindow: async (
+      repositoryName: string,
+      start?: number,
+      count?: number
+    ): Promise<AnimationWindow> => {
+      const base = get()._constructUrl(
         'structure/evolution',
         repositoryName,
         'animation'
       );
-      return await get()._fetchFromService<AnimationFrame[]>(url);
+      const params = new URLSearchParams();
+      if (start !== undefined) params.set('start', String(start));
+      if (count !== undefined) params.set('count', String(count));
+      const query = params.toString();
+      const url = query ? `${base}?${query}` : base;
+      return await get()._fetchFromService<AnimationWindow>(url);
     },
-
+    fetchAnimationSkeleton: async (
+      repositoryName: string
+    ): Promise<FlatLandscape> => {
+      const url = get()._constructUrl(
+        'structure/evolution',
+        repositoryName,
+        'animation',
+        'skeleton'
+      );
+      return await get()._fetchFromService<FlatLandscape>(url);
+    },
     _getLandscapeToken: (): string => {
       const landscapeToken = useLandscapeTokenStore.getState().token?.value;
       if (!landscapeToken) {
