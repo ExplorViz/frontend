@@ -21,32 +21,26 @@ import { isBuildingVisible } from 'explorviz-frontend/src/utils/city-rendering/b
 import { getHighlightingColorForEntity } from 'explorviz-frontend/src/utils/city-rendering/highlighting';
 import { getImmersiveTargetWorldPosition } from 'explorviz-frontend/src/utils/city-rendering/immersive-target-position';
 import { emitContextMenuFromWorld } from 'explorviz-frontend/src/utils/context-menu-bridge';
+import { getSourceReferenceCommitHash } from 'explorviz-frontend/src/utils/evolution-data-helpers';
 import { getMetricValues } from 'explorviz-frontend/src/utils/heatmap/building-heatmap-helper';
 import { getSimpleHeatmapColor } from 'explorviz-frontend/src/utils/heatmap/simple-heatmap';
 import calculateColorBrightness from 'explorviz-frontend/src/utils/helpers/threejs-helpers';
-import { getSourceReferenceCommitHash } from 'explorviz-frontend/src/utils/evolution-data-helpers';
 import { requestFileDetailedData } from 'explorviz-frontend/src/utils/landscape-http-request-util';
 import {
   type Building,
   type City,
-  type Language,
 } from 'explorviz-frontend/src/utils/landscape-schemes/flat-landscape';
 import { TypeOfAnalysis } from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
-import {
-  applyMetricMapping,
-  getMetricMappingMultiplier,
-  MetricKey,
-} from 'explorviz-frontend/src/utils/settings/default-settings';
+import { computeMappedBuildingHeight } from 'explorviz-frontend/src/utils/settings/building-metrics';
 import {
   BuildingGeometryType,
   getLanguageColor as getLanguageBuildingColor,
   getLanguageGeometry,
-  LANGUAGE_COLOR_SETTING_IDS,
   normalizeLanguage,
 } from 'explorviz-frontend/src/utils/settings/language-settings';
 import { VisualizationSettings } from 'explorviz-frontend/src/utils/settings/settings-schemas';
 import gsap from 'gsap';
-import { useCallback, useEffect, useMemo, useRef } from 'react';
+import { useEffect, useRef } from 'react';
 import * as THREE from 'three';
 import {
   BoxGeometry,
@@ -97,6 +91,39 @@ function groupBuildingsByGeometry(
   return groups;
 }
 
+const buildingMaterial = new MeshLambertMaterial();
+
+function createBuildingGeometry(geometryType: BuildingGeometryType) {
+  // Round primitives default to radius 1 (diameter 2); use 0.5 to match BoxGeometry's 1×1 footprint.
+  switch (geometryType) {
+    case 'Cone':
+      return new ConeGeometry(0.5, 1);
+    case 'Sphere':
+      return new SphereGeometry(0.5);
+    case 'Cylinder':
+      return new CylinderGeometry(0.5, 0.5, 1);
+    case 'Box':
+    default:
+      return new BoxGeometry();
+  }
+}
+
+const buildingGeometryCache = new Map<
+  BuildingGeometryType,
+  BoxGeometry | ConeGeometry | CylinderGeometry | SphereGeometry
+>();
+
+function getBuildingGeometry(geometryType: BuildingGeometryType) {
+  const cachedGeometry = buildingGeometryCache.get(geometryType);
+  if (cachedGeometry) {
+    return cachedGeometry;
+  }
+
+  const geometry = createBuildingGeometry(geometryType);
+  buildingGeometryCache.set(geometryType, geometry);
+  return geometry;
+}
+
 interface GeometryGroupProps {
   geometryType: BuildingGeometryType;
   buildingIds: string[];
@@ -112,14 +139,12 @@ const GeometryGroup: React.FC<GeometryGroupProps> = ({
   city,
 }) => {
   const meshRef = useRef<InstancedMesh2>(null);
-  const material = useRef<MeshLambertMaterial>(new MeshLambertMaterial());
+  const instanceIdToBuildingIdRef = useRef(new Map<number, string>());
+  const buildingIdToInstanceIdRef = useRef(new Map<string, number>());
 
-  const instanceIdToBuildingId = useRef(new Map<number, string>()).current;
-  const buildingIdToInstanceId = useRef(new Map<string, number>()).current;
-
-  const layoutMap = useLayoutStore.getState().getBuildingLayouts();
-
+  const layoutMap = useLayoutStore((state) => state.buildingLayouts);
   const buildings = useModelStore((state) => state.buildings);
+  const geometry = getBuildingGeometry(geometryType);
 
   const {
     hiddenBuildingIds,
@@ -191,51 +216,14 @@ const GeometryGroup: React.FC<GeometryGroupProps> = ({
     }))
   );
 
-  const languageColorSettings = useMemo(
-    () =>
-      Object.fromEntries(
-        LANGUAGE_COLOR_SETTING_IDS.map((settingId) => [
-          settingId,
-          visualizationSettings[settingId].value,
-        ])
-      ),
-    [visualizationSettings]
-  );
-
-  const getLanguageColor = useCallback(
-    (lang: Language) =>
-      getLanguageBuildingColor(lang, visualizationSettings),
-    [visualizationSettings]
-  );
-
-  const geometry = useMemo(() => {
-    // Round primitives default to radius 1 (diameter 2); use 0.5 to match BoxGeometry's 1×1 footprint.
-    switch (geometryType) {
-      case 'Cone':
-        return new ConeGeometry(0.5, 1);
-      case 'Sphere':
-        return new SphereGeometry(0.5);
-      case 'Cylinder':
-        return new CylinderGeometry(0.5, 0.5, 1);
-      case 'Box':
-      default:
-        return new BoxGeometry();
-    }
-  }, [geometryType]);
-
-  const {
-    heatmapActive,
-    selectedBuildingMetric,
-    selectedGradient,
-    selectedValueMapping,
-  } = useHeatmapStore(
-    useShallow((state) => ({
-      heatmapActive: state.isActive(),
-      selectedBuildingMetric: state.getSelectedBuildingMetric(),
-      selectedGradient: state.selectedGradient,
-      selectedValueMapping: state.selectedValueMapping,
-    }))
-  );
+  const { heatmapActive, selectedBuildingMetric, selectedValueMapping } =
+    useHeatmapStore(
+      useShallow((state) => ({
+        heatmapActive: state.isActive(),
+        selectedBuildingMetric: state.getSelectedBuildingMetric(),
+        selectedValueMapping: state.selectedValueMapping,
+      }))
+    );
 
   const { addPopup, updatePopup } = usePopupHandlerStore(
     useShallow((state) => ({
@@ -249,110 +237,274 @@ const GeometryGroup: React.FC<GeometryGroupProps> = ({
 
   const sceneLayers = useVisualizationStore((state) => state.sceneLayers);
 
-  const getBuildingHeight = useCallback(
-    (building: Building) => {
-      const getMetricValue = (
-        building: Building,
-        metricKey: string
-      ): number => {
-        const metric = building.metrics?.[metricKey];
-        return metric?.current || 0;
-      };
+  function getBuildingHeight(building: Building) {
+    return computeMappedBuildingHeight(
+      building,
+      heightMetric,
+      metricMapping,
+      buildingFootprint,
+      buildingHeightMultiplier,
+      buildings
+    );
+  }
 
-      const metricValue = getMetricValue(building, heightMetric);
-
-      return (
-        buildingFootprint +
-        getMetricMappingMultiplier(heightMetric as MetricKey, metricMapping) *
-          buildingHeightMultiplier *
-          applyMetricMapping(metricValue, metricMapping)
+  function computeColor(buildingId: string) {
+    const building = buildings[buildingId];
+    if (!building) {
+      return new THREE.Color('red');
+    }
+    if (heatmapActive) {
+      const metricValues = getMetricValues(building, selectedBuildingMetric!);
+      if (metricValues.current === null) {
+        return new THREE.Color('white');
+      }
+      return new THREE.Color(
+        getSimpleHeatmapColor(
+          metricValues.current,
+          metricValues.max,
+          undefined,
+          selectedValueMapping ?? HeatmapValueMapping.LINEAR
+        )
       );
-    },
-    [buildingFootprint, buildingHeightMultiplier, heightMetric, metricMapping]
-  );
+    }
 
-  const computeColor = useCallback(
-    (buildingId: string) => {
-      const building = buildings[buildingId];
-      if (!building) {
-        return new THREE.Color('red');
-      }
-      if (heatmapActive) {
-        const metricValues = getMetricValues(building, selectedBuildingMetric!);
-        if (metricValues.current === null) {
-          return new THREE.Color('white');
-        }
-        return new THREE.Color(
-          getSimpleHeatmapColor(
-            metricValues.current,
-            metricValues.max,
-            undefined,
-            selectedValueMapping ?? HeatmapValueMapping.LINEAR
-          )
-        );
-      }
-
-      if (
-        (isDiffMode || evoConfig.renderOnlyDifferences) &&
-        building.commitComparison
-      ) {
-        if (building.commitComparison === 'ADDED') {
-          return new THREE.Color(addedBuildingColor);
-        } else if (building.commitComparison === 'REMOVED') {
-          return new THREE.Color(removedBuildingColor);
-        } else if (building.commitComparison === 'MODIFIED') {
-          return new THREE.Color(modifiedBuildingColor);
-        } else {
-          return new THREE.Color(unchangedBuildingColor);
-        }
-      }
-
-      if (building.originOfData === TypeOfAnalysis.Editing) {
+    if (
+      (isDiffMode || evoConfig.renderOnlyDifferences) &&
+      building.commitComparison
+    ) {
+      if (building.commitComparison === 'ADDED') {
         return new THREE.Color(addedBuildingColor);
+      } else if (building.commitComparison === 'REMOVED') {
+        return new THREE.Color(removedBuildingColor);
+      } else if (building.commitComparison === 'MODIFIED') {
+        return new THREE.Color(modifiedBuildingColor);
+      } else {
+        return new THREE.Color(unchangedBuildingColor);
       }
+    }
 
-      const isHovered = hoveredEntityId === building.id;
-      const isHighlighted = highlightedEntityIds.has(building.id);
+    if (building.originOfData === TypeOfAnalysis.Editing) {
+      return new THREE.Color(addedBuildingColor);
+    }
 
-      const lang = normalizeLanguage(building.language);
+    const isHovered = hoveredEntityId === building.id;
+    const isHighlighted = highlightedEntityIds.has(building.id);
 
-      let baseColor = isHighlighted
-        ? getHighlightingColorForEntity(building.id)
-        : new THREE.Color(getLanguageColor(lang));
+    const lang = normalizeLanguage(building.language);
 
-      if (enableHoverEffects && isHovered) {
-        baseColor = calculateColorBrightness(baseColor, 1.1);
-      }
+    let baseColor = isHighlighted
+      ? getHighlightingColorForEntity(building.id)
+      : new THREE.Color(getLanguageBuildingColor(lang, visualizationSettings));
 
-      return baseColor;
-    },
-    [
-      heatmapActive,
-      selectedBuildingMetric,
-      selectedGradient,
-      selectedValueMapping,
-      evoConfig.renderOnlyDifferences,
-      isDiffMode,
-      addedBuildingColor,
-      removedBuildingColor,
-      modifiedBuildingColor,
-      unchangedBuildingColor,
-      hoveredEntityId,
-      highlightedEntityIds,
-      getLanguageColor,
-      enableHoverEffects,
-      buildings,
-    ]
-  );
+    if (enableHoverEffects && isHovered) {
+      baseColor = calculateColorBrightness(baseColor, 1.1);
+    }
 
-  const computeMeshInstances = useCallback(() => {
+    return baseColor;
+  }
+
+  useEffect(() => {
+    if (buildingIdToInstanceIdRef.current.size === 0) {
+      return;
+    }
     if (meshRef === null || typeof meshRef === 'function' || !meshRef.current) {
       return;
     }
 
+    const mesh = meshRef.current;
+
+    buildingIdToInstanceIdRef.current.forEach((instanceId, buildingId) => {
+      const tempMatrix = new Matrix4();
+      const pos = new Vector3();
+      const quat = new Quaternion();
+      const scale = new Vector3();
+
+      const building = useModelStore.getState().getBuilding(buildingId);
+      const layout = layoutMap.get(buildingId);
+      if (!building || !layout) {
+        return;
+      }
+
+      const targetHeight = getBuildingHeight(building);
+      const targetPositionX = layout.center.x;
+      const targetPositionY = layout.position.y + targetHeight / 2;
+      const targetPositionZ = layout.center.z;
+      const targetWidth = layout.width;
+      const targetDepth = layout.depth;
+
+      if (enableAnimations) {
+        try {
+          mesh.getMatrixAt(instanceId, tempMatrix);
+        } catch {
+          return;
+        }
+        tempMatrix.decompose(pos, quat, scale);
+
+        if (
+          pos.x === targetPositionX &&
+          pos.y === targetPositionY &&
+          pos.z === targetPositionZ &&
+          scale.x === targetWidth &&
+          scale.y === targetHeight &&
+          scale.z === targetDepth
+        ) {
+          return;
+        }
+
+        const values = {
+          width: scale.x,
+          depth: scale.z,
+          height: scale.y,
+          positionX: pos.x,
+          positionY: pos.y,
+          positionZ: pos.z,
+        };
+
+        gsap.to(values, {
+          duration: animationDuration,
+          width: targetWidth,
+          height: targetHeight,
+          depth: targetDepth,
+          positionX: targetPositionX,
+          positionY: targetPositionY,
+          positionZ: targetPositionZ,
+          onUpdate: () => {
+            scale.x = values.width;
+            scale.y = values.height;
+            scale.z = values.depth;
+            pos.x = values.positionX;
+            pos.y = values.positionY;
+            pos.z = values.positionZ;
+            tempMatrix.compose(pos, quat, scale);
+            if (!meshRef || typeof meshRef === 'function') return;
+            mesh.setMatrixAt(instanceId, tempMatrix);
+          },
+        });
+        return;
+      }
+
+      try {
+        mesh.getMatrixAt(instanceId, tempMatrix);
+      } catch {
+        return;
+      }
+      tempMatrix.decompose(pos, quat, scale);
+      scale.y = targetHeight;
+      pos.y = layout.position.y + targetHeight / 2;
+      tempMatrix.compose(pos, quat, scale);
+      mesh.setMatrixAt(instanceId, tempMatrix);
+    });
+  }, [
+    buildingFootprint,
+    buildingHeightMultiplier,
+    heightMetric,
+    metricMapping,
+    buildings,
+    enableAnimations,
+    animationDuration,
+    layoutMap,
+  ]);
+
+  // Compute mesh instances or animate changes
+  useEffect(() => {
+    if (meshRef === null || typeof meshRef === 'function' || !meshRef.current) {
+      return;
+    }
+
+    const layoutsReady =
+      buildingIds.length === 0 ||
+      buildingIds.every((id) => layoutMap.has(id));
+
+    if (!layoutsReady) {
+      return;
+    }
+
+    if (meshRef.current.geometry !== geometry) {
+      meshRef.current.geometry = geometry;
+    }
+
+    const hasMatchingInstances =
+      buildingIdToInstanceIdRef.current.size > 0 &&
+      buildingIds.length === buildingIdToInstanceIdRef.current.size &&
+      buildingIds.every((id) => buildingIdToInstanceIdRef.current.has(id));
+
+    if (hasMatchingInstances && enableAnimations) {
+      if (buildingIdToInstanceIdRef.current.size === 0) {
+        return;
+      }
+
+      const mesh = meshRef.current;
+      buildingIdToInstanceIdRef.current.forEach((instanceId, buildingId) => {
+        const tempMatrix = new Matrix4();
+        const pos = new Vector3();
+        const quat = new Quaternion();
+        const scale = new Vector3();
+
+        const building = useModelStore.getState().getBuilding(buildingId);
+        const layout = layoutMap.get(buildingId);
+        if (!building || !layout) return;
+
+        const targetHeight = getBuildingHeight(building);
+        const targetPositionX = layout.center.x;
+        const targetPositionY = layout.position.y + targetHeight / 2;
+        const targetPositionZ = layout.center.z;
+        const targetWidth = layout.width;
+        const targetDepth = layout.depth;
+
+        try {
+          mesh.getMatrixAt(instanceId, tempMatrix);
+        } catch {
+          return;
+        }
+        tempMatrix.decompose(pos, quat, scale);
+
+        if (
+          pos.x === targetPositionX &&
+          pos.y === targetPositionY &&
+          pos.z === targetPositionZ &&
+          scale.x === targetWidth &&
+          scale.y === targetHeight &&
+          scale.z === targetDepth
+        ) {
+          return;
+        }
+
+        const values = {
+          width: scale.x,
+          depth: scale.z,
+          height: scale.y,
+          positionX: pos.x,
+          positionY: pos.y,
+          positionZ: pos.z,
+        };
+
+        gsap.to(values, {
+          duration: animationDuration,
+          width: targetWidth,
+          height: targetHeight,
+          depth: targetDepth,
+          positionX: targetPositionX,
+          positionY: targetPositionY,
+          positionZ: targetPositionZ,
+          onUpdate: () => {
+            scale.x = values.width;
+            scale.y = values.height;
+            scale.z = values.depth;
+            pos.x = values.positionX;
+            pos.y = values.positionY;
+            pos.z = values.positionZ;
+            tempMatrix.compose(pos, quat, scale);
+            if (!meshRef || typeof meshRef === 'function') return;
+            mesh.setMatrixAt(instanceId, tempMatrix);
+          },
+        });
+      });
+      return;
+    }
+
     meshRef.current.clearInstances();
-    instanceIdToBuildingId.clear();
-    buildingIdToInstanceId.clear();
+    instanceIdToBuildingIdRef.current.clear();
+    buildingIdToInstanceIdRef.current.clear();
 
     let i = 0;
     meshRef.current.addInstances(buildingIds.length, (obj) => {
@@ -360,15 +512,16 @@ const GeometryGroup: React.FC<GeometryGroupProps> = ({
       if (!building) {
         return;
       }
-      instanceIdToBuildingId.set(obj.id, building.id);
-      buildingIdToInstanceId.set(building.id, obj.id);
+      instanceIdToBuildingIdRef.current.set(obj.id, building.id);
+      buildingIdToInstanceIdRef.current.set(building.id, obj.id);
       const layout = layoutMap.get(building.id);
       if (!layout) {
         return;
       }
+      const buildingHeight = getBuildingHeight(building);
       obj.position.set(
         layout.center.x,
-        layout.position.y + getBuildingHeight(building) / 2,
+        layout.position.y + buildingHeight / 2,
         layout.center.z
       );
 
@@ -398,7 +551,7 @@ const GeometryGroup: React.FC<GeometryGroupProps> = ({
           hiddenLanguages,
         }) && visibleDueToEvo;
 
-      obj.scale.set(layout.width, getBuildingHeight(building), layout.depth);
+      obj.scale.set(layout.width, buildingHeight, layout.depth);
       obj.color = computeColor(building.id);
       obj.updateMatrix();
       i++;
@@ -407,130 +560,34 @@ const GeometryGroup: React.FC<GeometryGroupProps> = ({
 
     meshRef.current.userData.explorvizResolveBuildingId = (
       meshInstanceId: number
-    ) => instanceIdToBuildingId.get(meshInstanceId);
+    ) => instanceIdToBuildingIdRef.current.get(meshInstanceId);
   }, [
-    meshRef,
     buildingIds,
+    buildingFootprint,
+    buildingHeightMultiplier,
+    heightMetric,
+    metricMapping,
+    buildings,
+    enableAnimations,
+    animationDuration,
+    geometry,
     layoutMap,
     hiddenBuildingIds,
     removedDistrictIds,
     hiddenLanguages,
     evoConfig,
     isDiffMode,
-    getBuildingHeight,
-    computeColor,
-    instanceIdToBuildingId,
-    buildingIdToInstanceId,
-    buildings,
-  ]);
-
-  const animateMeshInstanceChanges = useCallback(() => {
-    if (meshRef === null || typeof meshRef === 'function' || !meshRef.current) {
-      return;
-    }
-    const mesh = meshRef.current;
-
-    buildingIdToInstanceId.forEach((instanceId, buildingId) => {
-      const tempMatrix = new Matrix4();
-      const pos = new Vector3();
-      const quat = new Quaternion();
-      const scale = new Vector3();
-
-      const building = useModelStore.getState().getBuilding(buildingId);
-      const layout = layoutMap.get(buildingId);
-      if (!building || !layout) return;
-
-      const targetHeight = getBuildingHeight(building);
-      const targetPositionX = layout.center.x;
-      const targetPositionY = layout.position.y + targetHeight / 2;
-      const targetPositionZ = layout.center.z;
-      const targetWidth = layout.width;
-      const targetDepth = layout.depth;
-
-      try {
-        mesh.getMatrixAt(instanceId, tempMatrix);
-      } catch {
-        return;
-      }
-      tempMatrix.decompose(pos, quat, scale);
-
-      if (
-        pos.x === targetPositionX &&
-        pos.y === targetPositionY &&
-        pos.z === targetPositionZ &&
-        scale.x === targetWidth &&
-        scale.y === targetHeight &&
-        scale.z === targetDepth
-      ) {
-        return;
-      }
-
-      const values = {
-        width: scale.x,
-        depth: scale.z,
-        height: scale.y,
-        positionX: pos.x,
-        positionY: pos.y,
-        positionZ: pos.z,
-      };
-
-      gsap.to(values, {
-        duration: animationDuration,
-        width: targetWidth,
-        height: targetHeight,
-        depth: targetDepth,
-        positionX: targetPositionX,
-        positionY: targetPositionY,
-        positionZ: targetPositionZ,
-        onUpdate: () => {
-          scale.x = values.width;
-          scale.y = values.height;
-          scale.z = values.depth;
-          pos.x = values.positionX;
-          pos.y = values.positionY;
-          pos.z = values.positionZ;
-          tempMatrix.compose(pos, quat, scale);
-          if (!meshRef || typeof meshRef === 'function') return;
-          mesh.setMatrixAt(instanceId, tempMatrix);
-        },
-      });
-    });
-  }, [
-    meshRef,
-    buildingIdToInstanceId,
-    layoutMap,
-    getBuildingHeight,
-    animationDuration,
-  ]);
-
-  // Compute mesh instances or animate changes
-  useEffect(() => {
-    if (meshRef === null || typeof meshRef === 'function' || !meshRef.current) {
-      return;
-    }
-
-    if (meshRef.current.geometry !== geometry) {
-      meshRef.current.geometry = geometry;
-    }
-
-    if (
-      buildingIdToInstanceId.size > 0 &&
-      buildingIds.length === buildingIdToInstanceId.size &&
-      buildingIds.every((id) => buildingIdToInstanceId.has(id)) &&
-      enableAnimations
-    ) {
-      animateMeshInstanceChanges();
-    } else {
-      computeMeshInstances();
-    }
-  }, [
-    meshRef,
-    buildingIds,
-    enableAnimations,
-    geometry,
-    animateMeshInstanceChanges,
-    computeMeshInstances,
-    buildingIdToInstanceId,
+    heatmapActive,
+    selectedBuildingMetric,
+    selectedValueMapping,
+    addedBuildingColor,
+    removedBuildingColor,
+    modifiedBuildingColor,
+    unchangedBuildingColor,
+    hoveredEntityId,
+    highlightedEntityIds,
+    visualizationSettings,
+    enableHoverEffects,
   ]);
 
   // React on changes of color
@@ -538,15 +595,25 @@ const GeometryGroup: React.FC<GeometryGroupProps> = ({
     if (meshRef === null || typeof meshRef === 'function' || !meshRef.current) {
       return;
     }
-    buildingIdToInstanceId.forEach((instanceId, buildingId) => {
+    buildingIdToInstanceIdRef.current.forEach((instanceId, buildingId) => {
       meshRef.current?.setColorAt(instanceId, computeColor(buildingId));
     });
   }, [
-    meshRef,
-    languageColorSettings,
     highlightedEntityColor,
-    buildingIdToInstanceId,
-    computeColor,
+    heatmapActive,
+    selectedBuildingMetric,
+    selectedValueMapping,
+    evoConfig.renderOnlyDifferences,
+    isDiffMode,
+    addedBuildingColor,
+    removedBuildingColor,
+    modifiedBuildingColor,
+    unchangedBuildingColor,
+    hoveredEntityId,
+    highlightedEntityIds,
+    visualizationSettings,
+    enableHoverEffects,
+    buildings,
   ]);
 
   // React on changes of building visibility
@@ -557,7 +624,7 @@ const GeometryGroup: React.FC<GeometryGroupProps> = ({
     if (!meshRef.current) return;
 
     // Update the visibility of the instances based
-    instanceIdToBuildingId.forEach((buildingId, instanceId) => {
+    instanceIdToBuildingIdRef.current.forEach((buildingId, instanceId) => {
       // Set visibility based on hidden buildings
       const building = useModelStore.getState().getBuilding(buildingId);
       meshRef.current?.setVisibilityAt(
@@ -571,13 +638,7 @@ const GeometryGroup: React.FC<GeometryGroupProps> = ({
         })
       );
     });
-  }, [
-    meshRef,
-    instanceIdToBuildingId,
-    hiddenBuildingIds,
-    removedDistrictIds,
-    hiddenLanguages,
-  ]);
+  }, [meshRef, hiddenBuildingIds, removedDistrictIds, hiddenLanguages]);
 
   const handleClick = (e: ThreeEvent<MouseEvent>) => {
     if (meshRef === null || typeof meshRef === 'function') {
@@ -588,7 +649,7 @@ const GeometryGroup: React.FC<GeometryGroupProps> = ({
     if (instanceId === undefined) return;
     e.stopPropagation();
 
-    const buildingId = instanceIdToBuildingId.get(instanceId);
+    const buildingId = instanceIdToBuildingIdRef.current.get(instanceId);
     if (!buildingId) return;
 
     const building = useModelStore.getState().getBuilding(buildingId);
@@ -611,7 +672,7 @@ const GeometryGroup: React.FC<GeometryGroupProps> = ({
     if (instanceId === undefined) return;
     e.stopPropagation();
 
-    const buildingId = instanceIdToBuildingId.get(instanceId);
+    const buildingId = instanceIdToBuildingIdRef.current.get(instanceId);
     if (!buildingId) return;
 
     setHoveredEntity(buildingId);
@@ -626,7 +687,7 @@ const GeometryGroup: React.FC<GeometryGroupProps> = ({
     if (instanceId === undefined) return;
     e.stopPropagation();
 
-    const buildingId = instanceIdToBuildingId.get(instanceId);
+    const buildingId = instanceIdToBuildingIdRef.current.get(instanceId);
     if (!buildingId) return;
     setHoveredEntity(null);
   };
@@ -640,7 +701,7 @@ const GeometryGroup: React.FC<GeometryGroupProps> = ({
     if (instanceId === undefined) return;
     e.stopPropagation();
 
-    const buildingId = instanceIdToBuildingId.get(instanceId);
+    const buildingId = instanceIdToBuildingIdRef.current.get(instanceId);
     if (!buildingId) return;
 
     const building = useModelStore.getState().getBuilding(buildingId);
@@ -714,7 +775,7 @@ const GeometryGroup: React.FC<GeometryGroupProps> = ({
     if (!meshRef.current) return;
     const { instanceId } = e;
     if (instanceId === undefined) return;
-    const buildingId = instanceIdToBuildingId.get(instanceId);
+    const buildingId = instanceIdToBuildingIdRef.current.get(instanceId);
     if (!buildingId) return;
     e.stopPropagation();
     emitContextMenuFromWorld({ kind: 'building', buildingId }, e.nativeEvent);
@@ -733,7 +794,7 @@ const GeometryGroup: React.FC<GeometryGroupProps> = ({
       layers={sceneLayers.Building}
       ref={meshRef}
       name={`Buildings-${geometryType}-${city.name}`}
-      args={[geometry, material.current]}
+      args={[geometry, buildingMaterial]}
       onClick={handleClickWithPrevent}
       onContextMenu={handleRightClickWithPrevent}
       {...(enableHoverEffects && {
@@ -769,33 +830,21 @@ const CodeBuildings: React.FC<CodeBuildingsArgs> = ({ buildingIds, city }) => {
     (state) => state.visualizationSettings
   );
 
-  const visibleBuildingIds = useMemo(() => {
-    return buildingIds.filter((id) => {
-      const building = getBuilding(id);
-      return isBuildingVisible({
-        buildingId: id,
-        building,
-        hiddenBuildingIds,
-        removedDistrictIds,
-        hiddenLanguages,
-      });
+  const visibleBuildingIds = buildingIds.filter((id) => {
+    const building = getBuilding(id);
+    return isBuildingVisible({
+      buildingId: id,
+      building,
+      hiddenBuildingIds,
+      removedDistrictIds,
+      hiddenLanguages,
     });
-  }, [
-    buildingIds,
-    getBuilding,
-    hiddenBuildingIds,
-    removedDistrictIds,
-    hiddenLanguages,
-  ]);
+  });
 
-  const buildingsByGeometry = useMemo(
-    () =>
-      groupBuildingsByGeometry(
-        visibleBuildingIds,
-        getBuilding,
-        visualizationSettings
-      ),
-    [visibleBuildingIds, getBuilding, visualizationSettings]
+  const buildingsByGeometry = groupBuildingsByGeometry(
+    visibleBuildingIds,
+    getBuilding,
+    visualizationSettings
   );
 
   if (buildingIds.length === 0) {

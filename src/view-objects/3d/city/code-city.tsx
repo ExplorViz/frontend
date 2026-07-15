@@ -18,6 +18,9 @@ import { useShallow } from 'zustand/react/shallow';
 
 export default function CodeCity({ cityId }: { cityId: string }) {
   const city = useModelStore((state) => state.getCity(cityId))!;
+  const buildingLayouts = useLayoutStore((state) => state.buildingLayouts);
+  const districtLayouts = useLayoutStore((state) => state.districtLayouts);
+  const cityLayout = useLayoutStore((state) => state.cityLayouts.get(cityId));
 
   const { animationDuration, enableAnimations, showEmbeddedBrowserIcon } =
     useUserSettingsStore(
@@ -28,8 +31,6 @@ export default function CodeCity({ cityId }: { cityId: string }) {
           state.visualizationSettings.showEmbeddedBrowserIcon.value,
       }))
     );
-
-  const cityLayout = useLayoutStore.getState().getLayout(city.id);
 
   const [cityPosition, setCityPosition] = useState<THREE.Vector3 | undefined>(
     cityLayout?.position
@@ -92,7 +93,7 @@ export default function CodeCity({ cityId }: { cityId: string }) {
       {cityLayout && <CityFoundation city={city} layout={cityLayout} />}
       <CodeBuildings
         buildingIds={city.allContainedBuildingIds.filter((id) =>
-          useLayoutStore.getState().getBuildingLayouts().has(id)
+          buildingLayouts.has(id)
         )}
         city={city}
       />
@@ -104,9 +105,9 @@ export default function CodeCity({ cityId }: { cityId: string }) {
       ))}
       <CityDistricts
         districtIds={city.allContainedDistrictIds.filter((id) =>
-          useLayoutStore.getState().districtLayouts.has(id)
+          districtLayouts.has(id)
         )}
-        layoutMap={useLayoutStore.getState().districtLayouts}
+        layoutMap={districtLayouts}
         ref={componentInstanceMeshRef}
         city={city}
       />

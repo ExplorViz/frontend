@@ -1,59 +1,12 @@
+import { metricKeys } from 'explorviz-frontend/src/utils/settings/building-metrics';
 import { defaultColors } from 'explorviz-frontend/src/utils/settings/color-schemes';
 import {
   BuildingMetricMapping,
-  SELECTED_BUILDING_METRIC_OPTIONS,
   SelectedBuildingMetric,
   SettingLevel,
   VisualizationSettings,
 } from 'explorviz-frontend/src/utils/settings/settings-schemas';
 
-export const metricMappingMultipliers = {
-  [BuildingMetricMapping.Linear]: {
-    [SelectedBuildingMetric.None]: 1,
-    [SelectedBuildingMetric.size]: 0.001,
-    [SelectedBuildingMetric.lineCount]: 1,
-    [SelectedBuildingMetric.sloc]: 1,
-    [SelectedBuildingMetric.cloc]: 1,
-    [SelectedBuildingMetric.importCount]: 10,
-    [SelectedBuildingMetric.classCount]: 10,
-    [SelectedBuildingMetric.functionCount]: 10,
-    [SelectedBuildingMetric.variableCount]: 10,
-  },
-  [BuildingMetricMapping.Logarithmic]: {
-    [SelectedBuildingMetric.None]: 1,
-    [SelectedBuildingMetric.size]: 10,
-    [SelectedBuildingMetric.lineCount]: 20,
-    [SelectedBuildingMetric.sloc]: 20,
-    [SelectedBuildingMetric.cloc]: 20,
-    [SelectedBuildingMetric.importCount]: 20,
-    [SelectedBuildingMetric.classCount]: 20,
-    [SelectedBuildingMetric.functionCount]: 25,
-    [SelectedBuildingMetric.variableCount]: 20,
-  },
-} as const;
-
-export function applyMetricMapping(
-  value: number,
-  mapping: BuildingMetricMapping
-): number {
-  const numericValue = Number(value);
-  const safeValue = Number.isFinite(numericValue)
-    ? Math.max(0, numericValue)
-    : 0;
-  if (mapping === BuildingMetricMapping.Logarithmic) {
-    return Math.log1p(safeValue);
-  }
-  return safeValue;
-}
-
-export type MetricKey = SelectedBuildingMetric;
-export function getMetricMappingMultiplier(
-  metric: MetricKey,
-  mapping: BuildingMetricMapping
-): number {
-  return metricMappingMultipliers[mapping][metric];
-}
-export const metricKeys = SELECTED_BUILDING_METRIC_OPTIONS;
 export const MOUSE_ACTIONS = [
   'NONE',
   'ROTATE',

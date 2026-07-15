@@ -14,9 +14,11 @@ import {
 } from 'explorviz-frontend/src/utils/layout/spiral-layouter';
 import {
   applyMetricMapping,
+  getCachedBuildingMetricBounds,
   getMetricMappingMultiplier,
+  MetricBounds,
   MetricKey,
-} from 'explorviz-frontend/src/utils/settings/default-settings';
+} from 'explorviz-frontend/src/utils/settings/building-metrics';
 import {
   BuildingMetricMapping,
   SelectedBuildingMetric,
@@ -39,8 +41,10 @@ let ASPECT_RATIO: number;
 let BUILDING_FOOTPRINT: number;
 let WIDTH_METRIC: SelectedBuildingMetric;
 let WIDTH_METRIC_MULTIPLIER: number;
+let WIDTH_METRIC_BOUNDS: MetricBounds;
 let DEPTH_METRIC: SelectedBuildingMetric;
 let DEPTH_METRIC_MULTIPLIER: number;
+let DEPTH_METRIC_BOUNDS: MetricBounds;
 let METRIC_MAPPING: BuildingMetricMapping;
 let BUILDING_MARGIN: number;
 let CITY_LABEL_MARGIN: number;
@@ -93,6 +97,15 @@ export default async function layoutLandscape(
   const elk = new ELK();
 
   setVisualizationSettings();
+
+  WIDTH_METRIC_BOUNDS = getCachedBuildingMetricBounds(
+    landscape.buildings,
+    WIDTH_METRIC
+  );
+  DEPTH_METRIC_BOUNDS = getCachedBuildingMetricBounds(
+    landscape.buildings,
+    DEPTH_METRIC
+  );
 
   const useCircleLayout = BUILDING_ALGORITHM === 'circle';
   const useSpiralLayout = BUILDING_ALGORITHM === 'spiral';
@@ -324,7 +337,12 @@ function populateDistrict(
     };
     districtGraphChildren.push(packageNode);
 
-    populateDistrict(packageNode.children, landscape, district, removedDistrictIds);
+    populateDistrict(
+      packageNode.children,
+      landscape,
+      district,
+      removedDistrictIds
+    );
   });
 }
 
@@ -365,12 +383,20 @@ function createBuildingNode(building: Building) {
   const widthByMetric =
     WIDTH_METRIC_MULTIPLIER *
     getMetricMappingMultiplier(WIDTH_METRIC as MetricKey, METRIC_MAPPING) *
-    applyMetricMapping(getMetricValue(building, WIDTH_METRIC), METRIC_MAPPING);
+    applyMetricMapping(
+      getMetricValue(building, WIDTH_METRIC),
+      METRIC_MAPPING,
+      WIDTH_METRIC_BOUNDS
+    );
 
   const depthByMetric =
     DEPTH_METRIC_MULTIPLIER *
     getMetricMappingMultiplier(DEPTH_METRIC as MetricKey, METRIC_MAPPING) *
-    applyMetricMapping(getMetricValue(building, DEPTH_METRIC), METRIC_MAPPING);
+    applyMetricMapping(
+      getMetricValue(building, DEPTH_METRIC),
+      METRIC_MAPPING,
+      DEPTH_METRIC_BOUNDS
+    );
 
   return {
     id: BUILDING_PREFIX + building.id,
