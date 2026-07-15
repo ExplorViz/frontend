@@ -1,30 +1,23 @@
-import {
-  forwardRef,
-  Ref,
-  useEffect,
-  useImperativeHandle,
-  useRef,
-  useState,
-} from 'react';
+import { forwardRef, Ref, useEffect, useImperativeHandle, useRef } from 'react';
 
 import { EntityFilteringController } from 'explorviz-frontend/src/components/chatbot/chatbot-context';
+import FqnFiltering from 'explorviz-frontend/src/components/visualization/page-setup/sidebar/toolbar/entity-filtering/fqn-filtering/fqn-filtering';
 import LanguageFiltering from 'explorviz-frontend/src/components/visualization/page-setup/sidebar/toolbar/entity-filtering/language-filtering/language-filtering';
 import StructureFiltering from 'explorviz-frontend/src/components/visualization/page-setup/sidebar/toolbar/entity-filtering/structure-filtering/structure-filtering';
-import { useRenderingServiceStore } from 'explorviz-frontend/src/stores/rendering-service';
 import {
-  NEW_SELECTED_TIMESTAMP_EVENT,
-  useTimestampStore,
-} from 'explorviz-frontend/src/stores/timestamp';
+  EntityFilterMode,
+  useEntityFilteringStore,
+} from 'explorviz-frontend/src/stores/entity-filtering-store';
+import { NEW_SELECTED_TIMESTAMP_EVENT } from 'explorviz-frontend/src/stores/timestamp';
 import eventEmitter from 'explorviz-frontend/src/utils/event-emitter';
 import { LandscapeData } from 'explorviz-frontend/src/utils/landscape-schemes/landscape-data';
 import Button from 'react-bootstrap/Button';
+import { useShallow } from 'zustand/react/shallow';
 import { StructureFilteringHandle } from './structure-filtering/structure-filtering';
 
 interface EntityFilteringProps {
   readonly landscapeData: LandscapeData;
 }
-
-type FilterMode = 'Hide' | 'Remove';
 
 const EntityFiltering = forwardRef<
   EntityFilteringController,
@@ -33,52 +26,49 @@ const EntityFiltering = forwardRef<
   { landscapeData }: EntityFilteringProps,
   ref: Ref<EntityFilteringController>
 ) {
-  const timestamp = useTimestampStore((state) => state.timestamp);
-  const updateSelectedTimestamp = useTimestampStore(
-    (state) => state.updateSelectedTimestamp
-  );
-
-  const triggerRenderingForGivenLandscapeData = useRenderingServiceStore(
-    (state) => state.triggerRenderingForGivenLandscapeData
-  );
-
   const initialLandscapeData = useRef<LandscapeData>(landscapeData);
   const structureFilteringRef = useRef<StructureFilteringHandle>(null);
-  const [filterMode, setFilterMode] = useState<FilterMode>('Remove');
+
+  const {
+    filterMode,
+    inclusionExpressions,
+    exclusionExpressions,
+    setFilterMode,
+    setInclusionExpressions,
+    setExclusionExpressions,
+    setMinMethodCount,
+    resetFilters,
+  } = useEntityFilteringStore(
+    useShallow((state) => ({
+      filterMode: state.filterMode,
+      inclusionExpressions: state.inclusionExpressions,
+      exclusionExpressions: state.exclusionExpressions,
+      setFilterMode: state.actions.setFilterMode,
+      setInclusionExpressions: state.actions.setInclusionExpressions,
+      setExclusionExpressions: state.actions.setExclusionExpressions,
+      setMinMethodCount: state.actions.setMinMethodCount,
+      resetFilters: state.actions.resetFilters,
+    }))
+  );
 
   useImperativeHandle(ref, () => ({
     applyFilters: ({ minClassMethodCount }) => {
       if (minClassMethodCount !== undefined) {
-        structureFilteringRef.current?.setMinMethodCount(minClassMethodCount);
+        setMinMethodCount(minClassMethodCount);
       }
     },
     reset: () => {
-      structureFilteringRef.current?.reset();
+      resetFilters();
     },
   }));
 
-  const resetToInit = () => {
-    triggerRenderingForGivenLandscapeData(
-      initialLandscapeData.current!.flatLandscapeData,
-      initialLandscapeData.current!.dynamicLandscapeData,
-      initialLandscapeData.current!.aggregatedFileCommunication
-    );
-    updateSelectedTimestamp(timestamp);
-  };
-
   const resetState = () => {
-    // Reset state, since new timestamp has been loaded
     initialLandscapeData.current = landscapeData;
   };
 
   useEffect(() => {
     eventEmitter.on(NEW_SELECTED_TIMESTAMP_EVENT, resetState);
     return () => {
-      triggerRenderingForGivenLandscapeData(
-        initialLandscapeData.current!.flatLandscapeData,
-        initialLandscapeData.current!.dynamicLandscapeData,
-        initialLandscapeData.current!.aggregatedFileCommunication
-      );
       eventEmitter.off(NEW_SELECTED_TIMESTAMP_EVENT, resetState);
     };
   }, []);
@@ -98,7 +88,7 @@ const EntityFiltering = forwardRef<
             className="form-select mt-1"
             value={filterMode}
             onChange={(event) =>
-              setFilterMode(event.target.value as FilterMode)
+              setFilterMode(event.target.value as EntityFilterMode)
             }
           >
             <option value="Hide">Hide</option>
@@ -114,17 +104,26 @@ const EntityFiltering = forwardRef<
 
       <hr className="dropdown-divider mb-3" />
       <h6 className="text-center mt-2">
+        <u>FQN Filtering</u>
+      </h6>
+      <FqnFiltering
+        inclusionExpressions={inclusionExpressions}
+        exclusionExpressions={exclusionExpressions}
+        onInclusionChange={setInclusionExpressions}
+        onExclusionChange={setExclusionExpressions}
+      />
+
+      <hr className="dropdown-divider mb-3" />
+      <h6 className="text-center mt-2">
         <u>Structure Filtering</u>
       </h6>
       <StructureFiltering
         ref={structureFilteringRef}
-        landscapeData={landscapeData}
         flatLandscapeData={landscapeData.flatLandscapeData}
-        filterMode={filterMode}
       />
       <div className="mt-4 mb-2 col text-center">
-        <Button variant="outline-secondary" onClick={resetToInit}>
-          Reset Filtering
+        <Button variant="outline-secondary" onClick={() => resetFilters()}>
+          Reset All Filters
         </Button>
       </div>
     </>

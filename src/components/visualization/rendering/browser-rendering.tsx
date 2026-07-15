@@ -50,6 +50,7 @@ import Snapshot from '../page-setup/sidebar/customizationbar/snapshot/snapshot';
 import SidebarComponent from '../page-setup/sidebar/sidebar-component';
 import { CodeAnalysisSection } from '../page-setup/sidebar/toolbar/code-analysis-trigger/code-analysis-section';
 import EntityFiltering from '../page-setup/sidebar/toolbar/entity-filtering/entity-filtering';
+import EntityFilteringApplier from '../page-setup/sidebar/toolbar/entity-filtering/entity-filtering-applier';
 import ToolSelection from '../page-setup/sidebar/toolbar/tool-selection';
 import TraceSelectionAndReplayer from '../page-setup/sidebar/toolbar/trace-replayer/trace-selection-and-replayer';
 import AnnotationCoordinator from './annotations/annotation-coordinator';
@@ -319,6 +320,10 @@ export default function BrowserRendering({
             </ContextMenu>
 
             {landscapeData && <Popups landscapeData={landscapeData} />}
+
+            {landscapeData && (
+              <EntityFilteringApplier landscapeData={landscapeData} />
+            )}
 
             {annotationHandlerState.annotationData.map((data) => (
               <AnnotationCoordinator
