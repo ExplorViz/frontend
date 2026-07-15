@@ -19,7 +19,11 @@ function isBlank(value: string) {
 }
 
 function formatCommitSearchLabel(result: CommitSearchResult): string {
-  const details = [result.branchName, result.commitDate].filter(Boolean);
+  const details = [
+    result.branchName,
+    result.commitDate,
+    result.tags?.length ? result.tags.join(', ') : undefined,
+  ].filter(Boolean);
   return details.length > 0
     ? `${result.commitId} (${details.join(' · ')})`
     : result.commitId;
@@ -98,11 +102,9 @@ export default function CommitChartSearch({
           }}
           onMenuClose={() => setMenuOpen(false)}
           menuIsOpen={menuOpen && searchResults.length > 0}
-          placeholder="Search by commit hash..."
+          placeholder="Search by commit hash or tag..."
           noOptionsMessage={() =>
-            isBlank(searchString)
-              ? 'Type a commit hash'
-              : 'No matching commits'
+            isBlank(searchString) ? 'Type a commit hash or tag' : 'No matches'
           }
           isClearable={false}
           controlShouldRenderValue={false}
