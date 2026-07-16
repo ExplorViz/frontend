@@ -1,5 +1,6 @@
 import { useImperativeHandle, useMemo, useState } from 'react';
 
+import { useCameraControlsStore } from 'explorviz-frontend/src/stores/camera-controls-store';
 import { highlightById } from 'explorviz-frontend/src/utils/city-rendering/highlighting';
 import getPossibleEntityNames from 'explorviz-frontend/src/utils/search-logic';
 import { pingByModelId } from 'explorviz-frontend/src/view-objects/3d/city/animated-ping-r3f';
@@ -9,6 +10,11 @@ import Select, { MultiValue, MultiValueGenericProps } from 'react-select';
 interface EntitySearchEntry {
   modelId: string;
   fqn: string;
+}
+
+function focusEntity(modelId: string) {
+  pingByModelId(modelId);
+  useCameraControlsStore.getState().lookAtEntity(modelId);
 }
 
 const EntitySearch = function EntitySearch({ ref, ..._ }) {
@@ -32,20 +38,14 @@ const EntitySearch = function EntitySearch({ ref, ..._ }) {
     );
   };
 
-  const onChange = (
-    newSelectedOptions: MultiValue<EntitySearchEntry>
-  ) => {
+  const onChange = (newSelectedOptions: MultiValue<EntitySearchEntry>) => {
     const newlySelectedItems = newSelectedOptions.filter(
       (newItem: EntitySearchEntry) =>
-        !selected.some(
-          (existingItem) =>
-            existingItem.fqn === newItem.fqn
-        )
+        !selected.some((existingItem) => existingItem.fqn === newItem.fqn)
     );
 
-    // Ping all newly selected items
     newlySelectedItems.forEach((item: EntitySearchEntry) => {
-      pingByModelId(item.modelId);
+      focusEntity(item.modelId);
     });
 
     setSelected(Array.from(newSelectedOptions));
@@ -71,16 +71,13 @@ const EntitySearch = function EntitySearch({ ref, ..._ }) {
   const optionLookup = useMemo(
     () =>
       new Map(
-        entityNames.map((entry: EntitySearchEntry) => [
-          entry.modelId,
-          entry,
-        ])
+        entityNames.map((entry: EntitySearchEntry) => [entry.modelId, entry])
       ),
     [entityNames]
   );
 
   useImperativeHandle(ref, () => ({
-    search: ({ query, selectAll }: {query: string, selectAll: boolean}) => {
+    search: ({ query, selectAll }: { query: string; selectAll: boolean }) => {
       setSearchString(query);
       const names = isBlank(query) ? [] : getPossibleEntityNames(query);
       setEntityNames(names);
@@ -107,8 +104,7 @@ const EntitySearch = function EntitySearch({ ref, ..._ }) {
       const newlySelectedItems = matches.filter(
         (item) =>
           !selected.some(
-            (existingItem: EntitySearchEntry) =>
-              existingItem.fqn === item.fqn
+            (existingItem: EntitySearchEntry) => existingItem.fqn === item.fqn
           )
       );
       newlySelectedItems.forEach((item) => pingByModelId(item.modelId));
@@ -168,7 +164,7 @@ function CustomMultiValueLabel(
 ) {
   const { data, innerProps } = props;
   const onClick = () => {
-    pingByModelId(data.modelId);
+    focusEntity(data.modelId);
   };
 
   return (
