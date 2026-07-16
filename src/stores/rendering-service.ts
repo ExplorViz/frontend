@@ -207,6 +207,19 @@ export const useRenderingServiceStore = create<RenderingServiceState>(
     _applyEvolutionLayoutFilter: (
       flatLandscape: FlatLandscape
     ): FlatLandscape => {
+      const repositoryName = useCommitTreeStateStore
+        .getState()
+        .getCurrentSelectedRepositoryName();
+      const selectedCommits = useCommitTreeStateStore
+        .getState()
+        .getSelectedCommits();
+      const isDiffMode =
+        (selectedCommits.get(repositoryName)?.length || 0) === 2;
+
+      if (!isDiffMode) {
+        return flatLandscape;
+      }
+
       const { buildingComparisonVisibility } = useVisibilityServiceStore
         .getState()
         .getCloneOfEvolutionModeRenderingConfiguration();
