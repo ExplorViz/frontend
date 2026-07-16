@@ -143,14 +143,9 @@ export default class TimelineDataObjectHandler {
       selectedCommits,
       commitToSelectedTimestampMap
     );
-    const hasTwoCommitsInAnyRepository = Array.from(
-      selectedCommits.values()
-    ).some((commits) => commits.length >= 2);
     const mergedConfig = {
       ...autoConfig,
-      removeUnchangedFromLayout: hasTwoCommitsInAnyRepository
-        ? previousConfig.removeUnchangedFromLayout
-        : false,
+      buildingComparisonVisibility: previousConfig.buildingComparisonVisibility,
     };
     useVisibilityServiceStore
       .getState()

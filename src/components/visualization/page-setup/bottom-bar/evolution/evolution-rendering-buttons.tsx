@@ -1,13 +1,14 @@
+import BuildingComparisonFilterDropdown from 'explorviz-frontend/src/components/visualization/page-setup/bottom-bar/evolution/building-comparison-filter-dropdown';
 import { useCommitTreeStateStore } from 'explorviz-frontend/src/stores/commit-tree-state';
 import { useRenderingServiceStore } from 'explorviz-frontend/src/stores/rendering-service';
 import { useVisibilityServiceStore } from 'explorviz-frontend/src/stores/visibility-service';
+import { BuildingComparisonVisibility } from 'explorviz-frontend/src/utils/city-rendering/building-comparison-visibility';
 import {
   branchHasAnalyzedCommits,
   buildNewestCommitSelectionMap,
 } from 'explorviz-frontend/src/utils/evolution-data-helpers';
 import { RepoNameCommitTreeMap } from 'explorviz-frontend/src/utils/evolution-schemes/evolution-data';
 import Button from 'react-bootstrap/Button';
-import Form from 'react-bootstrap/Form';
 import { useShallow } from 'zustand/react/shallow';
 
 export default function EvolutionRenderingButtons({
@@ -33,15 +34,17 @@ export default function EvolutionRenderingButtons({
     }))
   );
 
-  const { removeUnchangedFromLayout, applyEvolutionModeRenderingConfiguration } =
-    useVisibilityServiceStore(
-      useShallow((state) => ({
-        removeUnchangedFromLayout:
-          state._evolutionModeRenderingConfiguration.removeUnchangedFromLayout,
-        applyEvolutionModeRenderingConfiguration:
-          state.applyEvolutionModeRenderingConfiguration,
-      }))
-    );
+  const {
+    buildingComparisonVisibility,
+    applyEvolutionModeRenderingConfiguration,
+  } = useVisibilityServiceStore(
+    useShallow((state) => ({
+      buildingComparisonVisibility:
+        state._evolutionModeRenderingConfiguration.buildingComparisonVisibility,
+      applyEvolutionModeRenderingConfiguration:
+        state.applyEvolutionModeRenderingConfiguration,
+    }))
+  );
 
   const hasSelectableCommits = Array.from(repoNameCommitTreeMap.values()).some(
     (tree) => tree.branches.some((branch) => branchHasAnalyzedCommits(branch))
@@ -66,39 +69,38 @@ export default function EvolutionRenderingButtons({
     renderingService.triggerRenderingForSelectedCommits();
   };
 
-  const setRemoveUnchangedFromLayout = (enabled: boolean) => {
+  const setBuildingComparisonVisibility = (
+    visibility: BuildingComparisonVisibility
+  ) => {
     const currentConfig = useVisibilityServiceStore
       .getState()
       .getCloneOfEvolutionModeRenderingConfiguration();
 
-    if (currentConfig.removeUnchangedFromLayout === enabled) {
+    const hasChanged = (
+      Object.keys(visibility) as (keyof BuildingComparisonVisibility)[]
+    ).some(
+      (key) =>
+        currentConfig.buildingComparisonVisibility[key] !== visibility[key]
+    );
+
+    if (!hasChanged) {
       return;
     }
 
     applyEvolutionModeRenderingConfiguration({
       ...currentConfig,
-      removeUnchangedFromLayout: enabled,
+      buildingComparisonVisibility: visibility,
     });
     renderingService.rerenderEvolutionLandscapeWithCurrentFilter();
   };
 
   return (
     <div className="commit-tree-evolution-actions">
-      {isDiffMode && (
-        <div className="commit-tree-changed-buildings-toggle">
-          <Form.Check
-            type="switch"
-            id="commit-tree-only-changed-buildings"
-            className="commit-tree-changed-buildings-switch"
-            label="Only changed buildings"
-            checked={removeUnchangedFromLayout}
-            onChange={(event) =>
-              setRemoveUnchangedFromLayout(event.target.checked)
-            }
-            title="Remove unchanged buildings from the layout and show only added, modified, and deleted buildings"
-          />
-        </div>
-      )}
+      <BuildingComparisonFilterDropdown
+        visibility={buildingComparisonVisibility}
+        disabled={!isDiffMode}
+        onVisibilityChange={setBuildingComparisonVisibility}
+      />
       <Button
         type="button"
         variant="outline-secondary"

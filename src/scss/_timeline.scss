@@ -273,28 +273,60 @@
   }
 }
 
-.commit-tree-changed-buildings-toggle {
+.commit-tree-building-filter-dropdown {
+  position: relative;
   display: inline-flex;
   align-items: center;
+}
+
+.commit-tree-building-filter-toggle {
+  white-space: nowrap;
   height: 32px;
   min-height: 32px;
   padding: 0 0.75rem;
-  border: 1px solid var(--bs-border-color, #adb5bd);
-  border-radius: var(--ev-radius-md);
-  background-color: var(--bs-tertiary-bg, var(--bs-body-bg, #f8f9fa));
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  &--active:not(:disabled) {
+    border-color: var(--bs-success, #198754);
+    color: var(--bs-success, #198754);
+    background-color: rgba(var(--bs-success-rgb, 25, 135, 84), 0.08);
+
+    &:hover,
+    &:focus,
+    &:active {
+      border-color: var(--bs-success, #198754);
+      color: var(--bs-success, #198754);
+      background-color: rgba(var(--bs-success-rgb, 25, 135, 84), 0.12);
+    }
+  }
 }
 
-.commit-tree-changed-buildings-switch.form-check.form-switch {
-  display: inline-flex;
+.commit-tree-building-filter-menu {
+  min-width: 11rem;
+  padding: 0.375rem 0;
+
+  &.show {
+    display: block;
+    position: absolute;
+    top: calc(100% + 0.25rem);
+    right: 0;
+    left: auto;
+    z-index: 600;
+  }
+}
+
+.commit-tree-building-filter-option.form-check {
+  display: flex;
   align-items: center;
   gap: 0.5rem;
   margin-bottom: 0;
   min-height: unset;
-  padding-left: 0;
+  padding: 0.375rem 0.75rem;
+  cursor: pointer;
 
   .form-check-input {
-    width: 2em;
-    height: 1em;
     margin-top: 0;
     margin-left: 0;
     float: none;
