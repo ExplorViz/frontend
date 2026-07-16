@@ -14,7 +14,7 @@ function globToRegExp(pattern: string, separator = '/'): RegExp {
     if (char === '*' && pattern[i + 1] === '*') {
       const rest = pattern.slice(i + 2);
       if (rest.startsWith(separator)) {
-        regex += `(${sep}.*)?`;
+        regex += `(?:[^${sep}]+${sep})*`;
         i += 2 + separator.length;
       } else if (rest.length === 0) {
         regex += '.*';
