@@ -18,6 +18,7 @@ export const metricMappingMultipliers = {
     [SelectedBuildingMetric.classCount]: 10,
     [SelectedBuildingMetric.functionCount]: 10,
     [SelectedBuildingMetric.variableCount]: 10,
+    [SelectedBuildingMetric.commitActivity]: 10,
   },
   [BuildingMetricMapping.Logarithmic]: {
     [SelectedBuildingMetric.None]: 1,
@@ -29,6 +30,7 @@ export const metricMappingMultipliers = {
     [SelectedBuildingMetric.classCount]: 20,
     [SelectedBuildingMetric.functionCount]: 25,
     [SelectedBuildingMetric.variableCount]: 20,
+    [SelectedBuildingMetric.commitActivity]: 20,
   },
 } as const;
 

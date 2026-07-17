@@ -23,6 +23,7 @@ import { StructureLandscapeData } from 'explorviz-frontend/src/utils/landscape-s
 import { Timestamp } from 'explorviz-frontend/src/utils/landscape-schemes/timestamp';
 import { createEmptyStructureLandscapeData } from 'explorviz-frontend/src/utils/landscape-structure-helpers';
 import TimelineDataObjectHandler from 'explorviz-frontend/src/utils/timeline/timeline-data-object-handler';
+import { useSocialMetricsStore } from 'explorviz-frontend/src/stores/social-metrics';
 import { create } from 'zustand';
 
 export type AnalysisMode =
@@ -58,6 +59,7 @@ interface RenderingServiceState {
   ) => void;
   triggerRenderingForSelectedCommits: () => Promise<void>;
   rerenderEvolutionLandscapeWithCurrentFilter: () => void;
+  refreshCurrentEvolutionLandscape: () => void;
   _applyEvolutionLayoutFilter: (flatLandscape: FlatLandscape) => FlatLandscape;
   _mapTimestampsToEpochs: (
     commitToSelectedTimestampMap: Map<string, Timestamp[]>
@@ -217,6 +219,13 @@ export const useRenderingServiceStore = create<RenderingServiceState>(
 
     rerenderEvolutionLandscapeWithCurrentFilter: (): void => {
       if (get()._analysisMode !== 'evolution comparison') {
+        return;
+      }
+      get().refreshCurrentEvolutionLandscape();
+    },
+
+    refreshCurrentEvolutionLandscape: (): void => {
+      if (get()._analysisMode === 'runtime') {
         return;
       }
 
@@ -517,6 +526,12 @@ export const useRenderingServiceStore = create<RenderingServiceState>(
           combinedDynamicLandscapeData,
           { metrics: {}, communications: [] } // Default for evolution mode for now
         );
+        void useSocialMetricsStore
+          .getState()
+          .initializeForSelection(
+            repositoryName,
+            repoNameToSelectedCommits.get(repositoryName) ?? []
+          );
       }
 
       useTimestampRepositoryStore
@@ -603,6 +618,7 @@ export const useRenderingServiceStore = create<RenderingServiceState>(
     },
 
     resetAllRenderingStates: () => {
+      useSocialMetricsStore.getState().reset();
       set({
         _userInitiatedStaticDynamicCombination: false,
         _landscapeData: null,

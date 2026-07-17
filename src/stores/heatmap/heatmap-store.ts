@@ -13,7 +13,8 @@ function getMinMaxMetricValues(metricName: BuildingMetricIds): {
 
   return buildingsArray.reduce(
     (acc, b) => {
-      const val = b.metrics?.[metricName]?.current || (b as any)[metricName] || 0;
+      const val =
+        b.metrics?.[metricName]?.current || (b as any)[metricName] || 0;
       return {
         min: Math.min(acc.min, val),
         max: Math.max(acc.max, val),
@@ -33,6 +34,7 @@ export enum SelectedBuildingHeatmapMetric {
   classCount = 'classCount',
   functionCount = 'functionCount',
   variableCount = 'variableCount',
+  commitActivity = 'commitActivity',
 }
 
 export enum BuildingMetricIds {
@@ -45,6 +47,7 @@ export enum BuildingMetricIds {
   classCount = 'classCount',
   functionCount = 'functionCount',
   variableCount = 'variableCount',
+  commitActivity = 'commitActivity',
 }
 
 export const ORDERED_BUILDING_METRIC_IDS: BuildingMetricIds[] = [
@@ -57,6 +60,7 @@ export const ORDERED_BUILDING_METRIC_IDS: BuildingMetricIds[] = [
   BuildingMetricIds.classCount,
   BuildingMetricIds.functionCount,
   BuildingMetricIds.variableCount,
+  BuildingMetricIds.commitActivity,
 ];
 
 const NO_SELECTED_METRIC: BuildingMetric = {
@@ -148,7 +152,8 @@ export const useHeatmapStore = create<HeatmapConfigurationState>(
         case BuildingMetricIds.importCount:
         case BuildingMetricIds.classCount:
         case BuildingMetricIds.functionCount:
-        case BuildingMetricIds.variableCount: {
+        case BuildingMetricIds.variableCount:
+        case BuildingMetricIds.commitActivity: {
           const { min, max } = getMinMaxMetricValues(metricName);
           set({
             selectedBuildingMetric: {

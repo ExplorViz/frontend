@@ -386,6 +386,7 @@ export enum BuildingMetrics {
   classCount = 'classCount',
   functionCount = 'functionCount',
   variableCount = 'variableCount',
+  commitActivity = 'commitActivity',
 }
 
 export const BUILDING_METRIC_NAMES = Object.values(BuildingMetrics);
@@ -400,6 +401,7 @@ export enum SelectedBuildingMetric {
   classCount = 'classCount',
   functionCount = 'functionCount',
   variableCount = 'variableCount',
+  commitActivity = 'commitActivity',
 }
 
 export const SELECTED_BUILDING_METRIC_OPTIONS: SelectedBuildingMetric[] = [
@@ -412,6 +414,7 @@ export const SELECTED_BUILDING_METRIC_OPTIONS: SelectedBuildingMetric[] = [
   SelectedBuildingMetric.classCount,
   SelectedBuildingMetric.functionCount,
   SelectedBuildingMetric.variableCount,
+  SelectedBuildingMetric.commitActivity,
 ];
 
 export function sortBuildingMetricNames(names: Iterable<string>): string[] {
