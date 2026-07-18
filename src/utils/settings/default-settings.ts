@@ -19,6 +19,12 @@ export const metricMappingMultipliers = {
     [SelectedBuildingMetric.functionCount]: 10,
     [SelectedBuildingMetric.variableCount]: 10,
     [SelectedBuildingMetric.commitActivity]: 10,
+    [SelectedBuildingMetric.coreContributorActivity]: 10,
+    [SelectedBuildingMetric.knowledgeSilo]: 10,
+    [SelectedBuildingMetric.bugDensity]: 10,
+    [SelectedBuildingMetric.reviewFriction]: 10,
+    [SelectedBuildingMetric.knowledgeStaleness]: 10,
+    [SelectedBuildingMetric.abandonedKnowledgeSilo]: 10,
   },
   [BuildingMetricMapping.Logarithmic]: {
     [SelectedBuildingMetric.None]: 1,
@@ -31,6 +37,12 @@ export const metricMappingMultipliers = {
     [SelectedBuildingMetric.functionCount]: 25,
     [SelectedBuildingMetric.variableCount]: 20,
     [SelectedBuildingMetric.commitActivity]: 20,
+    [SelectedBuildingMetric.coreContributorActivity]: 20,
+    [SelectedBuildingMetric.knowledgeSilo]: 10,
+    [SelectedBuildingMetric.bugDensity]: 10,
+    [SelectedBuildingMetric.reviewFriction]: 10,
+    [SelectedBuildingMetric.knowledgeStaleness]: 10,
+    [SelectedBuildingMetric.abandonedKnowledgeSilo]: 10,
   },
 } as const;
 

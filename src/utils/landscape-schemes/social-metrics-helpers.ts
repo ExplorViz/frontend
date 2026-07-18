@@ -7,7 +7,12 @@ import {
 
 export const SOCIAL_METRICS: ReadonlySet<string> = new Set([
   'commitActivity',
-  // todo
+  'coreContributorActivity',
+  'knowledgeSilo',
+  'bugDensity',
+  'reviewFriction',
+  'knowledgeStaleness',
+  'abandonedKnowledgeSilo',
 ]);
 
 function buildDtoIndexes(dtos: SocialMetricDto[]) {

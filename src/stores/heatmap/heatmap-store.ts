@@ -35,6 +35,12 @@ export enum SelectedBuildingHeatmapMetric {
   functionCount = 'functionCount',
   variableCount = 'variableCount',
   commitActivity = 'commitActivity',
+  coreContributorActivity = 'coreContributorActivity',
+  knowledgeSilo = 'knowledgeSilo',
+  bugDensity = 'bugDensity',
+  reviewFriction = 'reviewFriction',
+  knowledgeStaleness = 'knowledgeStaleness',
+  abandonedKnowledgeSilo = 'abandonedKnowledgeSilo',
 }
 
 export enum BuildingMetricIds {
@@ -48,6 +54,12 @@ export enum BuildingMetricIds {
   functionCount = 'functionCount',
   variableCount = 'variableCount',
   commitActivity = 'commitActivity',
+  coreContributorActivity = 'coreContributorActivity',
+  knowledgeSilo = 'knowledgeSilo',
+  bugDensity = 'bugDensity',
+  reviewFriction = 'reviewFriction',
+  knowledgeStaleness = 'knowledgeStaleness',
+  abandonedKnowledgeSilo = 'abandonedKnowledgeSilo',
 }
 
 export const ORDERED_BUILDING_METRIC_IDS: BuildingMetricIds[] = [
@@ -61,6 +73,12 @@ export const ORDERED_BUILDING_METRIC_IDS: BuildingMetricIds[] = [
   BuildingMetricIds.functionCount,
   BuildingMetricIds.variableCount,
   BuildingMetricIds.commitActivity,
+  BuildingMetricIds.coreContributorActivity,
+  BuildingMetricIds.knowledgeSilo,
+  BuildingMetricIds.bugDensity,
+  BuildingMetricIds.reviewFriction,
+  BuildingMetricIds.knowledgeStaleness,
+  BuildingMetricIds.abandonedKnowledgeSilo,
 ];
 
 const NO_SELECTED_METRIC: BuildingMetric = {
@@ -153,7 +171,13 @@ export const useHeatmapStore = create<HeatmapConfigurationState>(
         case BuildingMetricIds.classCount:
         case BuildingMetricIds.functionCount:
         case BuildingMetricIds.variableCount:
-        case BuildingMetricIds.commitActivity: {
+        case BuildingMetricIds.commitActivity:
+        case BuildingMetricIds.coreContributorActivity:
+        case BuildingMetricIds.knowledgeSilo:
+        case BuildingMetricIds.bugDensity:
+        case BuildingMetricIds.reviewFriction:
+        case BuildingMetricIds.knowledgeStaleness:
+        case BuildingMetricIds.abandonedKnowledgeSilo: {
           const { min, max } = getMinMaxMetricValues(metricName);
           set({
             selectedBuildingMetric: {

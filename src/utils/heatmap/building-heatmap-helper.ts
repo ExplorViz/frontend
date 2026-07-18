@@ -68,6 +68,18 @@ export function getMetricValues(
     case SelectedBuildingHeatmapMetric.variableCount:
     case BuildingMetricIds.commitActivity:
     case SelectedBuildingHeatmapMetric.commitActivity:
+    case BuildingMetricIds.coreContributorActivity:
+    case SelectedBuildingHeatmapMetric.coreContributorActivity:
+    case BuildingMetricIds.knowledgeSilo:
+    case SelectedBuildingHeatmapMetric.knowledgeSilo:
+    case BuildingMetricIds.bugDensity:
+    case SelectedBuildingHeatmapMetric.bugDensity:
+    case BuildingMetricIds.reviewFriction:
+    case SelectedBuildingHeatmapMetric.reviewFriction:
+    case BuildingMetricIds.knowledgeStaleness:
+    case SelectedBuildingHeatmapMetric.knowledgeStaleness:
+    case BuildingMetricIds.abandonedKnowledgeSilo:
+    case SelectedBuildingHeatmapMetric.abandonedKnowledgeSilo:
       return {
         min: classHeatmapMetric.min,
         max: classHeatmapMetric.max,
