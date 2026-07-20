@@ -66,6 +66,8 @@ export function getMetricValues(
     case SelectedBuildingHeatmapMetric.functionCount:
     case BuildingMetricIds.variableCount:
     case SelectedBuildingHeatmapMetric.variableCount:
+    case BuildingMetricIds.commitCount:
+    case SelectedBuildingHeatmapMetric.commitCount:
     case BuildingMetricIds.commitActivity:
     case SelectedBuildingHeatmapMetric.commitActivity:
     case BuildingMetricIds.coreContributorActivity:

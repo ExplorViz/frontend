@@ -6,6 +6,7 @@ import {
 } from 'explorviz-frontend/src/utils/landscape-schemes/flat-landscape';
 
 export const SOCIAL_METRICS: ReadonlySet<string> = new Set([
+  'commitCount',
   'commitActivity',
   'coreContributorActivity',
   'knowledgeSilo',

@@ -34,6 +34,7 @@ export enum SelectedBuildingHeatmapMetric {
   classCount = 'classCount',
   functionCount = 'functionCount',
   variableCount = 'variableCount',
+  commitCount = 'commitCount',
   commitActivity = 'commitActivity',
   coreContributorActivity = 'coreContributorActivity',
   knowledgeSilo = 'knowledgeSilo',
@@ -53,6 +54,7 @@ export enum BuildingMetricIds {
   classCount = 'classCount',
   functionCount = 'functionCount',
   variableCount = 'variableCount',
+  commitCount = 'commitCount',
   commitActivity = 'commitActivity',
   coreContributorActivity = 'coreContributorActivity',
   knowledgeSilo = 'knowledgeSilo',
@@ -72,6 +74,7 @@ export const ORDERED_BUILDING_METRIC_IDS: BuildingMetricIds[] = [
   BuildingMetricIds.classCount,
   BuildingMetricIds.functionCount,
   BuildingMetricIds.variableCount,
+  BuildingMetricIds.commitCount,
   BuildingMetricIds.commitActivity,
   BuildingMetricIds.coreContributorActivity,
   BuildingMetricIds.knowledgeSilo,
@@ -171,6 +174,7 @@ export const useHeatmapStore = create<HeatmapConfigurationState>(
         case BuildingMetricIds.classCount:
         case BuildingMetricIds.functionCount:
         case BuildingMetricIds.variableCount:
+        case BuildingMetricIds.commitCount:
         case BuildingMetricIds.commitActivity:
         case BuildingMetricIds.coreContributorActivity:
         case BuildingMetricIds.knowledgeSilo:
