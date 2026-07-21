@@ -4,6 +4,7 @@ import { ChevronUpIcon, SyncIcon } from '@primer/octicons-react';
 import CommitTreeRepositorySelection from 'explorviz-frontend/src/components/visualization/page-setup/bottom-bar/evolution/commit-tree-repository-selection';
 import EvolutionRenderingButtons from 'explorviz-frontend/src/components/visualization/page-setup/bottom-bar/evolution/evolution-rendering-buttons';
 import PlotlyCommitTree from 'explorviz-frontend/src/components/visualization/page-setup/bottom-bar/evolution/plotly-commit-tree';
+import SocialMetricsPanel from 'explorviz-frontend/src/components/visualization/page-setup/bottom-bar/social-metrics/social-metrics-panel';
 import PlotlyTimeline from 'explorviz-frontend/src/components/visualization/page-setup/bottom-bar/runtime/plotly-timeline';
 import BrowserRendering from 'explorviz-frontend/src/components/visualization/rendering/browser-rendering';
 import PlayPauseButton from 'explorviz-frontend/src/components/visualization/rendering/play-pause-button';
@@ -68,6 +69,8 @@ export default function Visualization() {
     useState<boolean>(false);
   const [isCommitTreeSelected, setIsCommitTreeSelected] =
     useState<boolean>(true);
+  const [isSocialMetricsSelected, setIsSocialMetricsSelected] =
+    useState<boolean>(false);
   const [isCommitTreeRefreshing, setIsCommitTreeRefreshing] =
     useState<boolean>(false);
   const [countdown, setCountdown] = useState<number>(10);
@@ -274,6 +277,7 @@ export default function Visualization() {
     );
   };
 
+  // const isSingleLandscapeMode = false;
   const isSingleLandscapeMode = (() => {
     return (
       import.meta.env.VITE_ONLY_SHOW_TOKEN.length > 0 &&
@@ -473,9 +477,15 @@ export default function Visualization() {
     // Disable keyboard events for button to prevent space bar
     document.getElementById('bottom-bar-toggle-chart-button')?.blur();
 
+    setIsSocialMetricsSelected(false);
     setIsCommitTreeSelected((prev) => !prev);
     setIsRuntimeTimelineSelected((prev) => !prev);
   };
+
+  const toggleSocialMetrics = () => {
+    document.getElementById('bottom-bar-toggle-social-button')?.blur();
+    setIsSocialMetricsSelected((prev) => !prev);
+  }
 
   const toggleVisibilityBottomBar = () => {
     setIsBottomBarMaximized(!isBottomBarMaximized);
@@ -613,6 +623,15 @@ export default function Visualization() {
                   {isRuntimeTimelineSelected ? 'Show Commit Chart' : ''}
                   {isCommitTreeSelected ? 'Show Runtime Chart' : ''}
                 </Button>
+                {isCommitTreeSelected && (
+                  <Button
+                    id="bottom-bar-toggle-social-button"
+                    className="bottom-bar-chart-button ms-2"
+                    onClick={toggleSocialMetrics}
+                    >
+                    {isSocialMetricsSelected ? 'Show Commit Chart' : 'Show Social Metrics'}
+                  </Button>
+                )}
               </div>
 
               {isRuntimeTimelineSelected && (
@@ -650,38 +669,44 @@ export default function Visualization() {
                       className={isCommitTreeRefreshing ? 'spinning' : ''}
                     />
                   </Button>
-                  <EvolutionRenderingButtons
-                    repoNameCommitTreeMap={
-                      repoNameCommitTreeMapEvolutionDataRepository
-                    }
-                  />
-                  <div className="row justify-content-center w-100 mx-0">
-                    <div className="col-12">
-                      <CommitTreeRepositorySelection
-                        repoNameCommitTreeMap={
-                          repoNameCommitTreeMapEvolutionDataRepository
-                        }
-                        selectedRepoName={currentSelectedRepositoryName}
-                      />
+                  {!isSocialMetricsSelected && (
+                  <>
+                    <EvolutionRenderingButtons
+                      repoNameCommitTreeMap={
+                        repoNameCommitTreeMapEvolutionDataRepository
+                      }
+                    />
+                    <div className="row justify-content-center w-100 mx-0">
+                      <div className="col-12">
+                        <CommitTreeRepositorySelection
+                          repoNameCommitTreeMap={
+                            repoNameCommitTreeMapEvolutionDataRepository
+                          }
+                          selectedRepoName={currentSelectedRepositoryName}
+                        />
+                      </div>
                     </div>
-                  </div>
-                  <PlotlyCommitTree
-                    repoNameCommitTreeMap={
-                      repoNameCommitTreeMapEvolutionDataRepository
-                    }
-                    triggerVizRenderingForSelectedCommits={
-                      renderingServiceTriggerRenderingForSelectedCommits
-                    }
-                    selectedRepoName={currentSelectedRepositoryName}
-                    selectedCommits={selectedCommits}
-                    setSelectedCommits={setSelectedCommits}
-                    getCloneOfRepoNameAndBranchNameToColorMap={
-                      getCloneOfRepoNameAndBranchNameToColorMap
-                    }
-                    setRepoNameAndBranchNameToColorMap={
-                      setRepoNameAndBranchNameToColorMap
-                    }
-                  />
+                    <PlotlyCommitTree
+                      repoNameCommitTreeMap={
+                        repoNameCommitTreeMapEvolutionDataRepository
+                      }
+                      triggerVizRenderingForSelectedCommits={
+                        renderingServiceTriggerRenderingForSelectedCommits
+                      }
+                      selectedRepoName={currentSelectedRepositoryName}
+                      selectedCommits={selectedCommits}
+                      setSelectedCommits={setSelectedCommits}
+                      getCloneOfRepoNameAndBranchNameToColorMap={
+                        getCloneOfRepoNameAndBranchNameToColorMap
+                      }
+                      setRepoNameAndBranchNameToColorMap={
+                        setRepoNameAndBranchNameToColorMap
+                      }
+                    />
+                    </>
+                  )}
+
+                  {isSocialMetricsSelected && <SocialMetricsPanel />}
                 </>
               )}
             </div>

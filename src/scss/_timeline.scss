@@ -332,3 +332,92 @@
   text-shadow: none;
   z-index: 10;
 }
+
+
+.social-metrics-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding: 0.5rem 0.75rem;
+}
+
+.social-metrics-contributor-list {
+  max-height: 200px;
+  max-width: 600px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+
+  .form-check {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin: 0;
+    padding: 0.15rem;
+    min-height: unset;
+    border-radius: var(--ev-radius-md, 0.375rem);
+    cursor: pointer;
+    &:hover { background: var(--bs-secondary-bg, rgba(0, 0, 0, 0.06)); }
+  }
+
+  .form-check-input  {
+    float: none;
+    margin: 0;
+    flex: 0 0 auto;
+    cursor: pointer;
+    // accent-color: var(--bs-primary);
+  }
+
+  .form-check-label {
+    flex: 1 1 auto;
+    min-width: 0;
+    cursor: pointer;
+  }
+}
+
+.social-metrics-contributor-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-width: 0;
+}
+
+.social-metrics-avatar {
+  width: 1.25rem;
+  height: 1.25rem;
+  border-radius: 100%;
+  object-fit: cover;
+  flex: 0 0 auto;
+}
+
+.social-metrics-contributor-name {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.social-metrics-commit-count {
+  flex: 0 0 auto;
+  opacity: 0.7;
+  // font-size: 0.85em;
+  font-variant-numeric: tabular-nums;
+}
+
+.social-metrics-core-badge {
+  flex: 0 0 auto;
+  font-size: 0.65rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  padding: 0.1rem 0.35rem;
+  border-radius: 999px;
+  color: #fff;
+  background: var(--bs-primary);
+}
+
+.social-metrics-controls        { display: flex; gap: 1rem; flex-wrap: wrap; align-items: flex-start; }
+.social-metrics-control-block   { display: flex; flex-direction: column; gap: 0.35rem; }
+.social-metrics-control-label   { font-size: 0.8rem; font-weight: 600; opacity: 0.75; }
+.social-metrics-preset-group    { display: flex; gap: 0.35rem; }
