@@ -343,7 +343,6 @@
 
 .social-metrics-contributor-list {
   max-height: 200px;
-  max-width: 600px;
   overflow-y: auto;
   display: flex;
   flex-direction: column;
@@ -417,8 +416,36 @@
   background: var(--bs-primary);
 }
 
-.social-metrics-selection-row { display: flex; gap: 0.75rem; align-items: flex-start; }
-.social-metrics-controls        { display: flex; gap: 1rem; flex-wrap: wrap; align-items: flex-start; }
-.social-metrics-control-block   { display: flex; flex-direction: column; gap: 0.35rem; }
-.social-metrics-control-label   { font-size: 0.8rem; font-weight: 600; opacity: 0.75; }
-.social-metrics-preset-group    { display: flex; gap: 0.35rem; }
+.social-metrics-selection-row {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr;
+  gap: 1rem;
+  align-items: start;
+  width: 75%;
+}
+
+.social-metrics-controls        {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  min-width: 0;
+}
+
+.social-metrics-control-block   {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  min-width: 0;
+}
+
+.social-metrics-control-label   {
+  font-size: 0.8rem;
+  font-weight: 600;
+  opacity: 0.75;
+}
+
+.social-metrics-preset-group    {
+  display: flex;
+  gap: 0.35rem;
+}
