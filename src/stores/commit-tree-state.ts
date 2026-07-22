@@ -212,14 +212,10 @@ export const useCommitTreeStateStore = create<CommitTreeStateState>(
         newSelectedCommits,
         selectedTimestamps
       );
-      const hasTwoCommitsInAnyRepository = Array.from(
-        newSelectedCommits.values()
-      ).some((commits) => commits.length >= 2);
       const mergedConfig = {
         ...autoConfig,
-        removeUnchangedFromLayout: hasTwoCommitsInAnyRepository
-          ? previousConfig.removeUnchangedFromLayout
-          : false,
+        buildingComparisonVisibility:
+          previousConfig.buildingComparisonVisibility,
       };
       useVisibilityServiceStore
         .getState()

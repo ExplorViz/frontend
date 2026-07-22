@@ -9,7 +9,8 @@ import { useTimestampStore } from 'explorviz-frontend/src/stores/timestamp';
 import { useToastHandlerStore } from 'explorviz-frontend/src/stores/toast-handler';
 import { useVisibilityServiceStore } from 'explorviz-frontend/src/stores/visibility-service';
 import { animatePlayPauseIcon } from 'explorviz-frontend/src/utils/animate';
-import { removeUnchangedBuildingsFromFlatLandscape } from 'explorviz-frontend/src/utils/city-rendering/flat-landscape-filter';
+import { BuildingComparisonVisibility } from 'explorviz-frontend/src/utils/city-rendering/building-comparison-visibility';
+import { filterFlatLandscapeByBuildingComparisonVisibility } from 'explorviz-frontend/src/utils/city-rendering/flat-landscape-filter';
 import { areArraysEqual } from 'explorviz-frontend/src/utils/helpers/array-helpers';
 import { combineDynamicLandscapeData } from 'explorviz-frontend/src/utils/landscape-dynamic-helpers';
 import { AggregatedBuildingCommunication } from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/aggregated-file-communication';
@@ -35,7 +36,7 @@ export type EvolutionModeRenderingConfiguration = {
   renderDynamic: boolean;
   renderStatic: boolean;
   renderOnlyDifferences: boolean;
-  removeUnchangedFromLayout: boolean;
+  buildingComparisonVisibility: BuildingComparisonVisibility;
 };
 
 interface RenderingServiceState {
@@ -203,16 +204,30 @@ export const useRenderingServiceStore = create<RenderingServiceState>(
       });
     },
 
-    _applyEvolutionLayoutFilter: (flatLandscape: FlatLandscape): FlatLandscape => {
-      const { removeUnchangedFromLayout } = useVisibilityServiceStore
+    _applyEvolutionLayoutFilter: (
+      flatLandscape: FlatLandscape
+    ): FlatLandscape => {
+      const repositoryName = useCommitTreeStateStore
         .getState()
-        .getCloneOfEvolutionModeRenderingConfiguration();
+        .getCurrentSelectedRepositoryName();
+      const selectedCommits = useCommitTreeStateStore
+        .getState()
+        .getSelectedCommits();
+      const isDiffMode =
+        (selectedCommits.get(repositoryName)?.length || 0) === 2;
 
-      if (!removeUnchangedFromLayout) {
+      if (!isDiffMode) {
         return flatLandscape;
       }
 
-      return removeUnchangedBuildingsFromFlatLandscape(flatLandscape);
+      const { buildingComparisonVisibility } = useVisibilityServiceStore
+        .getState()
+        .getCloneOfEvolutionModeRenderingConfiguration();
+
+      return filterFlatLandscapeByBuildingComparisonVisibility(
+        flatLandscape,
+        buildingComparisonVisibility
+      );
     },
 
     rerenderEvolutionLandscapeWithCurrentFilter: (): void => {

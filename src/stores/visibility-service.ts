@@ -2,6 +2,7 @@ import {
   EvolutionModeRenderingConfiguration,
   useRenderingServiceStore,
 } from 'explorviz-frontend/src/stores/rendering-service';
+import { ALL_BUILDING_COMPARISONS_VISIBLE } from 'explorviz-frontend/src/utils/city-rendering/building-comparison-visibility';
 import {
   Class,
   Package,
@@ -75,7 +76,7 @@ export const useVisibilityServiceStore = create<VisibilityServiceState>(
       renderDynamic: true,
       renderStatic: true,
       renderOnlyDifferences: false,
-      removeUnchangedFromLayout: false,
+      buildingComparisonVisibility: ALL_BUILDING_COMPARISONS_VISIBLE,
     },
 
     getCloneOfEvolutionModeRenderingConfiguration: () => {

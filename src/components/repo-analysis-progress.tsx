@@ -16,10 +16,10 @@ export const RepoAnalysisProgress = ({
       </div>
     );
 
-  const filesProgressInCurrentCommit =
-    state.totalFiles > 0 ? state.analyzedFiles / state.totalFiles : 0;
-
-  const percentage = filesProgressInCurrentCommit * 100;
+  const totalFiles = Math.max(0, state.totalFiles);
+  const analyzedFiles = Math.min(Math.max(0, state.analyzedFiles), totalFiles);
+  const percentage =
+    totalFiles > 0 ? (analyzedFiles / totalFiles) * 100 : 0;
   const currentFile = state.currentAnalyzingFile ?? '';
 
   return (

@@ -8,15 +8,23 @@ import { getTruncatedDisplayName } from 'explorviz-frontend/src/utils/annotation
 import { isBuildingVisible } from 'explorviz-frontend/src/utils/city-rendering/building-visibility';
 import { Building } from 'explorviz-frontend/src/utils/landscape-schemes/flat-landscape';
 import BoxLayout from 'explorviz-frontend/src/utils/layout/box-layout';
-import {
-  applyMetricMapping,
-  getMetricMappingMultiplier,
-  MetricKey,
-} from 'explorviz-frontend/src/utils/settings/default-settings';
+import { computeMappedBuildingHeight } from 'explorviz-frontend/src/utils/settings/building-metrics';
 import gsap from 'gsap';
-import { useCallback, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import * as THREE from 'three';
 import { useShallow } from 'zustand/react/shallow';
+
+function createLabelPosition(
+  layout: BoxLayout,
+  labelOffset: number,
+  buildingHeight: number
+) {
+  return new THREE.Vector3(
+    layout.center.x,
+    layout.positionY + buildingHeight + labelOffset,
+    layout.center.z
+  );
+}
 
 export default function CodeBuildingLabel({
   buildingId,
@@ -70,6 +78,8 @@ export default function CodeBuildingLabel({
     showAllBuildingLabels,
     labelDistanceThreshold,
     enableClustering,
+    enableAnimations,
+    animationDuration,
   } = useUserSettingsStore(
     useShallow((state) => ({
       buildingFootprint: state.visualizationSettings.buildingFootprint.value,
@@ -89,6 +99,8 @@ export default function CodeBuildingLabel({
       labelDistanceThreshold:
         state.visualizationSettings.labelDistanceThreshold.value,
       enableClustering: state.visualizationSettings.enableClustering.value,
+      enableAnimations: state.visualizationSettings.enableAnimations.value,
+      animationDuration: state.visualizationSettings.animationDuration.value,
     }))
   );
 
@@ -98,38 +110,49 @@ export default function CodeBuildingLabel({
     }))
   );
 
-  const getBuildingHeight = useCallback(
-    (building: Building) => {
-      const metricValue = building.metrics?.[heightMetric]?.current || 0;
-      return (
-        buildingFootprint +
-        getMetricMappingMultiplier(heightMetric as MetricKey, metricMapping) *
-          buildingHeightMultiplier *
-          applyMetricMapping(metricValue, metricMapping)
-      );
-    },
-    [buildingFootprint, buildingHeightMultiplier, heightMetric, metricMapping]
-  );
+  const buildings = useModelStore((state) => state.buildings);
 
-  const [labelPosition, setLabelPosition] = useState<THREE.Vector3>(
-    new THREE.Vector3(layout.center.x, layout.positionY, layout.center.z)
-  );
+  function getBuildingHeight(targetBuilding: Building) {
+    return computeMappedBuildingHeight(
+      targetBuilding,
+      heightMetric,
+      metricMapping,
+      buildingFootprint,
+      buildingHeightMultiplier,
+      buildings
+    );
+  }
+
+  const [labelPosition, setLabelPosition] = useState<THREE.Vector3>(() => {
+    if (!building) {
+      return new THREE.Vector3(
+        layout.center.x,
+        layout.positionY,
+        layout.center.z
+      );
+    }
+
+    return (
+      createLabelPosition(layout, labelOffset, getBuildingHeight(building)) ??
+      new THREE.Vector3(layout.center.x, layout.positionY, layout.center.z)
+    );
+  });
 
   useEffect(() => {
-    if (!building) return;
+    if (!building) {
+      return;
+    }
 
-    const target = new THREE.Vector3(
-      layout.center.x,
-      layout.positionY + getBuildingHeight(building) + labelOffset,
-      layout.center.z
+    const target = createLabelPosition(
+      layout,
+      labelOffset,
+      getBuildingHeight(building)
     );
+    if (!target) {
+      return;
+    }
 
-    const { enableAnimations, animationDuration } =
-      useUserSettingsStore.getState().visualizationSettings;
-    const animationEnabled = enableAnimations.value;
-    const duration = animationDuration.value;
-
-    if (animationEnabled) {
+    if (enableAnimations) {
       const values = {
         x: labelPosition.x,
         y: labelPosition.y,
@@ -139,30 +162,60 @@ export default function CodeBuildingLabel({
         x: target.x,
         y: target.y,
         z: target.z,
-        duration,
+        duration: animationDuration,
         onUpdate: () =>
           setLabelPosition(new THREE.Vector3(values.x, values.y, values.z)),
       });
     } else {
-      if (!labelPosition.equals(target)) {
-        setLabelPosition(target.clone());
-      }
+      setLabelPosition(target);
     }
   }, [
+    animationDuration,
     building,
-    layout,
-    heightMetric,
     buildingFootprint,
     buildingHeightMultiplier,
-    metricMapping,
+    buildings,
+    enableAnimations,
+    heightMetric,
     labelOffset,
-    getBuildingHeight,
+    layout,
+    metricMapping,
   ]);
 
+  useEffect(() => {
+    if (!building) {
+      return;
+    }
+
+    const target = createLabelPosition(
+      layout,
+      labelOffset,
+      getBuildingHeight(building)
+    );
+    if (!target) {
+      return;
+    }
+
+    if (enableAnimations) {
+      const values = {
+        x: labelPosition.x,
+        y: labelPosition.y,
+        z: labelPosition.z,
+      };
+      gsap.to(values, {
+        x: target.x,
+        y: target.y,
+        z: target.z,
+        duration: animationDuration,
+        onUpdate: () =>
+          setLabelPosition(new THREE.Vector3(values.x, values.y, values.z)),
+      });
+    } else if (!labelPosition.equals(target)) {
+      setLabelPosition(target.clone());
+    }
+  }, [animationDuration, building, enableAnimations, labelOffset, layout]);
+
   const sizeMultiplier = 1.0 + layout.area / 10000.0;
-  // When clustering is enabled but the async computation hasn't finished yet,
-  // centroidDistance is undefined. Hide the label in that case rather than
-  // showing everything at once before the clusters are ready.
   const isWithinSemanticZoomDistance =
     centroidDistance !== undefined
       ? centroidDistance <= labelDistanceThreshold * sizeMultiplier
