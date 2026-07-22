@@ -24,6 +24,7 @@ interface SocialMetricsState {
   availableTimeRange: { from: number; to: number } | null;
   selectedContributorIds: Set<number>;
   selectedTimeRange: { from: number; to: number } | null;
+  normalization: { logScale: boolean; quantile: number };
 
 
   initializeForSelection: (
@@ -33,6 +34,7 @@ interface SocialMetricsState {
     updateSocialMetrics: () => Promise<void>;
     setSelectedContributorIds: (ids: Set<number>) => void;
     setSelectedTimeRange: (range: { from: number; to: number } | null) => void;
+    setNormalization: (normalization: { logScale: boolean; quantile: number }) => void;
     reset: () => void;
     _applyAndRender: (dtos: SocialMetricDto[]) => void;
 }
@@ -44,6 +46,7 @@ const EMPTY_STATE = {
   availableTimeRange: null,
   selectedContributorIds: new Set<number>(),
   selectedTimeRange: null,
+  normalization: { logScale: true, quantile: 0.99 }, // possibly null this out instead, cleaner and should be handled
 };
 
 export const useSocialMetricsStore = create<SocialMetricsState>((set, get) => ({
@@ -100,6 +103,7 @@ export const useSocialMetricsStore = create<SocialMetricsState>((set, get) => ({
       contributors,
       selectedContributorIds,
       selectedTimeRange,
+      normalization,
     } = get();
     if (!repositoryName || !commit) {
       return;
@@ -112,12 +116,15 @@ export const useSocialMetricsStore = create<SocialMetricsState>((set, get) => ({
         from: selectedTimeRange?.from,
         to: selectedTimeRange?.to,
         contributorIds: allSelected ? undefined : Array.from(selectedContributorIds),
+        logScale: normalization.logScale,
+        quantile: normalization.quantile,
       });
     get()._applyAndRender(dtos);
   },
 
   setSelectedContributorIds: (ids) => set({ selectedContributorIds: ids}),
   setSelectedTimeRange: (range) => set({ selectedTimeRange: range}),
+  setNormalization: (normalization) => set({ normalization }),
   reset: () => set(EMPTY_STATE),
 
   _applyAndRender: (dtos) => {

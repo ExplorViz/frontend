@@ -45,7 +45,7 @@ interface EvolutionDataFetchState {
   fetchSocialMetrics(
     repoName: string,
     commit: string,
-    opts?: { from?: number; to?: number; contributorIds?: number[] }
+    opts?: { from?: number; to?: number; contributorIds?: number[]; logScale?: boolean; quantile?: number }
   ): Promise<SocialMetricDto[]>;
   fetchContributors(repoName: string): Promise<ContributorsResponse>;
   _getLandscapeToken(): string;
@@ -80,13 +80,15 @@ export const useEvolutionDataFetchServiceStore =
     fetchSocialMetrics: async (
       repoName: string,
       commit: string,
-      opts?: { from?: number; to?: number; contributorIds?: number[] }
+      opts?: { from?: number; to?: number; contributorIds?: number[], logScale?: boolean, quantile?: number }
     ): Promise<SocialMetricDto[]> => {
       const baseUrl = get()._constructUrl('social-metrics', repoName);
       const params = new URLSearchParams({ commit });
       if (opts?.from !== undefined) params.set('from', String(opts.from));
       if (opts?.to !== undefined) params.set('to', String(opts.to));
       opts?.contributorIds?.forEach((id) => params.append('contributors', String(id)));
+      if (opts?.logScale !== undefined) params.set('logScale', String(opts.logScale));
+      if (opts?.quantile !== undefined) params.set('quantile', String(opts.quantile));
       return await get()._fetchFromService<SocialMetricDto[]>(`${baseUrl}?${params}`);
     },
 

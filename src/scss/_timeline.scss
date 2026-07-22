@@ -417,6 +417,7 @@
   background: var(--bs-primary);
 }
 
+.social-metrics-selection-row { display: flex; gap: 0.75rem; align-items: flex-start; }
 .social-metrics-controls        { display: flex; gap: 1rem; flex-wrap: wrap; align-items: flex-start; }
 .social-metrics-control-block   { display: flex; flex-direction: column; gap: 0.35rem; }
 .social-metrics-control-label   { font-size: 0.8rem; font-weight: 600; opacity: 0.75; }
