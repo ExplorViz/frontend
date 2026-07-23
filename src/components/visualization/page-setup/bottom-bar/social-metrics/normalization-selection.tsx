@@ -43,6 +43,15 @@ export default function NormalizationSelection() {
           </option>
         ))}
       </Form.Select>
+      <div className="social-metrics-note text-muted small py-2">
+        <div className="social-metrics-note-line">
+          <HelpTooltip title="" placement="top" />
+          This setting only applies to the following metrics:
+          commitActivity,
+          bugDensity,
+          reviewFriction.
+        </div>
+      </div>
     </div>
   )
 

@@ -41,7 +41,7 @@ export default function TimeRangeSelection() {
       <span className="social-metrics-control-label">Time frame
         <HelpTooltip title="Restrict commit-based metrics to the selected time window. Does not apply to pull-request- and issue-based metrics by design." placement="top" />
       </span>
-      <span className="social-metrics-control-label social-metrics-control-subheading">Presets</span>
+      <span className="social-metrics-control-sublabel">Presets</span>
       <div className="social-metrics-preset-group">
         {PRESETS.map((p) => (
           <Button key={p.key} size="sm" variant="outline-secondary"
@@ -49,7 +49,7 @@ export default function TimeRangeSelection() {
         ))}
       </div>
       <div className="social-metrics-custom-range">
-        <span className="social-metrics-control-label social-metrics-control-subheading">Custom</span>
+        <span className="social-metrics-control-sublabel">Custom</span>
          <Form.Control  type="date" size="sm"
          min={toISO(availableTimeRange.from)}
          max={toISO(availableTimeRange.to)}
@@ -64,6 +64,14 @@ export default function TimeRangeSelection() {
          onChange={(e) => setSelectedTimeRange(
             { from: selectedTimeRange?.from ?? availableTimeRange.from, to: fromISO(e.target.value) })}
          />
+      </div>
+      <div className="social-metrics-note text-muted small py-2">
+        <div className="social-metrics-note-line">
+          <HelpTooltip title="" placement="top" />
+          This setting does <strong>not</strong> apply to the following metrics:
+          reviewFriction,
+          bugDensity.
+        </div>
       </div>
     </div>
   )

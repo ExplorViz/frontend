@@ -420,7 +420,7 @@
   display: grid;
   grid-template-columns: 2fr 1fr 1fr;
   gap: 1rem;
-  align-items: start;
+  align-items: stretch;
   width: 75%;
 }
 
@@ -439,7 +439,18 @@
   min-width: 0;
 }
 
+.social-metrics-note {
+  margin-top: auto;
+  padding-top: 0.5rem;
+}
+
 .social-metrics-control-label   {
+  font-size: 0.8rem;
+  font-weight: 750;
+  opacity: 0.9;
+}
+
+.social-metrics-control-sublabel   {
   font-size: 0.8rem;
   font-weight: 600;
   opacity: 0.75;

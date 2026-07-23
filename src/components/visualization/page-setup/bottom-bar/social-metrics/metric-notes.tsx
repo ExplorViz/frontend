@@ -14,41 +14,47 @@ export interface MetricNote {
 }
 
 export const METRIC_NOTES: Partial<Record<BuildingMetricIds, MetricNote>> = {
-  [BuildingMetricIds.commitCount]: {
-    contributorSelection: 'yes',
-    timeSelection: 'yes',
-    normalization: 'no',
-    note: 'CommitCount: Normalization configuration does not apply to this metric. It is designed to contain real values to be displayed in the File popup.'
-  },
-  [BuildingMetricIds.knowledgeStaleness]: {
-    contributorSelection: 'yes',
-    timeSelection: 'yes',
-    normalization: 'no',
-    note: 'KnowledgeStaleness: Normalization configuration does not apply to this metric.'
-  },
+  // [BuildingMetricIds.commitCount]: {
+  //   contributorSelection: 'yes',
+  //   timeSelection: 'yes',
+  //   normalization: 'no',
+  //   note: 'CommitCount: Normalization configuration does not apply to this metric. It is designed to contain real values to be displayed in the File popup.'
+  // },
+  // [BuildingMetricIds.knowledgeStaleness]: {
+  //   contributorSelection: 'yes',
+  //   timeSelection: 'yes',
+  //   normalization: 'no',
+  //   note: 'KnowledgeStaleness: Normalization configuration does not apply to this metric.'
+  // },
   [BuildingMetricIds.knowledgeSilo]: {
     contributorSelection: 'no',
     timeSelection: 'yes',
     normalization: 'no',
-    note: 'KnowledgeSilo: Contributor selection has no effect for this metric, since we measure the single most active contributor per file. That is by design. Normalization does not apply.'
+    note: 'KnowledgeSilo: Contributor selection does not apply for this metric, since we measure the single most active contributor per file. That is by design.'
   },
   [BuildingMetricIds.coreContributorActivity]: {
     contributorSelection: 'no',
     timeSelection: 'yes',
     normalization: 'no',
-    note: 'CoreContributorActivity: Contributor selection does not apply to this metric. Uses the auto detected core developer team. Normalization does not apply.'
+    note: 'CoreContributorActivity: Contributor selection does not apply to this metric. Uses the auto detected core developer team.'
   },
   [BuildingMetricIds.abandonedKnowledgeSilo]: {
     contributorSelection: 'no',
     timeSelection: 'yes',
     normalization: 'no',
-    note: 'AbandonedKnowledgeSilo: Contributor selection does not apply. Calculated using knowledgeSilo metric which does not allow for selection by design. Normalization does not apply.'
+    note: 'AbandonedKnowledgeSilo: Contributor selection does not apply. Calculated using knowledgeSilo metric which does not allow for selection by design.'
   },
   [BuildingMetricIds.reviewFriction]: {
     contributorSelection: 'no',
     timeSelection: 'no',
     normalization: 'yes',
-    note: 'ReviewFriction: calculated over the full history and all contributors.'
+    note: 'ReviewFriction: Contributor selection does not apply.'
+  },
+  [BuildingMetricIds.bugDensity]: {
+    contributorSelection: 'no',
+    timeSelection: 'no',
+    normalization: 'yes',
+    note: 'BugDensity: Contributor selection does not apply.'
   },
 }
 
