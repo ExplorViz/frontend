@@ -38,7 +38,7 @@ export enum SelectedBuildingHeatmapMetric {
   commitActivity = 'commitActivity',
   coreContributorActivity = 'coreContributorActivity',
   knowledgeSilo = 'knowledgeSilo',
-  bugDensity = 'bugDensity',
+  issueActivity = 'issueActivity',
   reviewFriction = 'reviewFriction',
   knowledgeStaleness = 'knowledgeStaleness',
   abandonedKnowledgeSilo = 'abandonedKnowledgeSilo',
@@ -58,7 +58,7 @@ export enum BuildingMetricIds {
   commitActivity = 'commitActivity',
   coreContributorActivity = 'coreContributorActivity',
   knowledgeSilo = 'knowledgeSilo',
-  bugDensity = 'bugDensity',
+  issueActivity = 'issueActivity',
   reviewFriction = 'reviewFriction',
   knowledgeStaleness = 'knowledgeStaleness',
   abandonedKnowledgeSilo = 'abandonedKnowledgeSilo',
@@ -78,7 +78,7 @@ export const ORDERED_BUILDING_METRIC_IDS: BuildingMetricIds[] = [
   BuildingMetricIds.commitActivity,
   BuildingMetricIds.coreContributorActivity,
   BuildingMetricIds.knowledgeSilo,
-  BuildingMetricIds.bugDensity,
+  BuildingMetricIds.issueActivity,
   BuildingMetricIds.reviewFriction,
   BuildingMetricIds.knowledgeStaleness,
   BuildingMetricIds.abandonedKnowledgeSilo,
@@ -178,7 +178,7 @@ export const useHeatmapStore = create<HeatmapConfigurationState>(
         case BuildingMetricIds.commitActivity:
         case BuildingMetricIds.coreContributorActivity:
         case BuildingMetricIds.knowledgeSilo:
-        case BuildingMetricIds.bugDensity:
+        case BuildingMetricIds.issueActivity:
         case BuildingMetricIds.reviewFriction:
         case BuildingMetricIds.knowledgeStaleness:
         case BuildingMetricIds.abandonedKnowledgeSilo: {

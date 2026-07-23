@@ -50,7 +50,7 @@ export const METRIC_NOTES: Partial<Record<BuildingMetricIds, MetricNote>> = {
     normalization: 'yes',
     note: 'ReviewFriction: Contributor selection does not apply.'
   },
-  [BuildingMetricIds.bugDensity]: {
+  [BuildingMetricIds.issueActivity]: {
     contributorSelection: 'no',
     timeSelection: 'no',
     normalization: 'yes',

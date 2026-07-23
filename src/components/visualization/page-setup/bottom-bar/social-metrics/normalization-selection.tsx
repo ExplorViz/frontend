@@ -48,7 +48,7 @@ export default function NormalizationSelection() {
           <HelpTooltip title="" placement="top" />
           This setting only applies to the following metrics:
           commitActivity,
-          bugDensity,
+          issueActivity,
           reviewFriction.
         </div>
       </div>

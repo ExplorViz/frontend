@@ -74,8 +74,8 @@ export function getMetricValues(
     case SelectedBuildingHeatmapMetric.coreContributorActivity:
     case BuildingMetricIds.knowledgeSilo:
     case SelectedBuildingHeatmapMetric.knowledgeSilo:
-    case BuildingMetricIds.bugDensity:
-    case SelectedBuildingHeatmapMetric.bugDensity:
+    case BuildingMetricIds.issueActivity:
+    case SelectedBuildingHeatmapMetric.issueActivity:
     case BuildingMetricIds.reviewFriction:
     case SelectedBuildingHeatmapMetric.reviewFriction:
     case BuildingMetricIds.knowledgeStaleness:

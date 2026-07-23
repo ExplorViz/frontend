@@ -70,7 +70,7 @@ export default function TimeRangeSelection() {
           <HelpTooltip title="" placement="top" />
           This setting does <strong>not</strong> apply to the following metrics:
           reviewFriction,
-          bugDensity.
+          issueActivity.
         </div>
       </div>
     </div>

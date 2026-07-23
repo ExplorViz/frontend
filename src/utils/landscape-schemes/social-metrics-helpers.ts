@@ -10,7 +10,7 @@ export const SOCIAL_METRICS: ReadonlySet<string> = new Set([
   'commitActivity',
   'coreContributorActivity',
   'knowledgeSilo',
-  'bugDensity',
+  'issueActivity',
   'reviewFriction',
   'knowledgeStaleness',
   'abandonedKnowledgeSilo',
