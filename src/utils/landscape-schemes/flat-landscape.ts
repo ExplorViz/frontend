@@ -23,6 +23,12 @@ export type AnimationWindow = {
   frames: AnimationFrame[];
 };
 
+export type AnimationSkeleton = {
+  landscape: FlatLandscape;
+  fqnToFirstOrdinal: Record<string, number>;
+  orderedCommitHashes: string[];
+};
+
 type FlatBaseModel = {
   id: string;
   name: string;

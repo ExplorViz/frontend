@@ -1,6 +1,6 @@
 import { useCommitTreeStateStore } from 'explorviz-frontend/src/stores/commit-tree-state';
 import { useEvolutionAnimationFetchServiceStore } from 'explorviz-frontend/src/components/visualization/page-setup/bottom-bar/animation/evolution-animation-fetch-service';
-import { useEvolutionAnimationStore } from 'explorviz-frontend/src/components/visualization/page-setup/bottom-bar/animation/evolution-animation-store';
+import { useEvolutionAnimationStore, WINDOW_SIZE } from 'explorviz-frontend/src/components/visualization/page-setup/bottom-bar/animation/evolution-animation-store';
 import { useState, useEffect } from 'react';
 import { useShallow } from 'zustand/react/shallow';
 import { createPortal } from 'react-dom';
@@ -9,19 +9,19 @@ import Form from 'react-bootstrap/Form';
 import { useRenderingServiceStore } from 'explorviz-frontend/src/stores/rendering-service';
 import { useVisibilityServiceStore } from 'explorviz-frontend/src/stores/visibility-service';
 import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
-
-
+import { ALL_BUILDING_COMPARISONS_VISIBLE } from 'explorviz-frontend/src/utils/city-rendering/building-comparison-visibility';
 
 export default function EvolutionAnimationPanel({
   onClose,
 }: {
   onClose: () => void;
 }) {
-  const { layoutMode, timeMode, speedMs } = useEvolutionAnimationStore(
+  const { layoutMode, timeMode, speedMs, granularity } = useEvolutionAnimationStore(
     useShallow((state) => ({
       layoutMode: state.layoutMode,
       timeMode: state.timeMode,
       speedMs: state.speedMs,
+      granularity: state.granularity,
     }))
   );
   const { setLayoutMode, setTimeMode, setSpeed } =
@@ -58,12 +58,12 @@ export default function EvolutionAnimationPanel({
 
     let cancelled = false;
     setIsLoading(true);
-    Promise.all([fetchSkeleton(repositoryName), fetchWindow(repositoryName)])
+    Promise.all([fetchSkeleton(repositoryName), fetchWindow(repositoryName,0,0)])
       .then(([skeleton, animationWindow]) => {
         if (cancelled) return;
         const actions = useEvolutionAnimationStore.getState().actions;
         actions.setSkeleton(skeleton);
-        actions.setFrames(animationWindow.frames);
+        actions.setTotalCount(animationWindow.totalCount);
 
         useRenderingServiceStore
           .getState()
@@ -71,7 +71,7 @@ export default function EvolutionAnimationPanel({
             renderDynamic: false,
             renderStatic: true,
             renderOnlyDifferences: true,
-            removeUnchangedFromLayout: false,
+            buildingComparisonVisibility: ALL_BUILDING_COMPARISONS_VISIBLE,
           });
         useVisibilityServiceStore
           .getState()
@@ -79,7 +79,7 @@ export default function EvolutionAnimationPanel({
             renderDynamic: false,
             renderStatic: true,
             renderOnlyDifferences: true,
-            removeUnchangedFromLayout: false,
+            buildingComparisonVisibility: ALL_BUILDING_COMPARISONS_VISIBLE,
           });
       })
       .catch((e) => console.error('Failed to fetch animation frames:', e))
@@ -97,20 +97,23 @@ export default function EvolutionAnimationPanel({
     if (!repositoryName) return;
     setIsLoading(true);
     try {
-      const [skeleton, animationWindow] = await Promise.all([
+      const granul = useEvolutionAnimationStore.getState().granularity;
+      const [skeleton, firstWindow] = await Promise.all([
         fetchSkeleton(repositoryName),
-        fetchWindow(repositoryName),
+        fetchWindow(repositoryName, 0, WINDOW_SIZE, granul),
       ]);
       const actions = useEvolutionAnimationStore.getState().actions;
       actions.setSkeleton(skeleton);
-      actions.setFrames(animationWindow.frames);
+      actions.setTotalCount(firstWindow.totalCount);
+      actions.addFrames(firstWindow.frames);
+      actions.markBlockRequested(0);
       useRenderingServiceStore
         .getState()
         .setAnalysisModeFromEvolutionRenderingConfig({
           renderDynamic: false,
           renderStatic: true,
           renderOnlyDifferences: true,
-          removeUnchangedFromLayout: false,
+          buildingComparisonVisibility: ALL_BUILDING_COMPARISONS_VISIBLE,
         });
       useVisibilityServiceStore
         .getState()
@@ -118,7 +121,7 @@ export default function EvolutionAnimationPanel({
           renderDynamic: false,
           renderStatic: true,
           renderOnlyDifferences: true,
-          removeUnchangedFromLayout: false,
+          buildingComparisonVisibility: ALL_BUILDING_COMPARISONS_VISIBLE,
         });
       useEvolutionAnimationStore.getState().actions.setSpeed(speedMs);
       useEvolutionAnimationStore.getState().actions.play(); // auto-start
@@ -127,6 +130,15 @@ export default function EvolutionAnimationPanel({
     } finally {
       setIsLoading(false);
     }
+  };
+    const onGranularityChange = async (g: number) => {
+      if (!repositoryName) return;
+      const actions = useEvolutionAnimationStore.getState().actions;
+      actions.setGranularity(g);
+      const win = await fetchWindow(repositoryName, 0, WINDOW_SIZE, g);
+      actions.setTotalCount(win.totalCount);
+      actions.addFrames(win.frames);
+      actions.markBlockRequested(0);
   };
 
   return createPortal(
@@ -233,6 +245,20 @@ export default function EvolutionAnimationPanel({
         />
       </Form.Group>
 
+      <Form.Group className="mb-3">
+        <Form.Label style={{ fontSize: '12px', color: '#aaa' }}>
+          Commits pro Frame: {granularity}
+        </Form.Label>
+        <Form.Control
+          type="number"
+          min={1}
+          size="sm"
+          value={granularity}
+          onChange={(e) =>
+            onGranularityChange(Math.max(1, Number(e.target.value)))
+          }
+        />
+      </Form.Group>
 
       <Button
         variant="primary"

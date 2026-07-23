@@ -1,16 +1,37 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Button from 'react-bootstrap/Button';
 import EvolutionAnimationPanel from 'explorviz-frontend/src/components/visualization/page-setup/bottom-bar/animation/evolution-animation-panel';
 import EvolutionPlaybackControls from 'explorviz-frontend/src/components/visualization/page-setup/bottom-bar/animation/evolution-playback-controls';
-
+import { useLandscapeTokenStore } from 'explorviz-frontend/src/stores/landscape-token';
 import { useEvolutionAnimationStore } from 'explorviz-frontend/src/components/visualization/page-setup/bottom-bar/animation/evolution-animation-store';
+import { useRenderingServiceStore } from 'explorviz-frontend/src/stores/rendering-service';
+import { useVisibilityServiceStore } from 'explorviz-frontend/src/stores/visibility-service';
+import { ALL_BUILDING_COMPARISONS_VISIBLE } from 'explorviz-frontend/src/utils/city-rendering/building-comparison-visibility';
+
+const NORMAL_RENDER_CONFIG = {
+  renderDynamic: false,
+  renderStatic: true,
+  renderOnlyDifferences: false,
+  buildingComparisonVisibility: ALL_BUILDING_COMPARISONS_VISIBLE,
+};
 
 export default function EvolutionAnimationButton() {
   const [showPanel, setShowPanel] = useState(false);
+  const hasFrames = useEvolutionAnimationStore((state) => state.totalCount > 0);
+  const landscapeToken = useLandscapeTokenStore((s) => s.token?.value);
 
-  const hasFrames = useEvolutionAnimationStore(
-    (state) => state.frames.length > 0
-  );
+  useEffect(() => {
+    return () => {
+      useEvolutionAnimationStore.getState().actions.reset();
+      setShowPanel(false);
+      useRenderingServiceStore
+        .getState()
+        .setAnalysisModeFromEvolutionRenderingConfig(NORMAL_RENDER_CONFIG);
+      useVisibilityServiceStore
+        .getState()
+        .applyEvolutionModeRenderingConfiguration(NORMAL_RENDER_CONFIG);
+    };
+  }, [landscapeToken]);
 
   return (
     <>

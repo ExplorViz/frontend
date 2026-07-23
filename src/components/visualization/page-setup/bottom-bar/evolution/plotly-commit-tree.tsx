@@ -1,5 +1,6 @@
 import LinkButton from 'explorviz-frontend/src/components/link-button.tsx';
 import CommitChartSearch from 'explorviz-frontend/src/components/visualization/page-setup/bottom-bar/evolution/commit-chart-search';
+import { useEvolutionAnimationStore } from 'explorviz-frontend/src/components/visualization/page-setup/bottom-bar/animation/evolution-animation-store';
 import { useCommitTreeStateStore } from 'explorviz-frontend/src/stores/commit-tree-state';
 import {
   addCommitToSelection,
@@ -44,6 +45,7 @@ const MAX_COMMIT_SELECTION_PER_APP = 2;
 const COMMIT_UNSELECTED_SIZE = 8;
 const COMMIT_SELECTED_SIZE = 20;
 const HIGHLIGHTED_MARKER_COLOR = 'red';
+const ANIMATION_MARKER_COLOR = 'blue';
 const BRANCH_LINE_COLOR = 'rgba(70, 130, 180, 1)';
 const EMPTY_SELECTED_COMMITS: Commit[] = [];
 
@@ -68,6 +70,14 @@ export default function PlotlyCommitTree({
   const xAxisPlacement = useCommitTreeStateStore((state) => state._xAxisPlacement);
   const setXAxisPlacement = useCommitTreeStateStore(
     (state) => state.setXAxisPlacement
+  );
+
+  // Show moving marker instead of fixed marker
+  const animationActive = useEvolutionAnimationStore(
+    (state) => state.totalCount > 0
+  );
+  const activeHash = useEvolutionAnimationStore(
+    (state) => state.loadedFrames.get(state.currentFrameIndex)?.commitHash
   );
 
   const commitTree = repoNameCommitTreeMap.get(selectedRepoName);
@@ -135,6 +145,14 @@ export default function PlotlyCommitTree({
 
     renderChart(true);
   }, [selectedCommits]);
+
+  useEffect(() => {
+    if (!selectedBranch || !plotlyCommitDivRef.current) {
+      return;
+    }
+
+    renderChart(true);
+  }, [activeHash, animationActive]);
 
   const renderChart = (preserveView: boolean) => {
     if (!selectedBranch || !plotlyCommitDivRef.current) {
@@ -282,6 +300,12 @@ export default function PlotlyCommitTree({
       }
 
       const commitId = chartCommits[pointNumber]?.hash ?? CROSS_COMMIT_IDENTIFIER;
+      const animStore = useEvolutionAnimationStore.getState();
+      if (animStore.totalCount > 0) {
+        const ordinal = animStore.orderedCommitHashes.indexOf(commitId);
+        if (ordinal !== -1) animStore.actions.seekTo(Math.floor(ordinal / animStore.granularity));
+        return;
+      }
       const selectedCommit: Commit = {
         commitId,
         branchName,
