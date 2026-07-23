@@ -3,7 +3,7 @@ import {
   getAllClassesInApplication,
   getAllMethodHashCodesInApplication,
 } from 'explorviz-frontend/src/utils/application-helpers';
-import { Trace } from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/dynamic-data';
+import { Trace } from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/trace';
 import {
   Application,
   BaseModel,

@@ -1,5 +1,4 @@
 import { useAuthStore } from 'explorviz-frontend/src/stores/auth';
-import { useSnapshotTokenStore } from 'explorviz-frontend/src/stores/snapshot-token';
 import {
   SelectedCommit,
   useCommitTreeStateStore,
@@ -12,6 +11,7 @@ import {
 } from 'explorviz-frontend/src/stores/repos/debug-snapshot-repository';
 import { useEvolutionDataRepositoryStore } from 'explorviz-frontend/src/stores/repos/evolution-data-repository';
 import { useTimestampRepositoryStore } from 'explorviz-frontend/src/stores/repos/timestamp-repository';
+import { useSnapshotTokenStore } from 'explorviz-frontend/src/stores/snapshot-token';
 import { useToastHandlerStore } from 'explorviz-frontend/src/stores/toast-handler';
 import eventEmitter from 'explorviz-frontend/src/utils/event-emitter';
 import { buildNewestCommitSelectionMap } from 'explorviz-frontend/src/utils/evolution-data-helpers';
@@ -19,7 +19,7 @@ import { CROSS_COMMIT_IDENTIFIER } from 'explorviz-frontend/src/utils/evolution-
 import { Timestamp } from 'explorviz-frontend/src/utils/landscape-schemes/timestamp';
 import { create } from 'zustand';
 
-const landscapeService = import.meta.env.VITE_LANDSCAPE_SERV_URL;
+const traceService = import.meta.env.VITE_TRACE_SERV_URL;
 const vsCodeService = import.meta.env.VITE_VSCODE_SERV_URL;
 
 export const TIMESTAMP_POLLING_START_EVENT = 'timestamp_polling_start';
@@ -286,7 +286,7 @@ export const useTimestampPollingStore = create<TimestampPollingState>(
           return;
         }
 
-        let url = `${landscapeService}/v3/landscapes/${useLandscapeTokenStore.getState().token!.value}/timestamps`;
+        let url = `${traceService}/v3/landscapes/${useLandscapeTokenStore.getState().token!.value}/timestamps`;
 
         let parameter = '?';
 

@@ -1,5 +1,5 @@
 import { useToastHandlerStore } from 'explorviz-frontend/src/stores/toast-handler';
-import { DynamicLandscapeData } from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/dynamic-data';
+import { DynamicLandscapeData } from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/trace';
 
 interface TraceOverviewProps {
   readonly dynamicData: DynamicLandscapeData;

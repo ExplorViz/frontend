@@ -1,7 +1,7 @@
 import { useAuthStore } from 'explorviz-frontend/src/stores/auth';
 import { useLandscapeTokenStore } from 'explorviz-frontend/src/stores/landscape-token';
-import { AggregatedBuildingCommunication } from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/aggregated-file-communication';
-import { EntityPairCommunicationDto } from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/entity-pair-communication';
+import { CommSummary } from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/communication';
+import { FunctionCall } from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/function-call';
 import { FlatLandscape } from 'explorviz-frontend/src/utils/landscape-schemes/flat-landscape';
 
 /** Base URL for landscape API. Empty string uses same-origin (Vite dev proxy in development). */
@@ -15,7 +15,17 @@ export function getLandscapeServiceUrl(): string {
   return configured.replace(/\/$/, '');
 }
 
+/** Base URL for trace API. Empty string uses same-origin (Vite dev proxy in development). */
+export function getTraceServiceUrl(): string {
+  const configured = import.meta.env.VITE_TRACE_SERV_URL as string | undefined;
+  if (configured === undefined || configured === '') {
+    return '';
+  }
+  return configured.replace(/\/$/, '');
+}
+
 const landscapeService = getLandscapeServiceUrl();
+const traceService = getTraceServiceUrl();
 
 // Helper functions to convert between nanoseconds and milliseconds
 // The backend now uses nanoseconds, but frontend Date objects use milliseconds
@@ -77,13 +87,13 @@ export function requestDynamicData(
   exactTimestamp: number,
   toTimestamp: number
 ) {
-  return new Promise<AggregatedBuildingCommunication>((resolve, reject) => {
+  return new Promise<CommSummary>((resolve, reject) => {
     if (useLandscapeTokenStore.getState().token === null) {
       reject(new Error('No landscape token selected'));
       return;
     }
     fetch(
-      `${landscapeService}/v3/landscapes/${useLandscapeTokenStore.getState().token!.value}/file-communication?from=${fromTimestamp}&to=${toTimestamp}`,
+      `${traceService}/v3/landscapes/${useLandscapeTokenStore.getState().token!.value}/communication?from=${fromTimestamp}&to=${toTimestamp}`,
       {
         headers: {
           Authorization: `Bearer ${useAuthStore.getState().accessToken}`,
@@ -93,8 +103,7 @@ export function requestDynamicData(
     )
       .then(async (response: Response) => {
         if (response.ok) {
-          const dynamicData =
-            (await response.json()) as AggregatedBuildingCommunication;
+          const dynamicData = (await response.json()) as CommSummary;
           dynamicData.from = fromTimestamp;
           dynamicData.to = toTimestamp;
           resolve(dynamicData);
@@ -113,7 +122,7 @@ export function deleteTraceData(): Promise<void> {
       return;
     }
     fetch(
-      `${landscapeService}/v3/landscapes/${useLandscapeTokenStore.getState().token!.value}/trace-data`,
+      `${traceService}/v3/landscapes/${useLandscapeTokenStore.getState().token!.value}/trace-data`,
       {
         method: 'DELETE',
         headers: {
@@ -133,19 +142,28 @@ export function deleteTraceData(): Promise<void> {
       .catch((e) => reject(e));
   });
 }
+
+/**
+ * Requests detailed information about function calls for a specific entity communication.
+ * @param sourceEntityKey Telemetry lookup key of the source entity
+ * @param targetEntityKey Telemetry lookup key of the target entity
+ * @param fromTimestamp Only consider function calls starting from this Unix epoch nanosecond timestamp
+ * @param toTimestamp Only consider function calls starting before this Unix epoch nanosecond timestamp
+ * @returns A promise that resolves to an array of function call detail objects
+ */
 export function requestCommunicationFunctions(
-  sourceEntityId: string,
-  targetEntityId: string,
+  sourceEntityKey: string,
+  targetEntityKey: string,
   fromTimestamp: number,
   toTimestamp: number
 ) {
-  return new Promise<EntityPairCommunicationDto[]>((resolve, reject) => {
+  return new Promise<FunctionCall[]>((resolve, reject) => {
     if (useLandscapeTokenStore.getState().token === null) {
       reject(new Error('No landscape token selected'));
       return;
     }
     fetch(
-      `${landscapeService}/v3/landscapes/${useLandscapeTokenStore.getState().token!.value}/communication/${sourceEntityId}/${targetEntityId}?from=${fromTimestamp}&to=${toTimestamp}`,
+      `${traceService}/v3/landscapes/${useLandscapeTokenStore.getState().token!.value}/communication/${sourceEntityKey}/${targetEntityKey}?from=${fromTimestamp}&to=${toTimestamp}`,
       {
         headers: {
           Authorization: `Bearer ${useAuthStore.getState().accessToken}`,
@@ -155,7 +173,7 @@ export function requestCommunicationFunctions(
     )
       .then(async (response: Response) => {
         if (response.ok) {
-          const data = (await response.json()) as EntityPairCommunicationDto[];
+          const data = (await response.json()) as FunctionCall[];
           resolve(data);
         } else {
           reject();

@@ -132,9 +132,7 @@ export default function TokenSelection({
     });
 
     const trees = (await Promise.all(treePromises))
-      .filter(
-        (t): t is { repoName: string; tree: CommitTree } => t !== null
-      )
+      .filter((t): t is { repoName: string; tree: CommitTree } => t !== null)
       .map(({ repoName, tree }) => ({
         repoName,
         tree: normalizeCommitTree(tree, repoName),
@@ -160,7 +158,7 @@ export default function TokenSelection({
       `${landscapeService}/v3/landscapes/${token.value}/structure/runtime`
     );
     const dynamicPromise = getJsonBlob(
-      `${landscapeService}/v3/landscapes/${token.value}/file-communication`
+      `${landscapeService}/v3/landscapes/${token.value}/communication`
     );
     const timestampPromise = getJsonBlob(
       `${landscapeService}/v3/landscapes/${token.value}/timestamps`

@@ -1,8 +1,8 @@
 import { useCommunicationStore } from 'explorviz-frontend/src/stores/communication-store';
 import { useTimestampRepositoryStore } from 'explorviz-frontend/src/stores/repos/timestamp-repository';
 import { requestData } from 'explorviz-frontend/src/utils/landscape-http-request-util';
-import { AggregatedBuildingCommunication } from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/aggregated-file-communication';
-import { DynamicLandscapeData } from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/dynamic-data';
+import { CommSummary } from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/communication';
+import { DynamicLandscapeData } from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/trace';
 import { FlatLandscape } from 'explorviz-frontend/src/utils/landscape-schemes/flat-landscape';
 import {
   preProcessAndEnhanceStructureLandscape,
@@ -15,9 +15,7 @@ interface ReloadHandlerState {
   loadLandscapeByTimestamp: (
     timestampFrom: number,
     timestampTo?: number
-  ) => Promise<
-    [FlatLandscape, DynamicLandscapeData, AggregatedBuildingCommunication]
-  >;
+  ) => Promise<[FlatLandscape, DynamicLandscapeData, CommSummary]>;
   loadLandscapeByTimestampSnapshot: (
     structureData: StructureLandscapeData,
     dynamicData: DynamicLandscapeData
@@ -92,7 +90,7 @@ export const useReloadHandlerStore = create<ReloadHandlerState>((set, get) => ({
 
       if (structureDataPromise.status === 'fulfilled') {
         const flat: FlatLandscape = structureDataPromise.value;
-        const aggregatedCommunication: AggregatedBuildingCommunication =
+        const aggregatedCommunication: CommSummary =
           dynamicDataPromise.status === 'fulfilled'
             ? dynamicDataPromise.value
             : { metrics: {}, communications: [] };

@@ -1,23 +1,23 @@
 import {
-  AggregatedBuildingCommunication,
-  CommunicationDto,
-  MetricSummary,
-} from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/aggregated-file-communication';
+  Comm,
+  CommSummary,
+  MetricRange,
+} from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/communication';
 import { create } from 'zustand';
 
 interface CommunicationState {
-  metrics: { [key: string]: MetricSummary } | null;
-  communications: Map<string, CommunicationDto>;
+  communications: Map<string, Comm>;
+  metrics: { [key: string]: MetricRange } | null;
   setCommunications: (
-    aggregatedBuildingCommunication: AggregatedBuildingCommunication | null
+    aggregatedBuildingCommunication: CommSummary | null
   ) => void;
 }
 
 export const useCommunicationStore = create<CommunicationState>((set) => ({
-  metrics: null,
   communications: new Map(),
+  metrics: null,
   setCommunications: (allCommunications) => {
-    const communicationsMap = new Map<string, CommunicationDto>();
+    const communicationsMap = new Map<string, Comm>();
     allCommunications?.communications.forEach((comm) => {
       communicationsMap.set(comm.id, comm);
     });

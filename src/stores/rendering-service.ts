@@ -13,8 +13,8 @@ import { BuildingComparisonVisibility } from 'explorviz-frontend/src/utils/city-
 import { filterFlatLandscapeByBuildingComparisonVisibility } from 'explorviz-frontend/src/utils/city-rendering/flat-landscape-filter';
 import { areArraysEqual } from 'explorviz-frontend/src/utils/helpers/array-helpers';
 import { combineDynamicLandscapeData } from 'explorviz-frontend/src/utils/landscape-dynamic-helpers';
-import { AggregatedBuildingCommunication } from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/aggregated-file-communication';
-import { DynamicLandscapeData } from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/dynamic-data';
+import { CommSummary } from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/communication';
+import { DynamicLandscapeData } from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/trace';
 import {
   FlatLandscape,
   getAllIdsOfFlatLandscape,
@@ -54,7 +54,7 @@ interface RenderingServiceState {
   triggerRenderingForGivenLandscapeData: (
     flatData: FlatLandscape,
     dynamicData: DynamicLandscapeData,
-    aggregatedFileCommunication: AggregatedBuildingCommunication,
+    aggregatedFileCommunication: CommSummary,
     structureData?: StructureLandscapeData // TODO: Should be remove, when LandscapeData doesn't contain StructureLandscapeData anymore
   ) => void;
   triggerRenderingForSelectedCommits: () => Promise<void>;
@@ -76,7 +76,7 @@ interface RenderingServiceState {
   _requiresRerendering: (
     newFlatLandscape: FlatLandscape,
     newDynamicLandscapeData: DynamicLandscapeData,
-    newAggregatedCommunication: AggregatedBuildingCommunication
+    newAggregatedCommunication: CommSummary
   ) => boolean;
   _updateTimelineData: (
     commitToSelectedTimestampMap: Map<string, Timestamp[]>
@@ -193,7 +193,7 @@ export const useRenderingServiceStore = create<RenderingServiceState>(
     triggerRenderingForGivenLandscapeData: (
       flatData: FlatLandscape,
       dynamicData: DynamicLandscapeData,
-      aggregatedFileCommunication: AggregatedBuildingCommunication
+      aggregatedFileCommunication: CommSummary
     ) => {
       set({
         _landscapeData: {
@@ -393,7 +393,7 @@ export const useRenderingServiceStore = create<RenderingServiceState>(
     _requiresRerendering: (
       newFlatLandscapeData: FlatLandscape,
       newDynamicLandscapeData: DynamicLandscapeData,
-      newAggregatedCommunication: AggregatedBuildingCommunication
+      newAggregatedCommunication: CommSummary
     ) => {
       let requiresRerendering = false;
       const latestFlatLandscapeIds =

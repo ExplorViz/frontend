@@ -14,6 +14,7 @@ type FlatBaseModel = {
   id: string;
   name: string;
   fqn?: string;
+  telemetryKey?: string; // Lookup key to request telemetry data for this entity
   originOfData?: TypeOfAnalysis;
   commitComparison?: CommitComparison; // For two selected commits
   editingState?: 'added' | 'removed'; // Reflect changes from restructuring

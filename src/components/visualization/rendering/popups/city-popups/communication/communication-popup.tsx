@@ -1,7 +1,7 @@
 import PopupData from 'explorviz-frontend/src/components/visualization/rendering/popups/popup-data';
 import { requestCommunicationFunctions } from 'explorviz-frontend/src/utils/landscape-http-request-util';
 import AggregatedCommunication from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/aggregated-communication';
-import { EntityPairCommunicationDto } from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/entity-pair-communication';
+import { FunctionCall } from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/function-call';
 import { pingByModelId } from 'explorviz-frontend/src/view-objects/3d/city/animated-ping-r3f';
 import React, { useEffect, useState } from 'react';
 import { Spinner, Tab, Table, Tabs } from 'react-bootstrap';
@@ -18,9 +18,9 @@ export default function CommunicationPopup({
   const communication = popupData.entity as AggregatedCommunication;
 
   const [activeTab, setActiveTab] = useState<string>('general');
-  const [functionsData, setFunctionsData] = useState<
-    EntityPairCommunicationDto[] | null
-  >(null);
+  const [functionsData, setFunctionsData] = useState<FunctionCall[] | null>(
+    null
+  );
   const [isLoading, setIsLoading] = useState<boolean>(false);
 
   useEffect(() => {
@@ -31,9 +31,19 @@ export default function CommunicationPopup({
       communication.to
     ) {
       setIsLoading(true);
+
+      const srcKey = communication.sourceEntity.telemetryKey;
+      const tgtKey = communication.targetEntity.telemetryKey;
+
+      if (!srcKey || !tgtKey) {
+        setIsLoading(false);
+        setFunctionsData(null);
+        return;
+      }
+
       requestCommunicationFunctions(
-        communication.sourceEntity.id,
-        communication.targetEntity.id,
+        srcKey,
+        tgtKey,
         communication.from,
         communication.to
       )
@@ -158,35 +168,33 @@ export default function CommunicationPopup({
             </tr>
           </thead>
           <tbody>
-            {functionsData.map((pair) => (
-              <React.Fragment
-                key={`${pair.sourceEntityId}-${pair.targetEntityId}`}
-              >
+            {functionsData.map((func) => (
+              <React.Fragment key={func.id}>
                 {functionsData.length > 1 && (
                   <tr className="bg-light">
                     <td
                       colSpan={3}
                       className="font-weight-bold text-muted small"
                     >
-                      {pair.sourceEntityName} &rarr; {pair.targetEntityName}
+                      {communication.sourceEntity.name} &rarr;{' '}
+                      {communication.targetEntity.name}
                     </td>
                   </tr>
                 )}
-                {pair.functions.map((func) => (
-                  <tr key={func.id}>
-                    <td>
-                      <div
-                        className="text-truncate"
-                        style={{ maxWidth: '200px' }}
-                        title={func.name}
-                      >
-                        {func.name}
-                      </div>
-                    </td>
-                    <td className="text-center">{func.requestCount}</td>
-                    <td className="text-center">{func.executionTime}</td>
-                  </tr>
-                ))}
+
+                <tr key={func.id}>
+                  <td>
+                    <div
+                      className="text-truncate"
+                      style={{ maxWidth: '200px' }}
+                      title={func.name}
+                    >
+                      {func.name}
+                    </div>
+                  </td>
+                  <td className="text-center">{func.callCount}</td>
+                  <td className="text-center">{func.executionTime}</td>
+                </tr>
               </React.Fragment>
             ))}
           </tbody>
