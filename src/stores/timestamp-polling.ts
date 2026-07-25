@@ -27,7 +27,10 @@ export const TIMESTAMP_POLLING_START_EVENT = 'timestamp_polling_start';
 interface TimestampPollingState {
   timer: NodeJS.Timeout | null;
   currentCommits: SelectedCommit[] | null;
+
+  /** Granularity of timestamps in milliseconds */
   bucketSize: number;
+
   newestCommitAutoSelectedForLandscapeToken: string | null;
   currentCallback:
     | ((commitToTimestampMap: Map<string, Timestamp[]>) => void)

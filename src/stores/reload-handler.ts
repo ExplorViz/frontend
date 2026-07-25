@@ -10,6 +10,7 @@ import {
   TypeOfAnalysis,
 } from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
 import { create } from 'zustand';
+import { useTimestampPollingStore } from './timestamp-polling';
 
 interface ReloadHandlerState {
   loadLandscapeByTimestamp: (
@@ -38,12 +39,12 @@ export const useReloadHandlerStore = create<ReloadHandlerState>((set, get) => ({
     timestampFrom: number,
     timestampTo?: number
   ) => {
-    const intervalInSeconds = 10;
-    const NANOSECONDS_PER_SECOND = 1_000_000_000;
+    const bucketSizeMs = useTimestampPollingStore.getState().bucketSize;
+    const NANOSECONDS_PER_MILLISECOND = 1_000_000;
 
     let start = 0;
     const exact = timestampFrom;
-    let end = exact + intervalInSeconds * NANOSECONDS_PER_SECOND;
+    let end = exact + bucketSizeMs * NANOSECONDS_PER_MILLISECOND;
 
     try {
       const getTimestampsForCommitId =

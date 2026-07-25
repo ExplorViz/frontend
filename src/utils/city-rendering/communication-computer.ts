@@ -85,6 +85,11 @@ export function computeAggregatedCommunication(allCommunications: Comm[]) {
         existing.isBidirectional || comm.isBidirectional;
       existing.isRecursive =
         existing.isRecursive || effSourceId === effTargetId;
+      existing.fromUnixNano = Math.min(
+        existing.fromUnixNano,
+        comm.fromUnixNano
+      );
+      existing.toUnixNano = Math.max(existing.toUnixNano, comm.toUnixNano);
     } else {
       const sourceEntity = useModelStore.getState().getModel(effSourceId);
       const targetEntity = useModelStore.getState().getModel(effTargetId);
@@ -101,6 +106,8 @@ export function computeAggregatedCommunication(allCommunications: Comm[]) {
         comm.id,
         sourceEntity,
         targetEntity,
+        comm.fromUnixNano,
+        comm.toUnixNano,
         [comm.id],
         [comm.id]
       );

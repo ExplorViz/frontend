@@ -27,8 +27,8 @@ export default function CommunicationPopup({
     if (
       activeTab === 'functions' &&
       !functionsData &&
-      communication.from &&
-      communication.to
+      communication.fromUnixNano &&
+      communication.toUnixNano
     ) {
       setIsLoading(true);
 
@@ -44,8 +44,8 @@ export default function CommunicationPopup({
       requestCommunicationFunctions(
         srcKey,
         tgtKey,
-        communication.from,
-        communication.to
+        communication.fromUnixNano,
+        communication.toUnixNano
       )
         .then((data) => {
           setFunctionsData(data);

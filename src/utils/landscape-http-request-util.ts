@@ -44,7 +44,7 @@ export async function requestData(
   exactTime: number,
   endTime: number
 ) {
-  const structureDataPromise = requestStructureData(/* startTime, endTime */);
+  const structureDataPromise = requestStructureData();
   const dynamicDataPromise = requestDynamicData(startTime, exactTime, endTime);
 
   const landscapeData = Promise.allSettled([
@@ -104,8 +104,8 @@ export function requestDynamicData(
       .then(async (response: Response) => {
         if (response.ok) {
           const dynamicData = (await response.json()) as CommSummary;
-          dynamicData.from = fromTimestamp;
-          dynamicData.to = toTimestamp;
+          dynamicData.fromUnixNano = fromTimestamp;
+          dynamicData.toUnixNano = toTimestamp;
           resolve(dynamicData);
         } else {
           reject();

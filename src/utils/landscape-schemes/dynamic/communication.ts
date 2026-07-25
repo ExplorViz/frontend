@@ -14,6 +14,8 @@ export interface Comm {
   sourceEntityKey: string; // Telemetry lookup key of the source entity
   targetEntityKey: string; // Telemetry lookup key of the target entity
   isBidirectional: boolean;
+  fromUnixNano: number;
+  toUnixNano: number;
   metrics: Record<string, number>;
 }
 
@@ -28,6 +30,6 @@ export interface CommSummary {
    */
   metrics: Record<string, MetricRange>;
 
-  from?: number;
-  to?: number;
+  fromUnixNano?: number;
+  toUnixNano?: number;
 }
