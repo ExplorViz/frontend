@@ -24,9 +24,9 @@ export default class AggregatedCommunication {
 
   originalCommIds: string[] = [];
 
-  fromUnixNano: number;
+  fromUnixNano: bigint;
 
-  toUnixNano: number;
+  toUnixNano: bigint;
 
   sourceCity?: any;
 
@@ -49,8 +49,8 @@ export default class AggregatedCommunication {
     id: string,
     sourceEntity: District | Building,
     targetEntity: District | Building,
-    fromUnixNano: number,
-    toUnixNano: number,
+    fromUnixNano: bigint,
+    toUnixNano: bigint,
     buildingCommunicationIds: string[] = [],
     originalCommIds: string[] = []
   ) {

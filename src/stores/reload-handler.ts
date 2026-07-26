@@ -14,8 +14,8 @@ import { useTimestampPollingStore } from './timestamp-polling';
 
 interface ReloadHandlerState {
   loadLandscapeByTimestamp: (
-    timestampFrom: number,
-    timestampTo?: number
+    timestampFrom: bigint,
+    timestampTo?: bigint
   ) => Promise<[FlatLandscape, DynamicLandscapeData, CommSummary]>;
   loadLandscapeByTimestampSnapshot: (
     structureData: StructureLandscapeData,
@@ -36,13 +36,13 @@ export const useReloadHandlerStore = create<ReloadHandlerState>((set, get) => ({
    * @param {*} timestamp
    */
   loadLandscapeByTimestamp: async (
-    timestampFrom: number,
-    timestampTo?: number
+    timestampFrom: bigint,
+    timestampTo?: bigint
   ) => {
-    const bucketSizeMs = useTimestampPollingStore.getState().bucketSize;
-    const NANOSECONDS_PER_MILLISECOND = 1_000_000;
+    const bucketSizeMs = BigInt(useTimestampPollingStore.getState().bucketSize);
+    const NANOSECONDS_PER_MILLISECOND = 1_000_000n;
 
-    let start = 0;
+    let start = 0n;
     const exact = timestampFrom;
     let end = exact + bucketSizeMs * NANOSECONDS_PER_MILLISECOND;
 
@@ -62,7 +62,7 @@ export const useReloadHandlerStore = create<ReloadHandlerState>((set, get) => ({
 
       const tenSecondBucketEpochNano =
         timestampIndex1 === -1
-          ? 0
+          ? 0n
           : listOfAllTimestamps[timestampIndex1].epochNano;
 
       start = tenSecondBucketEpochNano;
@@ -85,26 +85,33 @@ export const useReloadHandlerStore = create<ReloadHandlerState>((set, get) => ({
     try {
       const [structureDataPromise, dynamicDataPromise] = await requestData(
         start,
-        exact,
         timestampTo ?? end
       );
 
-      if (structureDataPromise.status === 'fulfilled') {
-        const flat: FlatLandscape = structureDataPromise.value;
-        const aggregatedCommunication: CommSummary =
-          dynamicDataPromise.status === 'fulfilled'
-            ? dynamicDataPromise.value
-            : { metrics: {}, communications: [] };
-
-        useCommunicationStore
-          .getState()
-          .setCommunications(aggregatedCommunication);
-
-        return [flat, [], aggregatedCommunication];
+      if (structureDataPromise.status !== 'fulfilled') {
+        throw Error('No structure data available.', {
+          cause: structureDataPromise.reason,
+        });
       }
-      throw Error('No data available.');
+
+      const flat: FlatLandscape = structureDataPromise.value;
+      const aggregatedCommunication: CommSummary =
+        dynamicDataPromise.status === 'fulfilled'
+          ? dynamicDataPromise.value
+          : {
+              metrics: {},
+              communications: [],
+              fromUnixNano: BigInt(0),
+              toUnixNano: BigInt(0),
+            };
+
+      useCommunicationStore
+        .getState()
+        .setCommunications(aggregatedCommunication);
+
+      return [flat, [], aggregatedCommunication];
     } catch (e: any) {
-      throw Error(e);
+      throw Error('Failed to request landscape data', { cause: e });
     }
   },
 
@@ -114,7 +121,7 @@ export const useReloadHandlerStore = create<ReloadHandlerState>((set, get) => ({
   ) => {
     const structure = preProcessAndEnhanceStructureLandscape(
       structureData,
-      TypeOfAnalysis.Dynamic
+      TypeOfAnalysis.Runtime
     );
     const dynamic = dynamicData;
 

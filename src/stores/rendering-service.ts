@@ -62,7 +62,7 @@ interface RenderingServiceState {
   _applyEvolutionLayoutFilter: (flatLandscape: FlatLandscape) => FlatLandscape;
   _mapTimestampsToEpochs: (
     commitToSelectedTimestampMap: Map<string, Timestamp[]>
-  ) => Map<string, number[]>;
+  ) => Map<string, bigint[]>;
   _fetchRuntimeLandscapeData: (
     commitToSelectedTimestampMap: Map<string, Timestamp[]>
   ) => Promise<Map<string, LandscapeData>>;
@@ -139,7 +139,12 @@ export const useRenderingServiceStore = create<RenderingServiceState>(
         let combinedRuntimeLandscapeData: LandscapeData = {
           structureLandscapeData: createEmptyStructureLandscapeData(),
           dynamicLandscapeData: [],
-          aggregatedFileCommunication: { metrics: {}, communications: [] },
+          aggregatedFileCommunication: {
+            metrics: {},
+            communications: [],
+            fromUnixNano: BigInt(0),
+            toUnixNano: BigInt(0),
+          },
           flatLandscapeData: {} as FlatLandscape,
         };
 
@@ -259,6 +264,8 @@ export const useRenderingServiceStore = create<RenderingServiceState>(
         get()._landscapeData?.aggregatedFileCommunication ?? {
           metrics: {},
           communications: [],
+          fromUnixNano: BigInt(0),
+          toUnixNano: BigInt(0),
         }
       );
     },
@@ -291,8 +298,8 @@ export const useRenderingServiceStore = create<RenderingServiceState>(
     // private
     _mapTimestampsToEpochs: (
       commitToSelectedTimestampMap: Map<string, Timestamp[]>
-    ): Map<string, number[]> => {
-      const commitToSelectedEpochMap: Map<string, number[]> = new Map();
+    ): Map<string, bigint[]> => {
+      const commitToSelectedEpochMap: Map<string, bigint[]> = new Map();
       for (const [
         commitId,
         selectedTimestampsForACommit,
@@ -325,9 +332,10 @@ export const useRenderingServiceStore = create<RenderingServiceState>(
           }
         }
 
-        const sortedTimestamps = [...timestampsToFetch].sort(
-          (a, b) => a.epochNano - b.epochNano
-        );
+        const sortedTimestamps = [...timestampsToFetch].sort((a, b) => {
+          const diff = a.epochNano - b.epochNano;
+          return diff > 0n ? 1 : diff < 0n ? -1 : 0;
+        });
 
         const timestampFrom = sortedTimestamps[0].epochNano;
         let timestampTo = undefined;
@@ -530,7 +538,7 @@ export const useRenderingServiceStore = create<RenderingServiceState>(
         get().triggerRenderingForGivenLandscapeData(
           get()._applyEvolutionLayoutFilter(selectedFlatLandscape),
           combinedDynamicLandscapeData,
-          { metrics: {}, communications: [] } // Default for evolution mode for now
+          { metrics: {}, communications: [], fromUnixNano: 0n, toUnixNano: 0n } // Default for evolution mode for now
         );
       }
 

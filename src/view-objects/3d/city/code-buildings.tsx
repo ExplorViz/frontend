@@ -412,8 +412,7 @@ const GeometryGroup: React.FC<GeometryGroupProps> = ({
     }
 
     const layoutsReady =
-      buildingIds.length === 0 ||
-      buildingIds.every((id) => layoutMap.has(id));
+      buildingIds.length === 0 || buildingIds.every((id) => layoutMap.has(id));
 
     if (!layoutsReady) {
       return;
@@ -532,11 +531,11 @@ const GeometryGroup: React.FC<GeometryGroupProps> = ({
 
         if (
           building.originOfData === TypeOfAnalysis.Static ||
-          building.originOfData === TypeOfAnalysis.StaticAndDynamic
+          building.originOfData === TypeOfAnalysis.StaticAndRuntime
         ) {
           return evoConfig.renderStatic;
         }
-        if (building.originOfData === TypeOfAnalysis.Dynamic) {
+        if (building.originOfData === TypeOfAnalysis.Runtime) {
           return evoConfig.renderDynamic;
         }
         return true;
@@ -732,7 +731,7 @@ const GeometryGroup: React.FC<GeometryGroupProps> = ({
       );
     } else if (
       building.originOfData === TypeOfAnalysis.Static ||
-      building.originOfData === TypeOfAnalysis.StaticAndDynamic
+      building.originOfData === TypeOfAnalysis.StaticAndRuntime
     ) {
       requestFileDetailedData(
         buildingId,

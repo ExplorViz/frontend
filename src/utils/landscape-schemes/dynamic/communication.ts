@@ -11,11 +11,21 @@ export interface MetricRange {
  */
 export interface Comm {
   id: string;
-  sourceEntityKey: string; // Telemetry lookup key of the source entity
-  targetEntityKey: string; // Telemetry lookup key of the target entity
+
+  /** Telemetry lookup key of the source entity */
+  sourceEntityKey: string;
+
+  /** Telemetry lookup key of the target entity */
+  targetEntityKey: string;
+
   isBidirectional: boolean;
-  fromUnixNano: number;
-  toUnixNano: number;
+
+  /** Earliest nanosecond Unix epoch timestamp where communication between the entities occurs */
+  fromUnixNano: bigint;
+
+  /** Latest nanosecond Unix epoch timestamp where communication between the entities occurs */
+  toUnixNano: bigint;
+
   metrics: Record<string, number>;
 }
 
@@ -25,11 +35,45 @@ export interface Comm {
 export interface CommSummary {
   communications: Comm[];
 
+  fromUnixNano: bigint;
+  toUnixNano: bigint;
+
   /**
    * Minimum and maximum value of metrics across all communications within this summary
    */
   metrics: Record<string, MetricRange>;
+}
 
-  fromUnixNano?: number;
-  toUnixNano?: number;
+export function isMetricRange(x: any): x is MetricRange {
+  return isObject(x) && typeof x.min === 'number' && typeof x.max === 'number';
+}
+
+export function isComm(x: any): x is Comm {
+  return (
+    isObject(x) &&
+    typeof x.id === 'string' &&
+    typeof x.sourceEntityKey === 'string' &&
+    typeof x.targetEntityKey === 'string' &&
+    typeof x.isBidirectional === 'boolean' &&
+    typeof x.fromUnixNano === 'bigint' &&
+    typeof x.toUnixNano === 'bigint' &&
+    isObject(x.metrics) &&
+    Object.values(x.metrics).every((v) => typeof v === 'number')
+  );
+}
+
+export function isCommSummary(x: any): x is CommSummary {
+  return (
+    isObject(x) &&
+    Array.isArray(x.communications) &&
+    x.communications.every(isComm) &&
+    typeof x.fromUnixNano === 'bigint' &&
+    typeof x.toUnixNano === 'bigint' &&
+    isObject(x.metrics) &&
+    Object.values(x.metrics).every(isMetricRange)
+  );
+}
+
+function isObject(x: any): x is Record<string, unknown> {
+  return typeof x === 'object' && x !== null;
 }

@@ -1,7 +1,7 @@
 /**
- * A FunctionCall gives detailed information about communication representing a function execution.
+ * A CommFunction gives detailed information about communication representing an executed function.
  */
-export interface FunctionCall {
+export interface CommFunction {
   id: string;
   name: string;
 
@@ -21,4 +21,16 @@ export interface FunctionCall {
    * Sum of durations for all calls of this function
    */
   executionTime: number;
+}
+
+export function isCommFunction(x: any): x is CommFunction {
+  return (
+    typeof x === 'object' &&
+    x !== null &&
+    typeof x.id === 'string' &&
+    typeof x.name === 'string' &&
+    typeof x.isForward === 'boolean' &&
+    typeof x.callCount === 'number' &&
+    typeof x.executionTime === 'number'
+  );
 }
