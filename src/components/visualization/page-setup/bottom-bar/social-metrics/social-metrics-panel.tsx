@@ -2,6 +2,7 @@ import { useSocialMetricsStore } from 'explorviz-frontend/src/stores/social-metr
 import ContributorSelection from 'explorviz-frontend/src/components/visualization/page-setup/bottom-bar/social-metrics/contributor-selection';
 import NormalizationSelection from 'explorviz-frontend/src/components/visualization/page-setup/bottom-bar/social-metrics/normalization-selection';
 import MetricNotes from 'explorviz-frontend/src/components/visualization/page-setup/bottom-bar/social-metrics/metric-notes';
+import MetricShortcuts from 'explorviz-frontend/src/components/visualization/page-setup/bottom-bar/social-metrics/metric-shortcuts';
 import TimeRangeSelection from 'explorviz-frontend/src/components/visualization/page-setup/bottom-bar/social-metrics/timeframe-selection';
 import { useRef, useEffect } from 'react';
 import { useShallow } from 'zustand/react/shallow';
@@ -39,6 +40,7 @@ export default function SocialMetricsPanel() {
         <ContributorSelection />
         <NormalizationSelection />
         <TimeRangeSelection />
+        <MetricShortcuts />
       </div>
       <MetricNotes />
     </div>

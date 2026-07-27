@@ -16,6 +16,7 @@ const PRESETS = [
 
 const toISO   = (epochMs: number) => new Date(epochMs).toISOString().slice(0, 10);
 const fromISO = (str: string)     => Date.parse(str);
+const fromISOEnd = (str: string ) => Date.parse(str) + DAY - 1; // stretch to end of day
 
 export default function TimeRangeSelection() {
   const { availableTimeRange, selectedTimeRange, setSelectedTimeRange } =
@@ -62,7 +63,7 @@ export default function TimeRangeSelection() {
          max={toISO(availableTimeRange.to)}
          value={toISO(selectedTimeRange?.to ?? availableTimeRange.to)}
          onChange={(e) => setSelectedTimeRange(
-            { from: selectedTimeRange?.from ?? availableTimeRange.from, to: fromISO(e.target.value) })}
+            { from: selectedTimeRange?.from ?? availableTimeRange.from, to:fromISOEnd(e.target.value) })}
          />
       </div>
       <div className="social-metrics-note text-muted small py-2">

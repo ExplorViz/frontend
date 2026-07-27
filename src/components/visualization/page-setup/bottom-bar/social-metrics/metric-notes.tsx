@@ -54,7 +54,7 @@ export const METRIC_NOTES: Partial<Record<BuildingMetricIds, MetricNote>> = {
     contributorSelection: 'no',
     timeSelection: 'no',
     normalization: 'yes',
-    note: 'BugDensity: Contributor selection does not apply.'
+    note: 'IssueActivity: Contributor selection does not apply.'
   },
 }
 

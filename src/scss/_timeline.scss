@@ -418,7 +418,7 @@
 
 .social-metrics-selection-row {
   display: grid;
-  grid-template-columns: 2fr 1fr 1fr;
+grid-template-columns: 2fr 1fr 1fr auto;
   gap: 1rem;
   align-items: stretch;
   width: 75%;
@@ -459,4 +459,11 @@
 .social-metrics-preset-group    {
   display: flex;
   gap: 0.35rem;
+}
+
+.social-metrics-shortcut-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  width: 100%;
 }
