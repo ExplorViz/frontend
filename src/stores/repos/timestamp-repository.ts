@@ -8,12 +8,12 @@ import TimelineDataObjectHandler from 'explorviz-frontend/src/utils/timeline/tim
 import { create } from 'zustand';
 
 interface TimestampRepositoryState {
-  commitToTimestampMap: Map<string, Map<number, Timestamp>>;
-  timestampsForDebugSnapshots: Map<number, Timestamp>;
+  commitToTimestampMap: Map<string, Map<bigint, Timestamp>>;
+  timestampsForDebugSnapshots: Map<bigint, Timestamp>;
   _timelineDataObjectHandler: TimelineDataObjectHandler | null;
   addCommitToTimestamp: (
     commitId: string,
-    timestamps: Map<number, Timestamp>
+    timestamps: Map<bigint, Timestamp>
   ) => void;
   restartTimestampPollingAndVizUpdate: (commits: SelectedCommit[]) => void;
   stopTimestampPolling: () => void;
@@ -23,7 +23,7 @@ interface TimestampRepositoryState {
   ) => void;
   getNextTimestampOrLatest: (
     commitId: string,
-    epochNano?: number
+    epochNano?: bigint
   ) => Timestamp | undefined;
   getLatestTimestamp: (commitId: string) => Timestamp | undefined;
   getLatestDebugSnapshotTimestamp: () => Timestamp | undefined;
@@ -133,7 +133,7 @@ export const useTimestampRepositoryStore = create<TimestampRepositoryState>(
       }
     },
 
-    getNextTimestampOrLatest: (commitId: string, epochNano?: number) => {
+    getNextTimestampOrLatest: (commitId: string, epochNano?: bigint) => {
       const timestampsForCommit = get().commitToTimestampMap.get(commitId);
       if (!timestampsForCommit) return undefined;
 
@@ -181,7 +181,10 @@ export const useTimestampRepositoryStore = create<TimestampRepositoryState>(
         return [
           ...timestampsForCommitId.values(),
           ...timestampsForDebugSnapshots,
-        ].sort((a, b) => a.epochNano - b.epochNano);
+        ].sort((a, b) => {
+          const diff = a.epochNano - b.epochNano;
+          return diff > 0n ? 1 : diff < 0n ? -1 : 0;
+        });
       } else if (
         !timestampsForCommitId &&
         includeTimestampsFromDebugSnapshots
@@ -228,7 +231,7 @@ export const useTimestampRepositoryStore = create<TimestampRepositoryState>(
     addTimestamp: (commitId: string, timestamp: Timestamp) => {
       const timestamps =
         get().commitToTimestampMap.get(commitId) ??
-        new Map<number, Timestamp>();
+        new Map<bigint, Timestamp>();
 
       timestamps.set(timestamp.epochNano, timestamp);
       get().addCommitToTimestamp(commitId, timestamps);
@@ -252,7 +255,7 @@ export const useTimestampRepositoryStore = create<TimestampRepositoryState>(
 
 function addCommitToTimestamp(
   commitId: string,
-  timestamps: Map<number, Timestamp>
+  timestamps: Map<bigint, Timestamp>
 ) {
   useTimestampRepositoryStore.setState((prev) => ({
     commitToTimestampMap: new Map(prev.commitToTimestampMap).set(

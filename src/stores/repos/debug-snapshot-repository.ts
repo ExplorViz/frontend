@@ -6,7 +6,7 @@ export type DebugSnapshot = {
 };
 
 interface DebugSnapshotRepositoryState {
-  landscapeTokenToDebugSnapshotMap: Map<string, Map<number, DebugSnapshot>>; // landscapeToken -> (timestamp.epochMilli -> DebugSnapshot)
+  landscapeTokenToDebugSnapshotMap: Map<string, Map<bigint, DebugSnapshot>>; // landscapeToken -> (timestamp.epochMilli -> DebugSnapshot)
 
   saveDebugSnapshots: (
     landscapeToken: string,
@@ -24,7 +24,7 @@ interface DebugSnapshotRepositoryState {
 
   getDebugSnapshotByLandscapeTokenAndTimestamp: (
     landscapeToken: string,
-    timestamp: number
+    timestamp: bigint
   ) => DebugSnapshot | undefined;
 }
 
@@ -46,7 +46,7 @@ export const useDebugSnapshotRepositoryStore =
     ) => {
       const outerMap = get().landscapeTokenToDebugSnapshotMap;
       const snapshots =
-        outerMap.get(landscapeToken) ?? new Map<number, DebugSnapshot>();
+        outerMap.get(landscapeToken) ?? new Map<bigint, DebugSnapshot>();
 
       snapshots.set(debugSnapshot.timestamp.epochNano, debugSnapshot);
       outerMap.set(landscapeToken, snapshots);
@@ -60,7 +60,7 @@ export const useDebugSnapshotRepositoryStore =
 
     getDebugSnapshotByLandscapeTokenAndTimestamp: (
       landscapeToken: string,
-      epochNano: number
+      epochNano: bigint
     ) => {
       return get()
         .landscapeTokenToDebugSnapshotMap.get(landscapeToken)

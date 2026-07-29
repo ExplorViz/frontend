@@ -1,7 +1,9 @@
 import PopupData from 'explorviz-frontend/src/components/visualization/rendering/popups/popup-data';
+import { useCommunicationStore } from 'explorviz-frontend/src/stores/communication-store';
 import { requestCommunicationFunctions } from 'explorviz-frontend/src/utils/landscape-http-request-util';
 import AggregatedCommunication from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/aggregated-communication';
-import { EntityPairCommunicationDto } from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/entity-pair-communication';
+import { Comm } from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/communication';
+import { CommFunction } from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/function-call';
 import { pingByModelId } from 'explorviz-frontend/src/view-objects/3d/city/animated-ping-r3f';
 import React, { useEffect, useState } from 'react';
 import { Spinner, Tab, Table, Tabs } from 'react-bootstrap';
@@ -18,31 +20,59 @@ export default function CommunicationPopup({
   const communication = popupData.entity as AggregatedCommunication;
 
   const [activeTab, setActiveTab] = useState<string>('general');
-  const [functionsData, setFunctionsData] = useState<
-    EntityPairCommunicationDto[] | null
-  >(null);
+  const [functionsData, setFunctionsData] = useState<CommFunction[] | null>(
+    null
+  );
   const [isLoading, setIsLoading] = useState<boolean>(false);
 
   useEffect(() => {
     if (
       activeTab === 'functions' &&
       !functionsData &&
-      communication.from &&
-      communication.to
+      communication.fromUnixNano &&
+      communication.toUnixNano
     ) {
       setIsLoading(true);
-      requestCommunicationFunctions(
-        communication.sourceEntity.id,
-        communication.targetEntity.id,
-        communication.from,
-        communication.to
-      )
-        .then((data) => {
-          setFunctionsData(data);
+
+      const allComms = useCommunicationStore.getState().communications;
+      const buildingComms = communication.buildingCommunicationIds.reduce(
+        (res, key) => {
+          const comm = allComms.get(key);
+          if (comm) {
+            res.push(comm);
+          }
+          return res;
+        },
+        [] as Comm[]
+      );
+
+      const proms: Promise<CommFunction[]>[] = [];
+      for (const buildingComm of buildingComms) {
+        const srcKey = buildingComm.sourceEntityKey;
+        const tgtKey = buildingComm.targetEntityKey;
+
+        if (!srcKey || !tgtKey) {
+          continue;
+        }
+
+        proms.push(
+          requestCommunicationFunctions(
+            srcKey,
+            tgtKey,
+            communication.fromUnixNano,
+            communication.toUnixNano
+          )
+        );
+      }
+
+      Promise.allSettled(proms)
+        .then((res) => {
+          const funcsData = res
+            .filter((p) => p.status === 'fulfilled')
+            .flatMap((p) => p.value);
+          setFunctionsData(funcsData.length > 0 ? funcsData : null);
         })
-        .finally(() => {
-          setIsLoading(false);
-        });
+        .finally(() => setIsLoading(false));
     }
   }, [activeTab, communication, functionsData]);
 
@@ -158,35 +188,33 @@ export default function CommunicationPopup({
             </tr>
           </thead>
           <tbody>
-            {functionsData.map((pair) => (
-              <React.Fragment
-                key={`${pair.sourceEntityId}-${pair.targetEntityId}`}
-              >
+            {functionsData.map((func) => (
+              <React.Fragment key={func.id}>
                 {functionsData.length > 1 && (
                   <tr className="bg-light">
                     <td
                       colSpan={3}
                       className="font-weight-bold text-muted small"
                     >
-                      {pair.sourceEntityName} &rarr; {pair.targetEntityName}
+                      {communication.sourceEntity.name} &rarr;{' '}
+                      {communication.targetEntity.name}
                     </td>
                   </tr>
                 )}
-                {pair.functions.map((func) => (
-                  <tr key={func.id}>
-                    <td>
-                      <div
-                        className="text-truncate"
-                        style={{ maxWidth: '200px' }}
-                        title={func.name}
-                      >
-                        {func.name}
-                      </div>
-                    </td>
-                    <td className="text-center">{func.requestCount}</td>
-                    <td className="text-center">{func.executionTime}</td>
-                  </tr>
-                ))}
+
+                <tr key={func.id}>
+                  <td>
+                    <div
+                      className="text-truncate"
+                      style={{ maxWidth: '200px' }}
+                      title={func.name}
+                    >
+                      {func.name}
+                    </div>
+                  </td>
+                  <td className="text-center">{func.callCount}</td>
+                  <td className="text-center">{func.executionTime}</td>
+                </tr>
               </React.Fragment>
             ))}
           </tbody>

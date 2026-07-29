@@ -1,5 +1,5 @@
-import { AggregatedBuildingCommunication } from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/aggregated-file-communication';
-import { DynamicLandscapeData } from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/dynamic-data';
+import { CommSummary } from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/communication';
+import { DynamicLandscapeData } from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/trace';
 import { StructureLandscapeData } from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
 
 import { FlatLandscape } from 'explorviz-frontend/src/utils/landscape-schemes/flat-landscape';
@@ -7,6 +7,6 @@ import { FlatLandscape } from 'explorviz-frontend/src/utils/landscape-schemes/fl
 export interface LandscapeData {
   structureLandscapeData?: StructureLandscapeData;
   dynamicLandscapeData: DynamicLandscapeData;
-  aggregatedFileCommunication: AggregatedBuildingCommunication;
+  aggregatedFileCommunication: CommSummary;
   flatLandscapeData: FlatLandscape;
 }

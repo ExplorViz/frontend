@@ -9,3 +9,12 @@ export function objectsHaveSameKeys(obj1: object, obj2: object) {
     keysObj1.every((s) => Object.prototype.hasOwnProperty.call(obj2, s))
   );
 }
+
+export function isStringRecord(x: any): x is Record<string, any> {
+  return (
+    typeof x === 'object' &&
+    x !== null &&
+    !Array.isArray(x) &&
+    Object.getOwnPropertySymbols(x).length === 0
+  );
+}
