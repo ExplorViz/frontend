@@ -188,35 +188,40 @@ export default function CommunicationPopup({
             </tr>
           </thead>
           <tbody>
-            {functionsData.map((func) => (
-              <React.Fragment key={func.id}>
-                {functionsData.length > 1 && (
-                  <tr className="bg-light">
-                    <td
-                      colSpan={3}
-                      className="font-weight-bold text-muted small"
-                    >
-                      {communication.sourceEntity.name} &rarr;{' '}
-                      {communication.targetEntity.name}
-                    </td>
-                  </tr>
-                )}
+            {functionsData.map((func) => {
+              const [src, tgt] = func.isForward
+                ? [communication.sourceEntity, communication.targetEntity]
+                : [communication.targetEntity, communication.sourceEntity];
 
-                <tr key={func.id}>
-                  <td>
-                    <div
-                      className="text-truncate"
-                      style={{ maxWidth: '200px' }}
-                      title={func.name}
-                    >
-                      {func.name}
-                    </div>
-                  </td>
-                  <td className="text-center">{func.callCount}</td>
-                  <td className="text-center">{func.executionTime}</td>
-                </tr>
-              </React.Fragment>
-            ))}
+              return (
+                <React.Fragment key={func.id}>
+                  {functionsData.length > 1 && (
+                    <tr className="bg-light">
+                      <td
+                        colSpan={3}
+                        className="font-weight-bold text-muted small"
+                      >
+                        {src.name} &rarr; {tgt.name}
+                      </td>
+                    </tr>
+                  )}
+
+                  <tr key={func.id}>
+                    <td>
+                      <div
+                        className="text-truncate"
+                        style={{ maxWidth: '200px' }}
+                        title={func.name}
+                      >
+                        {func.name}
+                      </div>
+                    </td>
+                    <td className="text-center">{func.callCount}</td>
+                    <td className="text-center">{func.executionTime}</td>
+                  </tr>
+                </React.Fragment>
+              );
+            })}
           </tbody>
         </Table>
       ) : (
