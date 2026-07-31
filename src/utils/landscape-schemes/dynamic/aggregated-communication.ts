@@ -5,9 +5,9 @@ import {
 import isObject from 'explorviz-frontend/src/utils/object-helpers';
 
 /**
- * An AggregatedCommunication bundles communication originating from multiple entities into a single communication
- * originating from a container (e.g. district) in the hierarchy. This can be used to display communication
- * even when the container is currently collapsed.
+ * An AggregatedCommunication bundles communication originating from potentially multiple entities into a single communication.
+ * The resulting communication may be originating from a building, but also a container (e.g. district) in the hierarchy.
+ * This can be used to display communication even when the container is currently collapsed.
  */
 export default class AggregatedCommunication {
   id: string = '';
