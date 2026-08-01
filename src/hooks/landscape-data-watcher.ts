@@ -51,7 +51,7 @@ export default function useLandscapeDataWatcher(
     log('Compute building communication');
     const buildingCommunications = computeBuildingCommunication(
       flatLandscapeStructure,
-      aggregatedFileCommunication!
+      aggregatedFileCommunication
     );
 
     // TODO: Add data for IDE extension

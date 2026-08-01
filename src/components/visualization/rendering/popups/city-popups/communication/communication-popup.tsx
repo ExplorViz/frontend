@@ -1,5 +1,7 @@
 import PopupData from 'explorviz-frontend/src/components/visualization/rendering/popups/popup-data';
 import { useCommunicationStore } from 'explorviz-frontend/src/stores/communication-store';
+import { useModelStore } from 'explorviz-frontend/src/stores/repos/model-repository';
+import { findFirstEntityWithOpenedParent } from 'explorviz-frontend/src/utils/city-rendering/communication-layouter';
 import { requestCommunicationFunctions } from 'explorviz-frontend/src/utils/landscape-http-request-util';
 import AggregatedCommunication from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/aggregated-communication';
 import { Comm } from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/communication';
@@ -48,11 +50,45 @@ export default function CommunicationPopup({
 
       const proms: Promise<CommFunction[]>[] = [];
       for (const buildingComm of buildingComms) {
-        const srcKey = buildingComm.sourceEntityKey;
-        const tgtKey = buildingComm.targetEntityKey;
+        let srcKey = buildingComm.sourceEntityKey;
+        let tgtKey = buildingComm.targetEntityKey;
 
         if (!srcKey || !tgtKey) {
+          console.error(
+            'Building communication lacks source or target key',
+            communication
+          );
           continue;
+        }
+
+        if (communication.isBidirectional) {
+          // Bidirectional communication may be aggregated from two oppositely facing uni-directional communications.
+          // In this case, the source and target entity of the aggregated communication will be swapped compared to at least
+          // one of the underlying building communications. We then have to swap the source and target for the functions request
+          // to ensure the directionality of the returned function calls is correct relative to the aggregated communcation.
+          const telemetryKeyMap =
+            useModelStore.getState().telemetryKeyToEntityId;
+
+          const srcId = telemetryKeyMap.get(srcKey);
+          const tgtId = telemetryKeyMap.get(tgtKey);
+
+          if (!srcId || !tgtId) {
+            console.error(
+              'Could not find entity ID for telemetry key: ',
+              !srcId ? srcKey : tgtKey
+            );
+            continue;
+          }
+
+          const srcContainer = findFirstEntityWithOpenedParent(srcId);
+          const tgtContainer = findFirstEntityWithOpenedParent(tgtId);
+
+          if (
+            srcContainer === communication.targetEntity.id &&
+            tgtContainer === communication.sourceEntity.id
+          ) {
+            [srcKey, tgtKey] = [tgtKey, srcKey];
+          }
         }
 
         proms.push(
@@ -188,35 +224,40 @@ export default function CommunicationPopup({
             </tr>
           </thead>
           <tbody>
-            {functionsData.map((func) => (
-              <React.Fragment key={func.id}>
-                {functionsData.length > 1 && (
-                  <tr className="bg-light">
-                    <td
-                      colSpan={3}
-                      className="font-weight-bold text-muted small"
-                    >
-                      {communication.sourceEntity.name} &rarr;{' '}
-                      {communication.targetEntity.name}
-                    </td>
-                  </tr>
-                )}
+            {functionsData.map((func) => {
+              const [src, tgt] = func.isForward
+                ? [communication.sourceEntity, communication.targetEntity]
+                : [communication.targetEntity, communication.sourceEntity];
 
-                <tr key={func.id}>
-                  <td>
-                    <div
-                      className="text-truncate"
-                      style={{ maxWidth: '200px' }}
-                      title={func.name}
-                    >
-                      {func.name}
-                    </div>
-                  </td>
-                  <td className="text-center">{func.callCount}</td>
-                  <td className="text-center">{func.executionTime}</td>
-                </tr>
-              </React.Fragment>
-            ))}
+              return (
+                <React.Fragment key={func.id}>
+                  {functionsData.length > 1 && (
+                    <tr className="bg-light">
+                      <td
+                        colSpan={3}
+                        className="font-weight-bold text-muted small"
+                      >
+                        {src.name} &rarr; {tgt.name}
+                      </td>
+                    </tr>
+                  )}
+
+                  <tr key={func.id}>
+                    <td>
+                      <div
+                        className="text-truncate"
+                        style={{ maxWidth: '200px' }}
+                        title={func.name}
+                      >
+                        {func.name}
+                      </div>
+                    </td>
+                    <td className="text-center">{func.callCount}</td>
+                    <td className="text-center">{func.executionTime}</td>
+                  </tr>
+                </React.Fragment>
+              );
+            })}
           </tbody>
         </Table>
       ) : (

@@ -13,7 +13,7 @@ import {
 
 export function computeBuildingCommunication(
   flatLandscape: FlatLandscape,
-  aggregatedFileCommunication: CommSummary
+  aggregatedFileCommunication?: CommSummary
 ) {
   if (
     !aggregatedFileCommunication ||
@@ -29,6 +29,9 @@ export function computeBuildingCommunication(
     const targetEntityId = telemetryKeyMap.get(comm.targetEntityKey);
 
     if (!sourceEntityId || !targetEntityId) {
+      console.warn(
+        `Could not find entity for telemetry key ${!sourceEntityId ? comm.sourceEntityKey : comm.targetEntityKey}`
+      );
       return false;
     }
 
@@ -48,9 +51,8 @@ export function computeAggregatedCommunication(allCommunications: Comm[]) {
     const targetEntityId = telemetryKeyMap.get(comm.targetEntityKey);
     if (!sourceEntityId || !targetEntityId) {
       console.error(
-        'Could not find source or target entity ID for communication.',
-        sourceEntityId,
-        targetEntityId
+        'Could not find entity ID for telemetry key: ',
+        !sourceEntityId ? comm.sourceEntityKey : comm.targetEntityKey
       );
       return;
     }
@@ -66,7 +68,10 @@ export function computeAggregatedCommunication(allCommunications: Comm[]) {
       return;
     }
 
-    const key = `${effSourceId}-${effTargetId}`;
+    const key =
+      effSourceId <= effTargetId
+        ? `${effSourceId}-${effTargetId}`
+        : `${effTargetId}-${effSourceId}`;
 
     if (groupedComms.has(key)) {
       const existing = groupedComms.get(key)!;
@@ -82,7 +87,10 @@ export function computeAggregatedCommunication(allCommunications: Comm[]) {
         ...new Set([...existing.originalCommIds, comm.id]),
       ];
       existing.isBidirectional =
-        existing.isBidirectional || comm.isBidirectional;
+        existing.isBidirectional ||
+        comm.isBidirectional ||
+        (existing.sourceEntity.id === effTargetId &&
+          existing.targetEntity.id === effSourceId);
       existing.isRecursive =
         existing.isRecursive || effSourceId === effTargetId;
       existing.fromUnixNano =
