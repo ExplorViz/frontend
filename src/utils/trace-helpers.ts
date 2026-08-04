@@ -12,7 +12,7 @@ export function calculateDuration(span: Span): number;
  */
 export function calculateDuration(trace: Trace): number;
 export function calculateDuration(traceOrSpan: Trace | Span) {
-  return traceOrSpan.endTime - traceOrSpan.startTime;
+  return traceOrSpan.endUnixNano - traceOrSpan.startTimeUnixNano;
 }
 
 /**
@@ -82,7 +82,7 @@ export function sortTracesById(
  * Return the number of spans, i.e. requests inside the span
  */
 export function getTraceRequestCount(trace: Trace) {
-  return trace.spanList.length;
+  return trace.spans.length;
 }
 
 /**
@@ -127,7 +127,9 @@ export function sortSpanArrayByTime(spanArray: Span[], copy = false) {
   if (copy) {
     sortedArray = [...sortedArray];
   }
-  return sortedArray.sort((span1, span2) => span1.startTime - span2.startTime);
+  return sortedArray.sort(
+    (span1, span2) => span1.startUnixNano - span2.startUnixNano
+  );
 }
 
 /**
@@ -135,11 +137,11 @@ export function sortSpanArrayByTime(spanArray: Span[], copy = false) {
  * which maps all spans' ids to their corresponding child spans
  */
 export function getTraceIdToSpanTree(trace: Trace) {
-  let firstSpan: Span = trace.spanList[0];
+  let firstSpan: Span = trace.spans[0];
 
   // Put spans into map for more efficient lookup when sorting
   const spanIdToSpanMap = new Map<string, Span>();
-  trace.spanList.forEach((span) => {
+  trace.spans.forEach((span) => {
     if (!('parentSpanId' in span)) {
       firstSpan = span;
     } else {
@@ -149,11 +151,11 @@ export function getTraceIdToSpanTree(trace: Trace) {
 
   const parentSpanIdToChildSpansMap = new Map<string, Span[]>();
 
-  trace.spanList.forEach((span) => {
+  trace.spans.forEach((span) => {
     parentSpanIdToChildSpansMap.set(span.spanId, []);
   });
 
-  trace.spanList.forEach((span) => {
+  trace.spans.forEach((span) => {
     parentSpanIdToChildSpansMap.get(span.parentSpanId ?? '')?.push(span);
   });
 

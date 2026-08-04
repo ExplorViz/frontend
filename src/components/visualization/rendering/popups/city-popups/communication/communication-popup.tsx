@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { Tab, Tabs } from 'react-bootstrap';
 import FunctionsTab from './functions-tab';
 import GeneralTab from './general-tab';
+import SpansTab from './spans-tab';
 
 interface CommunicationPopupProps {
   popupData: PopupData;
@@ -32,6 +33,9 @@ export default function CommunicationPopup({
         >
           <Tab eventKey="general" title="General">
             <GeneralTab communication={communication} />
+          </Tab>
+          <Tab eventKey="spans" title="Spans" mountOnEnter={true}>
+            <SpansTab communication={communication} />
           </Tab>
           <Tab eventKey="functions" title="Functions" mountOnEnter={true}>
             <FunctionsTab communication={communication} />

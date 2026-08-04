@@ -1,8 +1,10 @@
+import { useCommunicationStore } from 'explorviz-frontend/src/stores/communication-store';
 import {
   Building,
   District,
 } from 'explorviz-frontend/src/utils/landscape-schemes/flat-landscape';
 import isObject from 'explorviz-frontend/src/utils/object-helpers';
+import { Comm } from './communication';
 
 /**
  * An AggregatedCommunication bundles communication originating from potentially multiple entities into a single communication.
@@ -61,6 +63,24 @@ export default class AggregatedCommunication {
     this.toUnixNano = toUnixNano;
     this.buildingCommunicationIds = buildingCommunicationIds;
     this.originalCommIds = originalCommIds.length > 0 ? originalCommIds : [id];
+  }
+
+  /**
+   * Retrieves the building communications from which this communication was aggregated.
+   * @returns An array of the underlying building communications
+   */
+  getBuildingCommunications(): Comm[] {
+    const allComms = useCommunicationStore.getState().communications;
+
+    return this.buildingCommunicationIds.reduce((res, key) => {
+      const comm = allComms.get(key);
+      if (comm) {
+        res.push(comm);
+      } else {
+        console.warn(`Could not find building communication with ID ${key}`);
+      }
+      return res;
+    }, [] as Comm[]);
   }
 }
 

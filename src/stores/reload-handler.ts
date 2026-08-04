@@ -128,7 +128,7 @@ export const useReloadHandlerStore = create<ReloadHandlerState>((set, get) => ({
     for (const t of dynamic) {
       const traceId = t.traceId;
 
-      for (const s of t.spanList) {
+      for (const s of t.spans) {
         s.traceId = traceId;
       }
     }

@@ -1,7 +1,6 @@
 import { useAuthStore } from 'explorviz-frontend/src/stores/auth';
 import { useLandscapeTokenStore } from 'explorviz-frontend/src/stores/landscape-token';
 import {
-  Comm,
   CommSummary,
   isCommSummary,
 } from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/communication';
@@ -14,10 +13,10 @@ import {
   FlatLandscape,
   isFlatLandscape,
 } from 'explorviz-frontend/src/utils/landscape-schemes/flat-landscape';
-import { useCommunicationStore } from '../stores/communication-store';
 import { useModelStore } from '../stores/repos/model-repository';
 import { findFirstEntityWithOpenedParent } from './city-rendering/communication-layouter';
 import AggregatedCommunication from './landscape-schemes/dynamic/aggregated-communication';
+import { isSpan, Span } from './landscape-schemes/dynamic/trace';
 
 /** Base URL for landscape API. Empty string uses same-origin (Vite dev proxy in development). */
 export function getLandscapeServiceUrl(): string {
@@ -160,6 +159,52 @@ export function deleteTraceData(): Promise<void> {
   });
 }
 
+export async function requestCommunicationSpans(
+  communication: AggregatedCommunication
+): Promise<Span[]> {
+  const landscapeToken = useLandscapeTokenStore.getState().token?.value;
+
+  if (!landscapeToken) {
+    throw new Error('No landscape token selected');
+  }
+
+  if (communication.buildingCommunicationIds.length === 0) {
+    throw new Error('No building communications provided');
+  }
+
+  const buildingComms = communication.getBuildingCommunications();
+  const sourceTargetPairs = buildingComms.map((buildingComm) => ({
+    source: buildingComm.sourceEntityKey,
+    target: buildingComm.targetEntityKey,
+  }));
+
+  const from = communication.fromUnixNano;
+  const to = communication.toUnixNano;
+
+  const response = await fetch(
+    `${traceService}/v3/landscapes/${landscapeToken}/communication/spans?from=${from}&to=${to}`,
+    {
+      method: 'POST',
+      body: JSON.stringify(sourceTargetPairs),
+      headers: {
+        Authorization: `Bearer ${useAuthStore.getState().accessToken}`,
+        'Access-Control-Allow-Origin': '*',
+      },
+    }
+  );
+  if (!response.ok) {
+    throw new Error(`Non-ok response status ${response.status}`);
+  }
+
+  const commSpans = JSON.parse(await response.text(), (k, v) => {
+    return k === 'startUnixNano' || k === 'endUnixNano' ? BigInt(v) : v;
+  });
+  if (!Array.isArray(commSpans) || !commSpans.every(isSpan)) {
+    throw new Error(`JSON fails type guard ${isSpan.name}`);
+  }
+  return commSpans;
+}
+
 /**
  * Requests detailed information about function calls for all building communications
  * within the provided aggregated communication.
@@ -179,60 +224,44 @@ export async function requestCommunicationFunctions(
     throw new Error('No building communications provided');
   }
 
-  const allComms = useCommunicationStore.getState().communications;
+  const buildingComms = communication.getBuildingCommunications();
   const telemetryKeyToEntityId =
     useModelStore.getState().telemetryKeyToEntityId;
 
-  const buildingComms = communication.buildingCommunicationIds.reduce(
-    (res, key) => {
-      const comm = allComms.get(key);
-      if (comm) {
-        res.push(comm);
-      } else {
-        console.warn(`Could not find building communication with ID ${key}`);
-      }
-      return res;
-    },
-    [] as Comm[]
-  );
+  const sourceTargetPairs = buildingComms
+    .map((buildingComm) => {
+      let srcKey = buildingComm.sourceEntityKey;
+      let tgtKey = buildingComm.targetEntityKey;
 
-  const sourceTargetPairs = [];
+      if (communication.isBidirectional) {
+        // Bidirectional communication may be aggregated from two oppositely facing uni-directional communications.
+        // In this case, the source and target entity of the aggregated communication will be swapped compared to at least
+        // one of the underlying building communications. We then have to swap the source and target for the functions request
+        // to ensure the directionality of the returned function calls is correct relative to the aggregated communcation.
+        const srcId = telemetryKeyToEntityId.get(srcKey);
+        const tgtId = telemetryKeyToEntityId.get(tgtKey);
 
-  for (const buildingComm of buildingComms) {
-    let srcKey = buildingComm.sourceEntityKey;
-    let tgtKey = buildingComm.targetEntityKey;
+        if (!srcId || !tgtId) {
+          console.error(
+            `Could not find entity ID for telemetry key: ${!srcId ? srcKey : tgtKey}`
+          );
+          return undefined;
+        }
 
-    if (communication.isBidirectional) {
-      // Bidirectional communication may be aggregated from two oppositely facing uni-directional communications.
-      // In this case, the source and target entity of the aggregated communication will be swapped compared to at least
-      // one of the underlying building communications. We then have to swap the source and target for the functions request
-      // to ensure the directionality of the returned function calls is correct relative to the aggregated communcation.
-      const srcId = telemetryKeyToEntityId.get(srcKey);
-      const tgtId = telemetryKeyToEntityId.get(tgtKey);
+        const srcContainer = findFirstEntityWithOpenedParent(srcId);
+        const tgtContainer = findFirstEntityWithOpenedParent(tgtId);
 
-      if (!srcId || !tgtId) {
-        console.error(
-          `Could not find entity ID for telemetry key: ${!srcId ? srcKey : tgtKey}`
-        );
-        continue;
+        if (
+          srcContainer === communication.targetEntity.id &&
+          tgtContainer === communication.sourceEntity.id
+        ) {
+          [srcKey, tgtKey] = [tgtKey, srcKey];
+        }
       }
 
-      const srcContainer = findFirstEntityWithOpenedParent(srcId);
-      const tgtContainer = findFirstEntityWithOpenedParent(tgtId);
-
-      if (
-        srcContainer === communication.targetEntity.id &&
-        tgtContainer === communication.sourceEntity.id
-      ) {
-        [srcKey, tgtKey] = [tgtKey, srcKey];
-      }
-    }
-
-    sourceTargetPairs.push({
-      source: srcKey,
-      target: tgtKey,
-    });
-  }
+      return { source: srcKey, target: tgtKey };
+    })
+    .filter((res) => res !== undefined);
 
   const from = communication.fromUnixNano;
   const to = communication.toUnixNano;
