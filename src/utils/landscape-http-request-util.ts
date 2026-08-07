@@ -16,7 +16,7 @@ import {
 import { useModelStore } from '../stores/repos/model-repository';
 import { findFirstEntityWithOpenedParent } from './city-rendering/communication-layouter';
 import AggregatedCommunication from './landscape-schemes/dynamic/aggregated-communication';
-import { isSpan, Span } from './landscape-schemes/dynamic/trace';
+import { CommSpans, isCommSpans } from './landscape-schemes/dynamic/trace';
 
 /** Base URL for landscape API. Empty string uses same-origin (Vite dev proxy in development). */
 export function getLandscapeServiceUrl(): string {
@@ -159,9 +159,14 @@ export function deleteTraceData(): Promise<void> {
   });
 }
 
+/**
+ * Fetches detailed information on the span pairs underlying a particular communication.
+ * @param communication The communication for which span information should be retrieved.
+ * @returns A promise that resolves to a {@link CommSpans} with detailed span information for the communication.
+ */
 export async function requestCommunicationSpans(
   communication: AggregatedCommunication
-): Promise<Span[]> {
+): Promise<CommSpans> {
   const landscapeToken = useLandscapeTokenStore.getState().token?.value;
 
   if (!landscapeToken) {
@@ -199,8 +204,8 @@ export async function requestCommunicationSpans(
   const commSpans = JSON.parse(await response.text(), (k, v) => {
     return k === 'startUnixNano' || k === 'endUnixNano' ? BigInt(v) : v;
   });
-  if (!Array.isArray(commSpans) || !commSpans.every(isSpan)) {
-    throw new Error(`JSON fails type guard ${isSpan.name}`);
+  if (!isCommSpans(commSpans)) {
+    throw new Error(`JSON fails type guard ${isCommSpans.name}`);
   }
   return commSpans;
 }

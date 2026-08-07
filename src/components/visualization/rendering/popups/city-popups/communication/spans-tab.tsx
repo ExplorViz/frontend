@@ -1,23 +1,26 @@
 import { requestCommunicationSpans } from 'explorviz-frontend/src/utils/landscape-http-request-util';
 import AggregatedCommunication from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/aggregated-communication';
-import { Span } from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/trace';
+import {
+  CommSpans,
+  Span,
+} from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/trace';
 import React, { useEffect, useState } from 'react';
-import { Accordion, Badge, Spinner, Table } from 'react-bootstrap';
+import { Accordion, Badge, Card, Spinner, Table } from 'react-bootstrap';
 
 interface SpansTabProps {
   communication: AggregatedCommunication;
 }
 
 export default function SpansTab({ communication }: SpansTabProps) {
-  const [spans, setSpans] = useState<Span[] | null>(null);
+  const [commSpans, setCommSpans] = useState<CommSpans | null>(null);
 
   useEffect(() => {
     const fetchSpanData = async () => {
       try {
-        setSpans(await requestCommunicationSpans(communication));
+        setCommSpans(await requestCommunicationSpans(communication));
       } catch (error) {
         console.error(error);
-        setSpans([]);
+        setCommSpans({ spans: {}, pairs: [] });
       }
     };
     fetchSpanData();
@@ -25,69 +28,54 @@ export default function SpansTab({ communication }: SpansTabProps) {
 
   return (
     <div className="mt-2 w-auto">
-      {!spans ? (
+      {!commSpans ? (
         <div className="text-center p-3">
           <Spinner animation="border" size="sm" />
           <span className="ml-2">Loading spans...</span>
         </div>
-      ) : spans.length > 0 ? (
+      ) : commSpans.pairs.length > 0 ? (
         <Accordion
           alwaysOpen={true}
           className="pe-1"
-          style={{ width: '520px' }}
+          style={{ width: '520px', minWidth: '520px' }}
         >
-          {spans.map((span) => (
-            <Accordion.Item
-              className="mb-2 border rounded-0"
-              key={span.spanId}
-              eventKey={span.spanId}
-            >
-              <Accordion.Button className="border-0 rounded-0">
-                <code className="text-dark">
-                  <b>{span.spanId}</b>
-                </code>
-              </Accordion.Button>
-              <Accordion.Body>
-                <dl>
-                  <dt>Name</dt>
-                  <dd>
-                    <small>
-                      <code>{span.name}</code>
-                    </small>
-                  </dd>
+          {commSpans.pairs.map((pair) => {
+            const parentSpan = commSpans.spans[pair.parentSpanId];
+            const childSpan = commSpans.spans[pair.childSpanId];
 
-                  <dt>Kind</dt>
-                  <dd>{span.kind}</dd>
+            if (!parentSpan || !childSpan) {
+              console.error(`Missing span info for span pair ${pair}`);
+            }
 
-                  <dt>Duration</dt>
-                  <dd>
-                    {(span.endUnixNano - span.startUnixNano) /
-                      BigInt(1_000_000)}
-                    ms
-                  </dd>
-
-                  {span.parentSpanId !== undefined && (
-                    <>
-                      <dt>Parent Span ID</dt>
-                      <dd>
-                        <code className="text-dark">{span.parentSpanId}</code>
-                      </dd>
-                    </>
-                  )}
-
-                  <dt>Span Attributes</dt>
-                  <dd>
-                    <AttributesTable attributes={span.spanAttributes} />
-                  </dd>
-
-                  <dt>Resource Attributes</dt>
-                  <dd>
-                    <AttributesTable attributes={span.resourceAttributes} />
-                  </dd>
-                </dl>
-              </Accordion.Body>
-            </Accordion.Item>
-          ))}
+            return (
+              <Accordion.Item
+                className="mb-2 border rounded-0"
+                key={`${pair.parentSpanId}-${pair.childSpanId}`}
+                eventKey={`${pair.parentSpanId}-${pair.childSpanId}`}
+              >
+                <Accordion.Button className="border-0 rounded-0">
+                  <code className="text-dark">
+                    <b>
+                      {pair.parentSpanId} &#10132; {pair.childSpanId}
+                    </b>
+                  </code>
+                </Accordion.Button>
+                <Accordion.Body>
+                  <h6>
+                    Parent span{' '}
+                    <code className="text-dark">({pair.parentSpanId})</code>:
+                  </h6>
+                  <SpanDetailsCard span={parentSpan} />
+                  <br />
+                  <h6>
+                    Child span{' '}
+                    <code className="text-dark">({pair.childSpanId})</code>:
+                  </h6>
+                  <SpanDetailsCard span={childSpan} />
+                </Accordion.Body>
+              </Accordion.Item>
+            );
+          })}
         </Accordion>
       ) : (
         <div className="text-center text-muted p-3">
@@ -95,6 +83,57 @@ export default function SpansTab({ communication }: SpansTabProps) {
         </div>
       )}
     </div>
+  );
+}
+
+function SpanDetailsCard({ span }: { span: Span }) {
+  if (!span) {
+    return 'Missing span details';
+  }
+
+  return (
+    <Card>
+      <Card.Body>
+        <dl>
+          <dt>Name</dt>
+          <dd>
+            <small>
+              <code>{span.name}</code>
+            </small>
+          </dd>
+
+          <dt>Kind</dt>
+          <dd>{span.kind}</dd>
+
+          <dt>Duration</dt>
+          <dd>
+            {(span.endUnixNano - span.startUnixNano) / BigInt(1_000_000)}
+            ms
+          </dd>
+
+          <dt>Parent Span ID</dt>
+          <dd>
+            {span.parentSpanId ? (
+              <a href="#">
+                <code className="text-dark">{span.parentSpanId}</code>
+              </a>
+            ) : (
+              'None (root span)'
+            )}
+          </dd>
+
+          <dt>Span Attributes</dt>
+          <dd>
+            <AttributesTable attributes={span.spanAttributes} />
+          </dd>
+
+          <dt>Resource Attributes</dt>
+          <dd>
+            <AttributesTable attributes={span.resourceAttributes} />
+          </dd>
+        </dl>
+      </Card.Body>
+    </Card>
   );
 }
 
