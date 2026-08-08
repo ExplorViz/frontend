@@ -7,6 +7,7 @@ import generateUuidv4 from 'explorviz-frontend/src/utils/helpers/uuid4-generator
 import { City } from 'explorviz-frontend/src/utils/landscape-schemes/flat-landscape';
 import { useMemo } from 'react';
 import { Tab, Tabs } from 'react-bootstrap';
+import SpansTab from '../spans-tab';
 
 interface FoundationPopupProps {
   popupData: PopupData;
@@ -38,6 +39,11 @@ export default function FoundationPopup({ popupData }: FoundationPopupProps) {
               containedBuildingCount={city.allContainedBuildingIds.length}
             />
           </Tab>
+          {city.telemetryKey && (
+            <Tab eventKey="spans" title="Spans" mountOnEnter={true}>
+              <SpansTab telemetryKey={city.telemetryKey} />
+            </Tab>
+          )}
           <Tab eventKey="metrics" title="Metrics">
             <AggregatedBuildingMetricsTable
               buildingIds={city.allContainedBuildingIds}

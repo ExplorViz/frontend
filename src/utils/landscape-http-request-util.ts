@@ -16,7 +16,12 @@ import {
 import { useModelStore } from '../stores/repos/model-repository';
 import { findFirstEntityWithOpenedParent } from './city-rendering/communication-layouter';
 import AggregatedCommunication from './landscape-schemes/dynamic/aggregated-communication';
-import { CommSpans, isCommSpans } from './landscape-schemes/dynamic/trace';
+import {
+  CommSpans,
+  isCommSpans,
+  isSpan,
+  Span,
+} from './landscape-schemes/dynamic/trace';
 
 /** Base URL for landscape API. Empty string uses same-origin (Vite dev proxy in development). */
 export function getLandscapeServiceUrl(): string {
@@ -157,6 +162,42 @@ export function deleteTraceData(): Promise<void> {
       })
       .catch((e) => reject(e));
   });
+}
+
+export async function requestEntitySpans(
+  telemetryKey: string,
+  limit?: number,
+  offset?: number
+): Promise<Span[]> {
+  const landscapeToken = useLandscapeTokenStore.getState().token?.value;
+
+  if (!landscapeToken) {
+    throw new Error('No landscape token selected');
+  }
+
+  let url = new URL(
+    `${traceService}/v3/landscapes/${landscapeToken}/entities/${telemetryKey}/spans`
+  );
+  if (limit) url.searchParams.set('limit', limit.toString());
+  if (offset) url.searchParams.set('offset', offset.toString());
+
+  const response = await fetch(url, {
+    headers: {
+      Authorization: `Bearer ${useAuthStore.getState().accessToken}`,
+      'Access-Control-Allow-Origin': '*',
+    },
+  });
+  if (!response.ok) {
+    throw new Error(`Non-ok response status ${response.status}`);
+  }
+
+  const spans = JSON.parse(await response.text(), (k, v) => {
+    return k === 'startUnixNano' || k === 'endUnixNano' ? BigInt(v) : v;
+  });
+  if (!Array.isArray(spans) || !spans.every(isSpan)) {
+    throw new Error(`JSON fails type guard ${isSpan.name}`);
+  }
+  return spans;
 }
 
 /**

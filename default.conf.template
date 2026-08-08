@@ -53,6 +53,13 @@ server {
     proxy_set_header Host $host;
   }
 
+  location ~ ^/v3/landscapes/[^/]+/entities/[^/]+/spans(?:/.*|$) {
+    set $upstream_trace ${TRACE_SERV_URL};
+    proxy_pass $upstream_trace;
+    proxy_http_version 1.1;
+    proxy_set_header Host $host;
+  }
+
   # END trace-service
 
   # BEGIN landscape-service

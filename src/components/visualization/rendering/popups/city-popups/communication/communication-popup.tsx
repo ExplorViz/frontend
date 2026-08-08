@@ -2,9 +2,9 @@ import PopupData from 'explorviz-frontend/src/components/visualization/rendering
 import AggregatedCommunication from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/aggregated-communication';
 import { useState } from 'react';
 import { Tab, Tabs } from 'react-bootstrap';
+import CommunicationSpansTab from './communication-spans-tab';
 import FunctionsTab from './functions-tab';
 import GeneralTab from './general-tab';
-import SpansTab from './spans-tab';
 
 interface CommunicationPopupProps {
   popupData: PopupData;
@@ -35,7 +35,7 @@ export default function CommunicationPopup({
             <GeneralTab communication={communication} />
           </Tab>
           <Tab eventKey="spans" title="Spans" mountOnEnter={true}>
-            <SpansTab communication={communication} />
+            <CommunicationSpansTab communication={communication} />
           </Tab>
           <Tab eventKey="functions" title="Functions" mountOnEnter={true}>
             <FunctionsTab communication={communication} />
