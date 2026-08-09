@@ -41,7 +41,10 @@ export default function FoundationPopup({ popupData }: FoundationPopupProps) {
           </Tab>
           {city.telemetryKey && (
             <Tab eventKey="spans" title="Spans" mountOnEnter={true}>
-              <SpansTab telemetryKey={city.telemetryKey} />
+              <SpansTab
+                key={city.telemetryKey}
+                telemetryKey={city.telemetryKey}
+              />
             </Tab>
           )}
           <Tab eventKey="metrics" title="Metrics">

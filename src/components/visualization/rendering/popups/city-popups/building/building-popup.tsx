@@ -404,7 +404,10 @@ export default function BuildingPopup({ popupData }: BuildingPopupProps) {
           </Tab>
           {building.telemetryKey && (
             <Tab eventKey="spans" title="Spans" mountOnEnter={true}>
-              <SpansTab telemetryKey={building.telemetryKey} />
+              <SpansTab
+                key={building.telemetryKey}
+                telemetryKey={building.telemetryKey}
+              />
             </Tab>
           )}
         </Tabs>
