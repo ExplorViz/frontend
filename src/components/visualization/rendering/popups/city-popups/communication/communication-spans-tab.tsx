@@ -1,7 +1,10 @@
 import { requestCommunicationSpans } from 'explorviz-frontend/src/utils/landscape-http-request-util';
 import AggregatedCommunication from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/aggregated-communication';
-import { CommSpans } from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/trace';
-import { useEffect, useState } from 'react';
+import {
+  CommSpans,
+  SpanPair,
+} from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/trace';
+import { useEffect, useRef, useState } from 'react';
 import { Accordion, Spinner } from 'react-bootstrap';
 import SpanDetailsCard from '../span-details-card';
 
@@ -14,6 +17,8 @@ export default function CommunicationSpansTab({
 }: CommunicationSpansTabProps) {
   const [commSpans, setCommSpans] = useState<CommSpans | null>(null);
 
+  const spanRefs = useRef(new Map<string, HTMLElement>());
+
   useEffect(() => {
     const fetchSpanData = async () => {
       try {
@@ -25,6 +30,18 @@ export default function CommunicationSpansTab({
     };
     fetchSpanData();
   }, [communication]);
+
+  const scrollToSpanPair = (pair: SpanPair) => {
+    const element = spanRefs.current.get(
+      `${pair.parentSpanId}-${pair.childSpanId}`
+    );
+    if (element) {
+      element.scrollIntoView({
+        behavior: 'smooth',
+        block: 'start',
+      });
+    }
+  };
 
   return (
     <div className="mt-2 w-auto">
@@ -60,7 +77,20 @@ export default function CommunicationSpansTab({
                     </b>
                   </code>
                 </Accordion.Button>
-                <Accordion.Body>
+                <Accordion.Body
+                  ref={(element) => {
+                    if (element) {
+                      spanRefs.current.set(
+                        `${pair.parentSpanId}-${pair.childSpanId}`,
+                        element
+                      );
+                    } else {
+                      spanRefs.current.delete(
+                        `${pair.parentSpanId}-${pair.childSpanId}`
+                      );
+                    }
+                  }}
+                >
                   <h6>
                     Parent span{' '}
                     <code className="text-dark">({pair.parentSpanId})</code>:
@@ -71,7 +101,10 @@ export default function CommunicationSpansTab({
                     Child span{' '}
                     <code className="text-dark">({pair.childSpanId})</code>:
                   </h6>
-                  <SpanDetailsCard span={childSpan} />
+                  <SpanDetailsCard
+                    span={childSpan}
+                    onParentIdClick={() => scrollToSpanPair(pair)}
+                  />
                 </Accordion.Body>
               </Accordion.Item>
             );

@@ -2,10 +2,22 @@ import { Span } from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/tra
 import React from 'react';
 import { Badge, Card, Table } from 'react-bootstrap';
 
-export default function SpanDetailsCard({ span }: { span: Span }) {
+interface SpanDetailsCardProps {
+  span: Span;
+
+  /** Callback to fire when the parent span ID is clicked */
+  onParentIdClick?: (parentSpanId: string) => void;
+}
+
+export default function SpanDetailsCard({
+  span,
+  onParentIdClick,
+}: SpanDetailsCardProps) {
   if (!span) {
     return 'Missing span details';
   }
+
+  const parentSpanId = span.parentSpanId;
 
   return (
     <Card>
@@ -29,9 +41,9 @@ export default function SpanDetailsCard({ span }: { span: Span }) {
 
           <dt>Parent Span ID</dt>
           <dd>
-            {span.parentSpanId ? (
-              <a href="#">
-                <code className="text-dark">{span.parentSpanId}</code>
+            {parentSpanId ? (
+              <a href="#" onClick={() => onParentIdClick?.(parentSpanId)}>
+                <code className="text-dark">{parentSpanId}</code>
               </a>
             ) : (
               'None (root span)'
