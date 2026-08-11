@@ -24,7 +24,7 @@
 // Popover Styling
 .popover {
   border: none;
-  z-index: 100;
+  z-index: 10000010;
   border-radius: var(--ev-radius-lg);
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
   background: var(--bs-body-bg, #f8f9fa);

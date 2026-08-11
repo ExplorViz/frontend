@@ -664,8 +664,8 @@ const GeometryGroup: React.FC<GeometryGroupProps> = ({
       entityId: buildingId,
       entity: building,
       position: {
-        x: e.clientX,
-        y: e.clientY,
+        x: e.nativeEvent.clientX,
+        y: e.nativeEvent.clientY,
       },
     });
   };

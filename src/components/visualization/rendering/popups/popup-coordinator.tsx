@@ -19,6 +19,7 @@ import PopupData from 'explorviz-frontend/src/components/visualization/rendering
 import { Position2D } from 'explorviz-frontend/src/hooks/interaction-modifier';
 import { usePlayroomConnectionStore } from 'explorviz-frontend/src/stores/collaboration/playroom-connection-store';
 import { useLandscapeRestructureStore } from 'explorviz-frontend/src/stores/landscape-restructure';
+import { useModelStore } from 'explorviz-frontend/src/stores/repos/model-repository';
 import { useVisualizationStore } from 'explorviz-frontend/src/stores/visualization-store';
 import { isEntityAnnotated } from 'explorviz-frontend/src/utils/annotation-utils';
 import { toggleHighlightById } from 'explorviz-frontend/src/utils/city-rendering/highlighting';
@@ -380,5 +381,22 @@ function getEntityType(popupData?: PopupData): string {
   if ('htmlNode' in popupData.entity) {
     return 'html';
   }
+
+  const entityTypeFromStore = useModelStore
+    .getState()
+    .getEntityType(popupData.entityId);
+  if (entityTypeFromStore === 'building') {
+    return 'building';
+  }
+  if (entityTypeFromStore === 'district') {
+    return 'district';
+  }
+  if (entityTypeFromStore === 'city') {
+    return 'city';
+  }
+  if (entityTypeFromStore === 'communication') {
+    return 'classCommunication';
+  }
+
   return '';
 }
