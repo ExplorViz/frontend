@@ -127,7 +127,10 @@ export function closeDistrict(
 ) {
   const district = useModelStore.getState().getDistrict(districtId);
 
-  if (!district) return;
+  if (!district) {
+    console.error('No district model with districtId in store', districtId);
+    return;
+  }
 
   const isOpen = !useVisualizationStore
     .getState()
@@ -144,8 +147,7 @@ export function closeDistrict(
 
   hideBuildings(getChildBuildingIds(district));
 
-  const chidDistrictIds = getChildDistrictIds(district);
-  chidDistrictIds.forEach((childDistrictId) => {
+  getChildDistrictIds(district).forEach((childDistrictId) => {
     closeDistrict(childDistrictId, true, false);
   });
 }

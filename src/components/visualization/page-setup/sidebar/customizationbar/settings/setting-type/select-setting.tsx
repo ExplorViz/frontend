@@ -15,9 +15,11 @@ export default function SelectSetting({
   onChange: (settingId: VisualizationSettingId, value: unknown) => void;
   settingId: VisualizationSettingId;
 }) {
-  const setting = useUserSettingsStore.getState().visualizationSettings[
-    settingId
-  ] as SelectSettingData<unknown>;
+  const setting = useUserSettingsStore(
+    (state) => state.visualizationSettings[settingId]
+  ) as SelectSettingData<unknown>;
+  const options = (defaultVizSettings[settingId] as SelectSettingData<unknown>)
+    .options;
 
   const handleInput = (newValue: unknown) => {
     onChange(settingId, newValue);
@@ -36,7 +38,7 @@ export default function SelectSetting({
             title={setting.value as string}
             variant="primary"
           >
-            {setting.options.map((option) => (
+            {options.map((option) => (
               <Dropdown.Item
                 key={option as string}
                 onClick={() => {

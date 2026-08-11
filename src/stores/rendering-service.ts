@@ -9,11 +9,12 @@ import { useTimestampStore } from 'explorviz-frontend/src/stores/timestamp';
 import { useToastHandlerStore } from 'explorviz-frontend/src/stores/toast-handler';
 import { useVisibilityServiceStore } from 'explorviz-frontend/src/stores/visibility-service';
 import { animatePlayPauseIcon } from 'explorviz-frontend/src/utils/animate';
-import { removeUnchangedBuildingsFromFlatLandscape } from 'explorviz-frontend/src/utils/city-rendering/flat-landscape-filter';
+import { BuildingComparisonVisibility } from 'explorviz-frontend/src/utils/city-rendering/building-comparison-visibility';
+import { filterFlatLandscapeByBuildingComparisonVisibility } from 'explorviz-frontend/src/utils/city-rendering/flat-landscape-filter';
 import { areArraysEqual } from 'explorviz-frontend/src/utils/helpers/array-helpers';
 import { combineDynamicLandscapeData } from 'explorviz-frontend/src/utils/landscape-dynamic-helpers';
-import { AggregatedBuildingCommunication } from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/aggregated-file-communication';
-import { DynamicLandscapeData } from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/dynamic-data';
+import { CommSummary } from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/communication';
+import { DynamicLandscapeData } from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/trace';
 import {
   FlatLandscape,
   getAllIdsOfFlatLandscape,
@@ -36,7 +37,7 @@ export type EvolutionModeRenderingConfiguration = {
   renderDynamic: boolean;
   renderStatic: boolean;
   renderOnlyDifferences: boolean;
-  removeUnchangedFromLayout: boolean;
+  buildingComparisonVisibility: BuildingComparisonVisibility;
 };
 
 interface RenderingServiceState {
@@ -54,7 +55,7 @@ interface RenderingServiceState {
   triggerRenderingForGivenLandscapeData: (
     flatData: FlatLandscape,
     dynamicData: DynamicLandscapeData,
-    aggregatedFileCommunication: AggregatedBuildingCommunication,
+    aggregatedFileCommunication: CommSummary,
     structureData?: StructureLandscapeData // TODO: Should be remove, when LandscapeData doesn't contain StructureLandscapeData anymore
   ) => void;
   triggerRenderingForSelectedCommits: () => Promise<void>;
@@ -63,7 +64,7 @@ interface RenderingServiceState {
   _applyEvolutionLayoutFilter: (flatLandscape: FlatLandscape) => FlatLandscape;
   _mapTimestampsToEpochs: (
     commitToSelectedTimestampMap: Map<string, Timestamp[]>
-  ) => Map<string, number[]>;
+  ) => Map<string, bigint[]>;
   _fetchRuntimeLandscapeData: (
     commitToSelectedTimestampMap: Map<string, Timestamp[]>
   ) => Promise<Map<string, LandscapeData>>;
@@ -77,7 +78,7 @@ interface RenderingServiceState {
   _requiresRerendering: (
     newFlatLandscape: FlatLandscape,
     newDynamicLandscapeData: DynamicLandscapeData,
-    newAggregatedCommunication: AggregatedBuildingCommunication
+    newAggregatedCommunication: CommSummary
   ) => boolean;
   _updateTimelineData: (
     commitToSelectedTimestampMap: Map<string, Timestamp[]>
@@ -140,7 +141,12 @@ export const useRenderingServiceStore = create<RenderingServiceState>(
         let combinedRuntimeLandscapeData: LandscapeData = {
           structureLandscapeData: createEmptyStructureLandscapeData(),
           dynamicLandscapeData: [],
-          aggregatedFileCommunication: { metrics: {}, communications: [] },
+          aggregatedFileCommunication: {
+            metrics: {},
+            communications: [],
+            fromUnixNano: BigInt(0),
+            toUnixNano: BigInt(0),
+          },
           flatLandscapeData: {} as FlatLandscape,
         };
 
@@ -194,7 +200,7 @@ export const useRenderingServiceStore = create<RenderingServiceState>(
     triggerRenderingForGivenLandscapeData: (
       flatData: FlatLandscape,
       dynamicData: DynamicLandscapeData,
-      aggregatedFileCommunication: AggregatedBuildingCommunication
+      aggregatedFileCommunication: CommSummary
     ) => {
       set({
         _landscapeData: {
@@ -205,16 +211,30 @@ export const useRenderingServiceStore = create<RenderingServiceState>(
       });
     },
 
-    _applyEvolutionLayoutFilter: (flatLandscape: FlatLandscape): FlatLandscape => {
-      const { removeUnchangedFromLayout } = useVisibilityServiceStore
+    _applyEvolutionLayoutFilter: (
+      flatLandscape: FlatLandscape
+    ): FlatLandscape => {
+      const repositoryName = useCommitTreeStateStore
         .getState()
-        .getCloneOfEvolutionModeRenderingConfiguration();
+        .getCurrentSelectedRepositoryName();
+      const selectedCommits = useCommitTreeStateStore
+        .getState()
+        .getSelectedCommits();
+      const isDiffMode =
+        (selectedCommits.get(repositoryName)?.length || 0) === 2;
 
-      if (!removeUnchangedFromLayout) {
+      if (!isDiffMode) {
         return flatLandscape;
       }
 
-      return removeUnchangedBuildingsFromFlatLandscape(flatLandscape);
+      const { buildingComparisonVisibility } = useVisibilityServiceStore
+        .getState()
+        .getCloneOfEvolutionModeRenderingConfiguration();
+
+      return filterFlatLandscapeByBuildingComparisonVisibility(
+        flatLandscape,
+        buildingComparisonVisibility
+      );
     },
 
     rerenderEvolutionLandscapeWithCurrentFilter: (): void => {
@@ -253,6 +273,8 @@ export const useRenderingServiceStore = create<RenderingServiceState>(
         get()._landscapeData?.aggregatedFileCommunication ?? {
           metrics: {},
           communications: [],
+          fromUnixNano: BigInt(0),
+          toUnixNano: BigInt(0),
         }
       );
     },
@@ -285,8 +307,8 @@ export const useRenderingServiceStore = create<RenderingServiceState>(
     // private
     _mapTimestampsToEpochs: (
       commitToSelectedTimestampMap: Map<string, Timestamp[]>
-    ): Map<string, number[]> => {
-      const commitToSelectedEpochMap: Map<string, number[]> = new Map();
+    ): Map<string, bigint[]> => {
+      const commitToSelectedEpochMap: Map<string, bigint[]> = new Map();
       for (const [
         commitId,
         selectedTimestampsForACommit,
@@ -319,9 +341,10 @@ export const useRenderingServiceStore = create<RenderingServiceState>(
           }
         }
 
-        const sortedTimestamps = [...timestampsToFetch].sort(
-          (a, b) => a.epochNano - b.epochNano
-        );
+        const sortedTimestamps = [...timestampsToFetch].sort((a, b) => {
+          const diff = a.epochNano - b.epochNano;
+          return diff > 0n ? 1 : diff < 0n ? -1 : 0;
+        });
 
         const timestampFrom = sortedTimestamps[0].epochNano;
         let timestampTo = undefined;
@@ -387,7 +410,7 @@ export const useRenderingServiceStore = create<RenderingServiceState>(
     _requiresRerendering: (
       newFlatLandscapeData: FlatLandscape,
       newDynamicLandscapeData: DynamicLandscapeData,
-      newAggregatedCommunication: AggregatedBuildingCommunication
+      newAggregatedCommunication: CommSummary
     ) => {
       let requiresRerendering = false;
       const latestFlatLandscapeIds =
@@ -524,7 +547,7 @@ export const useRenderingServiceStore = create<RenderingServiceState>(
         get().triggerRenderingForGivenLandscapeData(
           get()._applyEvolutionLayoutFilter(selectedFlatLandscape),
           combinedDynamicLandscapeData,
-          { metrics: {}, communications: [] } // Default for evolution mode for now
+          { metrics: {}, communications: [], fromUnixNano: 0n, toUnixNano: 0n } // Default for evolution mode for now
         );
         void useSocialMetricsStore
           .getState()

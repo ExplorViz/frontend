@@ -76,8 +76,8 @@ export default function BuildingMetricSettings() {
   return (
     <div className="building-config-metrics">
       <p className="building-config-section-description">
-        Choose which code metrics control building size. Use multipliers to fine
-        tune the visual scale.
+        Choose which code and social activity metrics control building size. Use
+        multipliers to fine tune the visual scale.
       </p>
 
       <div className="building-config-metric-card">
@@ -122,7 +122,9 @@ export default function BuildingMetricSettings() {
 
       <div className="building-config-metric-card">
         <div className="building-config-dimension-header">
-          <span className="building-config-dimension-label">Base footprint</span>
+          <span className="building-config-dimension-label">
+            Base footprint
+          </span>
           <span className="building-config-dimension-caption">
             Default width and depth when no metric is selected
           </span>

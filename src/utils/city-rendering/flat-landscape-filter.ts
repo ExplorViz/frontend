@@ -1,5 +1,8 @@
 import {
-  CommitComparison,
+  BuildingComparisonVisibility,
+  isBuildingComparisonFilterActive,
+} from 'explorviz-frontend/src/utils/city-rendering/building-comparison-visibility';
+import {
   District,
   FlatLandscape,
 } from 'explorviz-frontend/src/utils/landscape-schemes/flat-landscape';
@@ -27,24 +30,20 @@ function districtSubtreeHasRemainingBuildings(
   );
 }
 
-const CHANGED_BUILDING_COMPARISONS: ReadonlySet<CommitComparison> = new Set([
-  'ADDED',
-  'MODIFIED',
-  'REMOVED',
-]);
-
-export function removeUnchangedBuildingsFromFlatLandscape(
-  flatLandscape: FlatLandscape
+export function filterFlatLandscapeByBuildingComparisonVisibility(
+  flatLandscape: FlatLandscape,
+  visibility: BuildingComparisonVisibility
 ): FlatLandscape {
+  if (!isBuildingComparisonFilterActive(visibility)) {
+    return flatLandscape;
+  }
+
   const filteredFlatLandscape = structuredClone(flatLandscape);
 
   for (const [buildingId, building] of Object.entries(
     filteredFlatLandscape.buildings
   )) {
-    if (
-      !building.commitComparison ||
-      !CHANGED_BUILDING_COMPARISONS.has(building.commitComparison)
-    ) {
+    if (!building.commitComparison || !visibility[building.commitComparison]) {
       delete filteredFlatLandscape.buildings[buildingId];
     }
   }

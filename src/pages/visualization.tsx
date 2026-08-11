@@ -36,7 +36,7 @@ import {
 } from 'explorviz-frontend/src/stores/user-api-token';
 import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
 import eventEmitter from 'explorviz-frontend/src/utils/event-emitter';
-import { DynamicLandscapeData } from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/dynamic-data';
+import { DynamicLandscapeData } from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/trace';
 import { restoreSnapshotFromToken } from 'explorviz-frontend/src/utils/snapshot/snapshot-helpers';
 import TimelineDataObjectHandler from 'explorviz-frontend/src/utils/timeline/timeline-data-object-handler';
 import { Button } from 'react-bootstrap';
@@ -533,7 +533,7 @@ export default function Visualization() {
             <div className="loading-screen-content">
               {isLandscapeExistentAndEmpty ? (
                 <h2 className="loading-screen-title">
-                  Empty Landscape from Span Service received.
+                  Received empty landscape from Landscape Service.
                 </h2>
               ) : (
                 <>

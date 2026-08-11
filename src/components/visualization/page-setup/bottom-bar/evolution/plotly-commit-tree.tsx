@@ -1,5 +1,6 @@
 import LinkButton from 'explorviz-frontend/src/components/link-button.tsx';
 import CommitChartSearch from 'explorviz-frontend/src/components/visualization/page-setup/bottom-bar/evolution/commit-chart-search';
+import CommitStatisticsWindow from 'explorviz-frontend/src/components/visualization/page-setup/bottom-bar/evolution/commit-statistics-window';
 import { useCommitTreeStateStore } from 'explorviz-frontend/src/stores/commit-tree-state';
 import {
   addCommitToSelection,
@@ -75,6 +76,7 @@ export default function PlotlyCommitTree({
   const [metricChangeThresholdInput, setMetricChangeThresholdInput] = useState(
     String(DEFAULT_METRIC_CHANGE_THRESHOLD)
   );
+  const [showStatisticsWindow, setShowStatisticsWindow] = useState(false);
   const xAxisPlacement = useCommitTreeStateStore(
     (state) => state._xAxisPlacement
   );
@@ -501,6 +503,15 @@ export default function PlotlyCommitTree({
         >
           Re-focus
         </Button>
+        <Button
+          variant="outline-secondary"
+          size="sm"
+          className="commit-metrics-chart-refocus-button"
+          onClick={() => setShowStatisticsWindow(true)}
+          title="Open commit statistics"
+        >
+          Statistics
+        </Button>
         <LinkButton
           url={chartLinkUrl}
           disabled={!chartLinkUrl}
@@ -517,6 +528,14 @@ export default function PlotlyCommitTree({
         />
       </div>
       <div ref={plotlyCommitDivRef} className="plotlyCommitDiv" />
+      {showStatisticsWindow && (
+        <CommitStatisticsWindow
+          repoNameCommitTreeMap={repoNameCommitTreeMap}
+          initialRepoName={selectedRepoName}
+          initialBranchName={selectedBranchName}
+          onClose={() => setShowStatisticsWindow(false)}
+        />
+      )}
     </div>
   );
 }

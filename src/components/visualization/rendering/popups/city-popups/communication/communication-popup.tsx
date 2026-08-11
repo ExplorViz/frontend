@@ -1,7 +1,11 @@
 import PopupData from 'explorviz-frontend/src/components/visualization/rendering/popups/popup-data';
+import { useCommunicationStore } from 'explorviz-frontend/src/stores/communication-store';
+import { useModelStore } from 'explorviz-frontend/src/stores/repos/model-repository';
+import { findFirstEntityWithOpenedParent } from 'explorviz-frontend/src/utils/city-rendering/communication-layouter';
 import { requestCommunicationFunctions } from 'explorviz-frontend/src/utils/landscape-http-request-util';
 import AggregatedCommunication from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/aggregated-communication';
-import { EntityPairCommunicationDto } from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/entity-pair-communication';
+import { Comm } from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/communication';
+import { CommFunction } from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/function-call';
 import { pingByModelId } from 'explorviz-frontend/src/view-objects/3d/city/animated-ping-r3f';
 import React, { useEffect, useState } from 'react';
 import { Spinner, Tab, Table, Tabs } from 'react-bootstrap';
@@ -18,31 +22,93 @@ export default function CommunicationPopup({
   const communication = popupData.entity as AggregatedCommunication;
 
   const [activeTab, setActiveTab] = useState<string>('general');
-  const [functionsData, setFunctionsData] = useState<
-    EntityPairCommunicationDto[] | null
-  >(null);
+  const [functionsData, setFunctionsData] = useState<CommFunction[] | null>(
+    null
+  );
   const [isLoading, setIsLoading] = useState<boolean>(false);
 
   useEffect(() => {
     if (
       activeTab === 'functions' &&
       !functionsData &&
-      communication.from &&
-      communication.to
+      communication.fromUnixNano &&
+      communication.toUnixNano
     ) {
       setIsLoading(true);
-      requestCommunicationFunctions(
-        communication.sourceEntity.id,
-        communication.targetEntity.id,
-        communication.from,
-        communication.to
-      )
-        .then((data) => {
-          setFunctionsData(data);
+
+      const allComms = useCommunicationStore.getState().communications;
+      const buildingComms = communication.buildingCommunicationIds.reduce(
+        (res, key) => {
+          const comm = allComms.get(key);
+          if (comm) {
+            res.push(comm);
+          }
+          return res;
+        },
+        [] as Comm[]
+      );
+
+      const proms: Promise<CommFunction[]>[] = [];
+      for (const buildingComm of buildingComms) {
+        let srcKey = buildingComm.sourceEntityKey;
+        let tgtKey = buildingComm.targetEntityKey;
+
+        if (!srcKey || !tgtKey) {
+          console.error(
+            'Building communication lacks source or target key',
+            communication
+          );
+          continue;
+        }
+
+        if (communication.isBidirectional) {
+          // Bidirectional communication may be aggregated from two oppositely facing uni-directional communications.
+          // In this case, the source and target entity of the aggregated communication will be swapped compared to at least
+          // one of the underlying building communications. We then have to swap the source and target for the functions request
+          // to ensure the directionality of the returned function calls is correct relative to the aggregated communcation.
+          const telemetryKeyMap =
+            useModelStore.getState().telemetryKeyToEntityId;
+
+          const srcId = telemetryKeyMap.get(srcKey);
+          const tgtId = telemetryKeyMap.get(tgtKey);
+
+          if (!srcId || !tgtId) {
+            console.error(
+              'Could not find entity ID for telemetry key: ',
+              !srcId ? srcKey : tgtKey
+            );
+            continue;
+          }
+
+          const srcContainer = findFirstEntityWithOpenedParent(srcId);
+          const tgtContainer = findFirstEntityWithOpenedParent(tgtId);
+
+          if (
+            srcContainer === communication.targetEntity.id &&
+            tgtContainer === communication.sourceEntity.id
+          ) {
+            [srcKey, tgtKey] = [tgtKey, srcKey];
+          }
+        }
+
+        proms.push(
+          requestCommunicationFunctions(
+            srcKey,
+            tgtKey,
+            communication.fromUnixNano,
+            communication.toUnixNano
+          )
+        );
+      }
+
+      Promise.allSettled(proms)
+        .then((res) => {
+          const funcsData = res
+            .filter((p) => p.status === 'fulfilled')
+            .flatMap((p) => p.value);
+          setFunctionsData(funcsData.length > 0 ? funcsData : null);
         })
-        .finally(() => {
-          setIsLoading(false);
-        });
+        .finally(() => setIsLoading(false));
     }
   }, [activeTab, communication, functionsData]);
 
@@ -158,21 +224,24 @@ export default function CommunicationPopup({
             </tr>
           </thead>
           <tbody>
-            {functionsData.map((pair) => (
-              <React.Fragment
-                key={`${pair.sourceEntityId}-${pair.targetEntityId}`}
-              >
-                {functionsData.length > 1 && (
-                  <tr className="bg-light">
-                    <td
-                      colSpan={3}
-                      className="font-weight-bold text-muted small"
-                    >
-                      {pair.sourceEntityName} &rarr; {pair.targetEntityName}
-                    </td>
-                  </tr>
-                )}
-                {pair.functions.map((func) => (
+            {functionsData.map((func) => {
+              const [src, tgt] = func.isForward
+                ? [communication.sourceEntity, communication.targetEntity]
+                : [communication.targetEntity, communication.sourceEntity];
+
+              return (
+                <React.Fragment key={func.id}>
+                  {functionsData.length > 1 && (
+                    <tr className="bg-light">
+                      <td
+                        colSpan={3}
+                        className="font-weight-bold text-muted small"
+                      >
+                        {src.name} &rarr; {tgt.name}
+                      </td>
+                    </tr>
+                  )}
+
                   <tr key={func.id}>
                     <td>
                       <div
@@ -183,12 +252,12 @@ export default function CommunicationPopup({
                         {func.name}
                       </div>
                     </td>
-                    <td className="text-center">{func.requestCount}</td>
+                    <td className="text-center">{func.callCount}</td>
                     <td className="text-center">{func.executionTime}</td>
                   </tr>
-                ))}
-              </React.Fragment>
-            ))}
+                </React.Fragment>
+              );
+            })}
           </tbody>
         </Table>
       ) : (

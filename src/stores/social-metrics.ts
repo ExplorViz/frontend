@@ -1,4 +1,3 @@
-
 import { SelectedCommit } from 'explorviz-frontend/src/stores/commit-tree-state';
 import {
   ContributorDto,
@@ -6,15 +5,16 @@ import {
   useEvolutionDataFetchServiceStore,
 } from 'explorviz-frontend/src/stores/evolution-data-fetch-service';
 import {
-  sortSelectedCommitsForComparison,
-  useEvolutionDataRepositoryStore,
-} from 'explorviz-frontend/src/stores/repos/evolution-data-repository';
-import {
   BuildingMetricIds,
   useHeatmapStore,
 } from 'explorviz-frontend/src/stores/heatmap/heatmap-store';
-import { useModelStore } from 'explorviz-frontend/src/stores/repos/model-repository';
 import { useRenderingServiceStore } from 'explorviz-frontend/src/stores/rendering-service';
+import {
+  sortSelectedCommitsForComparison,
+  useEvolutionDataRepositoryStore,
+} from 'explorviz-frontend/src/stores/repos/evolution-data-repository';
+import { useModelStore } from 'explorviz-frontend/src/stores/repos/model-repository';
+import { invalidateBuildingMetricBoundsCache } from 'explorviz-frontend/src/utils/settings/building-metrics';
 import { create } from 'zustand';
 
 interface SocialMetricsState {
@@ -26,17 +26,19 @@ interface SocialMetricsState {
   selectedTimeRange: { from: number; to: number } | null;
   normalization: { logScale: boolean; quantile: number };
 
-
   initializeForSelection: (
-      repositoryName: string,
-      commits: SelectedCommit[]
-    ) => Promise<void>;
-    updateSocialMetrics: () => Promise<void>;
-    setSelectedContributorIds: (ids: Set<number>) => void;
-    setSelectedTimeRange: (range: { from: number; to: number } | null) => void;
-    setNormalization: (normalization: { logScale: boolean; quantile: number }) => void;
-    reset: () => void;
-    _applyAndRender: (dtos: SocialMetricDto[]) => void;
+    repositoryName: string,
+    commits: SelectedCommit[]
+  ) => Promise<void>;
+  updateSocialMetrics: () => Promise<void>;
+  setSelectedContributorIds: (ids: Set<number>) => void;
+  setSelectedTimeRange: (range: { from: number; to: number } | null) => void;
+  setNormalization: (normalization: {
+    logScale: boolean;
+    quantile: number;
+  }) => void;
+  reset: () => void;
+  _applyAndRender: (dtos: SocialMetricDto[]) => void;
 }
 
 const EMPTY_STATE = {
@@ -58,8 +60,6 @@ export const useSocialMetricsStore = create<SocialMetricsState>((set, get) => ({
       return;
     }
 
-
-
     // determine latest selected commit
     const sorted = sortSelectedCommitsForComparison(
       useEvolutionDataRepositoryStore.getState()._repoNameCommitTreeMap,
@@ -68,12 +68,11 @@ export const useSocialMetricsStore = create<SocialMetricsState>((set, get) => ({
     );
     const commit = sorted[sorted.length - 1].commitId;
 
-
     try {
       const fetchService = useEvolutionDataFetchServiceStore.getState();
       const [contributorsResponse, dtos] = await Promise.all([
         fetchService.fetchContributors(repositoryName),
-        fetchService.fetchSocialMetrics(repositoryName, commit)
+        fetchService.fetchSocialMetrics(repositoryName, commit),
       ]);
 
       set({
@@ -87,11 +86,10 @@ export const useSocialMetricsStore = create<SocialMetricsState>((set, get) => ({
         selectedTimeRange: null,
       });
       get()._applyAndRender(dtos);
-
     } catch (e) {
       get().reset();
       console.error(
-         `Failed to fetch social metrics for repoName: ${repositoryName}, reason: ${e}`
+        `Failed to fetch social metrics for repoName: ${repositoryName}, reason: ${e}`
       );
     }
   },
@@ -115,15 +113,17 @@ export const useSocialMetricsStore = create<SocialMetricsState>((set, get) => ({
       .fetchSocialMetrics(repositoryName, commit, {
         from: selectedTimeRange?.from,
         to: selectedTimeRange?.to,
-        contributorIds: allSelected ? undefined : Array.from(selectedContributorIds),
+        contributorIds: allSelected
+          ? undefined
+          : Array.from(selectedContributorIds),
         logScale: normalization.logScale,
         quantile: normalization.quantile,
       });
     get()._applyAndRender(dtos);
   },
 
-  setSelectedContributorIds: (ids) => set({ selectedContributorIds: ids}),
-  setSelectedTimeRange: (range) => set({ selectedTimeRange: range}),
+  setSelectedContributorIds: (ids) => set({ selectedContributorIds: ids }),
+  setSelectedTimeRange: (range) => set({ selectedTimeRange: range }),
   setNormalization: (normalization) => set({ normalization }),
   reset: () => set(EMPTY_STATE),
 
@@ -133,13 +133,18 @@ export const useSocialMetricsStore = create<SocialMetricsState>((set, get) => ({
       return;
     }
 
+    invalidateBuildingMetricBoundsCache();
+
     useEvolutionDataRepositoryStore.getState().applySocialMetrics(dtos);
 
-    const mergedFlat = useEvolutionDataRepositoryStore.getState()
+    const mergedFlat = useEvolutionDataRepositoryStore
+      .getState()
       ._repoNameToFlatLandscapeMap.get(repositoryName);
 
     if (mergedFlat) {
-      const visible = useRenderingServiceStore.getState()._applyEvolutionLayoutFilter(mergedFlat);
+      const visible = useRenderingServiceStore
+        .getState()
+        ._applyEvolutionLayoutFilter(mergedFlat);
 
       useModelStore.getState().setBuildings(Object.values(visible.buildings));
     }

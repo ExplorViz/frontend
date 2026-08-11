@@ -1,4 +1,4 @@
-import { Span } from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/dynamic-data';
+import { Span } from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/trace';
 import { Building } from 'explorviz-frontend/src/utils/landscape-schemes/flat-landscape';
 
 export class TraceNode {

@@ -306,7 +306,7 @@ export default function PlotlyTimeline({
 
       // 1. Create markers for all timestamps
       for (const timestamp of timelineDataForCommit.timestamps) {
-        const tsId = timestamp.epochNano;
+        const tsId = timestamp.epochNano.toString();
 
         if (!markerStates[tsId]) {
           const isDebugTs = debugSnapshots?.some(
@@ -339,7 +339,7 @@ export default function PlotlyTimeline({
       // 2. highlight selected timestamps
       timelineDataForCommit.selectedTimestamps.forEach(
         (selectedTimestamp, index) => {
-          const tsId = selectedTimestamp.epochNano;
+          const tsId = selectedTimestamp.epochNano.toString();
           const state = markerStates[tsId];
           if (state) {
             state.color = timelineDataForCommit.highlightedMarkerColor;
@@ -356,7 +356,7 @@ export default function PlotlyTimeline({
             timelineDataForCommit.timestamps.length - 1
           ];
         if (newestTimestamp) {
-          const state = markerStates[newestTimestamp.epochNano];
+          const state = markerStates[newestTimestamp.epochNano.toString()];
           if (state) {
             state.color = defaultMarkerColor.current;
             state.text = '';
@@ -584,7 +584,7 @@ export default function PlotlyTimeline({
     markerStatesOfOneCommit: IMarkerStates,
     commitId: string
   ) => {
-    function getTimestampTickLabel(timestampEpochNanos: number) {
+    function getTimestampTickLabel(timestampEpochNanos: bigint) {
       // Convert nanoseconds to milliseconds for Date object
       const timestampEpochMillis =
         nanosecondsToMilliseconds(timestampEpochNanos);
@@ -645,17 +645,17 @@ export default function PlotlyTimeline({
     const x: (string | null)[] = [];
     const y: (number | null)[] = [];
 
-    const timestampIds: number[] = [];
+    const timestampIds: bigint[] = [];
 
     const shapes = [];
 
     let tempGapIndicator = null;
 
-    let nextExpectedTimestamp = 0;
+    let nextExpectedTimestamp = 0n;
     let i = 0;
 
     // 10 seconds in nanoseconds = 10_000_000_000 nanoseconds
-    const TIMESTAMP_INTERVAL = 10_000_000_000;
+    const TIMESTAMP_INTERVAL = 10_000_000_000n;
 
     while (i < timestampsOfOneCommit.length) {
       const timestamp = timestampsOfOneCommit[i];
@@ -664,7 +664,7 @@ export default function PlotlyTimeline({
       // Only add real timestamps and shapes in the data arrays
       let addCurrentTimestampToDataObject = false;
 
-      if (nextExpectedTimestamp === 0) {
+      if (nextExpectedTimestamp === 0n) {
         // First timestamp, must exist do to while loop condition
         x.push(getTimestampTickLabel(timestampId));
         y.push(timestamp.spanCount);
@@ -719,7 +719,7 @@ export default function PlotlyTimeline({
           timestampId + TIMESTAMP_INTERVAL;
       }
 
-      const markerState = markerStatesOfOneCommit[timestampId];
+      const markerState = markerStatesOfOneCommit[timestampId.toString()];
 
       if (addCurrentTimestampToDataObject) {
         if (!markerState) {
@@ -758,7 +758,7 @@ export default function PlotlyTimeline({
     colors: string[],
     sizes: number[],
     texts: string[],
-    timestampIds: number[],
+    timestampIds: bigint[],
     commit: string
   ) => {
     return {

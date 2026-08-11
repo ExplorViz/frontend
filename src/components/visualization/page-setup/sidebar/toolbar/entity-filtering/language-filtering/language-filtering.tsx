@@ -1,4 +1,4 @@
-import { useModelStore } from 'explorviz-frontend/src/stores/repos/model-repository';
+import { useEntityFilteringStore } from 'explorviz-frontend/src/stores/entity-filtering-store';
 import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
 import { useVisualizationStore } from 'explorviz-frontend/src/stores/visualization-store';
 import { Language } from 'explorviz-frontend/src/utils/landscape-schemes/flat-landscape';
@@ -6,11 +6,8 @@ import { defaultColors } from 'explorviz-frontend/src/utils/settings/color-schem
 import {
   getLanguageColorSettingId,
   LANGUAGE_SETTING_CONFIG,
-  normalizeLanguage,
-  sortLanguages,
 } from 'explorviz-frontend/src/utils/settings/language-settings';
 import { ColorSettingId } from 'explorviz-frontend/src/utils/settings/settings-schemas';
-import { useMemo } from 'react';
 import Form from 'react-bootstrap/Form';
 import { useShallow } from 'zustand/react/shallow';
 
@@ -27,7 +24,9 @@ function resolveLanguageDisplayColor(
 }
 
 export default function LanguageFiltering() {
-  const allBuildings = useModelStore((state) => state.getAllBuildings);
+  const baselineLanguageStats = useEntityFilteringStore(
+    (state) => state.baselineLanguageStats
+  );
   const { hiddenLanguages, toggleLanguageVisibility } = useVisualizationStore(
     useShallow((state) => ({
       hiddenLanguages: state.hiddenLanguages,
@@ -48,22 +47,7 @@ export default function LanguageFiltering() {
     })
   );
 
-  const languageStats = useMemo(() => {
-    const buildings = allBuildings();
-    const counts = new Map<Language, number>();
-
-    for (const building of buildings) {
-      const lang = normalizeLanguage(building.language);
-      counts.set(lang, (counts.get(lang) ?? 0) + 1);
-    }
-
-    return sortLanguages(Array.from(counts.keys())).map((language) => [
-      language,
-      counts.get(language)!,
-    ] as const);
-  }, [allBuildings]);
-
-  if (languageStats.length === 0) {
+  if (baselineLanguageStats.length === 0) {
     return (
       <p className="text-muted text-center" style={{ fontSize: '0.85rem' }}>
         No buildings loaded yet.
@@ -73,7 +57,7 @@ export default function LanguageFiltering() {
 
   return (
     <div className="language-filter-list">
-      {languageStats.map(([language, count]) => {
+      {baselineLanguageStats.map(([language, count]) => {
         const color = resolveLanguageDisplayColor(language, languageColors);
         const isVisible = !hiddenLanguages.has(language);
 

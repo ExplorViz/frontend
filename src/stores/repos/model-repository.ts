@@ -1,5 +1,5 @@
 import AggregatedCommunication from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/aggregated-communication';
-import { CommunicationDto } from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/aggregated-file-communication';
+import { Comm } from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/communication';
 import {
   Building,
   City,
@@ -18,21 +18,20 @@ interface ModelRepositoryState {
   cities: Record<string, City>;
   districts: Record<string, District>;
   buildings: Record<string, Building>;
-  buildingCommunications: Record<string, CommunicationDto>;
+  buildingCommunications: Record<string, Comm>;
   aggregatedCommunications: Record<string, AggregatedCommunication>;
+  telemetryKeyToEntityId: Map<string | undefined, string>;
 
   // Getter functions for individual models
   getCity: (id: string) => City | undefined;
   getCityForModel: (id: string) => City | undefined;
   getDistrict: (id: string) => District | undefined;
   getBuilding: (id: string) => Building | undefined;
-  getBuildingCommunication: (id: string) => CommunicationDto | undefined;
+  getBuildingCommunication: (id: string) => Comm | undefined;
   getAggregatedCommunication: (
     id: string
   ) => AggregatedCommunication | undefined;
-  getCommunication: (
-    id: string
-  ) => CommunicationDto | AggregatedCommunication | undefined;
+  getCommunication: (id: string) => Comm | AggregatedCommunication | undefined;
   getModel: (
     id: string
   ) => City | District | Building | AggregatedCommunication | undefined;
@@ -42,23 +41,20 @@ interface ModelRepositoryState {
   getAllCities: () => City[];
   getAllDistricts: () => District[];
   getAllBuildings: () => Building[];
-  getAllBuildingCommunications: () => CommunicationDto[];
+  getAllBuildingCommunications: () => Comm[];
   getAllAggregatedCommunications: () => AggregatedCommunication[];
 
   // Actions for adding individual models
   addCity: (id: string, city: City) => void;
   addDistrict: (id: string, district: District) => void;
   addBuilding: (id: string, building: Building) => void;
-  addBuildingCommunication: (
-    id: string,
-    communication: CommunicationDto
-  ) => void;
+  addBuildingCommunication: (id: string, communication: Comm) => void;
 
   // Actions for setting (overwriting) models
   setCities: (cities: City[]) => void;
   setDistricts: (districts: District[]) => void;
   setBuildings: (buildings: Building[]) => void;
-  setBuildingCommunications: (communications: CommunicationDto[]) => void;
+  setBuildingCommunications: (communications: Comm[]) => void;
   setAggregatedCommunications: (
     communications: AggregatedCommunication[]
   ) => void;
@@ -67,7 +63,7 @@ interface ModelRepositoryState {
     cities: City[];
     districts: District[];
     buildings: Building[];
-    buildingCommunications: CommunicationDto[];
+    buildingCommunications: Comm[];
   }) => void;
 
   // Actions for removing individual models
@@ -92,6 +88,7 @@ export const useModelStore = create<ModelRepositoryState>((set, get) => ({
   buildings: {},
   buildingCommunications: {},
   aggregatedCommunications: {},
+  telemetryKeyToEntityId: new Map(),
 
   // Getter functions for individual models
   getCity: (id) => get().cities[id],
@@ -147,16 +144,28 @@ export const useModelStore = create<ModelRepositoryState>((set, get) => ({
   addCity: (id, city) =>
     set((state) => ({
       cities: { ...state.cities, [id]: city },
+      telemetryKeyToEntityId: new Map(state.telemetryKeyToEntityId).set(
+        city.telemetryKey,
+        city.id
+      ),
     })),
 
   addDistrict: (id, district) =>
     set((state) => ({
       districts: { ...state.districts, [id]: district },
+      telemetryKeyToEntityId: new Map(state.telemetryKeyToEntityId).set(
+        district.telemetryKey,
+        district.id
+      ),
     })),
 
   addBuilding: (id, building) =>
     set((state) => ({
       buildings: { ...state.buildings, [id]: building },
+      telemetryKeyToEntityId: new Map(state.telemetryKeyToEntityId).set(
+        building.telemetryKey,
+        building.id
+      ),
     })),
 
   addBuildingCommunication: (id, communication) =>
@@ -169,18 +178,30 @@ export const useModelStore = create<ModelRepositoryState>((set, get) => ({
 
   // Set multiple models (normalized inside the store)
   setCities: (cities) =>
-    set(() => ({
+    set((state) => ({
       cities: Object.fromEntries(cities.map((city) => [city.id, city])),
+      telemetryKeyToEntityId: new Map([
+        ...state.telemetryKeyToEntityId,
+        ...cities.map((c) => [c.telemetryKey, c.id] as const),
+      ]),
     })),
 
   setDistricts: (districts) =>
-    set(() => ({
+    set((state) => ({
       districts: Object.fromEntries(districts.map((d) => [d.id, d])),
+      telemetryKeyToEntityId: new Map([
+        ...state.telemetryKeyToEntityId,
+        ...districts.map((d) => [d.telemetryKey, d.id] as const),
+      ]),
     })),
 
   setBuildings: (buildings) =>
-    set(() => ({
+    set((state) => ({
       buildings: Object.fromEntries(buildings.map((b) => [b.id, b])),
+      telemetryKeyToEntityId: new Map([
+        ...state.telemetryKeyToEntityId,
+        ...buildings.map((b) => [b.telemetryKey, b.id] as const),
+      ]),
     })),
 
   setBuildingCommunications: (communications) =>
@@ -205,25 +226,45 @@ export const useModelStore = create<ModelRepositoryState>((set, get) => ({
       buildingCommunications: Object.fromEntries(
         buildingCommunications.map((c) => [c.id, c])
       ),
+      telemetryKeyToEntityId: new Map([
+        ...cities.map((c) => [c.telemetryKey, c.id] as const),
+        ...districts.map((d) => [d.telemetryKey, d.id] as const),
+        ...buildings.map((b) => [b.telemetryKey, b.id] as const),
+      ]),
     })),
 
   // Remove individual models
   removeCity: (id) =>
     set((state) => {
       const { [id]: _, ...cities } = state.cities;
-      return { cities };
+      return {
+        cities: cities,
+        telemetryKeyToEntityId: new Map(
+          [...state.telemetryKeyToEntityId].filter(([key]) => key !== id)
+        ),
+      };
     }),
 
   removeDistrict: (id) =>
     set((state) => {
       const { [id]: _, ...districts } = state.districts;
-      return { districts };
+      return {
+        districts: districts,
+        telemetryKeyToEntityId: new Map(
+          [...state.telemetryKeyToEntityId].filter(([key]) => key !== id)
+        ),
+      };
     }),
 
   removeBuilding: (id) =>
     set((state) => {
       const { [id]: _, ...buildings } = state.buildings;
-      return { buildings };
+      return {
+        buildings: buildings,
+        telemetryKeyToEntityId: new Map(
+          [...state.telemetryKeyToEntityId].filter(([key]) => key !== id)
+        ),
+      };
     }),
 
   removeBuildingCommunication: (id) =>
@@ -241,9 +282,33 @@ export const useModelStore = create<ModelRepositoryState>((set, get) => ({
     }),
 
   // Clear all models of specific type
-  clearAllCities: () => set(() => ({ cities: {} })),
-  clearAllDistricts: () => set(() => ({ districts: {} })),
-  clearAllBuildings: () => set(() => ({ buildings: {} })),
+  clearAllCities: () =>
+    set((state) => {
+      const newTelemetryKeyMap = new Map([...state.telemetryKeyToEntityId]);
+      Object.values(state.cities).forEach((c) =>
+        newTelemetryKeyMap.delete(c.telemetryKey)
+      );
+      return {
+        cities: {},
+        telemetryKeyToEntityId: newTelemetryKeyMap,
+      };
+    }),
+  clearAllDistricts: () =>
+    set((state) => {
+      const newTelemetryKeyMap = new Map([...state.telemetryKeyToEntityId]);
+      Object.values(state.districts).forEach((d) =>
+        newTelemetryKeyMap.delete(d.telemetryKey)
+      );
+      return { districts: {}, telemetryKeyToEntityId: newTelemetryKeyMap };
+    }),
+  clearAllBuildings: () =>
+    set((state) => {
+      const newTelemetryKeyMap = new Map([...state.telemetryKeyToEntityId]);
+      Object.values(state.buildings).forEach((b) =>
+        newTelemetryKeyMap.delete(b.telemetryKey)
+      );
+      return { buildings: {}, telemetryKeyToEntityId: newTelemetryKeyMap };
+    }),
   clearAllBuildingCommunications: () =>
     set(() => ({ buildingCommunications: {} })),
   clearAllAggregatedCommunications: () =>
@@ -257,5 +322,6 @@ export const useModelStore = create<ModelRepositoryState>((set, get) => ({
       buildings: {},
       buildingCommunications: {},
       aggregatedCommunications: {},
+      telemetryKeyToEntityId: new Map(),
     })),
 }));

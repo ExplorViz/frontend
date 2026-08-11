@@ -4,7 +4,7 @@ import { useRenderingServiceStore } from 'explorviz-frontend/src/stores/renderin
 import {
   DynamicLandscapeData,
   Trace,
-} from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/dynamic-data';
+} from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/trace';
 import {
   FlatLandscape,
   getFunctionIdToBuildingMap,

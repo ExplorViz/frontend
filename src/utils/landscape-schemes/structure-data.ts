@@ -25,9 +25,9 @@ export interface Interface {
   variables: Variable[];
 }
 export enum TypeOfAnalysis {
-  Dynamic = 'dynamic',
+  Runtime = 'runtime',
   Static = 'static',
-  StaticAndDynamic = 'static+dynamic',
+  StaticAndRuntime = 'static+runtime',
   Editing = 'editing',
 }
 

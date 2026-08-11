@@ -1,75 +1,12 @@
+import { BUILDING_CONFIG_METRIC_OPTIONS } from 'explorviz-frontend/src/utils/settings/building-config-settings';
 import { defaultColors } from 'explorviz-frontend/src/utils/settings/color-schemes';
 import {
   BuildingMetricMapping,
-  SELECTED_BUILDING_METRIC_OPTIONS,
   SelectedBuildingMetric,
   SettingLevel,
   VisualizationSettings,
 } from 'explorviz-frontend/src/utils/settings/settings-schemas';
 
-export const metricMappingMultipliers = {
-  [BuildingMetricMapping.Linear]: {
-    [SelectedBuildingMetric.None]: 1,
-    [SelectedBuildingMetric.size]: 0.001,
-    [SelectedBuildingMetric.lineCount]: 1,
-    [SelectedBuildingMetric.sloc]: 1,
-    [SelectedBuildingMetric.cloc]: 1,
-    [SelectedBuildingMetric.importCount]: 10,
-    [SelectedBuildingMetric.classCount]: 10,
-    [SelectedBuildingMetric.functionCount]: 10,
-    [SelectedBuildingMetric.variableCount]: 10,
-    [SelectedBuildingMetric.commitCount]: 10,
-    [SelectedBuildingMetric.commitActivity]: 10,
-    [SelectedBuildingMetric.coreContributorActivity]: 10,
-    [SelectedBuildingMetric.knowledgeSilo]: 10,
-    [SelectedBuildingMetric.issueActivity]: 10,
-    [SelectedBuildingMetric.reviewFriction]: 10,
-    [SelectedBuildingMetric.knowledgeStaleness]: 10,
-    [SelectedBuildingMetric.abandonedKnowledgeSilo]: 10,
-  },
-  [BuildingMetricMapping.Logarithmic]: {
-    [SelectedBuildingMetric.None]: 1,
-    [SelectedBuildingMetric.size]: 10,
-    [SelectedBuildingMetric.lineCount]: 20,
-    [SelectedBuildingMetric.sloc]: 20,
-    [SelectedBuildingMetric.cloc]: 20,
-    [SelectedBuildingMetric.importCount]: 20,
-    [SelectedBuildingMetric.classCount]: 20,
-    [SelectedBuildingMetric.functionCount]: 25,
-    [SelectedBuildingMetric.variableCount]: 20,
-    [SelectedBuildingMetric.commitCount]:  20,
-    [SelectedBuildingMetric.commitActivity]: 20,
-    [SelectedBuildingMetric.coreContributorActivity]: 20,
-    [SelectedBuildingMetric.knowledgeSilo]: 10,
-    [SelectedBuildingMetric.issueActivity]: 10,
-    [SelectedBuildingMetric.reviewFriction]: 10,
-    [SelectedBuildingMetric.knowledgeStaleness]: 10,
-    [SelectedBuildingMetric.abandonedKnowledgeSilo]: 10,
-  },
-} as const;
-
-export function applyMetricMapping(
-  value: number,
-  mapping: BuildingMetricMapping
-): number {
-  const numericValue = Number(value);
-  const safeValue = Number.isFinite(numericValue)
-    ? Math.max(0, numericValue)
-    : 0;
-  if (mapping === BuildingMetricMapping.Logarithmic) {
-    return Math.log1p(safeValue);
-  }
-  return safeValue;
-}
-
-export type MetricKey = SelectedBuildingMetric;
-export function getMetricMappingMultiplier(
-  metric: MetricKey,
-  mapping: BuildingMetricMapping
-): number {
-  return metricMappingMultipliers[mapping][metric];
-}
-export const metricKeys = SELECTED_BUILDING_METRIC_OPTIONS;
 export const MOUSE_ACTIONS = [
   'NONE',
   'ROTATE',
@@ -845,7 +782,7 @@ export const defaultVizSettings: VisualizationSettings = {
   buildingWidthMetric: {
     level: SettingLevel.DEFAULT,
     value: SelectedBuildingMetric.None,
-    options: metricKeys,
+    options: BUILDING_CONFIG_METRIC_OPTIONS,
     group: 'Building Config',
     displayName: 'Width Metric',
     description: 'Metric that is mapped to the width of a building.',
@@ -868,7 +805,7 @@ export const defaultVizSettings: VisualizationSettings = {
   buildingDepthMetric: {
     level: SettingLevel.DEFAULT,
     value: SelectedBuildingMetric.None,
-    options: metricKeys,
+    options: BUILDING_CONFIG_METRIC_OPTIONS,
     group: 'Building Config',
     displayName: 'Depth Metric',
     description: 'Metric that is mapped to the depth of a building.',
@@ -891,7 +828,7 @@ export const defaultVizSettings: VisualizationSettings = {
   buildingHeightMetric: {
     level: SettingLevel.DEFAULT,
     value: SelectedBuildingMetric.None,
-    options: metricKeys,
+    options: BUILDING_CONFIG_METRIC_OPTIONS,
     group: 'Building Config',
     displayName: 'Height Metric',
     description: 'Metric that is mapped to the height of a building.',

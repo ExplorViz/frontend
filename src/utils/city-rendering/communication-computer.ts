@@ -1,16 +1,19 @@
-import { AggregatedBuildingCommunication, CommunicationDto } from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/aggregated-file-communication';
+import { useModelStore } from 'explorviz-frontend/src/stores/repos/model-repository';
+import { findFirstEntityWithOpenedParent } from 'explorviz-frontend/src/utils/city-rendering/communication-layouter';
 import AggregatedCommunication from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/aggregated-communication';
+import {
+  Comm,
+  CommSummary,
+} from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/communication';
 import {
   FlatLandscape,
   isBuilding,
   isDistrict,
 } from 'explorviz-frontend/src/utils/landscape-schemes/flat-landscape';
-import { useModelStore } from 'explorviz-frontend/src/stores/repos/model-repository';
-import { findFirstEntityWithOpenedParent } from 'explorviz-frontend/src/utils/city-rendering/communication-layouter';
 
 export function computeBuildingCommunication(
   flatLandscape: FlatLandscape,
-  aggregatedFileCommunication: AggregatedBuildingCommunication
+  aggregatedFileCommunication?: CommSummary
 ) {
   if (
     !aggregatedFileCommunication ||
@@ -20,20 +23,42 @@ export function computeBuildingCommunication(
     return [];
 
   return aggregatedFileCommunication.communications.filter((comm) => {
-    const sourceBuilding = flatLandscape.buildings[comm.sourceBuildingId];
-    const targetBuilding = flatLandscape.buildings[comm.targetBuildingId];
+    const telemetryKeyMap = useModelStore.getState().telemetryKeyToEntityId;
+
+    const sourceEntityId = telemetryKeyMap.get(comm.sourceEntityKey);
+    const targetEntityId = telemetryKeyMap.get(comm.targetEntityKey);
+
+    if (!sourceEntityId || !targetEntityId) {
+      console.warn(
+        `Could not find entity for telemetry key ${!sourceEntityId ? comm.sourceEntityKey : comm.targetEntityKey}`
+      );
+      return false;
+    }
+
+    const sourceBuilding = flatLandscape.buildings[sourceEntityId];
+    const targetBuilding = flatLandscape.buildings[targetEntityId];
+
     return !!sourceBuilding && !!targetBuilding;
   });
 }
 
-export function computeAggregatedCommunication(
-  allCommunications: CommunicationDto[]
-) {
+export function computeAggregatedCommunication(allCommunications: Comm[]) {
   const groupedComms = new Map<string, AggregatedCommunication>();
+  const telemetryKeyMap = useModelStore.getState().telemetryKeyToEntityId;
 
   allCommunications.forEach((comm) => {
-    const effSourceId = findFirstEntityWithOpenedParent(comm.sourceBuildingId);
-    const effTargetId = findFirstEntityWithOpenedParent(comm.targetBuildingId);
+    const sourceEntityId = telemetryKeyMap.get(comm.sourceEntityKey);
+    const targetEntityId = telemetryKeyMap.get(comm.targetEntityKey);
+    if (!sourceEntityId || !targetEntityId) {
+      console.error(
+        'Could not find entity ID for telemetry key: ',
+        !sourceEntityId ? comm.sourceEntityKey : comm.targetEntityKey
+      );
+      return;
+    }
+
+    const effSourceId = findFirstEntityWithOpenedParent(sourceEntityId);
+    const effTargetId = findFirstEntityWithOpenedParent(targetEntityId);
     if (!effSourceId || !effTargetId) {
       console.error(
         'Could not find source or target for communication.',
@@ -43,13 +68,17 @@ export function computeAggregatedCommunication(
       return;
     }
 
-    const key = `${effSourceId}-${effTargetId}`;
+    const key =
+      effSourceId <= effTargetId
+        ? `${effSourceId}-${effTargetId}`
+        : `${effTargetId}-${effSourceId}`;
 
     if (groupedComms.has(key)) {
       const existing = groupedComms.get(key)!;
       // Aggregate metrics
       Object.entries(comm.metrics).forEach(([metricName, value]) => {
-        existing.metrics[metricName] = (existing.metrics[metricName] || 0) + value;
+        existing.metrics[metricName] =
+          (existing.metrics[metricName] || 0) + value;
       });
       existing.buildingCommunicationIds = [
         ...new Set([...existing.buildingCommunicationIds, comm.id]),
@@ -58,9 +87,20 @@ export function computeAggregatedCommunication(
         ...new Set([...existing.originalCommIds, comm.id]),
       ];
       existing.isBidirectional =
-        existing.isBidirectional || comm.isBidirectional;
+        existing.isBidirectional ||
+        comm.isBidirectional ||
+        (existing.sourceEntity.id === effTargetId &&
+          existing.targetEntity.id === effSourceId);
       existing.isRecursive =
         existing.isRecursive || effSourceId === effTargetId;
+      existing.fromUnixNano =
+        comm.fromUnixNano < existing.fromUnixNano
+          ? comm.fromUnixNano
+          : existing.fromUnixNano;
+      existing.toUnixNano =
+        comm.toUnixNano > existing.toUnixNano
+          ? comm.toUnixNano
+          : existing.toUnixNano;
     } else {
       const sourceEntity = useModelStore.getState().getModel(effSourceId);
       const targetEntity = useModelStore.getState().getModel(effTargetId);
@@ -77,6 +117,8 @@ export function computeAggregatedCommunication(
         comm.id,
         sourceEntity,
         targetEntity,
+        comm.fromUnixNano,
+        comm.toUnixNano,
         [comm.id],
         [comm.id]
       );
@@ -96,7 +138,7 @@ export function computeAggregatedCommunication(
 }
 
 export function calculateAggregatedCommunications(
-  buildingCommunications?: CommunicationDto[]
+  buildingCommunications?: Comm[]
 ) {
   const comms =
     buildingCommunications ??
@@ -137,7 +179,10 @@ export function computeRestructuredAggregatedCommunication(
   classCommunication: AggregatedCommunication[],
   copiedAggregatedCommunications: Map<string, AggregatedCommunication[]>,
   updatedAggregatedCommunications: Map<string, AggregatedCommunication[]>,
-  deletedAggregatedCommunication: Map<string, AggregatedCommunication[]> = new Map()
+  deletedAggregatedCommunication: Map<
+    string,
+    AggregatedCommunication[]
+  > = new Map()
 ) {
   if (classCommunication.length) {
     classCommunication.forEach((comm) => {
@@ -185,4 +230,3 @@ export function computeRestructuredAggregatedCommunication(
 
   return classCommunications;
 }
-

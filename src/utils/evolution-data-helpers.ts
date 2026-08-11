@@ -12,6 +12,7 @@ export type CommitSearchResult = {
   commitId: string;
   branchName: string;
   commitDate?: string;
+  tags?: string[];
 };
 
 const DEFAULT_MAX_COMMIT_SELECTION = 2;
@@ -570,10 +571,17 @@ export function searchCommitsInRepository(
 
   for (const branch of commitTree.branches) {
     for (const commit of branch.commits) {
-      if (
-        !commitHasAnalyzedMetrics(commit) ||
-        !commit.hash.toLowerCase().includes(normalizedQuery)
-      ) {
+      if (!commitHasAnalyzedMetrics(commit)) {
+        continue;
+      }
+
+      const hashMatches = commit.hash.toLowerCase().includes(normalizedQuery);
+      const tagMatches =
+        commit.tags?.some((tag) =>
+          tag.toLowerCase().includes(normalizedQuery)
+        ) ?? false;
+
+      if (!hashMatches && !tagMatches) {
         continue;
       }
 
@@ -581,6 +589,7 @@ export function searchCommitsInRepository(
         commitId: commit.hash,
         branchName: branch.name,
         commitDate: formatCommitDate(commit),
+        ...(commit.tags?.length && { tags: commit.tags }),
       });
     }
   }
