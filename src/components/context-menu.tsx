@@ -14,6 +14,7 @@ import { useAnnotationHandlerStore } from 'explorviz-frontend/src/stores/annotat
 import { useCameraControlsStore } from 'explorviz-frontend/src/stores/camera-controls-store';
 import { useLocalUserStore } from 'explorviz-frontend/src/stores/collaboration/local-user';
 import { useConfigurationStore } from 'explorviz-frontend/src/stores/configuration';
+import { usePopupHandlerStore } from 'explorviz-frontend/src/stores/popup-handler';
 import { useModelStore } from 'explorviz-frontend/src/stores/repos/model-repository';
 import { useVisualizationStore } from 'explorviz-frontend/src/stores/visualization-store';
 import * as EntityManipulation from 'explorviz-frontend/src/utils/city-rendering/entity-manipulation';
@@ -238,6 +239,13 @@ export default function ContextMenu({ children }: ContextMenuProps) {
       .getState()
       .highlightedEntityIds.has(buildingId);
     return [
+      {
+        id: `building-show-info-${buildingId}`,
+        title: 'Show Info',
+        action: () => {
+          usePopupHandlerStore.getState().addPopup({ entityId: buildingId });
+        },
+      },
       {
         id: `building-highlight-${buildingId}`,
         title: isBuildingHighlighted

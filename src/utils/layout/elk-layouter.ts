@@ -376,8 +376,9 @@ function hasVisibleBuildingsRecursively(
 
 function createBuildingNode(building: Building) {
   const getMetricValue = (building: Building, metricKey: string): number => {
-    const metric = building.metrics?.[metricKey];
-    return metric?.current || 0;
+    const rawValue = building.metrics?.[metricKey]?.current;
+    const numericValue = Number(rawValue);
+    return Number.isFinite(numericValue) ? Math.max(0, numericValue) : 0;
   };
 
   const widthByMetric =

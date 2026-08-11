@@ -3,9 +3,7 @@ import {
   BuildingMetricIds,
   SelectedBuildingHeatmapMetric,
 } from 'explorviz-frontend/src/stores/heatmap/heatmap-store';
-import {
-  Class,
-} from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
+import { Class } from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
 
 export type RGB = { r: number; g: number; b: number };
 
@@ -40,8 +38,6 @@ export function getMetricValues(
   const isBuilding = (x: any): x is Building =>
     Object.prototype.hasOwnProperty.call(x, 'parentCityId');
 
-
-
   const getMetricValueFromModel = (
     model: Class | Building,
     metricName: string
@@ -70,6 +66,22 @@ export function getMetricValues(
     case SelectedBuildingHeatmapMetric.functionCount:
     case BuildingMetricIds.variableCount:
     case SelectedBuildingHeatmapMetric.variableCount:
+    case BuildingMetricIds.commitCount:
+    case SelectedBuildingHeatmapMetric.commitCount:
+    case BuildingMetricIds.commitActivity:
+    case SelectedBuildingHeatmapMetric.commitActivity:
+    case BuildingMetricIds.coreContributorActivity:
+    case SelectedBuildingHeatmapMetric.coreContributorActivity:
+    case BuildingMetricIds.knowledgeSilo:
+    case SelectedBuildingHeatmapMetric.knowledgeSilo:
+    case BuildingMetricIds.issueActivity:
+    case SelectedBuildingHeatmapMetric.issueActivity:
+    case BuildingMetricIds.reviewFriction:
+    case SelectedBuildingHeatmapMetric.reviewFriction:
+    case BuildingMetricIds.knowledgeStaleness:
+    case SelectedBuildingHeatmapMetric.knowledgeStaleness:
+    case BuildingMetricIds.abandonedKnowledgeSilo:
+    case SelectedBuildingHeatmapMetric.abandonedKnowledgeSilo:
       return {
         min: classHeatmapMetric.min,
         max: classHeatmapMetric.max,

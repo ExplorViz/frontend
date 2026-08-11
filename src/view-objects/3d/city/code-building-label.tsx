@@ -8,7 +8,10 @@ import { getTruncatedDisplayName } from 'explorviz-frontend/src/utils/annotation
 import { isBuildingVisible } from 'explorviz-frontend/src/utils/city-rendering/building-visibility';
 import { Building } from 'explorviz-frontend/src/utils/landscape-schemes/flat-landscape';
 import BoxLayout from 'explorviz-frontend/src/utils/layout/box-layout';
-import { computeMappedBuildingHeight } from 'explorviz-frontend/src/utils/settings/building-metrics';
+import {
+  computeMappedBuildingHeight,
+  getCachedBuildingMetricBounds,
+} from 'explorviz-frontend/src/utils/settings/building-metrics';
 import gsap from 'gsap';
 import { useEffect, useState } from 'react';
 import * as THREE from 'three';
@@ -112,6 +115,11 @@ export default function CodeBuildingLabel({
 
   const buildings = useModelStore((state) => state.buildings);
 
+  const heightMetricBounds = getCachedBuildingMetricBounds(
+    buildings,
+    heightMetric
+  );
+
   function getBuildingHeight(targetBuilding: Building) {
     return computeMappedBuildingHeight(
       targetBuilding,
@@ -119,7 +127,7 @@ export default function CodeBuildingLabel({
       metricMapping,
       buildingFootprint,
       buildingHeightMultiplier,
-      buildings
+      heightMetricBounds
     );
   }
 

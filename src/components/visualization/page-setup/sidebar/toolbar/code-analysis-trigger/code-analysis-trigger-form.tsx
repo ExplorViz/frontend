@@ -48,6 +48,7 @@ interface AnalysisRequestPayload {
   includeDataStructures: boolean;
   sendToRemote: boolean;
   fetchSocialData: boolean;
+  syncSocialWindow: boolean;
   fetchEndDate?: string;
   socialDataTimeFrameDays?: number;
 }
@@ -124,11 +125,13 @@ function buildPayload(
     | 'includeDataStructures'
     | 'sendToRemote'
     | 'fetchSocialData'
+    | 'syncSocialWindow'
     | 'firstParentCommitsOnly'
   > & {
     includeDataStructures: boolean;
     sendToRemote: boolean;
     fetchSocialData: boolean;
+    syncSocialData: boolean;
     firstParentCommitsOnly: boolean;
   },
   inclusionExpressions: readonly InputOption[],
@@ -139,6 +142,7 @@ function buildPayload(
     includeDataStructures: formData.includeDataStructures,
     sendToRemote: formData.sendToRemote,
     fetchSocialData: formData.fetchSocialData,
+    syncSocialWindow: formData.syncSocialWindow,
     firstParentCommitsOnly: formData.firstParentCommitsOnly,
   };
 
@@ -288,6 +292,7 @@ export default function CodeAnalysisTriggerForm({
     includeDataStructures: true,
     sendToRemote: true,
     fetchSocialData: false,
+    syncSocialWindow: true,
   });
 
   useEffect(() => {
@@ -415,6 +420,7 @@ export default function CodeAnalysisTriggerForm({
       includeDataStructures: true,
       sendToRemote: true,
       fetchSocialData: false,
+      syncSocialWindow: true,
     });
     setRepoType('remote');
     setInclusionExpressions([]);
@@ -1023,6 +1029,22 @@ export default function CodeAnalysisTriggerForm({
               checked={formData.fetchSocialData}
               onChange={(e) =>
                 handleInputChange('fetchSocialData', e.target.checked)
+              }
+            />
+            <Form.Check
+              type="checkbox"
+              id="sync-social-window"
+              label={
+                <span className="d-inline-flex align-items-center">
+                  Sync Social Window
+                  <HelpTooltip
+                    title="When enabled, the social data fetch window is derived from the date range of the analyzed commits instead of the fixed end date time frame above."
+                    placement="top" />
+                </span>
+              }
+              checked={formData.syncSocialWindow}
+              onChange={(e) =>
+                handleInputChange('syncSocialWindow', e.target.checked)
               }
             />
           </div>

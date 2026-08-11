@@ -1,4 +1,4 @@
-import { metricKeys } from 'explorviz-frontend/src/utils/settings/building-metrics';
+import { BUILDING_CONFIG_METRIC_OPTIONS } from 'explorviz-frontend/src/utils/settings/building-config-settings';
 import { defaultColors } from 'explorviz-frontend/src/utils/settings/color-schemes';
 import {
   BuildingMetricMapping,
@@ -782,7 +782,7 @@ export const defaultVizSettings: VisualizationSettings = {
   buildingWidthMetric: {
     level: SettingLevel.DEFAULT,
     value: SelectedBuildingMetric.None,
-    options: metricKeys,
+    options: BUILDING_CONFIG_METRIC_OPTIONS,
     group: 'Building Config',
     displayName: 'Width Metric',
     description: 'Metric that is mapped to the width of a building.',
@@ -805,7 +805,7 @@ export const defaultVizSettings: VisualizationSettings = {
   buildingDepthMetric: {
     level: SettingLevel.DEFAULT,
     value: SelectedBuildingMetric.None,
-    options: metricKeys,
+    options: BUILDING_CONFIG_METRIC_OPTIONS,
     group: 'Building Config',
     displayName: 'Depth Metric',
     description: 'Metric that is mapped to the depth of a building.',
@@ -828,7 +828,7 @@ export const defaultVizSettings: VisualizationSettings = {
   buildingHeightMetric: {
     level: SettingLevel.DEFAULT,
     value: SelectedBuildingMetric.None,
-    options: metricKeys,
+    options: BUILDING_CONFIG_METRIC_OPTIONS,
     group: 'Building Config',
     displayName: 'Height Metric',
     description: 'Metric that is mapped to the height of a building.',

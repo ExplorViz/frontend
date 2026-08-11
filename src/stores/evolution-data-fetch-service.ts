@@ -14,12 +14,40 @@ export type EvolutionStructureBatchRequestBody = {
   }[];
 };
 
+export type ContributorDto = {
+  contributorId: number;
+  gitUsername: string | null;
+  githubLogin: string | null;
+  email: string | null;
+  avatarUrl: string | null;
+  commitCount: number;
+  isCore: boolean;
+};
+export type ContributorsResponse = {
+  contributors: ContributorDto[];
+  timeRange: { from: number; to: number };
+};
+
+export type MetricScore = { raw: number; normalized: number};
+
+export type SocialMetricDto = {
+  fileRevisionId: number;
+  filePath: string;
+  metrics: Record<string, MetricScore | null>;
+};
+
 interface EvolutionDataFetchState {
   fetchRepositories: () => Promise<string[]>;
   fetchCommitTreeForRepoName(repoName: string): Promise<CommitTree>;
   fetchFlatLandscapeForRepositoriesAndCommits(
     body: EvolutionStructureBatchRequestBody
   ): Promise<FlatLandscape>;
+  fetchSocialMetrics(
+    repoName: string,
+    commit: string,
+    opts?: { from?: number; to?: number; contributorIds?: number[]; logScale?: boolean; quantile?: number }
+  ): Promise<SocialMetricDto[]>;
+  fetchContributors(repoName: string): Promise<ContributorsResponse>;
   _getLandscapeToken(): string;
   _constructUrl(endpoint: string, ...params: string[]): string;
   _fetchFromService<T>(url: string): Promise<T>;
@@ -47,6 +75,27 @@ export const useEvolutionDataFetchServiceStore =
       const landscapeToken = get()._getLandscapeToken();
       const url = `${import.meta.env.VITE_LANDSCAPE_SERV_URL}/v3/landscapes/${landscapeToken}/structure/evolution/batch`;
       return await get()._postJsonToService<FlatLandscape>(url, body);
+    },
+
+    fetchSocialMetrics: async (
+      repoName: string,
+      commit: string,
+      opts?: { from?: number; to?: number; contributorIds?: number[], logScale?: boolean, quantile?: number }
+    ): Promise<SocialMetricDto[]> => {
+      const baseUrl = get()._constructUrl('social-metrics', repoName);
+      const params = new URLSearchParams({ commit });
+      if (opts?.from !== undefined) params.set('from', String(opts.from));
+      if (opts?.to !== undefined) params.set('to', String(opts.to));
+      opts?.contributorIds?.forEach((id) => params.append('contributors', String(id)));
+      if (opts?.logScale !== undefined) params.set('logScale', String(opts.logScale));
+      if (opts?.quantile !== undefined) params.set('quantile', String(opts.quantile));
+      return await get()._fetchFromService<SocialMetricDto[]>(`${baseUrl}?${params}`);
+    },
+
+    fetchContributors: async (repoName: string):
+    Promise<ContributorsResponse> => {
+      const url = get()._constructUrl('contributors', repoName);
+      return await get()._fetchFromService<ContributorsResponse>(url);
     },
 
     _getLandscapeToken: (): string => {

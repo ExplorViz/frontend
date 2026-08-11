@@ -31,7 +31,10 @@ import {
   type City,
 } from 'explorviz-frontend/src/utils/landscape-schemes/flat-landscape';
 import { TypeOfAnalysis } from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
-import { computeMappedBuildingHeight } from 'explorviz-frontend/src/utils/settings/building-metrics';
+import {
+  computeMappedBuildingHeight,
+  getCachedBuildingMetricBounds,
+} from 'explorviz-frontend/src/utils/settings/building-metrics';
 import {
   BuildingGeometryType,
   getLanguageColor as getLanguageBuildingColor,
@@ -233,6 +236,11 @@ const GeometryGroup: React.FC<GeometryGroupProps> = ({
   );
   const popupData = usePopupHandlerStore((state) => state.popupData);
 
+  const heightMetricBounds = getCachedBuildingMetricBounds(
+    buildings,
+    heightMetric
+  );
+
   const enterImmersive = useImmersiveViewStore((state) => state.enterImmersive);
 
   const sceneLayers = useVisualizationStore((state) => state.sceneLayers);
@@ -244,7 +252,7 @@ const GeometryGroup: React.FC<GeometryGroupProps> = ({
       metricMapping,
       buildingFootprint,
       buildingHeightMultiplier,
-      buildings
+      heightMetricBounds
     );
   }
 
@@ -656,8 +664,8 @@ const GeometryGroup: React.FC<GeometryGroupProps> = ({
       entityId: buildingId,
       entity: building,
       position: {
-        x: e.clientX,
-        y: e.clientY,
+        x: e.nativeEvent.clientX,
+        y: e.nativeEvent.clientY,
       },
     });
   };

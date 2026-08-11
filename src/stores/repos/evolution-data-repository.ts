@@ -9,10 +9,12 @@ import {
   RepoNameCommitTreeMap,
 } from 'explorviz-frontend/src/utils/evolution-schemes/evolution-data';
 import { FlatLandscape } from 'explorviz-frontend/src/utils/landscape-schemes/flat-landscape';
+import { SocialMetricDto } from 'explorviz-frontend/src/stores/evolution-data-fetch-service';
+import { mergeSocialMetricsIntoFlatLandscape } from 'explorviz-frontend/src/utils/landscape-schemes/social-metrics-helpers';
 import { create } from 'zustand';
 
 /** Older commit first, newer second — matches landscape-service comparison semantics. */
-function sortSelectedCommitsForComparison(
+export function sortSelectedCommitsForComparison(
   repoNameCommitTreeMap: RepoNameCommitTreeMap,
   repositoryName: string,
   commits: SelectedCommit[]
@@ -54,6 +56,12 @@ interface EvolutionDataRepositoryState {
   _fetchCommitTreeForRepoName: (
     repoName: string
   ) => Promise<CommitTree | undefined>;
+  sortSelectedCommitsForComparison: (
+  repoNameCommitTreeMap: RepoNameCommitTreeMap,
+  repositoryName: string,
+  commits: SelectedCommit[],
+  ) => SelectedCommit[];
+  applySocialMetrics: (dtos: SocialMetricDto[]) => void;
 }
 
 export const useEvolutionDataRepositoryStore =
@@ -135,6 +143,16 @@ export const useEvolutionDataRepositoryStore =
         );
         set({ _repoNameToFlatLandscapeMap: new Map<string, FlatLandscape>() });
       }
+    },
+
+    applySocialMetrics: (dtos: SocialMetricDto[]): void => {
+      const merged = new Map<string, FlatLandscape>();
+
+      for (const [repoName, flatLandscape] of get()._repoNameToFlatLandscapeMap) {
+        merged.set(repoName, mergeSocialMetricsIntoFlatLandscape(flatLandscape, dtos));
+      }
+
+      set({ _repoNameToFlatLandscapeMap: merged });
     },
 
     resetAllEvolutionData: (): void => {

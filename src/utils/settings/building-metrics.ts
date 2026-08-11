@@ -1,7 +1,6 @@
 import { Building } from 'explorviz-frontend/src/utils/landscape-schemes/flat-landscape';
 import {
   BuildingMetricMapping,
-  SELECTED_BUILDING_METRIC_OPTIONS,
   SelectedBuildingMetric,
 } from 'explorviz-frontend/src/utils/settings/settings-schemas';
 
@@ -29,6 +28,14 @@ export const metricMappingMultipliers = {
     [SelectedBuildingMetric.classCount]: 10,
     [SelectedBuildingMetric.functionCount]: 10,
     [SelectedBuildingMetric.variableCount]: 10,
+    [SelectedBuildingMetric.commitCount]: 10,
+    [SelectedBuildingMetric.commitActivity]: 10,
+    [SelectedBuildingMetric.coreContributorActivity]: 10,
+    [SelectedBuildingMetric.knowledgeSilo]: 10,
+    [SelectedBuildingMetric.issueActivity]: 10,
+    [SelectedBuildingMetric.reviewFriction]: 10,
+    [SelectedBuildingMetric.knowledgeStaleness]: 10,
+    [SelectedBuildingMetric.abandonedKnowledgeSilo]: 10,
   },
   [BuildingMetricMapping.Logarithmic]: {
     [SelectedBuildingMetric.None]: 1,
@@ -40,61 +47,20 @@ export const metricMappingMultipliers = {
     [SelectedBuildingMetric.classCount]: 20,
     [SelectedBuildingMetric.functionCount]: 25,
     [SelectedBuildingMetric.variableCount]: 20,
+    [SelectedBuildingMetric.commitCount]: 20,
+    [SelectedBuildingMetric.commitActivity]: 20,
+    [SelectedBuildingMetric.coreContributorActivity]: 20,
+    [SelectedBuildingMetric.knowledgeSilo]: 10,
+    [SelectedBuildingMetric.issueActivity]: 10,
+    [SelectedBuildingMetric.reviewFriction]: 10,
+    [SelectedBuildingMetric.knowledgeStaleness]: 10,
+    [SelectedBuildingMetric.abandonedKnowledgeSilo]: 10,
   },
 } as const;
 
-export const metricKeys = SELECTED_BUILDING_METRIC_OPTIONS;
-
-export function getMetricBoundsForBuildings(
-  buildings: Building[],
-  metricKey: string
-): MetricBounds {
-  if (!metricKey || metricKey === SelectedBuildingMetric.None) {
-    return { min: 0, max: 0 };
-  }
-
-  if (buildings.length === 0) {
-    return { min: 0, max: 0 };
-  }
-
-  return buildings.reduce(
-    (acc, building) => {
-      const rawValue = building.metrics?.[metricKey]?.current ?? 0;
-      const numericValue = Number(rawValue);
-      const safeValue = Number.isFinite(numericValue)
-        ? Math.max(0, numericValue)
-        : 0;
-      return {
-        min: Math.min(acc.min, safeValue),
-        max: Math.max(acc.max, safeValue),
-      };
-    },
-    { min: Infinity, max: -Infinity }
-  );
-}
-
-let cachedBoundsBuildingsRef: Record<string, Building> | null = null;
-let cachedBoundsMetricKey = '';
-let cachedMetricBounds: MetricBounds = { min: 0, max: 0 };
-
-export function getCachedBuildingMetricBounds(
-  buildings: Record<string, Building>,
-  metricKey: string
-): MetricBounds {
-  if (
-    cachedBoundsBuildingsRef === buildings &&
-    cachedBoundsMetricKey === metricKey
-  ) {
-    return cachedMetricBounds;
-  }
-
-  cachedBoundsBuildingsRef = buildings;
-  cachedBoundsMetricKey = metricKey;
-  cachedMetricBounds = getMetricBoundsForBuildings(
-    Object.values(buildings),
-    metricKey
-  );
-  return cachedMetricBounds;
+function toSafeMetricValue(value: number | null | undefined): number {
+  const numericValue = Number(value);
+  return Number.isFinite(numericValue) ? Math.max(0, numericValue) : 0;
 }
 
 export function applyMetricMapping(
@@ -102,10 +68,7 @@ export function applyMetricMapping(
   mapping: BuildingMetricMapping,
   bounds?: MetricBounds
 ): number {
-  const numericValue = Number(value);
-  const safeValue = Number.isFinite(numericValue)
-    ? Math.max(0, numericValue)
-    : 0;
+  const safeValue = toSafeMetricValue(value);
 
   if (mapping === BuildingMetricMapping.Logarithmic) {
     const min = bounds?.min ?? 0;
@@ -136,21 +99,76 @@ export function getMetricMappingMultiplier(
   return metricMappingMultipliers[mapping][metric];
 }
 
+export function getMetricBoundsForBuildings(
+  buildings: Building[],
+  metricKey: string
+): MetricBounds {
+  if (!metricKey || metricKey === SelectedBuildingMetric.None) {
+    return { min: 0, max: 0 };
+  }
+
+  if (buildings.length === 0) {
+    return { min: 0, max: 0 };
+  }
+
+  return buildings.reduce(
+    (acc, building) => {
+      const safeValue = toSafeMetricValue(
+        building.metrics?.[metricKey]?.current
+      );
+      return {
+        min: Math.min(acc.min, safeValue),
+        max: Math.max(acc.max, safeValue),
+      };
+    },
+    { min: Infinity, max: -Infinity }
+  );
+}
+
+let cachedBoundsBuildingsRef: Record<string, Building> | null = null;
+let cachedBoundsMetricKey = '';
+let cachedMetricBounds: MetricBounds = { min: 0, max: 0 };
+
+export function invalidateBuildingMetricBoundsCache(): void {
+  cachedBoundsBuildingsRef = null;
+  cachedBoundsMetricKey = '';
+  cachedMetricBounds = { min: 0, max: 0 };
+}
+
+export function getCachedBuildingMetricBounds(
+  buildings: Record<string, Building>,
+  metricKey: string
+): MetricBounds {
+  if (
+    cachedBoundsBuildingsRef === buildings &&
+    cachedBoundsMetricKey === metricKey
+  ) {
+    return cachedMetricBounds;
+  }
+
+  cachedBoundsBuildingsRef = buildings;
+  cachedBoundsMetricKey = metricKey;
+  cachedMetricBounds = getMetricBoundsForBuildings(
+    Object.values(buildings),
+    metricKey
+  );
+  return cachedMetricBounds;
+}
+
 export function computeMappedBuildingHeight(
   building: Building,
   heightMetric: string,
   metricMapping: BuildingMetricMapping,
   buildingFootprint: number,
   buildingHeightMultiplier: number,
-  buildings: Record<string, Building>
+  bounds?: MetricBounds
 ): number {
-  const metricBounds = getCachedBuildingMetricBounds(buildings, heightMetric);
-  const metricValue = building.metrics?.[heightMetric]?.current || 0;
+  const metricValue = building.metrics?.[heightMetric]?.current ?? 0;
 
   return (
     buildingFootprint +
     getMetricMappingMultiplier(heightMetric as MetricKey, metricMapping) *
       buildingHeightMultiplier *
-      applyMetricMapping(metricValue, metricMapping, metricBounds)
+      applyMetricMapping(metricValue, metricMapping, bounds)
   );
 }
