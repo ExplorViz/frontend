@@ -18,7 +18,6 @@ import { useShallow } from 'zustand/react/shallow';
 
 export default function CodeCity({ cityId }: { cityId: string }) {
   const city = useModelStore((state) => state.getCity(cityId))!;
-  const buildingLayouts = useLayoutStore((state) => state.buildingLayouts);
   const districtLayouts = useLayoutStore((state) => state.districtLayouts);
   const cityLayout = useLayoutStore((state) => state.cityLayouts.get(cityId));
 
@@ -91,12 +90,7 @@ export default function CodeCity({ cityId }: { cityId: string }) {
       )}
       {isBrowserActive && <EmbeddedBrowser city={city} />}
       {cityLayout && <CityFoundation city={city} layout={cityLayout} />}
-      <CodeBuildings
-        buildingIds={city.allContainedBuildingIds.filter((id) =>
-          buildingLayouts.has(id)
-        )}
-        city={city}
-      />
+      <CodeBuildings buildingIds={city.allContainedBuildingIds} city={city} />
       {city.allContainedBuildingIds.map((buildingId) => (
         <CodeBuildingLabel
           key={buildingId + '-label'}
@@ -104,9 +98,7 @@ export default function CodeCity({ cityId }: { cityId: string }) {
         />
       ))}
       <CityDistricts
-        districtIds={city.allContainedDistrictIds.filter((id) =>
-          districtLayouts.has(id)
-        )}
+        districtIds={city.allContainedDistrictIds}
         layoutMap={districtLayouts}
         ref={componentInstanceMeshRef}
         city={city}

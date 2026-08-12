@@ -94,8 +94,6 @@ function groupBuildingsByGeometry(
   return groups;
 }
 
-const buildingMaterial = new MeshLambertMaterial();
-
 function createBuildingGeometry(geometryType: BuildingGeometryType) {
   // Round primitives default to radius 1 (diameter 2); use 0.5 to match BoxGeometry's 1×1 footprint.
   switch (geometryType) {
@@ -142,6 +140,7 @@ const GeometryGroup: React.FC<GeometryGroupProps> = ({
   city,
 }) => {
   const meshRef = useRef<InstancedMesh2>(null);
+  const material = useRef(new MeshLambertMaterial());
   const instanceIdToBuildingIdRef = useRef(new Map<number, string>());
   const buildingIdToInstanceIdRef = useRef(new Map<string, number>());
 
@@ -310,6 +309,36 @@ const GeometryGroup: React.FC<GeometryGroupProps> = ({
 
     return baseColor;
   }
+
+  const applyInstanceAppearance = (mesh: InstancedMesh2) => {
+    buildingIdToInstanceIdRef.current.forEach((instanceId, buildingId) => {
+      const building = useModelStore.getState().getBuilding(buildingId);
+      mesh.setColorAt(instanceId, computeColor(buildingId));
+      mesh.setVisibilityAt(
+        instanceId,
+        isBuildingVisible({
+          buildingId,
+          building,
+          hiddenBuildingIds,
+          removedDistrictIds,
+          hiddenLanguages,
+          evoConfig,
+          isDiffMode,
+        })
+      );
+    });
+  };
+
+  const isVisible = (buildingId: string, building: Building | undefined) =>
+    isBuildingVisible({
+      buildingId,
+      building,
+      hiddenBuildingIds,
+      removedDistrictIds,
+      hiddenLanguages,
+      evoConfig,
+      isDiffMode,
+    });
 
   useEffect(() => {
     if (buildingIdToInstanceIdRef.current.size === 0) {
@@ -506,6 +535,7 @@ const GeometryGroup: React.FC<GeometryGroupProps> = ({
           },
         });
       });
+      applyInstanceAppearance(mesh);
       return;
     }
 
@@ -532,38 +562,14 @@ const GeometryGroup: React.FC<GeometryGroupProps> = ({
         layout.center.z
       );
 
-      const visibleDueToEvo = (() => {
-        if (isDiffMode || evoConfig.renderOnlyDifferences) {
-          return !!building.commitComparison;
-        }
-
-        if (
-          building.originOfData === TypeOfAnalysis.Static ||
-          building.originOfData === TypeOfAnalysis.StaticAndRuntime
-        ) {
-          return evoConfig.renderStatic;
-        }
-        if (building.originOfData === TypeOfAnalysis.Runtime) {
-          return evoConfig.renderDynamic;
-        }
-        return true;
-      })();
-
-      obj.visible =
-        isBuildingVisible({
-          buildingId: building.id,
-          building,
-          hiddenBuildingIds,
-          removedDistrictIds,
-          hiddenLanguages,
-        }) && visibleDueToEvo;
-
       obj.scale.set(layout.width, buildingHeight, layout.depth);
+      obj.visible = isVisible(building.id, building);
       obj.color = computeColor(building.id);
       obj.updateMatrix();
       i++;
     });
     meshRef.current.computeBVH();
+    applyInstanceAppearance(meshRef.current);
 
     meshRef.current.userData.explorvizResolveBuildingId = (
       meshInstanceId: number
@@ -597,20 +603,23 @@ const GeometryGroup: React.FC<GeometryGroupProps> = ({
     enableHoverEffects,
   ]);
 
-  // React on changes of color
+  // React on changes of color and visibility
   useEffect(() => {
     if (meshRef === null || typeof meshRef === 'function' || !meshRef.current) {
       return;
     }
-    buildingIdToInstanceIdRef.current.forEach((instanceId, buildingId) => {
-      meshRef.current?.setColorAt(instanceId, computeColor(buildingId));
-    });
+    if (buildingIdToInstanceIdRef.current.size === 0) {
+      return;
+    }
+    applyInstanceAppearance(meshRef.current);
   }, [
     highlightedEntityColor,
     heatmapActive,
     selectedBuildingMetric,
     selectedValueMapping,
     evoConfig.renderOnlyDifferences,
+    evoConfig.renderStatic,
+    evoConfig.renderDynamic,
     isDiffMode,
     addedBuildingColor,
     removedBuildingColor,
@@ -621,31 +630,10 @@ const GeometryGroup: React.FC<GeometryGroupProps> = ({
     visualizationSettings,
     enableHoverEffects,
     buildings,
+    hiddenBuildingIds,
+    removedDistrictIds,
+    hiddenLanguages,
   ]);
-
-  // React on changes of building visibility
-  useEffect(() => {
-    if (meshRef === null || typeof meshRef === 'function') {
-      return;
-    }
-    if (!meshRef.current) return;
-
-    // Update the visibility of the instances based
-    instanceIdToBuildingIdRef.current.forEach((buildingId, instanceId) => {
-      // Set visibility based on hidden buildings
-      const building = useModelStore.getState().getBuilding(buildingId);
-      meshRef.current?.setVisibilityAt(
-        instanceId,
-        isBuildingVisible({
-          buildingId,
-          building,
-          hiddenBuildingIds,
-          removedDistrictIds,
-          hiddenLanguages,
-        })
-      );
-    });
-  }, [meshRef, hiddenBuildingIds, removedDistrictIds, hiddenLanguages]);
 
   const handleClick = (e: ThreeEvent<MouseEvent>) => {
     if (meshRef === null || typeof meshRef === 'function') {
@@ -801,7 +789,7 @@ const GeometryGroup: React.FC<GeometryGroupProps> = ({
       layers={sceneLayers.Building}
       ref={meshRef}
       name={`Buildings-${geometryType}-${city.name}`}
-      args={[geometry, buildingMaterial]}
+      args={[geometry, material.current]}
       onClick={handleClickWithPrevent}
       onContextMenu={handleRightClickWithPrevent}
       {...(enableHoverEffects && {
@@ -823,33 +811,13 @@ interface CodeBuildingsArgs {
  * Groups buildings by geometry and renders a GeometryGroup for each geometry type.
  */
 const CodeBuildings: React.FC<CodeBuildingsArgs> = ({ buildingIds, city }) => {
-  const getBuilding = useModelStore.getState().getBuilding;
-  const { hiddenBuildingIds, removedDistrictIds, hiddenLanguages } =
-    useVisualizationStore(
-      useShallow((state) => ({
-        hiddenBuildingIds: state.hiddenBuildingIds,
-        removedDistrictIds: state.removedDistrictIds,
-        hiddenLanguages: state.hiddenLanguages,
-      }))
-    );
-
+  const getBuilding = useModelStore((state) => state.getBuilding);
   const visualizationSettings = useUserSettingsStore(
     (state) => state.visualizationSettings
   );
 
-  const visibleBuildingIds = buildingIds.filter((id) => {
-    const building = getBuilding(id);
-    return isBuildingVisible({
-      buildingId: id,
-      building,
-      hiddenBuildingIds,
-      removedDistrictIds,
-      hiddenLanguages,
-    });
-  });
-
   const buildingsByGeometry = groupBuildingsByGeometry(
-    visibleBuildingIds,
+    buildingIds,
     getBuilding,
     visualizationSettings
   );

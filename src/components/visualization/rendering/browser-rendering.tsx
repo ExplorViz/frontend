@@ -316,7 +316,10 @@ export default function BrowserRendering({
               .heatmapEnabled.value && <HeatmapInfo />}
 
             <ContextMenu>
-              <CanvasWrapper landscapeData={landscapeData} />
+              <CanvasWrapper
+                key={landscapeToken?.value ?? 'no-token'}
+                landscapeData={landscapeData}
+              />
             </ContextMenu>
 
             {landscapeData && <Popups landscapeData={landscapeData} />}

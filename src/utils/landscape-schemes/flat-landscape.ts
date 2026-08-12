@@ -166,6 +166,24 @@ export function getBuildingById(
   return flatLandscape.buildings[buildingId];
 }
 
+export type FlatLandscapeEntityType = 'city' | 'district' | 'building';
+
+export function getFlatLandscapeEntityType(
+  entityId: string,
+  flatLandscape: FlatLandscape
+): FlatLandscapeEntityType | null {
+  if (entityId in flatLandscape.cities) {
+    return 'city';
+  }
+  if (entityId in flatLandscape.districts) {
+    return 'district';
+  }
+  if (entityId in flatLandscape.buildings) {
+    return 'building';
+  }
+  return null;
+}
+
 export function getFunctionIdToBuildingMap(flatLandscape: FlatLandscape) {
   const functionIdToBuildingMap = new Map<string, Building>();
 

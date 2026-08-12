@@ -1,8 +1,10 @@
 import { Text } from '@react-three/drei';
 import { useClusterStore } from 'explorviz-frontend/src/stores/cluster-store';
+import { useCommitTreeStateStore } from 'explorviz-frontend/src/stores/commit-tree-state';
 import { useLayoutStore } from 'explorviz-frontend/src/stores/layout-store';
 import { useModelStore } from 'explorviz-frontend/src/stores/repos/model-repository';
 import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
+import { useVisibilityServiceStore } from 'explorviz-frontend/src/stores/visibility-service';
 import { useVisualizationStore } from 'explorviz-frontend/src/stores/visualization-store';
 import { getTruncatedDisplayName } from 'explorviz-frontend/src/utils/annotation-utils';
 import { isBuildingVisible } from 'explorviz-frontend/src/utils/city-rendering/building-visibility';
@@ -44,17 +46,15 @@ export default function CodeBuildingLabel({
     isParentHovered,
     isBuildingHighlighted,
     isParentHighlighted,
-    isCurrentBuildingVisible,
+    hiddenBuildingIds,
+    removedDistrictIds,
+    hiddenLanguages,
   } = useVisualizationStore(
     useShallow((state) => ({
       isBuildingHovered: state.hoveredEntityId === buildingId,
-      isCurrentBuildingVisible: isBuildingVisible({
-        buildingId,
-        building,
-        hiddenBuildingIds: state.hiddenBuildingIds,
-        removedDistrictIds: state.removedDistrictIds,
-        hiddenLanguages: state.hiddenLanguages,
-      }),
+      hiddenBuildingIds: state.hiddenBuildingIds,
+      removedDistrictIds: state.removedDistrictIds,
+      hiddenLanguages: state.hiddenLanguages,
       isParentHovered:
         state.hoveredEntityId === building?.parentDistrictId ||
         (!building?.parentDistrictId &&
@@ -66,6 +66,30 @@ export default function CodeBuildingLabel({
       ),
     }))
   );
+
+  const evoConfig = useVisibilityServiceStore(
+    (state) => state._evolutionModeRenderingConfiguration
+  );
+
+  const _selectedCommits = useCommitTreeStateStore(
+    (state) => state._selectedCommits
+  );
+  const currentSelectedRepo = useCommitTreeStateStore(
+    (state) => state._currentSelectedRepositoryName
+  );
+
+  const isDiffMode =
+    (_selectedCommits.get(currentSelectedRepo)?.length || 0) === 2;
+
+  const isCurrentBuildingVisible = isBuildingVisible({
+    buildingId,
+    building,
+    hiddenBuildingIds,
+    removedDistrictIds,
+    hiddenLanguages,
+    evoConfig,
+    isDiffMode,
+  });
 
   const sceneLayers = useVisualizationStore((state) => state.sceneLayers);
   const {
