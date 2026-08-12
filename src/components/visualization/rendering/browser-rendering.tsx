@@ -397,7 +397,9 @@ export default function BrowserRendering({
                           <h5 className="text-center">
                             Git Repository Analysis
                           </h5>
-                          <CodeAnalysisSection />
+                          <CodeAnalysisSection
+                            landscapeToken={landscapeToken.value}
+                          />
                         </>
                       )}
                       {openedToolComponent === 'kubernetes-diagrams' && (
