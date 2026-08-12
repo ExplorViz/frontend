@@ -40,6 +40,10 @@ export default defineConfig(({ mode }) => {
             target: traceTarget,
             changeOrigin: true,
           },
+        '^/v3/landscapes/[^/]+/entities/[^/]+/spans(?:/.*|\\?[^/]+|$)': {
+          target: traceTarget,
+          changeOrigin: true,
+        },
         '/v3/landscapes': {
           target: landscapeTarget,
           changeOrigin: true,

@@ -42,7 +42,7 @@ const TraceSelectionAndReplayer: React.FC<TraceSelectionAndReplayerProps> = ({
   const functionIdToBuildingMap = getFunctionIdToBuildingMap(flatData);
 
   const applicationTraces = dynamicData.filter((trace) => {
-    return trace.spanList.some(
+    return trace.spans.some(
       (span) => functionIdToBuildingMap.get(span.functionId) !== undefined
     );
   });

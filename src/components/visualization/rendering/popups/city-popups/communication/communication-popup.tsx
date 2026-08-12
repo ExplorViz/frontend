@@ -1,16 +1,10 @@
 import PopupData from 'explorviz-frontend/src/components/visualization/rendering/popups/popup-data';
-import { useCommunicationStore } from 'explorviz-frontend/src/stores/communication-store';
-import { useModelStore } from 'explorviz-frontend/src/stores/repos/model-repository';
-import { findFirstEntityWithOpenedParent } from 'explorviz-frontend/src/utils/city-rendering/communication-layouter';
-import { requestCommunicationFunctions } from 'explorviz-frontend/src/utils/landscape-http-request-util';
 import AggregatedCommunication from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/aggregated-communication';
-import { Comm } from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/communication';
-import { CommFunction } from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/function-call';
-import { pingByModelId } from 'explorviz-frontend/src/view-objects/3d/city/animated-ping-r3f';
-import React, { useEffect, useState } from 'react';
-import { Spinner, Tab, Table, Tabs } from 'react-bootstrap';
-import OverlayTrigger from 'react-bootstrap/OverlayTrigger';
-import Tooltip from 'react-bootstrap/Tooltip';
+import { useState } from 'react';
+import { Tab, Tabs } from 'react-bootstrap';
+import CommunicationSpansTab from './communication-spans-tab';
+import FunctionsTab from './functions-tab';
+import GeneralTab from './general-tab';
 
 interface CommunicationPopupProps {
   popupData: PopupData;
@@ -22,251 +16,6 @@ export default function CommunicationPopup({
   const communication = popupData.entity as AggregatedCommunication;
 
   const [activeTab, setActiveTab] = useState<string>('general');
-  const [functionsData, setFunctionsData] = useState<CommFunction[] | null>(
-    null
-  );
-  const [isLoading, setIsLoading] = useState<boolean>(false);
-
-  useEffect(() => {
-    if (
-      activeTab === 'functions' &&
-      !functionsData &&
-      communication.fromUnixNano &&
-      communication.toUnixNano
-    ) {
-      setIsLoading(true);
-
-      const allComms = useCommunicationStore.getState().communications;
-      const buildingComms = communication.buildingCommunicationIds.reduce(
-        (res, key) => {
-          const comm = allComms.get(key);
-          if (comm) {
-            res.push(comm);
-          }
-          return res;
-        },
-        [] as Comm[]
-      );
-
-      const proms: Promise<CommFunction[]>[] = [];
-      for (const buildingComm of buildingComms) {
-        let srcKey = buildingComm.sourceEntityKey;
-        let tgtKey = buildingComm.targetEntityKey;
-
-        if (!srcKey || !tgtKey) {
-          console.error(
-            'Building communication lacks source or target key',
-            communication
-          );
-          continue;
-        }
-
-        if (communication.isBidirectional) {
-          // Bidirectional communication may be aggregated from two oppositely facing uni-directional communications.
-          // In this case, the source and target entity of the aggregated communication will be swapped compared to at least
-          // one of the underlying building communications. We then have to swap the source and target for the functions request
-          // to ensure the directionality of the returned function calls is correct relative to the aggregated communcation.
-          const telemetryKeyMap =
-            useModelStore.getState().telemetryKeyToEntityId;
-
-          const srcId = telemetryKeyMap.get(srcKey);
-          const tgtId = telemetryKeyMap.get(tgtKey);
-
-          if (!srcId || !tgtId) {
-            console.error(
-              'Could not find entity ID for telemetry key: ',
-              !srcId ? srcKey : tgtKey
-            );
-            continue;
-          }
-
-          const srcContainer = findFirstEntityWithOpenedParent(srcId);
-          const tgtContainer = findFirstEntityWithOpenedParent(tgtId);
-
-          if (
-            srcContainer === communication.targetEntity.id &&
-            tgtContainer === communication.sourceEntity.id
-          ) {
-            [srcKey, tgtKey] = [tgtKey, srcKey];
-          }
-        }
-
-        proms.push(
-          requestCommunicationFunctions(
-            srcKey,
-            tgtKey,
-            communication.fromUnixNano,
-            communication.toUnixNano
-          )
-        );
-      }
-
-      Promise.allSettled(proms)
-        .then((res) => {
-          const funcsData = res
-            .filter((p) => p.status === 'fulfilled')
-            .flatMap((p) => p.value);
-          setFunctionsData(funcsData.length > 0 ? funcsData : null);
-        })
-        .finally(() => setIsLoading(false));
-    }
-  }, [activeTab, communication, functionsData]);
-
-  const metrics = Object.entries(communication.metrics).filter(
-    ([key]) => key !== 'normalizedRequestCount'
-  );
-
-  const generalTab = (
-    <table className="w-100">
-      <tbody>
-        {/* Source Entity */}
-        <tr>
-          <td className="text-nowrap align-top">Source:</td>
-          <td className="text-right text-break pl-1">
-            <OverlayTrigger
-              placement="top"
-              trigger={['hover', 'focus']}
-              overlay={
-                <Tooltip>
-                  App ID: {communication.sourceEntity.parentCityId}
-                </Tooltip>
-              }
-            >
-              <button
-                type="button"
-                className="buttonToLink"
-                onClick={() => {
-                  pingByModelId(communication.sourceEntity.id);
-                }}
-              >
-                {communication.sourceEntity.name}
-              </button>
-            </OverlayTrigger>
-          </td>
-        </tr>
-
-        {/* Target Entity */}
-        <tr>
-          <td className="text-nowrap align-top">Target:</td>
-          <td className="text-right text-break pl-1">
-            <OverlayTrigger
-              placement="top"
-              trigger={['hover', 'focus']}
-              overlay={
-                <Tooltip>
-                  App ID: {communication.targetEntity.parentCityId}
-                </Tooltip>
-              }
-            >
-              <button
-                type="button"
-                className="buttonToLink"
-                onClick={() => pingByModelId(communication.targetEntity.id)}
-              >
-                {communication.targetEntity.name}
-              </button>
-            </OverlayTrigger>
-          </td>
-        </tr>
-
-        <tr className="border-bottom">
-          <td colSpan={2} className="py-1"></td>
-        </tr>
-
-        {/* Communication Properties */}
-        {communication.isBidirectional && (
-          <tr>
-            <td className="text-nowrap align-top">Direction:</td>
-            <td className="text-right text-break pl-1">Bidirectional</td>
-          </tr>
-        )}
-
-        {communication.isRecursive && (
-          <tr>
-            <td className="text-nowrap align-top">Recursive:</td>
-            <td className="text-right text-break pl-1">Yes</td>
-          </tr>
-        )}
-
-        {/* Metrics */}
-        {metrics.map(([key, value]) => (
-          <tr key={key}>
-            <td className="text-nowrap align-top">{key}:</td>
-            <td className="text-right text-break pl-1">{value}</td>
-          </tr>
-        ))}
-
-        {/* Building Communications Count */}
-        <tr>
-          <td className="text-nowrap align-top">Aggregated from:</td>
-          <td className="text-right text-break pl-1">
-            {communication.buildingCommunicationIds.length} building-links
-          </td>
-        </tr>
-      </tbody>
-    </table>
-  );
-
-  const functionsTab = (
-    <div className="mt-2">
-      {isLoading ? (
-        <div className="text-center p-3">
-          <Spinner animation="border" size="sm" />
-          <span className="ml-2">Loading functions...</span>
-        </div>
-      ) : functionsData && functionsData.length > 0 ? (
-        <Table striped bordered hover size="sm" style={{ fontSize: '0.85rem' }}>
-          <thead>
-            <tr>
-              <th>Function</th>
-              <th className="text-center">Calls</th>
-              <th className="text-center">Time (ns)</th>
-            </tr>
-          </thead>
-          <tbody>
-            {functionsData.map((func) => {
-              const [src, tgt] = func.isForward
-                ? [communication.sourceEntity, communication.targetEntity]
-                : [communication.targetEntity, communication.sourceEntity];
-
-              return (
-                <React.Fragment key={func.id}>
-                  {functionsData.length > 1 && (
-                    <tr className="bg-light">
-                      <td
-                        colSpan={3}
-                        className="font-weight-bold text-muted small"
-                      >
-                        {src.name} &rarr; {tgt.name}
-                      </td>
-                    </tr>
-                  )}
-
-                  <tr key={func.id}>
-                    <td>
-                      <div
-                        className="text-truncate"
-                        style={{ maxWidth: '200px' }}
-                        title={func.name}
-                      >
-                        {func.name}
-                      </div>
-                    </td>
-                    <td className="text-center">{func.callCount}</td>
-                    <td className="text-center">{func.executionTime}</td>
-                  </tr>
-                </React.Fragment>
-              );
-            })}
-          </tbody>
-        </Table>
-      ) : (
-        <div className="text-center text-muted p-3">
-          No detailed function information available for this time range.
-        </div>
-      )}
-    </div>
-  );
 
   return (
     <>
@@ -283,10 +32,13 @@ export default function CommunicationPopup({
           className="mb-3 custom-tabs"
         >
           <Tab eventKey="general" title="General">
-            {generalTab}
+            <GeneralTab communication={communication} />
           </Tab>
-          <Tab eventKey="functions" title="Functions">
-            {functionsTab}
+          <Tab eventKey="spans" title="Spans" mountOnEnter={true}>
+            <CommunicationSpansTab communication={communication} />
+          </Tab>
+          <Tab eventKey="functions" title="Functions" mountOnEnter={true}>
+            <FunctionsTab communication={communication} />
           </Tab>
         </Tabs>
       </div>

@@ -13,6 +13,15 @@ import {
   FlatLandscape,
   isFlatLandscape,
 } from 'explorviz-frontend/src/utils/landscape-schemes/flat-landscape';
+import { useModelStore } from '../stores/repos/model-repository';
+import { findFirstEntityWithOpenedParent } from './city-rendering/communication-layouter';
+import AggregatedCommunication from './landscape-schemes/dynamic/aggregated-communication';
+import {
+  CommSpans,
+  isCommSpans,
+  isSpan,
+  Span,
+} from './landscape-schemes/dynamic/trace';
 
 /** Base URL for landscape API. Empty string uses same-origin (Vite dev proxy in development). */
 export function getLandscapeServiceUrl(): string {
@@ -155,45 +164,174 @@ export function deleteTraceData(): Promise<void> {
   });
 }
 
+export async function requestEntitySpans(
+  telemetryKey: string,
+  limit?: number,
+  offset?: number
+): Promise<Span[]> {
+  const landscapeToken = useLandscapeTokenStore.getState().token?.value;
+
+  if (!landscapeToken) {
+    throw new Error('No landscape token selected');
+  }
+
+  let url = new URL(
+    `${traceService}/v3/landscapes/${landscapeToken}/entities/${telemetryKey}/spans`
+  );
+  if (limit) url.searchParams.set('limit', limit.toString());
+  if (offset) url.searchParams.set('offset', offset.toString());
+
+  const response = await fetch(url, {
+    headers: {
+      Authorization: `Bearer ${useAuthStore.getState().accessToken}`,
+      'Access-Control-Allow-Origin': '*',
+    },
+  });
+  if (!response.ok) {
+    throw new Error(`Non-ok response status ${response.status}`);
+  }
+
+  const spans = JSON.parse(await response.text(), (k, v) => {
+    return k === 'startUnixNano' || k === 'endUnixNano' ? BigInt(v) : v;
+  });
+  if (!Array.isArray(spans) || !spans.every(isSpan)) {
+    throw new Error(`JSON fails type guard ${isSpan.name}`);
+  }
+  return spans;
+}
+
 /**
- * Requests detailed information about function calls for a specific entity communication.
- * @param sourceEntityKey Telemetry lookup key of the source entity
- * @param targetEntityKey Telemetry lookup key of the target entity
- * @param fromTimestamp Only consider function calls starting from this Unix epoch nanosecond timestamp
- * @param toTimestamp Only consider function calls starting before this Unix epoch nanosecond timestamp
+ * Fetches detailed information on the span pairs underlying a particular communication.
+ * @param communication The communication for which span information should be retrieved.
+ * @returns A promise that resolves to a {@link CommSpans} with detailed span information for the communication.
+ */
+export async function requestCommunicationSpans(
+  communication: AggregatedCommunication
+): Promise<CommSpans> {
+  const landscapeToken = useLandscapeTokenStore.getState().token?.value;
+
+  if (!landscapeToken) {
+    throw new Error('No landscape token selected');
+  }
+
+  if (communication.buildingCommunicationIds.length === 0) {
+    throw new Error('No building communications provided');
+  }
+
+  const buildingComms = communication.getBuildingCommunications();
+  const sourceTargetPairs = buildingComms.map((buildingComm) => ({
+    source: buildingComm.sourceEntityKey,
+    target: buildingComm.targetEntityKey,
+  }));
+
+  const from = communication.fromUnixNano;
+  const to = communication.toUnixNano;
+
+  const response = await fetch(
+    `${traceService}/v3/landscapes/${landscapeToken}/communication/spans?from=${from}&to=${to}`,
+    {
+      method: 'POST',
+      body: JSON.stringify(sourceTargetPairs),
+      headers: {
+        Authorization: `Bearer ${useAuthStore.getState().accessToken}`,
+        'Access-Control-Allow-Origin': '*',
+      },
+    }
+  );
+  if (!response.ok) {
+    throw new Error(`Non-ok response status ${response.status}`);
+  }
+
+  const commSpans = JSON.parse(await response.text(), (k, v) => {
+    return k === 'startUnixNano' || k === 'endUnixNano' ? BigInt(v) : v;
+  });
+  if (!isCommSpans(commSpans)) {
+    throw new Error(`JSON fails type guard ${isCommSpans.name}`);
+  }
+  return commSpans;
+}
+
+/**
+ * Requests detailed information about function calls for all building communications
+ * within the provided aggregated communication.
+ * @param communications Communication for which to look up underlying function calls
  * @returns A promise that resolves to an array of function call detail objects
  */
-export function requestCommunicationFunctions(
-  sourceEntityKey: string,
-  targetEntityKey: string,
-  fromTimestamp: bigint,
-  toTimestamp: bigint
-) {
-  return new Promise<CommFunction[]>((resolve, reject) => {
-    if (useLandscapeTokenStore.getState().token === null) {
-      return reject(new Error('No landscape token selected'));
-    }
+export async function requestCommunicationFunctions(
+  communication: AggregatedCommunication
+): Promise<CommFunction[]> {
+  const landscapeToken = useLandscapeTokenStore.getState().token?.value;
 
-    fetch(
-      `${traceService}/v3/landscapes/${useLandscapeTokenStore.getState().token!.value}/communication/${sourceEntityKey}/${targetEntityKey}?from=${fromTimestamp}&to=${toTimestamp}`,
-      {
-        headers: {
-          Authorization: `Bearer ${useAuthStore.getState().accessToken}`,
-          'Access-Control-Allow-Origin': '*',
-        },
-      }
-    )
-      .then(async (response: Response) => {
-        if (!response.ok) {
-          return reject(new Error(`Non-ok response status ${response.status}`));
+  if (!landscapeToken) {
+    throw new Error('No landscape token selected');
+  }
+
+  if (communication.buildingCommunicationIds.length === 0) {
+    throw new Error('No building communications provided');
+  }
+
+  const buildingComms = communication.getBuildingCommunications();
+  const telemetryKeyToEntityId =
+    useModelStore.getState().telemetryKeyToEntityId;
+
+  const sourceTargetPairs = buildingComms
+    .map((buildingComm) => {
+      let srcKey = buildingComm.sourceEntityKey;
+      let tgtKey = buildingComm.targetEntityKey;
+
+      if (communication.isBidirectional) {
+        // Bidirectional communication may be aggregated from two oppositely facing uni-directional communications.
+        // In this case, the source and target entity of the aggregated communication will be swapped compared to at least
+        // one of the underlying building communications. We then have to swap the source and target for the functions request
+        // to ensure the directionality of the returned function calls is correct relative to the aggregated communcation.
+        const srcId = telemetryKeyToEntityId.get(srcKey);
+        const tgtId = telemetryKeyToEntityId.get(tgtKey);
+
+        if (!srcId || !tgtId) {
+          console.error(
+            `Could not find entity ID for telemetry key: ${!srcId ? srcKey : tgtKey}`
+          );
+          return undefined;
         }
-        const commFuncs = await response.json();
-        return Array.isArray(commFuncs) && commFuncs.every(isCommFunction)
-          ? resolve(commFuncs)
-          : reject(new Error(`JSON fails type guard ${isCommFunction.name}`));
-      })
-      .catch((e) => reject(e));
-  });
+
+        const srcContainer = findFirstEntityWithOpenedParent(srcId);
+        const tgtContainer = findFirstEntityWithOpenedParent(tgtId);
+
+        if (
+          srcContainer === communication.targetEntity.id &&
+          tgtContainer === communication.sourceEntity.id
+        ) {
+          [srcKey, tgtKey] = [tgtKey, srcKey];
+        }
+      }
+
+      return { source: srcKey, target: tgtKey };
+    })
+    .filter((res) => res !== undefined);
+
+  const from = communication.fromUnixNano;
+  const to = communication.toUnixNano;
+
+  const response = await fetch(
+    `${traceService}/v3/landscapes/${landscapeToken}/communication/functions?from=${from}&to=${to}`,
+    {
+      method: 'POST',
+      body: JSON.stringify(sourceTargetPairs),
+      headers: {
+        Authorization: `Bearer ${useAuthStore.getState().accessToken}`,
+        'Access-Control-Allow-Origin': '*',
+      },
+    }
+  );
+  if (!response.ok) {
+    throw new Error(`Non-ok response status ${response.status}`);
+  }
+
+  const commFuncs = await response.json();
+  if (!Array.isArray(commFuncs) || !commFuncs.every(isCommFunction)) {
+    throw new Error(`JSON fails type guard ${isCommFunction.name}`);
+  }
+  return commFuncs;
 }
 
 export function requestFileDetailedData(

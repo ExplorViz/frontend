@@ -126,8 +126,8 @@ export class TraceTreeBuilder {
         span.spanId,
         name,
         targetClass,
-        span.startTime,
-        span.endTime
+        span.startUnixNano,
+        span.endUnixNano
       );
       node.targetClass = targetClass;
       return node;
