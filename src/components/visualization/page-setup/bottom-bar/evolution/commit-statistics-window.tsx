@@ -1,4 +1,5 @@
 import { DownloadIcon, XIcon } from '@primer/octicons-react';
+import { buildCommitStatisticsPlotlyFigure } from 'explorviz-frontend/src/utils/commit-statistics-chart';
 import {
   aggregateCommitStatistics,
   COMMIT_STATISTICS_VIEW_OPTIONS,
@@ -124,45 +125,24 @@ export default function CommitStatisticsWindow({
       return;
     }
 
-    const trace: Plotly.Data = {
-      type: 'bar',
-      x: chartData.labels,
-      y: chartData.values,
-      marker: { color: BAR_COLOR },
-      hovertemplate: '%{x}<br>%{y} commits<extra></extra>',
+    const renderChart = () => {
+      const { data, layout, config } = buildCommitStatisticsPlotlyFigure(
+        chartData,
+        chartElement.offsetWidth,
+        BAR_COLOR
+      );
+
+      Plotly.react(chartElement, data, layout, config);
     };
 
-    const layout: Partial<Plotly.Layout> = {
-      hovermode: 'closest',
-      dragmode: false,
-      margin: { b: 60, l: 50, pad: 5, t: 20, r: 20 },
-      xaxis: {
-        type: 'category',
-        categoryorder: 'array',
-        categoryarray: chartData.labels,
-        title: {
-          text: chartData.xAxisTitle,
-          font: { color: '#7f7f7f', size: 13 },
-        },
-        tickfont: { color: '#7f7f7f', size: 11 },
-        automargin: true,
-      },
-      yaxis: {
-        title: {
-          text: chartData.yAxisTitle,
-          font: { color: '#7f7f7f', size: 13 },
-        },
-        tickfont: { color: '#7f7f7f', size: 11 },
-        rangemode: 'tozero',
-      },
-    };
+    renderChart();
 
-    const config: Partial<Plotly.Config> = {
-      displayModeBar: false,
-      responsive: true,
-    };
+    const resizeObserver = new ResizeObserver(renderChart);
+    resizeObserver.observe(chartElement);
 
-    Plotly.react(chartElement, [trace], layout, config);
+    return () => {
+      resizeObserver.disconnect();
+    };
   }, [chartData]);
 
   useEffect(() => {
