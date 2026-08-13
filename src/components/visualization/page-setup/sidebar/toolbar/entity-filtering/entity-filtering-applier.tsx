@@ -2,6 +2,7 @@ import { useEffect, useRef } from 'react';
 
 import {
   getLanguageCountsFromBuildings,
+  getLanguageFileExtensionStatsFromBuildings,
   useEntityFilteringStore,
 } from 'explorviz-frontend/src/stores/entity-filtering-store';
 import { useRenderingServiceStore } from 'explorviz-frontend/src/stores/rendering-service';
@@ -101,6 +102,9 @@ export default function EntityFilteringApplier({
   const setBaselineLanguageStats = useEntityFilteringStore(
     (state) => state.actions.setBaselineLanguageStats
   );
+  const setBaselineLanguageFileExtensionStats = useEntityFilteringStore(
+    (state) => state.actions.setBaselineLanguageFileExtensionStats
+  );
 
   const latestLandscapeDataRef = useRef<LandscapeData>(landscapeData);
   const latestFlatLandscapeDataRef = useRef<FlatLandscape>(flatLandscapeData);
@@ -180,10 +184,10 @@ export default function EntityFilteringApplier({
   };
 
   const updateBaseline = (nextFlatLandscapeData: FlatLandscape) => {
-    setBaselineLanguageStats(
-      getLanguageCountsFromBuildings(
-        Object.values(nextFlatLandscapeData.buildings)
-      )
+    const buildings = Object.values(nextFlatLandscapeData.buildings);
+    setBaselineLanguageStats(getLanguageCountsFromBuildings(buildings));
+    setBaselineLanguageFileExtensionStats(
+      getLanguageFileExtensionStatsFromBuildings(buildings)
     );
   };
 

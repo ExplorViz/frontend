@@ -347,3 +347,19 @@
 .language-filter-checkbox.form-check {
   padding-left: 1.75em;
 }
+
+.language-filter-info-button {
+  color: #777;
+  flex-shrink: 0;
+  line-height: 1;
+
+  &:hover,
+  &:focus {
+    color: #555;
+  }
+}
+
+.language-filter-extension-tooltip .tooltip-inner {
+  max-width: none;
+  text-align: left;
+}

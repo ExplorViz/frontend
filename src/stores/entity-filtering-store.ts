@@ -15,6 +15,21 @@ export type FqnFilterOption = {
 };
 
 export type LanguageCount = readonly [language: Language, count: number];
+export type FileExtensionCount = readonly [extension: string, count: number];
+export type LanguageFileExtensionStats = Readonly<
+  Record<Language, readonly FileExtensionCount[]>
+>;
+
+export function getFileExtensionFromPath(path: string): string {
+  const fileName = path.split(/[/\\]/).pop() ?? path;
+  const lastDotIndex = fileName.lastIndexOf('.');
+
+  if (lastDotIndex <= 0) {
+    return '(no extension)';
+  }
+
+  return fileName.slice(lastDotIndex).toLowerCase();
+}
 
 export function getLanguageCountsFromBuildings(
   buildings: Iterable<{ language?: Language }>
@@ -31,6 +46,38 @@ export function getLanguageCountsFromBuildings(
   );
 }
 
+export function getLanguageFileExtensionStatsFromBuildings(
+  buildings: Iterable<{ language?: Language; fqn?: string; name: string }>
+): LanguageFileExtensionStats {
+  const countsByLanguage = new Map<Language, Map<string, number>>();
+
+  for (const building of buildings) {
+    const language = normalizeLanguage(building.language);
+    const extension = getFileExtensionFromPath(building.fqn ?? building.name);
+    const extensionCounts =
+      countsByLanguage.get(language) ?? new Map<string, number>();
+
+    extensionCounts.set(extension, (extensionCounts.get(extension) ?? 0) + 1);
+    countsByLanguage.set(language, extensionCounts);
+  }
+
+  const stats = {} as Record<Language, readonly FileExtensionCount[]>;
+
+  for (const [language, extensionCounts] of countsByLanguage) {
+    stats[language] = [...extensionCounts.entries()]
+      .sort(([extensionA, countA], [extensionB, countB]) => {
+        if (countB !== countA) {
+          return countB - countA;
+        }
+
+        return extensionA.localeCompare(extensionB);
+      })
+      .map(([extension, count]) => [extension, count] as const);
+  }
+
+  return stats;
+}
+
 const getDefaultMetricThresholds = (): Record<string, number> =>
   Object.fromEntries(BUILDING_METRIC_NAMES.map((name) => [name, 0]));
 
@@ -40,6 +87,7 @@ interface EntityFilteringStoreState {
   exclusionExpressions: readonly FqnFilterOption[];
   metricThresholds: Record<string, number>;
   baselineLanguageStats: readonly LanguageCount[];
+  baselineLanguageFileExtensionStats: LanguageFileExtensionStats;
   actions: {
     setFilterMode: (mode: EntityFilterMode) => void;
     setInclusionExpressions: (expressions: readonly FqnFilterOption[]) => void;
@@ -48,6 +96,9 @@ interface EntityFilteringStoreState {
     setMetricThresholds: (thresholds: Record<string, number>) => void;
     setMinMethodCount: (value: number) => void;
     setBaselineLanguageStats: (stats: readonly LanguageCount[]) => void;
+    setBaselineLanguageFileExtensionStats: (
+      stats: LanguageFileExtensionStats
+    ) => void;
     resetFilters: () => void;
   };
 }
@@ -59,6 +110,7 @@ export const useEntityFilteringStore = create<EntityFilteringStoreState>(
     exclusionExpressions: [],
     metricThresholds: getDefaultMetricThresholds(),
     baselineLanguageStats: [],
+    baselineLanguageFileExtensionStats: {},
     actions: {
       setFilterMode: (mode) => set({ filterMode: mode }),
       setInclusionExpressions: (expressions) =>
@@ -77,6 +129,8 @@ export const useEntityFilteringStore = create<EntityFilteringStoreState>(
         })),
       setBaselineLanguageStats: (stats) =>
         set({ baselineLanguageStats: stats }),
+      setBaselineLanguageFileExtensionStats: (stats) =>
+        set({ baselineLanguageFileExtensionStats: stats }),
       resetFilters: () => {
         useVisualizationStore.getState().actions.resetLanguageFilter();
         set({

@@ -1,3 +1,4 @@
+import { InfoIcon } from '@primer/octicons-react';
 import { useEntityFilteringStore } from 'explorviz-frontend/src/stores/entity-filtering-store';
 import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
 import { useVisualizationStore } from 'explorviz-frontend/src/stores/visualization-store';
@@ -9,6 +10,8 @@ import {
 } from 'explorviz-frontend/src/utils/settings/language-settings';
 import { ColorSettingId } from 'explorviz-frontend/src/utils/settings/settings-schemas';
 import Form from 'react-bootstrap/Form';
+import OverlayTrigger from 'react-bootstrap/OverlayTrigger';
+import Tooltip from 'react-bootstrap/Tooltip';
 import { useShallow } from 'zustand/react/shallow';
 
 function resolveLanguageDisplayColor(
@@ -20,6 +23,51 @@ function resolveLanguageDisplayColor(
     languageColors[colorSettingId] ??
     languageColors.otherBuildingColor ??
     defaultColors.otherBuildingColor
+  );
+}
+
+function LanguageFileExtensionInfo({
+  language,
+}: {
+  readonly language: Language;
+}) {
+  const extensionStats = useEntityFilteringStore(
+    (state) => state.baselineLanguageFileExtensionStats[language] ?? []
+  );
+
+  if (extensionStats.length === 0) {
+    return null;
+  }
+
+  return (
+    <OverlayTrigger
+      placement="left"
+      trigger={['hover', 'focus']}
+      overlay={
+        <Tooltip className="language-filter-extension-tooltip">
+          <div className="text-start">
+            {extensionStats.map(([extension, count]) => (
+              <div key={extension}>
+                {extension}: {count}
+              </div>
+            ))}
+          </div>
+        </Tooltip>
+      }
+    >
+      <button
+        type="button"
+        className="language-filter-info-button btn btn-link p-0 border-0"
+        aria-label={`File extensions for ${LANGUAGE_SETTING_CONFIG[language]?.label ?? language}`}
+        onClick={(event) => {
+          event.preventDefault();
+          event.stopPropagation();
+        }}
+        onMouseDown={(event) => event.stopPropagation()}
+      >
+        <InfoIcon className="align-middle" size="small" fill="#777" />
+      </button>
+    </OverlayTrigger>
   );
 }
 
@@ -80,8 +128,12 @@ export default function LanguageFiltering() {
                   <span>
                     {LANGUAGE_SETTING_CONFIG[language]?.label ?? language}
                   </span>
-                  <span className="text-muted" style={{ fontSize: '0.8rem' }}>
+                  <span
+                    className="d-inline-flex align-items-center gap-1 text-muted"
+                    style={{ fontSize: '0.8rem' }}
+                  >
                     ({count})
+                    <LanguageFileExtensionInfo language={language} />
                   </span>
                 </span>
               }
