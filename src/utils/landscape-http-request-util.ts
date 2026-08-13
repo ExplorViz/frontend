@@ -221,3 +221,37 @@ export function requestFileDetailedData(
       });
   });
 }
+
+export type FileHistory = {
+  commitHash: string;
+  date: number;
+  action: string;
+};
+
+export function requestFileHistory(
+  repositoryName: string,
+  fileRevisionId: string
+) {
+  return new Promise<FileHistory[]>((resolve, reject) => {
+    const token = useLandscapeTokenStore.getState().token;
+    if (token === null) {
+      reject(new Error('No landscape token selected'));
+      return;
+    }
+    const url =
+      `${landscapeService}/v3/landscapes/${token.value}/structure/evolution/` +
+      `${encodeURIComponent(repositoryName)}/file-history/${fileRevisionId}`;
+    fetch(url, {
+      headers: {
+        Authorization: `Bearer ${useAuthStore.getState().accessToken}`,
+        'Access-Control-Allow-Origin': '*',
+      },
+    })
+      .then(async (response) => {
+        if (response.ok) resolve((await response.json()) as FileHistory[]);
+        else reject();
+      })
+      .catch(reject);
+  });
+}
+

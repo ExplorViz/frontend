@@ -19,8 +19,12 @@ import {
 import { TypeOfAnalysis } from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
 import { getOrderedBuildingMetricEntries } from 'explorviz-frontend/src/utils/settings/settings-schemas';
 import { applyCommitHashToRepositoryFileUrl } from 'explorviz-frontend/src/utils/repository-file-url';
-import { useEffect, useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Accordion, Tab, Tabs } from 'react-bootstrap';
+import {
+  requestFileHistory,
+  FileHistory,
+} from 'explorviz-frontend/src/utils/landscape-http-request-util';
 
 interface BuildingPopupProps {
   popupData: PopupData;
@@ -228,7 +232,9 @@ export default function BuildingPopup({ popupData }: BuildingPopupProps) {
   const languageName = building.language ?? 'LANGUAGE_UNSPECIFIED';
 
   const uuid = useMemo(() => generateUuidv4(), []);
-
+  const [history, setHistory] = useState<FileHistory[] | undefined>(
+    undefined
+  );
   const updatePopup = usePopupHandlerStore((state) => state.updatePopup);
   const selectedCommits = useCommitTreeStateStore(
     (state) => state._selectedCommits
@@ -285,6 +291,19 @@ export default function BuildingPopup({ popupData }: BuildingPopupProps) {
     sourceReferenceCommitHash,
     updatePopup,
   ]);
+
+  useEffect(() => {
+    if (!building.id || !currentSelectedRepositoryName) return;
+    let cancelled = false;
+    requestFileHistory(currentSelectedRepositoryName, building.id)
+      .then((data) => {
+        if (!cancelled) setHistory(data);
+      })
+      .catch((e) => console.error('Failed to fetch file history:', e));
+    return () => {
+      cancelled = true;
+    };
+  }, [building.id, currentSelectedRepositoryName]);
 
   const detailedData = popupData.fileDetailedData;
 
@@ -385,8 +404,9 @@ export default function BuildingPopup({ popupData }: BuildingPopupProps) {
                                   </span>
                                   <span className="ml-2 small text-muted">
                                     (C1:{' '}
-                                    {formatMetricValue(name, value.previous)}, C2:{' '}
-                                    {formatMetricValue(name, value.current)})
+                                    {formatMetricValue(name, value.previous)},
+                                    C2: {formatMetricValue(name, value.current)}
+                                    )
                                   </span>
                                 </>
                               )}
@@ -397,6 +417,50 @@ export default function BuildingPopup({ popupData }: BuildingPopupProps) {
                     )}
                 </tbody>
               </table>
+            </div>
+          </Tab>
+          <Tab eventKey="history" title="History">
+            <div
+              className="mt-3"
+              style={{ maxHeight: '300px', overflowY: 'auto' }}
+            >
+              {history === undefined ? (
+                <div className="text-center text-muted py-3">
+                  Loading history…
+                </div>
+              ) : history.length === 0 ? (
+                <div className="text-center text-muted py-3">
+                  No changes recorded
+                </div>
+              ) : (
+                <table className="table table-sm mb-0">
+                  <tbody>
+                    {history.map((e) => (
+                      <tr key={e.commitHash + e.action}>
+                        <td>
+                          <code>{e.commitHash.slice(0, 7)}</code>
+                        </td>
+                        <td className="text-muted small">
+                          {e.date ? new Date(e.date).toLocaleDateString() : '-'}
+                        </td>
+                        <td className="text-right">
+                          <span
+                            className={
+                              e.action === 'ADDED'
+                                ? 'text-success'
+                                : e.action === 'DELETED'
+                                  ? 'text-danger'
+                                  : 'text-warning'
+                            }
+                          >
+                            {e.action}
+                          </span>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              )}
             </div>
           </Tab>
 
