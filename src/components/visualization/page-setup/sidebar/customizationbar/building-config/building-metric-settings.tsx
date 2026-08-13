@@ -1,5 +1,6 @@
 import RangeSetting from 'explorviz-frontend/src/components/visualization/page-setup/sidebar/customizationbar/settings/setting-type/range-setting';
 import SelectSetting from 'explorviz-frontend/src/components/visualization/page-setup/sidebar/customizationbar/settings/setting-type/select-setting';
+import { useCommitTreeStateStore } from 'explorviz-frontend/src/stores/commit-tree-state';
 import { useToastHandlerStore } from 'explorviz-frontend/src/stores/toast-handler';
 import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
 import {
@@ -45,7 +46,29 @@ function isDependencyMet(
   return false;
 }
 
+function formatBuildingMetricOptionLabel(
+  option: unknown,
+  isCommitComparisonMode: boolean
+): string {
+  const metric = option as SelectedBuildingMetric;
+
+  if (!isCommitComparisonMode || metric === SelectedBuildingMetric.None) {
+    return metric;
+  }
+
+  return `${metric} diff`;
+}
+
 export default function BuildingMetricSettings() {
+  const currentSelectedRepo = useCommitTreeStateStore(
+    (state) => state._currentSelectedRepositoryName
+  );
+  const selectedCommitCount =
+    useCommitTreeStateStore(
+      (state) => state._selectedCommits.get(currentSelectedRepo)?.length
+    ) ?? 0;
+  const isCommitComparisonMode = selectedCommitCount >= 2;
+
   const visualizationSettings = useUserSettingsStore(
     (state) => state.visualizationSettings
   );
@@ -78,6 +101,8 @@ export default function BuildingMetricSettings() {
       <p className="building-config-section-description">
         Choose which code and social activity metrics control building size. Use
         multipliers to fine tune the visual scale.
+        {isCommitComparisonMode &&
+          ' With two commits selected, dimensions reflect the absolute difference between the commits.'}
       </p>
 
       <div className="building-config-metric-card">
@@ -109,6 +134,9 @@ export default function BuildingMetricSettings() {
             <SelectSetting
               settingId={metricSettingId}
               onChange={updateSelectSetting}
+              formatOptionLabel={(option) =>
+                formatBuildingMetricOptionLabel(option, isCommitComparisonMode)
+              }
             />
             {showMultiplier && (
               <RangeSetting

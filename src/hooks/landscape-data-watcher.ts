@@ -31,8 +31,10 @@ export default function useLandscapeDataWatcher(
   const lastProcessedDynamicData = useRef<DynamicLandscapeData | null>(null);
   const lastProcessedFlatLandscapeIds = useRef<string[]>([]);
   const lastProcessedLandscapeData = useRef<LandscapeData | null>(null);
+  const layoutGenerationRef = useRef(0);
 
   const handleLandscapeUpdate = useCallback(async () => {
+    const generation = ++layoutGenerationRef.current;
     log('handleLandscapeUpdate');
     await Promise.resolve();
     if (!dynamicLandscapeData || !flatLandscapeData) {
@@ -46,6 +48,9 @@ export default function useLandscapeDataWatcher(
       flatLandscapeStructure,
       removedDistrictIds
     );
+    if (generation !== layoutGenerationRef.current) {
+      return;
+    }
     log('Layouted landscape: ', boxLayoutMap);
 
     log('Compute building communication');

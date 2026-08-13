@@ -1,4 +1,8 @@
-import { Building } from 'explorviz-frontend/src/utils/landscape-schemes/flat-landscape';
+import { useCommitTreeStateStore } from 'explorviz-frontend/src/stores/commit-tree-state';
+import {
+  Building,
+  MetricValue,
+} from 'explorviz-frontend/src/utils/landscape-schemes/flat-landscape';
 import {
   BuildingMetricMapping,
   SelectedBuildingMetric,
@@ -63,6 +67,47 @@ function toSafeMetricValue(value: number | null | undefined): number {
   return Number.isFinite(numericValue) ? Math.max(0, numericValue) : 0;
 }
 
+export function isCommitComparisonDiffMode(): boolean {
+  const repositoryName = useCommitTreeStateStore
+    .getState()
+    .getCurrentSelectedRepositoryName();
+  const selectedCommits = useCommitTreeStateStore
+    .getState()
+    .getSelectedCommits();
+
+  return (selectedCommits.get(repositoryName)?.length ?? 0) === 2;
+}
+
+export function getBuildingMetricValueForSizing(
+  building: Building,
+  metricKey: string,
+  useCommitComparisonDiff = isCommitComparisonDiffMode()
+): number {
+  const metric = building.metrics?.[metricKey];
+  if (!metric) {
+    return 0;
+  }
+
+  const shouldUseComparisonDiff =
+    useCommitComparisonDiff && building.commitComparison !== undefined;
+
+  return getMetricValueForSizing(metric, shouldUseComparisonDiff);
+}
+
+export function getMetricValueForSizing(
+  metric: MetricValue,
+  useCommitComparisonDiff = isCommitComparisonDiffMode()
+): number {
+  const current = toSafeMetricValue(metric.current);
+
+  if (!useCommitComparisonDiff) {
+    return current;
+  }
+
+  const previous = toSafeMetricValue(metric.previous);
+  return Math.abs(current - previous);
+}
+
 export function applyMetricMapping(
   value: number,
   mapping: BuildingMetricMapping,
@@ -111,10 +156,14 @@ export function getMetricBoundsForBuildings(
     return { min: 0, max: 0 };
   }
 
+  const useCommitComparisonDiff = isCommitComparisonDiffMode();
+
   return buildings.reduce(
     (acc, building) => {
-      const safeValue = toSafeMetricValue(
-        building.metrics?.[metricKey]?.current
+      const safeValue = getBuildingMetricValueForSizing(
+        building,
+        metricKey,
+        useCommitComparisonDiff
       );
       return {
         min: Math.min(acc.min, safeValue),
@@ -127,11 +176,13 @@ export function getMetricBoundsForBuildings(
 
 let cachedBoundsBuildingsRef: Record<string, Building> | null = null;
 let cachedBoundsMetricKey = '';
+let cachedBoundsUseCommitComparisonDiff = false;
 let cachedMetricBounds: MetricBounds = { min: 0, max: 0 };
 
 export function invalidateBuildingMetricBoundsCache(): void {
   cachedBoundsBuildingsRef = null;
   cachedBoundsMetricKey = '';
+  cachedBoundsUseCommitComparisonDiff = false;
   cachedMetricBounds = { min: 0, max: 0 };
 }
 
@@ -139,15 +190,19 @@ export function getCachedBuildingMetricBounds(
   buildings: Record<string, Building>,
   metricKey: string
 ): MetricBounds {
+  const useCommitComparisonDiff = isCommitComparisonDiffMode();
+
   if (
     cachedBoundsBuildingsRef === buildings &&
-    cachedBoundsMetricKey === metricKey
+    cachedBoundsMetricKey === metricKey &&
+    cachedBoundsUseCommitComparisonDiff === useCommitComparisonDiff
   ) {
     return cachedMetricBounds;
   }
 
   cachedBoundsBuildingsRef = buildings;
   cachedBoundsMetricKey = metricKey;
+  cachedBoundsUseCommitComparisonDiff = useCommitComparisonDiff;
   cachedMetricBounds = getMetricBoundsForBuildings(
     Object.values(buildings),
     metricKey
@@ -163,7 +218,7 @@ export function computeMappedBuildingHeight(
   buildingHeightMultiplier: number,
   bounds?: MetricBounds
 ): number {
-  const metricValue = building.metrics?.[heightMetric]?.current ?? 0;
+  const metricValue = getBuildingMetricValueForSizing(building, heightMetric);
 
   return (
     buildingFootprint +

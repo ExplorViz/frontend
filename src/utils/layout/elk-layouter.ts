@@ -14,6 +14,7 @@ import {
 } from 'explorviz-frontend/src/utils/layout/spiral-layouter';
 import {
   applyMetricMapping,
+  getBuildingMetricValueForSizing,
   getCachedBuildingMetricBounds,
   getMetricMappingMultiplier,
   MetricBounds,
@@ -375,17 +376,11 @@ function hasVisibleBuildingsRecursively(
 }
 
 function createBuildingNode(building: Building) {
-  const getMetricValue = (building: Building, metricKey: string): number => {
-    const rawValue = building.metrics?.[metricKey]?.current;
-    const numericValue = Number(rawValue);
-    return Number.isFinite(numericValue) ? Math.max(0, numericValue) : 0;
-  };
-
   const widthByMetric =
     WIDTH_METRIC_MULTIPLIER *
     getMetricMappingMultiplier(WIDTH_METRIC as MetricKey, METRIC_MAPPING) *
     applyMetricMapping(
-      getMetricValue(building, WIDTH_METRIC),
+      getBuildingMetricValueForSizing(building, WIDTH_METRIC),
       METRIC_MAPPING,
       WIDTH_METRIC_BOUNDS
     );
@@ -394,7 +389,7 @@ function createBuildingNode(building: Building) {
     DEPTH_METRIC_MULTIPLIER *
     getMetricMappingMultiplier(DEPTH_METRIC as MetricKey, METRIC_MAPPING) *
     applyMetricMapping(
-      getMetricValue(building, DEPTH_METRIC),
+      getBuildingMetricValueForSizing(building, DEPTH_METRIC),
       METRIC_MAPPING,
       DEPTH_METRIC_BOUNDS
     );
