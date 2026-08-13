@@ -9,6 +9,7 @@ import {
   BUILDING_FOOTPRINT_SETTING_ID,
   BUILDING_METRIC_MAPPING_SETTING_ID,
 } from 'explorviz-frontend/src/utils/settings/building-config-settings';
+import { formatBuildingMetricDisplayName } from 'explorviz-frontend/src/utils/settings/building-metrics';
 import {
   SelectedBuildingMetric,
   SettingDependency,
@@ -50,13 +51,10 @@ function formatBuildingMetricOptionLabel(
   option: unknown,
   isCommitComparisonMode: boolean
 ): string {
-  const metric = option as SelectedBuildingMetric;
-
-  if (!isCommitComparisonMode || metric === SelectedBuildingMetric.None) {
-    return metric;
-  }
-
-  return `${metric} diff`;
+  return formatBuildingMetricDisplayName(
+    option as SelectedBuildingMetric,
+    isCommitComparisonMode
+  );
 }
 
 export default function BuildingMetricSettings() {

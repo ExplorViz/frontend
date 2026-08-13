@@ -3,7 +3,9 @@ import {
   BuildingMetricIds,
   SelectedBuildingHeatmapMetric,
 } from 'explorviz-frontend/src/stores/heatmap/heatmap-store';
+import { Building } from 'explorviz-frontend/src/utils/landscape-schemes/flat-landscape';
 import { Class } from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
+import { getBuildingMetricValueForHeatmap } from 'explorviz-frontend/src/utils/settings/building-metrics';
 
 export type RGB = { r: number; g: number; b: number };
 
@@ -29,24 +31,26 @@ export function interpolateColor(c1: RGB, c2: RGB, t: number): RGB {
   };
 }
 
-import { Building } from 'explorviz-frontend/src/utils/landscape-schemes/flat-landscape';
-
 export function getMetricValues(
   dataModel: Class | Building,
   classHeatmapMetric: BuildingMetric
 ): { min: number; max: number; current: number | null } {
-  const isBuilding = (x: any): x is Building =>
+  const isBuildingModel = (x: Class | Building): x is Building =>
     Object.prototype.hasOwnProperty.call(x, 'parentCityId');
 
   const getMetricValueFromModel = (
     model: Class | Building,
     metricName: string
   ): number | null => {
-    if (isBuilding(model)) {
-      return model.metrics?.[metricName]?.current ?? null;
+    if (isBuildingModel(model)) {
+      return getBuildingMetricValueForHeatmap(model, metricName);
     }
-    // Fallback for legacy models if any
-    return (model as any)[metricName] ?? null;
+
+    return (
+      (model as Class & Record<string, number | null | undefined>)[
+        metricName
+      ] ?? null
+    );
   };
 
   switch (classHeatmapMetric.name) {

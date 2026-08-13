@@ -108,6 +108,70 @@ export function getMetricValueForSizing(
   return Math.abs(current - previous);
 }
 
+export function getBuildingMetricValueForHeatmap(
+  building: Building,
+  metricKey: string
+): number | null {
+  const metric = building.metrics?.[metricKey];
+  if (!metric) {
+    return null;
+  }
+
+  const shouldUseComparisonDiff =
+    isCommitComparisonDiffMode() && building.commitComparison !== undefined;
+
+  if (!shouldUseComparisonDiff) {
+    if (metric.current === null || metric.current === undefined) {
+      return null;
+    }
+
+    return toSafeMetricValue(metric.current);
+  }
+
+  return getMetricValueForSizing(metric, true);
+}
+
+export function formatBuildingMetricDisplayName(
+  metric: string,
+  useDiffSuffix: boolean
+): string {
+  if (!useDiffSuffix || metric === SelectedBuildingMetric.None) {
+    return metric;
+  }
+
+  return `${metric} diff`;
+}
+
+export function getMetricBoundsForHeatmap(
+  buildings: Building[],
+  metricKey: string
+): MetricBounds {
+  if (buildings.length === 0) {
+    return { min: 0, max: 0 };
+  }
+
+  const bounds = buildings.reduce(
+    (acc, building) => {
+      const value = getBuildingMetricValueForHeatmap(building, metricKey);
+      if (value === null) {
+        return acc;
+      }
+
+      return {
+        min: Math.min(acc.min, value),
+        max: Math.max(acc.max, value),
+      };
+    },
+    { min: Infinity, max: -Infinity }
+  );
+
+  if (!Number.isFinite(bounds.min) || !Number.isFinite(bounds.max)) {
+    return { min: 0, max: 0 };
+  }
+
+  return bounds;
+}
+
 export function applyMetricMapping(
   value: number,
   mapping: BuildingMetricMapping,

@@ -1,27 +1,19 @@
 import { useModelStore } from 'explorviz-frontend/src/stores/repos/model-repository';
 import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
+import { getMetricBoundsForHeatmap } from 'explorviz-frontend/src/utils/settings/building-metrics';
 import { create } from 'zustand';
 
 function getMinMaxMetricValues(metricName: BuildingMetricIds): {
   min: number;
   max: number;
 } {
-  const buildings = useModelStore.getState().buildings;
-  const buildingsArray = Object.values(buildings);
+  const buildings = Object.values(useModelStore.getState().buildings);
 
-  if (buildingsArray.length === 0) return { min: 0, max: 0 };
+  if (buildings.length === 0) {
+    return { min: 0, max: 0 };
+  }
 
-  return buildingsArray.reduce(
-    (acc, b) => {
-      const val =
-        b.metrics?.[metricName]?.current || (b as any)[metricName] || 0;
-      return {
-        min: Math.min(acc.min, val),
-        max: Math.max(acc.max, val),
-      };
-    },
-    { min: Infinity, max: -Infinity }
-  );
+  return getMetricBoundsForHeatmap(buildings, metricName);
 }
 
 export enum SelectedBuildingHeatmapMetric {
@@ -125,6 +117,7 @@ interface HeatmapConfigurationState {
   setSelectedGradient: (gradient: HeatmapGradient) => void;
   getSelectedValueMapping: () => HeatmapValueMapping;
   setSelectedValueMapping: (mapping: HeatmapValueMapping) => void;
+  refreshSelectedMetricBounds: () => void;
   toggleLegend: () => void;
   cleanup: () => void;
   setShowLegendValues: (show: boolean) => void;
@@ -212,6 +205,14 @@ export const useHeatmapStore = create<HeatmapConfigurationState>(
     },
     setSelectedValueMapping: (mapping: HeatmapValueMapping) => {
       set({ selectedValueMapping: mapping });
+    },
+    refreshSelectedMetricBounds: () => {
+      const metricName = get().selectedBuildingMetric.name;
+      if (metricName === BuildingMetricIds.None) {
+        return;
+      }
+
+      get().setSelectedBuildingMetric(metricName as BuildingMetricIds);
     },
     toggleLegend: () => {
       set({ legendActive: !get().legendActive });
