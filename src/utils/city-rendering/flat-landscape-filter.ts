@@ -30,6 +30,49 @@ function districtSubtreeHasRemainingBuildings(
   );
 }
 
+export function pruneFlatLandscapeByRemainingBuildings(
+  flatLandscape: FlatLandscape,
+  remainingBuildingIds: Set<string> = new Set(
+    Object.keys(flatLandscape.buildings)
+  )
+): void {
+  for (const district of Object.values(flatLandscape.districts)) {
+    district.buildingIds = district.buildingIds.filter((id) =>
+      remainingBuildingIds.has(id)
+    );
+    district.districtIds = district.districtIds.filter((id) =>
+      districtSubtreeHasRemainingBuildings(
+        id,
+        flatLandscape.districts,
+        remainingBuildingIds
+      )
+    );
+  }
+
+  for (const city of Object.values(flatLandscape.cities)) {
+    city.buildingIds = city.buildingIds.filter((id) =>
+      remainingBuildingIds.has(id)
+    );
+    city.allContainedBuildingIds = city.allContainedBuildingIds.filter((id) =>
+      remainingBuildingIds.has(id)
+    );
+    city.districtIds = city.districtIds.filter((id) =>
+      districtSubtreeHasRemainingBuildings(
+        id,
+        flatLandscape.districts,
+        remainingBuildingIds
+      )
+    );
+    city.allContainedDistrictIds = city.allContainedDistrictIds.filter((id) =>
+      districtSubtreeHasRemainingBuildings(
+        id,
+        flatLandscape.districts,
+        remainingBuildingIds
+      )
+    );
+  }
+}
+
 export function filterFlatLandscapeByBuildingComparisonVisibility(
   flatLandscape: FlatLandscape,
   visibility: BuildingComparisonVisibility
@@ -48,45 +91,7 @@ export function filterFlatLandscapeByBuildingComparisonVisibility(
     }
   }
 
-  const remainingBuildingIds = new Set(
-    Object.keys(filteredFlatLandscape.buildings)
-  );
-
-  for (const district of Object.values(filteredFlatLandscape.districts)) {
-    district.buildingIds = district.buildingIds.filter((id) =>
-      remainingBuildingIds.has(id)
-    );
-    district.districtIds = district.districtIds.filter((id) =>
-      districtSubtreeHasRemainingBuildings(
-        id,
-        filteredFlatLandscape.districts,
-        remainingBuildingIds
-      )
-    );
-  }
-
-  for (const city of Object.values(filteredFlatLandscape.cities)) {
-    city.buildingIds = city.buildingIds.filter((id) =>
-      remainingBuildingIds.has(id)
-    );
-    city.allContainedBuildingIds = city.allContainedBuildingIds.filter((id) =>
-      remainingBuildingIds.has(id)
-    );
-    city.districtIds = city.districtIds.filter((id) =>
-      districtSubtreeHasRemainingBuildings(
-        id,
-        filteredFlatLandscape.districts,
-        remainingBuildingIds
-      )
-    );
-    city.allContainedDistrictIds = city.allContainedDistrictIds.filter((id) =>
-      districtSubtreeHasRemainingBuildings(
-        id,
-        filteredFlatLandscape.districts,
-        remainingBuildingIds
-      )
-    );
-  }
+  pruneFlatLandscapeByRemainingBuildings(filteredFlatLandscape);
 
   return filteredFlatLandscape;
 }
