@@ -327,6 +327,47 @@
   padding: 1rem 0;
 }
 
+.building-metric-filter-grid {
+  display: grid;
+  grid-template-columns: 8.75rem 1fr 5.5rem 1fr;
+  gap: 0.25rem 0.75rem;
+  align-items: center;
+  margin-top: 0.5rem;
+}
+
+.building-metric-filter-label {
+  align-self: center;
+  text-align: end;
+}
+
+.building-metric-filter-slider {
+  width: 100%;
+  min-width: 0;
+}
+
+.building-metric-filter-bound {
+  font-size: 0.75rem;
+}
+
+.building-metric-filter-bound--min {
+  justify-self: start;
+}
+
+.building-metric-filter-bound--max {
+  justify-self: end;
+  text-align: end;
+}
+
+.building-metric-filter-value {
+  font-size: 0.75rem;
+  font-weight: 600;
+  justify-self: center;
+  min-height: var(--ev-button-min-height, 1.75rem);
+  padding: 0.125rem 0.25rem;
+  text-align: center;
+  width: 100%;
+}
+
 .language-filter-list {
   display: flex;
   flex-direction: column;
