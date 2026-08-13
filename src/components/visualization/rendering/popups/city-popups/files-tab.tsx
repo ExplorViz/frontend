@@ -1,5 +1,10 @@
-import { LocationIcon, PaintbrushIcon } from '@primer/octicons-react';
+import {
+  DeviceCameraIcon,
+  LocationIcon,
+  PaintbrushIcon,
+} from '@primer/octicons-react';
 import { useLiveBuildings } from 'explorviz-frontend/src/components/visualization/rendering/popups/city-popups/use-live-flat-entity';
+import { useCameraControlsStore } from 'explorviz-frontend/src/stores/camera-controls-store';
 import { useLocalHighlightStore } from 'explorviz-frontend/src/stores/collaboration/local-highlight-store';
 import { getFileExtensionGroupsFromBuildings } from 'explorviz-frontend/src/stores/entity-filtering-store';
 import {
@@ -49,6 +54,11 @@ function pingBuildings(buildingIds: readonly string[]) {
   });
 }
 
+function focusBuilding(buildingId: string) {
+  pingByModelId(buildingId);
+  useCameraControlsStore.getState().lookAtEntity(buildingId);
+}
+
 interface FileExtensionListItemProps {
   readonly extension: string;
   readonly count: number;
@@ -79,6 +89,26 @@ function FileExtensionListItem({
         <span className="text-muted ms-1">({count})</span>
       </span>
       <span className="entity-files-list-actions d-flex align-items-center gap-1">
+        {count === 1 && (
+          <OverlayTrigger
+            placement="top"
+            trigger={['hover', 'focus']}
+            overlay={<Tooltip>Move camera to file</Tooltip>}
+          >
+            <Button
+              variant="primary"
+              size="sm"
+              className="entity-files-action-button"
+              aria-label={`Move camera to ${extension} file`}
+              onClick={(event) => {
+                event.stopPropagation();
+                focusBuilding(buildingIds[0]!);
+              }}
+            >
+              <DeviceCameraIcon className="align-middle" size="small" />
+            </Button>
+          </OverlayTrigger>
+        )}
         <OverlayTrigger
           placement="top"
           trigger={['hover', 'focus']}
