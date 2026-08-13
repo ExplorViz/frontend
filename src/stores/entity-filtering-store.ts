@@ -31,6 +31,40 @@ export function getFileExtensionFromPath(path: string): string {
   return fileName.slice(lastDotIndex).toLowerCase();
 }
 
+export type FileExtensionGroup = {
+  extension: string;
+  count: number;
+  buildingIds: readonly string[];
+};
+
+export function getFileExtensionGroupsFromBuildings(
+  buildings: Iterable<{ id: string; fqn?: string; name: string }>
+): readonly FileExtensionGroup[] {
+  const buildingIdsByExtension = new Map<string, string[]>();
+
+  for (const building of buildings) {
+    const extension = getFileExtensionFromPath(building.fqn ?? building.name);
+    const buildingIds = buildingIdsByExtension.get(extension) ?? [];
+
+    buildingIds.push(building.id);
+    buildingIdsByExtension.set(extension, buildingIds);
+  }
+
+  return [...buildingIdsByExtension.entries()]
+    .sort(([extensionA, idsA], [extensionB, idsB]) => {
+      if (idsB.length !== idsA.length) {
+        return idsB.length - idsA.length;
+      }
+
+      return extensionA.localeCompare(extensionB);
+    })
+    .map(([extension, buildingIds]) => ({
+      extension,
+      count: buildingIds.length,
+      buildingIds,
+    }));
+}
+
 export function getLanguageCountsFromBuildings(
   buildings: Iterable<{ language?: Language }>
 ): LanguageCount[] {

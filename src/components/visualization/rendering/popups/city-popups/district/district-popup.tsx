@@ -1,6 +1,7 @@
 import CopyButton from 'explorviz-frontend/src/components/copy-button.tsx';
 import AggregatedBuildingMetricsTable from 'explorviz-frontend/src/components/visualization/rendering/popups/city-popups/aggregated-building-metrics-table';
 import EntityStructureStatsTable from 'explorviz-frontend/src/components/visualization/rendering/popups/city-popups/entity-structure-stats-table';
+import FilesTab from 'explorviz-frontend/src/components/visualization/rendering/popups/city-popups/files-tab';
 import { useLiveDistrict } from 'explorviz-frontend/src/components/visualization/rendering/popups/city-popups/use-live-flat-entity';
 import PopupData from 'explorviz-frontend/src/components/visualization/rendering/popups/popup-data';
 import { collectDistrictSubtreeIds } from 'explorviz-frontend/src/utils/city-rendering/entity-manipulation';
@@ -48,6 +49,9 @@ export default function DistrictPopup({ popupData }: DistrictPopupProps) {
           </Tab>
           <Tab eventKey="metrics" title="Metrics">
             <AggregatedBuildingMetricsTable buildingIds={buildingIds} />
+          </Tab>
+          <Tab eventKey="files" title="Files">
+            <FilesTab buildingIds={buildingIds} />
           </Tab>
         </Tabs>
       </div>

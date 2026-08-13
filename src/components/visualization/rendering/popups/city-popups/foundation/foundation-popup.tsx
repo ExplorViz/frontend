@@ -1,6 +1,7 @@
 import CopyButton from 'explorviz-frontend/src/components/copy-button.tsx';
 import AggregatedBuildingMetricsTable from 'explorviz-frontend/src/components/visualization/rendering/popups/city-popups/aggregated-building-metrics-table';
 import EntityStructureStatsTable from 'explorviz-frontend/src/components/visualization/rendering/popups/city-popups/entity-structure-stats-table';
+import FilesTab from 'explorviz-frontend/src/components/visualization/rendering/popups/city-popups/files-tab';
 import { useLiveCity } from 'explorviz-frontend/src/components/visualization/rendering/popups/city-popups/use-live-flat-entity';
 import PopupData from 'explorviz-frontend/src/components/visualization/rendering/popups/popup-data';
 import generateUuidv4 from 'explorviz-frontend/src/utils/helpers/uuid4-generator';
@@ -51,6 +52,9 @@ export default function FoundationPopup({ popupData }: FoundationPopupProps) {
             <AggregatedBuildingMetricsTable
               buildingIds={city.allContainedBuildingIds}
             />
+          </Tab>
+          <Tab eventKey="files" title="Files">
+            <FilesTab buildingIds={city.allContainedBuildingIds} />
           </Tab>
         </Tabs>
       </div>
