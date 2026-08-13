@@ -299,11 +299,31 @@ export default function PlotlyCommitTree({
         return;
       }
 
-      const commitId = chartCommits[pointNumber]?.hash ?? CROSS_COMMIT_IDENTIFIER;
+      const commitId =
+        chartCommits[pointNumber]?.hash ?? CROSS_COMMIT_IDENTIFIER;
       const animStore = useEvolutionAnimationStore.getState();
       if (animStore.totalCount > 0) {
         const ordinal = animStore.orderedCommitHashes.indexOf(commitId);
-        if (ordinal !== -1) animStore.actions.seekTo(Math.floor(ordinal / animStore.granularity));
+        if (ordinal !== -1) {
+          let Timeordinal: number;
+          if (animStore.timeMode === 'time') {
+            const ts = animStore.orderedCommitTimeStamps;
+            const t0 = ts[0];
+            const bs = animStore.bucketSize;
+            Timeordinal = 0;
+            for (let j = 1; j <= ordinal; j++) {
+              if (
+                Math.floor((ts[j] - t0) / bs) !==
+                Math.floor((ts[j - 1] - t0) / bs)
+              ) {
+                Timeordinal++;
+              }
+            }
+          } else {
+            Timeordinal = Math.floor(ordinal / animStore.granularity);
+          }
+          animStore.actions.seekTo(Timeordinal);
+        }
         return;
       }
       const selectedCommit: Commit = {

@@ -3,29 +3,52 @@ import { useEvolutionAnimationStore, WINDOW_SIZE } from './evolution-animation-s
 import { useRenderingServiceStore } from 'explorviz-frontend/src/stores/rendering-service';
 import {useEvolutionAnimationFetchServiceStore} from 'explorviz-frontend/src/components/visualization/page-setup/bottom-bar/animation/evolution-animation-fetch-service.ts';
 import {useCommitTreeStateStore} from 'explorviz-frontend/src/stores/commit-tree-state.ts';
+import {decodeDeltaFrame} from 'explorviz-frontend/src/components/visualization/page-setup/bottom-bar/animation/evolution-delta-decoder.ts';
 import { useShallow } from 'zustand/react/shallow';
 import { createPortal } from 'react-dom';
 
 
 export default function EvolutionPlaybackControls() {
-  const { loadedFrames, totalCount, stableFrame, currentFrameIndex, isPlaying, speedMs, actions } =
-    useEvolutionAnimationStore(
-      useShallow((state) => ({
-        loadedFrames: state.loadedFrames,
-        totalCount: state.totalCount,
-        stableFrame: state.stableFrame,
-        currentFrameIndex: state.currentFrameIndex,
-        isPlaying: state.isPlaying,
-        speedMs: state.speedMs,
-        actions: state.actions,
-      }))
-    );
+  const {
+    loadedFrames,
+    totalCount,
+    stableFrame,
+    currentFrameIndex,
+    isPlaying,
+    speedMs,
+    timeMode,
+    agingEnabled,
+    agingCommits,
+    agingMs,
+    deltaMode,
+    deltaFrames,
+    actions,
+  } = useEvolutionAnimationStore(
+    useShallow((state) => ({
+      loadedFrames: state.loadedFrames,
+      totalCount: state.totalCount,
+      stableFrame: state.stableFrame,
+      currentFrameIndex: state.currentFrameIndex,
+      isPlaying: state.isPlaying,
+      speedMs: state.speedMs,
+      timeMode: state.timeMode,
+      agingEnabled: state.agingEnabled,
+      agingCommits: state.agingCommits,
+      agingMs: state.agingMs,
+      deltaMode: state.deltaMode,
+      deltaFrames: state.deltaFrames,
+      actions: state.actions,
+    }))
+  );
 
   const repositoryName = useCommitTreeStateStore((s) => s._currentSelectedRepositoryName);
   const fetchWindow = useEvolutionAnimationFetchServiceStore((s) => s.fetchAnimationWindow);
 
   const triggerRendering = useRenderingServiceStore(
     (state) => state.triggerRenderingForGivenLandscapeData
+  );
+  const fetchDeltaWindow = useEvolutionAnimationFetchServiceStore(
+    (s) => s.fetchAnimationDeltaWindow
   );
 
   useEffect(() => {
@@ -37,17 +60,40 @@ export default function EvolutionPlaybackControls() {
       const s = useEvolutionAnimationStore.getState();
       if (s.requestedBlocks.has(block)) return;
       s.actions.markBlockRequested(block);
-      const windowData = await fetchWindow(repositoryName, start, WINDOW_SIZE, s.granularity);
-      useEvolutionAnimationStore.getState().actions.addFrames(windowData.frames);
+      if (s.deltaMode) {
+        const windowData = await fetchDeltaWindow(
+          repositoryName,
+          start,
+          WINDOW_SIZE,
+          s.granularity,
+          s.timeMode,
+          s.bucketSize
+        );
+        useEvolutionAnimationStore
+          .getState()
+          .actions.addDeltaFrames(windowData.frames);
+      } else {
+        const windowData = await fetchWindow(
+          repositoryName,
+          start,
+          WINDOW_SIZE,
+          s.granularity,
+          s.timeMode,
+          s.bucketSize
+        );
+        useEvolutionAnimationStore
+          .getState()
+          .actions.addFrames(windowData.frames);
+      }
     };
-
     const block = Math.floor(currentFrameIndex / WINDOW_SIZE);
     ensureBlock(block);
     ensureBlock(block + 1);
-  }, [currentFrameIndex, totalCount, repositoryName]);
+  }, [currentFrameIndex, totalCount, repositoryName, deltaMode]);
 
   // Render current frame whenever index changes
   useEffect(() => {
+    if (deltaMode) return;
     const active = loadedFrames.get(currentFrameIndex);
     const frame = active?.landscape;
     if (!frame || !stableFrame) return;
@@ -61,6 +107,45 @@ export default function EvolutionPlaybackControls() {
     Object.values(frame.buildings).forEach((building) => {
       if (building.fqn) currentFrameByFqn.set(building.fqn, building);
     });
+
+    // Aging: for each file (by fqn) find how long ago it was last ADDED/MODIFIED,
+    // scanning backwards over the loaded frames within the configured threshold.
+    // Commit mode counts frames, time mode compares author timestamps.
+    // Result per fqn: agingFactor in [0,1] (0 = just changed, 1 = fully aged).
+    const agingFactorByFqn = new Map<string, number>();
+    if (agingEnabled) {
+      const currentTs = active?.authorDate ?? 0;
+      const lastChangeByFqn = new Map<string, number>(); // fqn -> change frame index
+      for (let i = currentFrameIndex; i >= 0; i--) {
+        const past = loadedFrames.get(i);
+        if (!past) continue;
+        // Stop once we leave the lookback window
+        if (timeMode === 'time') {
+          if (currentTs - past.authorDate > agingMs) break;
+        } else if (currentFrameIndex - i > agingCommits) {
+          break;
+        }
+        Object.values(past.landscape.buildings).forEach((b) => {
+          if (!b.fqn || lastChangeByFqn.has(b.fqn)) return;
+          if (b.commitComparison === 'ADDED' || b.commitComparison === 'MODIFIED') {
+            lastChangeByFqn.set(b.fqn, i);
+          }
+        });
+      }
+      currentFrameByFqn.forEach((_b, fqn) => {
+        const changeIdx = lastChangeByFqn.get(fqn);
+        let factor: number;
+        if (changeIdx === undefined) {
+          factor = 1; // no change found within the window → fully aged
+        } else if (timeMode === 'time') {
+          const changeTs = loadedFrames.get(changeIdx)?.authorDate ?? currentTs;
+          factor = Math.min(1, Math.max(0, (currentTs - changeTs) / agingMs));
+        } else {
+          factor = Math.min(1, Math.max(0, (currentFrameIndex - changeIdx) / agingCommits));
+        }
+        agingFactorByFqn.set(fqn, factor);
+      });
+    }
 
     const mergedBuildings = { ...stableFrame.buildings };
     Object.keys(mergedBuildings).forEach((id) => {
@@ -77,6 +162,10 @@ export default function EvolutionPlaybackControls() {
           ? currentBuilding?.commitComparison
           ?? 'UNCHANGED'
           : undefined,
+        agingFactor:
+          existsInCurrentFrame && agingEnabled && fqn
+            ? agingFactorByFqn.get(fqn) ?? 0
+            : undefined,
       };
     });
 
@@ -86,13 +175,61 @@ export default function EvolutionPlaybackControls() {
     };
 
     triggerRendering(mergedFrame, [], { metrics: {}, communications: [] });
-    console.log('Frame 0 building IDs:', Object.keys(frame.buildings).length);
-    console.log(
-      'stable frame building IDs:',
-      Object.keys(stableFrame.buildings).length
-    );
-  }, [currentFrameIndex, loadedFrames, stableFrame]);
+  }, [
+    currentFrameIndex,
+    loadedFrames,
+    stableFrame,
+    timeMode,
+    agingEnabled,
+    agingCommits,
+    agingMs,
+    deltaMode,
+  ]);
 
+    // Delta mode: decode keyframe + deltas, then merge onto the stable skeleton
+    useEffect(() => {
+      if (!deltaMode || !stableFrame) return;
+      const decoded = decodeDeltaFrame(deltaFrames, currentFrameIndex);
+      if (!decoded) return; // block still loading → keep showing the previous frame
+
+      const currentDate = deltaFrames.get(currentFrameIndex)?.authorDate ?? 0;
+      const mergedBuildings = { ...stableFrame.buildings };
+
+      Object.keys(mergedBuildings).forEach((id) => {
+        const fqn = mergedBuildings[id].fqn;
+        const fileState = fqn ? decoded.get(fqn) : undefined;
+
+        let agingFactor: number | undefined;
+        if (fileState && agingEnabled) {
+          const raw =
+            timeMode === 'time'
+              ? (currentDate - fileState.lastChangeDate) / agingMs
+              : (currentFrameIndex - fileState.lastChangeIndex) / agingCommits;
+          agingFactor = Math.min(1, Math.max(0, raw));
+        }
+
+        mergedBuildings[id] = {
+          ...mergedBuildings[id],
+          isPlaceholder: !fileState,
+          commitComparison: fileState?.action,
+          agingFactor,
+        };
+      });
+
+      triggerRendering({ ...stableFrame, buildings: mergedBuildings }, [], {
+        metrics: {},
+        communications: [],
+      });
+    }, [
+      deltaMode,
+      deltaFrames,
+      currentFrameIndex,
+      stableFrame,
+      timeMode,
+      agingEnabled,
+      agingCommits,
+      agingMs,
+    ]);
   // Auto-advance timer
   useEffect(() => {
     if (!isPlaying) return;
@@ -109,7 +246,9 @@ export default function EvolutionPlaybackControls() {
 
   if (totalCount === 0) return null;
 
-  const active = loadedFrames.get(currentFrameIndex);
+  const active = deltaMode
+    ? deltaFrames.get(currentFrameIndex)
+    : loadedFrames.get(currentFrameIndex);
 
 
   return createPortal(

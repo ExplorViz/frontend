@@ -5,6 +5,8 @@ import {
   AnimationSkeleton,
   AnimationWindow,
   FlatLandscape,
+  AnimationDeltaFrame,
+  AnimationDeltaWindow,
 } from 'explorviz-frontend/src/utils/landscape-schemes/flat-landscape';
 import { create } from 'zustand';
 
@@ -13,8 +15,19 @@ interface EvolutionAnimationFetchState {
     repositoryName: string,
     start?: number,
     count?: number,
-    granularity?: number
+    granularity?: number,
+    groupBy?: string,
+    bucketSize?: number
   ): Promise<AnimationWindow>;
+
+  fetchAnimationDeltaWindow(
+    repositoryName: string,
+    start?: number,
+    count?: number,
+    granularity?: number,
+    groupBy?: string,
+    bucketSize?: number
+  ): Promise<AnimationDeltaWindow>;
 
   fetchAnimationSkeleton(repositoryName: string): Promise<AnimationSkeleton>;
   _getLandscapeToken(): string;
@@ -28,7 +41,9 @@ export const useEvolutionAnimationFetchServiceStore =
       repositoryName: string,
       start?: number,
       count?: number,
-      granularity?: number
+      granularity?: number,
+      groupBy?: string,
+      bucketSize?: number
     ): Promise<AnimationWindow> => {
       const base = get()._constructUrl(
         'structure/evolution',
@@ -38,11 +53,42 @@ export const useEvolutionAnimationFetchServiceStore =
       const params = new URLSearchParams();
       if (start !== undefined) params.set('start', String(start));
       if (count !== undefined) params.set('count', String(count));
-      if (granularity !== undefined) params.set('granularity', String(granularity));
+      if (granularity !== undefined)
+        params.set('granularity', String(granularity));
+      if (groupBy !== undefined) params.set('groupBy', groupBy);
+      if (bucketSize !== undefined)
+        params.set('bucketSize', String(bucketSize));
       const query = params.toString();
       const url = query ? `${base}?${query}` : base;
       return await get()._fetchFromService<AnimationWindow>(url);
     },
+    fetchAnimationDeltaWindow: async (
+      repositoryName: string,
+      start?: number,
+      count?: number,
+      granularity?: number,
+      groupBy?: string,
+      bucketSize?: number
+    ): Promise<AnimationDeltaWindow> => {
+      const base = get()._constructUrl(
+        'structure/evolution',
+        repositoryName,
+        'animation',
+        'delta'
+      );
+      const params = new URLSearchParams();
+      if (start !== undefined) params.set('start', String(start));
+      if (count !== undefined) params.set('count', String(count));
+      if (granularity !== undefined)
+        params.set('granularity', String(granularity));
+      if (groupBy !== undefined) params.set('groupBy', groupBy);
+      if (bucketSize !== undefined)
+        params.set('bucketSize', String(bucketSize));
+      const query = params.toString();
+      const url = query ? `${base}?${query}` : base;
+      return await get()._fetchFromService<AnimationDeltaWindow>(url);
+    },
+
     fetchAnimationSkeleton: async (
       repositoryName: string
     ): Promise<AnimationSkeleton> => {

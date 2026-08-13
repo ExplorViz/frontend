@@ -27,6 +27,33 @@ export type AnimationSkeleton = {
   landscape: FlatLandscape;
   fqnToFirstOrdinal: Record<string, number>;
   orderedCommitHashes: string[];
+  orderedCommitTimeStamps: number[];
+};
+
+export type BuildingState = {
+  fqn: string;
+  lastChangeOrdinal: number;
+  lastChangeDate: number;
+};
+
+export type BuildingChange = {
+  fqn: string;
+  action: CommitComparison;
+};
+
+export type AnimationDeltaFrame = {
+  commitHash: string;
+  authorDate: number;
+  ordinal: number;
+  keyframe: boolean;
+  state: BuildingState[] | null;
+  changes: BuildingChange[] | null;
+};
+
+export type AnimationDeltaWindow = {
+  totalCount: number;
+  windowStart: number;
+  frames: AnimationDeltaFrame[];
 };
 
 type FlatBaseModel = {
@@ -37,6 +64,7 @@ type FlatBaseModel = {
   commitComparison?: CommitComparison; // For two selected commits
   editingState?: 'added' | 'removed'; // Reflect changes from restructuring
   isPlaceholder?: boolean; // Flag to make it invisible in animation
+  agingFactor?: number; // 0 = just changed, 1 = fully aged (unchanged past threshold); animation only
 };
 
 export type Language =

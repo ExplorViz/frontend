@@ -10,23 +10,50 @@ import { useRenderingServiceStore } from 'explorviz-frontend/src/stores/renderin
 import { useVisibilityServiceStore } from 'explorviz-frontend/src/stores/visibility-service';
 import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
 import { ALL_BUILDING_COMPARISONS_VISIBLE } from 'explorviz-frontend/src/utils/city-rendering/building-comparison-visibility';
+import { SELECTED_BUILDING_METRIC_OPTIONS } from 'explorviz-frontend/src/utils/settings/settings-schemas';
+import { BuildingMetricMapping } from 'explorviz-frontend/src/utils/settings/settings-schemas';
+
+const UNITS = [
+  { label: 'Hour', ms: 3600000 },
+  { label: 'Day', ms: 86400000 },
+  { label: 'Week', ms: 604800000 },
+  { label: 'Month', ms: 2592000000 },
+];
 
 export default function EvolutionAnimationPanel({
   onClose,
 }: {
   onClose: () => void;
 }) {
-  const { layoutMode, timeMode, speedMs, granularity } = useEvolutionAnimationStore(
+  const { layoutMode, timeMode, speedMs, granularity, bucketSize, agingEnabled, agingCommits, agingMs, deltaMode } = useEvolutionAnimationStore(
     useShallow((state) => ({
       layoutMode: state.layoutMode,
       timeMode: state.timeMode,
       speedMs: state.speedMs,
       granularity: state.granularity,
+      bucketSize:state.bucketSize,
+      agingEnabled: state.agingEnabled,
+      agingCommits: state.agingCommits,
+      agingMs: state.agingMs,
+      deltaMode: state.deltaMode,
     }))
   );
-  const { setLayoutMode, setTimeMode, setSpeed } =
+  const { setLayoutMode, setTimeMode, setSpeed, setGranularity, setBucketSize, setAgingEnabled, setAgingCommits, setAgingMs, setDeltaMode } =
     useEvolutionAnimationStore.getState().actions;
   const [isLoading, setIsLoading] = useState(false);
+  const [timeCount, setTimeCount] = useState(1);
+  const [timeUnit, setTimeUnit] = useState(86400000);
+  const [agingTimeCount, setAgingTimeCount] = useState(
+    Math.max(1, Math.round(agingMs / 2592000000))
+  );
+  const [agingTimeUnit, setAgingTimeUnit] = useState(2592000000);
+  const heightMetric = useUserSettingsStore(
+    (s) => s.visualizationSettings.buildingHeightMetric.value
+  );
+  const metricMapping = useUserSettingsStore(
+    (s) => s.visualizationSettings.buildingMetricMapping.value
+  );
+  const updateSetting = useUserSettingsStore((s) => s.updateSetting);
 
   const repositoryName = useCommitTreeStateStore(
     (state) => state._currentSelectedRepositoryName
@@ -37,6 +64,9 @@ export default function EvolutionAnimationPanel({
   );
   const fetchSkeleton = useEvolutionAnimationFetchServiceStore(
     (state) => state.fetchAnimationSkeleton
+  );
+  const fetchDeltaWindow = useEvolutionAnimationFetchServiceStore(
+    (state) => state.fetchAnimationDeltaWindow
   );
 
     //Sync when layout is toggeled
@@ -97,15 +127,28 @@ export default function EvolutionAnimationPanel({
     if (!repositoryName) return;
     setIsLoading(true);
     try {
-      const granul = useEvolutionAnimationStore.getState().granularity;
-      const [skeleton, firstWindow] = await Promise.all([
-        fetchSkeleton(repositoryName),
-        fetchWindow(repositoryName, 0, WINDOW_SIZE, granul),
-      ]);
-      const actions = useEvolutionAnimationStore.getState().actions;
+      const store = useEvolutionAnimationStore.getState();
+      const actions = store.actions;
+      const skeleton = await fetchSkeleton(repositoryName);
       actions.setSkeleton(skeleton);
-      actions.setTotalCount(firstWindow.totalCount);
-      actions.addFrames(firstWindow.frames);
+
+      if (store.deltaMode) {
+        const firstWindow = await fetchDeltaWindow(
+          repositoryName,
+          0,
+          WINDOW_SIZE,
+          store.granularity,
+          store.timeMode,
+          store.bucketSize
+        );
+        actions.setTotalCount(firstWindow.totalCount);
+        actions.addDeltaFrames(firstWindow.frames);
+      }else{
+        const firstWindow = await fetchWindow(repositoryName, 0, WINDOW_SIZE, store.granularity, store.timeMode, store.bucketSize
+        );
+        actions.setTotalCount(firstWindow.totalCount);
+        actions.addFrames(firstWindow.frames);
+      }
       actions.markBlockRequested(0);
       useRenderingServiceStore
         .getState()
@@ -131,15 +174,39 @@ export default function EvolutionAnimationPanel({
       setIsLoading(false);
     }
   };
-    const onGranularityChange = async (g: number) => {
+    const reloadAnimation = async () => {
       if (!repositoryName) return;
-      const actions = useEvolutionAnimationStore.getState().actions;
-      actions.setGranularity(g);
-      const win = await fetchWindow(repositoryName, 0, WINDOW_SIZE, g);
-      actions.setTotalCount(win.totalCount);
-      actions.addFrames(win.frames);
-      actions.markBlockRequested(0);
+      const store = useEvolutionAnimationStore.getState();
+      if (store.deltaMode) {
+        const win = await fetchDeltaWindow(
+          repositoryName,
+          0,
+          WINDOW_SIZE,
+          store.granularity,
+          store.timeMode,
+          store.bucketSize
+        );
+        store.actions.setTotalCount(win.totalCount);
+        store.actions.addDeltaFrames(win.frames);
+      } else {
+        const win = await fetchWindow(
+          repositoryName,
+          0,
+          WINDOW_SIZE,
+          store.granularity,
+          store.timeMode,
+          store.bucketSize
+        );
+        store.actions.setTotalCount(win.totalCount);
+        store.actions.addFrames(win.frames);
+      }
+      store.actions.markBlockRequested(0);
+    };
+  const applyTimeBucket = (count: number, unitMs: number) => {
+    setBucketSize(Math.max(1, count * unitMs));
+    void reloadAnimation();
   };
+
 
   return createPortal(
     <div
@@ -219,7 +286,10 @@ export default function EvolutionAnimationPanel({
             label="Commit"
             name="timeMode"
             checked={timeMode === 'commit'}
-            onChange={() => setTimeMode('commit')}
+            onChange={() => {
+              setTimeMode('commit');
+              reloadAnimation();
+            }}
           />
           <Form.Check
             inline
@@ -227,7 +297,10 @@ export default function EvolutionAnimationPanel({
             label="Time"
             name="timeMode"
             checked={timeMode === 'time'}
-            onChange={() => setTimeMode('time')}
+            onChange={() => {
+              setTimeMode('time');
+              reloadAnimation();
+            }}
           />
         </div>
       </Form.Group>
@@ -245,19 +318,175 @@ export default function EvolutionAnimationPanel({
         />
       </Form.Group>
 
+      {timeMode === 'commit' && (
+        <Form.Group className="mb-3">
+          <Form.Label style={{ fontSize: '12px', color: '#aaa' }}>
+            Commits pro Frame: {granularity}
+          </Form.Label>
+          <Form.Control
+            type="number"
+            min={1}
+            size="sm"
+            value={granularity}
+            onChange={(e) => {
+              setGranularity(Math.max(1, Number(e.target.value)));
+              reloadAnimation();
+            }}
+          />
+        </Form.Group>
+      )}
+
+      {timeMode === 'time' && (
+        <Form.Group className="mb-3">
+          <Form.Label style={{ fontSize: '12px', color: '#aaa' }}>
+            Zeit-Bucket
+          </Form.Label>
+          <div style={{ display: 'flex', gap: '4px' }}>
+            <Form.Control
+              type="number"
+              min={1}
+              size="sm"
+              value={timeCount}
+              style={{ width: '70px' }}
+              onChange={(e) => {
+                const c = Math.max(1, Number(e.target.value));
+                setTimeCount(c);
+                applyTimeBucket(c, timeUnit);
+              }}
+            />
+            <Form.Select
+              size="sm"
+              value={timeUnit}
+              onChange={(e) => {
+                const u = Number(e.target.value);
+                setTimeUnit(u);
+                applyTimeBucket(timeCount, u);
+              }}
+            >
+              {UNITS.map((o) => (
+                <option key={o.ms} value={o.ms}>
+                  {o.label}
+                </option>
+              ))}
+            </Form.Select>
+          </div>
+        </Form.Group>
+      )}
       <Form.Group className="mb-3">
         <Form.Label style={{ fontSize: '12px', color: '#aaa' }}>
-          Commits pro Frame: {granularity}
+          Höhen-Metrik
         </Form.Label>
-        <Form.Control
-          type="number"
-          min={1}
+        <Form.Select
           size="sm"
-          value={granularity}
+          value={heightMetric}
           onChange={(e) =>
-            onGranularityChange(Math.max(1, Number(e.target.value)))
+            updateSetting('buildingHeightMetric', e.target.value)
           }
+        >
+          {SELECTED_BUILDING_METRIC_OPTIONS.map((m) => (
+            <option key={m} value={m}>
+              {m}
+            </option>
+          ))}
+        </Form.Select>
+
+        <Form.Label
+          style={{ fontSize: '12px', color: '#aaa', marginTop: '6px' }}
+        >
+          Strategie
+        </Form.Label>
+        <Form.Select
+          size="sm"
+          value={metricMapping}
+          onChange={(e) =>
+            updateSetting('buildingMetricMapping', e.target.value)
+          }
+        >
+          {[
+            BuildingMetricMapping.Linear,
+            BuildingMetricMapping.Logarithmic,
+          ].map((m) => (
+            <option key={m} value={m}>
+              {m}
+            </option>
+          ))}
+        </Form.Select>
+      </Form.Group>
+      <Form.Group className="mb-3">
+        <Form.Check
+          type="switch"
+          id="delta-switch"
+          label="Delta-Modus (Streaming)"
+          checked={deltaMode}
+          onChange={(e) => setDeltaMode(e.target.checked)}
+          style={{ fontSize: '12px' }}
         />
+      </Form.Group>
+      <Form.Group className="mb-3">
+        <Form.Check
+          type="switch"
+          id="aging-switch"
+          label="Aging (Ausgrauen)"
+          checked={agingEnabled}
+          onChange={(e) => setAgingEnabled(e.target.checked)}
+          style={{ fontSize: '12px' }}
+        />
+        {agingEnabled && timeMode === 'commit' && (
+          <>
+            <Form.Label
+              style={{ fontSize: '12px', color: '#aaa', marginTop: '6px' }}
+            >
+              Ausgrauen nach: {agingCommits} Commits
+            </Form.Label>
+            <Form.Control
+              type="number"
+              min={1}
+              size="sm"
+              value={agingCommits}
+              onChange={(e) =>
+                setAgingCommits(Math.max(1, Number(e.target.value)))
+              }
+            />
+          </>
+        )}
+        {agingEnabled && timeMode === 'time' && (
+          <>
+            <Form.Label
+              style={{ fontSize: '12px', color: '#aaa', marginTop: '6px' }}
+            >
+              Ausgrauen nach
+            </Form.Label>
+            <div style={{ display: 'flex', gap: '4px' }}>
+              <Form.Control
+                type="number"
+                min={1}
+                size="sm"
+                value={agingTimeCount}
+                style={{ width: '70px' }}
+                onChange={(e) => {
+                  const c = Math.max(1, Number(e.target.value));
+                  setAgingTimeCount(c);
+                  setAgingMs(c * agingTimeUnit);
+                }}
+              />
+              <Form.Select
+                size="sm"
+                value={agingTimeUnit}
+                onChange={(e) => {
+                  const u = Number(e.target.value);
+                  setAgingTimeUnit(u);
+                  setAgingMs(agingTimeCount * u);
+                }}
+              >
+                {UNITS.map((o) => (
+                  <option key={o.ms} value={o.ms}>
+                    {o.label}
+                  </option>
+                ))}
+              </Form.Select>
+            </div>
+          </>
+        )}
       </Form.Group>
 
       <Button
