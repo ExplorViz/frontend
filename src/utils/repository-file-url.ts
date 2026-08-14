@@ -149,8 +149,5 @@ export function applyCommitHashToRepositoryFileUrl(
     return fileUrl;
   }
 
-  return fileUrl.replace(
-    HOST_FILE_URL_COMMIT_PATTERN,
-    `$1${commitHash}$3`
-  );
+  return fileUrl.replace(HOST_FILE_URL_COMMIT_PATTERN, `$1${commitHash}$3`);
 }
