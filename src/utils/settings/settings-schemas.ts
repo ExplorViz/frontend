@@ -62,6 +62,7 @@ export type ColorSettingId =
   | 'modifiedBuildingColor'
   | 'removedBuildingColor'
   | 'unchangedBuildingColor'
+  | 'agedBuildingColor'
   | 'k8sDiagramColor';
 
 export type ColorSettings = Record<ColorSettingId, ColorSetting>;
@@ -168,6 +169,7 @@ export type LayoutSettings = {
   districtMargin: RangeSetting;
   buildingFootprint: RangeSetting;
   buildingMetricMapping: SelectSetting<BuildingMetricMapping>;
+  buildingMetricBuckets: RangeSetting;
   buildingWidthMetric: SelectSetting<SelectedBuildingMetric>;
   buildingWidthMultiplier: RangeSetting;
   buildingDepthMetric: SelectSetting<SelectedBuildingMetric>;
@@ -441,6 +443,7 @@ export function getOrderedBuildingMetricEntries<T>(
 export enum BuildingMetricMapping {
   Linear = 'Linear',
   Logarithmic = 'Logarithmic',
+  BucketCount = 'BucketCount',
 }
 
 export interface FlagSetting extends Setting<boolean> {

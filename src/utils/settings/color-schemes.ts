@@ -37,6 +37,7 @@ export const defaultColors = {
   modifiedBuildingColor: '#87CEFA', // pastel blue
   removedBuildingColor: '#B03060', // pastel red
   unchangedBuildingColor: '#000000', // black
+  agedBuildingColor: '#808080', // grey — target color for files unchanged over the aging threshold
   k8sDiagramColor: '#326ce5', // bright blue
 };
 

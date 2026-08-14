@@ -23,6 +23,7 @@ import {
   BuildingMetricMapping,
   SelectedBuildingMetric,
 } from 'explorviz-frontend/src/utils/settings/settings-schemas';
+import { useEvolutionAnimationStore } from 'explorviz-frontend/src/components/visualization/page-setup/bottom-bar/animation/evolution-animation-store.ts';
 
 // Prefixes with leading non-number characters are temporarily added
 // since ELK cannot handle IDs with leading numbers
@@ -53,6 +54,47 @@ let DISTRICT_LABEL_MARGIN: number;
 let DISTRICT_MARGIN: number;
 let DISTRICT_HEIGHT: number;
 let DISTRICT_LABEL_PLACEMENT: string;
+let METRIC_BUCKETS: number;
+
+//Caching for performance reasons
+let cachedLayoutSignature: string | null = null;
+let cachedLayoutResult: Map<string, BoxLayout> | null = null;
+
+function computeLayoutSignature(
+  landscape: FlatLandscape,
+  removedDistrictIds: Set<string>
+): string {
+  const { visualizationSettings: vs } = useUserSettingsStore.getState();
+  const parts: string[] = [
+    Object.entries(vs)
+      .map(([id, setting]) => `${id}=${(setting as { value: unknown }).value}`)
+      .join('|'),
+    `removed=${[...removedDistrictIds].join(',')}`,
+  ];
+  for (const id in landscape.cities) {
+    const city = landscape.cities[id];
+    parts.push(
+      `c|${id}|${city.districtIds.join(',')}|${city.buildingIds.join(',')}` +
+        `|${city.allContainedBuildingIds.length}`
+    );
+  }
+  for (const id in landscape.districts) {
+    const district = landscape.districts[id];
+    parts.push(
+      `d|${id}|${district.parentDistrictId ?? ''}` +
+        `|${district.districtIds.join(',')}|${district.buildingIds.join(',')}`
+    );
+  }
+  for (const id in landscape.buildings) {
+    const building = landscape.buildings[id];
+    parts.push(
+      `b|${id}|${building.metrics?.[WIDTH_METRIC]?.current ?? ''}` +
+        `|${building.metrics?.[DEPTH_METRIC]?.current ?? ''}`
+    );
+  }
+
+  return parts.join(';');
+}
 
 function setVisualizationSettings() {
   const { visualizationSettings: vs } = useUserSettingsStore.getState();
@@ -68,6 +110,7 @@ function setVisualizationSettings() {
   DEPTH_METRIC = vs.buildingDepthMetric.value;
   DEPTH_METRIC_MULTIPLIER = vs.buildingDepthMultiplier.value;
   METRIC_MAPPING = vs.buildingMetricMapping.value;
+  METRIC_BUCKETS = vs.buildingMetricBuckets.value;
   BUILDING_MARGIN = vs.buildingMargin.value;
   CITY_LABEL_MARGIN = vs.cityLabelMargin.value;
   CITY_MARGIN = vs.cityMargin.value;
@@ -94,9 +137,19 @@ export default async function layoutLandscape(
   landscape: FlatLandscape,
   removedDistrictIds: Set<string>
 ) {
-  const elk = new ELK();
 
   setVisualizationSettings();
+  const signature = computeLayoutSignature(landscape, removedDistrictIds);
+  const animationActive = useEvolutionAnimationStore.getState().totalCount > 0;
+  if (
+    animationActive &&
+    cachedLayoutResult !== null &&
+    signature === cachedLayoutSignature
+  ) {
+    return cachedLayoutResult;
+  }
+  const elk = new ELK();
+  const _t0 = performance.now();
 
   WIDTH_METRIC_BOUNDS = getCachedBuildingMetricBounds(
     landscape.buildings,
@@ -185,7 +238,12 @@ export default async function layoutLandscape(
       applySpiralLayoutToBuildings(boxLayoutMap, landscape, cities);
     }
   }
-
+  console.log(
+    `[layout] ${Math.round(performance.now() - _t0)}ms for ` +
+    `${Object.keys(landscape.buildings).length} buildings`
+  );
+  cachedLayoutSignature = signature;
+  cachedLayoutResult = boxLayoutMap;
   return boxLayoutMap;
 }
 
@@ -234,12 +292,12 @@ function createdFixedSizeCity(
     },
   };
 
-  city.allContainedBuildingIds.forEach((buildingId) => {
+  /*city.allContainedBuildingIds.forEach((buildingId) => {
     const building = landscape.buildings[buildingId];
     if (building) {
       buildingGraph.children.push(createBuildingNode(building));
     }
-  });
+  });*/
 
   return buildingGraph;
 }
@@ -386,7 +444,8 @@ function createBuildingNode(building: Building) {
     applyMetricMapping(
       getMetricValue(building, WIDTH_METRIC),
       METRIC_MAPPING,
-      WIDTH_METRIC_BOUNDS
+      WIDTH_METRIC_BOUNDS,
+      METRIC_BUCKETS
     );
 
   const depthByMetric =
@@ -395,7 +454,8 @@ function createBuildingNode(building: Building) {
     applyMetricMapping(
       getMetricValue(building, DEPTH_METRIC),
       METRIC_MAPPING,
-      DEPTH_METRIC_BOUNDS
+      DEPTH_METRIC_BOUNDS,
+      METRIC_BUCKETS
     );
 
   return {

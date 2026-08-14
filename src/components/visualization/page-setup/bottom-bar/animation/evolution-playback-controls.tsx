@@ -249,6 +249,9 @@ export default function EvolutionPlaybackControls() {
   const active = deltaMode
     ? deltaFrames.get(currentFrameIndex)
     : loadedFrames.get(currentFrameIndex);
+  const activeDelta = deltaMode
+    ? deltaFrames.get(currentFrameIndex)
+    : undefined;
 
 
   return createPortal(
@@ -321,10 +324,28 @@ export default function EvolutionPlaybackControls() {
       {/* Current commit */}
       {active && (
         <div style={{ fontSize: '12px', marginTop: '8px' }}>
-          <code style={{ color: 'blue' }}>{active.commitHash.slice(0, 7)}</code>
-          <span style={{ color: '#aaa', marginLeft: '8px' }}>
-            {new Date(active.authorDate).toLocaleString()}
-          </span>
+          <div>
+            <code style={{ color: 'blue' }}>{active.commitHash.slice(0, 7)}</code>
+            <span style={{ color: '#aaa', marginLeft: '8px' }}>
+              {new Date(active.authorDate).toLocaleString()}
+            </span>
+          </div>
+          {activeDelta && (
+            <div style={{ color: '#aaa', marginTop: '4px' }}>
+              {activeDelta.tsFrom === activeDelta.tsTo
+                ? new Date(activeDelta.tsFrom).toLocaleDateString()
+                : `${new Date(activeDelta.tsFrom).toLocaleDateString()} – ${new Date(
+                  activeDelta.tsTo
+                ).toLocaleDateString()}`}
+              <span style={{ marginLeft: '8px' }}>
+                {activeDelta.commitCount === 0
+                  ? '· keine Commits'
+                  : `· ${activeDelta.commitCount} Commit${
+                    activeDelta.commitCount === 1 ? '' : 's'
+                  }`}
+              </span>
+            </div>
+          )}
         </div>
       )}
     </div>,

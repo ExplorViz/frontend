@@ -18,7 +18,7 @@ interface EvolutionAnimationState {
   timeMode: 'commit' | 'time';
   speedMs: number;
   bucketSize: number;
-  orderedCommitTimeStamps: number[];
+  orderedCommitTimestamps: number[];
   agingEnabled: boolean;
   agingCommits: number; // threshold in frames (commit mode)
   agingMs: number; // threshold in milliseconds (time mode)
@@ -62,7 +62,7 @@ export const useEvolutionAnimationStore = create<EvolutionAnimationState>((set) 
   timeMode: 'commit',
   speedMs: 1000,
   bucketSize: 86400000,
-  orderedCommitTimeStamps: [],
+  orderedCommitTimestamps: [],
   agingEnabled: false,
   agingCommits: 10,
   agingMs: 2592000000, // 30 days
@@ -74,7 +74,7 @@ export const useEvolutionAnimationStore = create<EvolutionAnimationState>((set) 
         stableFrame: skeleton.landscape,
         fqnToFirstFrame: new Map(Object.entries(skeleton.fqnToFirstOrdinal)),
         orderedCommitHashes: skeleton.orderedCommitHashes,
-        orderedCommitTimeStamps: skeleton.orderedCommitTimeStamps,
+        orderedCommitTimestamps: skeleton.orderedCommitTimestamps,
       }),
     setTotalCount: (total) =>
       set({

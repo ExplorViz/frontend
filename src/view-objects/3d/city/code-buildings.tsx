@@ -184,6 +184,7 @@ const GeometryGroup: React.FC<GeometryGroupProps> = ({
     buildingFootprint,
     buildingHeightMultiplier,
     metricMapping,
+    metricBuckets,
     enableHoverEffects,
     heightMetric,
     highlightedEntityColor,
@@ -193,6 +194,7 @@ const GeometryGroup: React.FC<GeometryGroupProps> = ({
     modifiedBuildingColor,
     removedBuildingColor,
     unchangedBuildingColor,
+    agedBuildingColor,
     visualizationSettings,
   } = useUserSettingsStore(
     useShallow((state) => ({
@@ -200,6 +202,7 @@ const GeometryGroup: React.FC<GeometryGroupProps> = ({
       buildingHeightMultiplier:
         state.visualizationSettings.buildingHeightMultiplier.value,
       metricMapping: state.visualizationSettings.buildingMetricMapping.value,
+      metricBuckets: state.visualizationSettings.buildingMetricBuckets.value,
       enableHoverEffects: state.visualizationSettings.enableHoverEffects.value,
       heightMetric: state.visualizationSettings.buildingHeightMetric.value,
       highlightedEntityColor: state.colors?.highlightedEntityColor,
@@ -212,6 +215,7 @@ const GeometryGroup: React.FC<GeometryGroupProps> = ({
         state.visualizationSettings.removedBuildingColor.value,
       unchangedBuildingColor:
         state.visualizationSettings.unchangedBuildingColor.value,
+      agedBuildingColor: state.visualizationSettings.agedBuildingColor.value,
       visualizationSettings: state.visualizationSettings,
     }))
   );
@@ -244,7 +248,8 @@ const GeometryGroup: React.FC<GeometryGroupProps> = ({
       metricMapping,
       buildingFootprint,
       buildingHeightMultiplier,
-      buildings
+      buildings,
+      metricBuckets
     );
   }
 
@@ -279,7 +284,13 @@ const GeometryGroup: React.FC<GeometryGroupProps> = ({
       } else if (building.commitComparison === 'MODIFIED') {
         return new THREE.Color(modifiedBuildingColor);
       } else {
-        return new THREE.Color(unchangedBuildingColor);
+        // Aging: fade unchanged files toward the aged color as they age.
+        const unchanged = new THREE.Color(unchangedBuildingColor);
+        const factor = building.agingFactor ?? 0;
+        if (factor > 0) {
+          return unchanged.lerp(new THREE.Color(agedBuildingColor), factor);
+        }
+        return unchanged;
       }
     }
 
@@ -399,6 +410,7 @@ const GeometryGroup: React.FC<GeometryGroupProps> = ({
     buildingHeightMultiplier,
     heightMetric,
     metricMapping,
+    metricBuckets,
     buildings,
     enableAnimations,
     animationDuration,
@@ -570,6 +582,7 @@ const GeometryGroup: React.FC<GeometryGroupProps> = ({
     buildingHeightMultiplier,
     heightMetric,
     metricMapping,
+    metricBuckets,
     buildings,
     enableAnimations,
     animationDuration,
@@ -587,6 +600,7 @@ const GeometryGroup: React.FC<GeometryGroupProps> = ({
     removedBuildingColor,
     modifiedBuildingColor,
     unchangedBuildingColor,
+    agedBuildingColor,
     hoveredEntityId,
     highlightedEntityIds,
     visualizationSettings,
@@ -612,6 +626,7 @@ const GeometryGroup: React.FC<GeometryGroupProps> = ({
     removedBuildingColor,
     modifiedBuildingColor,
     unchangedBuildingColor,
+    agedBuildingColor,
     hoveredEntityId,
     highlightedEntityIds,
     visualizationSettings,

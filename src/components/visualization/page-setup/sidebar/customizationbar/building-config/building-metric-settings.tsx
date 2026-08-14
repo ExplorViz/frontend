@@ -85,6 +85,7 @@ export default function BuildingMetricSettings() {
           settingId={BUILDING_METRIC_MAPPING_SETTING_ID}
           onChange={updateSelectSetting}
         />
+
       </div>
 
       {BUILDING_DIMENSION_ORDER.map((dimension) => {

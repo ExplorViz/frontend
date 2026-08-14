@@ -34,6 +34,8 @@ export const BUILDING_DIMENSION_SETTINGS: Record<
     multiplierSettingId: 'buildingHeightMultiplier',
   },
 };
+export const BUILDING_METRIC_BUCKETS_SETTING_ID =
+  'buildingMetricBuckets' as const satisfies VisualizationSettingId;
 
 export const BUILDING_DIMENSION_ORDER: BuildingDimension[] = [
   'width',

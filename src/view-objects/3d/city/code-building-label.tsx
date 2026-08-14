@@ -13,6 +13,9 @@ import gsap from 'gsap';
 import { useEffect, useState } from 'react';
 import * as THREE from 'three';
 import { useShallow } from 'zustand/react/shallow';
+import { useCommitTreeStateStore } from 'explorviz-frontend/src/stores/commit-tree-state';
+import { useVisibilityServiceStore } from 'explorviz-frontend/src/stores/visibility-service';
+import { TypeOfAnalysis } from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
 
 function createLabelPosition(
   layout: BoxLayout,
@@ -69,6 +72,7 @@ export default function CodeBuildingLabel({
     buildingFootprint,
     buildingHeightMultiplier,
     metricMapping,
+    metricBuckets,
     buildingLabelFontSize,
     buildingLabelLength,
     buildingTextColor,
@@ -86,6 +90,7 @@ export default function CodeBuildingLabel({
       buildingHeightMultiplier:
         state.visualizationSettings.buildingHeightMultiplier.value,
       metricMapping: state.visualizationSettings.buildingMetricMapping.value,
+      metricBuckets: state.visualizationSettings.buildingMetricBuckets.value,
       buildingLabelFontSize:
         state.visualizationSettings.buildingLabelFontSize.value,
       buildingLabelLength:
@@ -111,6 +116,36 @@ export default function CodeBuildingLabel({
   );
 
   const buildings = useModelStore((state) => state.buildings);
+  const evoConfig = useVisibilityServiceStore(
+    (state) => state._evolutionModeRenderingConfiguration
+  );
+  const selectedCommits = useCommitTreeStateStore(
+    (state) => state._selectedCommits
+  );
+  const currentSelectedRepo = useCommitTreeStateStore(
+    (state) => state._currentSelectedRepositoryName
+  );
+  const isDiffMode =
+    (selectedCommits.get(currentSelectedRepo)?.length || 0) === 2;
+
+  const visibleDueToEvo = (() => {
+    if (building?.isPlaceholder) {
+      return false;
+    }
+    if (isDiffMode || evoConfig.renderOnlyDifferences) {
+      return !!building?.commitComparison;
+    }
+    if (
+      building?.originOfData === TypeOfAnalysis.Static ||
+      building?.originOfData === TypeOfAnalysis.StaticAndDynamic
+    ) {
+      return evoConfig.renderStatic;
+    }
+    if (building?.originOfData === TypeOfAnalysis.Dynamic) {
+      return evoConfig.renderDynamic;
+    }
+    return true;
+  })();
 
   function getBuildingHeight(targetBuilding: Building) {
     return computeMappedBuildingHeight(
@@ -119,7 +154,8 @@ export default function CodeBuildingLabel({
       metricMapping,
       buildingFootprint,
       buildingHeightMultiplier,
-      buildings
+      buildings,
+      metricBuckets
     );
   }
 
@@ -180,6 +216,7 @@ export default function CodeBuildingLabel({
     labelOffset,
     layout,
     metricMapping,
+    metricBuckets,
   ]);
 
   useEffect(() => {
@@ -222,6 +259,7 @@ export default function CodeBuildingLabel({
       : !enableClustering;
 
   const shouldShowLabel =
+    visibleDueToEvo &&
     (showAllBuildingLabels ||
       isBuildingHovered ||
       isParentHovered ||

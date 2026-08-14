@@ -288,6 +288,15 @@ export const defaultVizSettings: VisualizationSettings = {
     description: 'Evolution Diff Color',
     isColorSetting: true,
   },
+  agedBuildingColor: {
+    level: SettingLevel.EXTENDED,
+    value: defaultColors.agedBuildingColor,
+    group: 'Colors',
+    displayName: 'Aged Building',
+    description:
+      'Target color a file fades to when unchanged past the aging threshold',
+    isColorSetting: true,
+  },
   k8sDiagramColor: {
     level: SettingLevel.DEFAULT,
     value: defaultColors.k8sDiagramColor,
@@ -772,12 +781,30 @@ export const defaultVizSettings: VisualizationSettings = {
   buildingMetricMapping: {
     level: SettingLevel.DEFAULT,
     value: BuildingMetricMapping.Linear,
-    options: [BuildingMetricMapping.Linear, BuildingMetricMapping.Logarithmic],
+    options: [
+      BuildingMetricMapping.Linear,
+      BuildingMetricMapping.Logarithmic,
+      BuildingMetricMapping.BucketCount,
+    ],
     group: 'Building Config',
     displayName: 'Metric Mapping',
     description:
       'Mapping used for width, depth, and height metric values of buildings.',
     isSelectSetting: true,
+  },
+  buildingMetricBuckets: {
+    level: SettingLevel.DEFAULT,
+    value: 3,
+    range: { min: 2, max: 10, step: 1 },
+    group: 'Building Config',
+    displayName: 'Metric Buckets',
+    description:
+      'Number of rank buckets used by the BucketCount mapping. Each bucket holds roughly the same number of buildings.',
+    dependsOn: {
+      settingId: 'buildingMetricMapping',
+      value: BuildingMetricMapping.BucketCount,
+    },
+    isRangeSetting: true,
   },
   buildingWidthMetric: {
     level: SettingLevel.DEFAULT,

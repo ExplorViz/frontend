@@ -27,7 +27,7 @@ export type AnimationSkeleton = {
   landscape: FlatLandscape;
   fqnToFirstOrdinal: Record<string, number>;
   orderedCommitHashes: string[];
-  orderedCommitTimeStamps: number[];
+  orderedCommitTimestamps: number[];
 };
 
 export type BuildingState = {
@@ -46,6 +46,9 @@ export type AnimationDeltaFrame = {
   authorDate: number;
   ordinal: number;
   keyframe: boolean;
+  tsFrom: number;
+  tsTo: number;
+  commitCount: number;
   state: BuildingState[] | null;
   changes: BuildingChange[] | null;
 };

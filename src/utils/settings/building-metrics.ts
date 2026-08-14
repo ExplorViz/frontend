@@ -8,7 +8,9 @@ import {
 export type MetricBounds = {
   min: number;
   max: number;
+  sortedValues?: number[];
 };
+export const DEFAULT_METRIC_BUCKETS = 3;
 
 export type MetricKey = SelectedBuildingMetric;
 
@@ -41,6 +43,17 @@ export const metricMappingMultipliers = {
     [SelectedBuildingMetric.functionCount]: 25,
     [SelectedBuildingMetric.variableCount]: 20,
   },
+  [BuildingMetricMapping.BucketCount]: {
+    [SelectedBuildingMetric.None]: 1,
+    [SelectedBuildingMetric.size]: 10,
+    [SelectedBuildingMetric.lineCount]: 10,
+    [SelectedBuildingMetric.sloc]: 10,
+    [SelectedBuildingMetric.cloc]: 10,
+    [SelectedBuildingMetric.importCount]: 10,
+    [SelectedBuildingMetric.classCount]: 10,
+    [SelectedBuildingMetric.functionCount]: 10,
+    [SelectedBuildingMetric.variableCount]: 10,
+  },
 } as const;
 
 export const metricKeys = SELECTED_BUILDING_METRIC_OPTIONS;
@@ -49,28 +62,27 @@ export function getMetricBoundsForBuildings(
   buildings: Building[],
   metricKey: string
 ): MetricBounds {
-  if (!metricKey || metricKey === SelectedBuildingMetric.None) {
-    return { min: 0, max: 0 };
+  if (
+    !metricKey ||
+    metricKey === SelectedBuildingMetric.None ||
+    buildings.length === 0
+  ) {
+    return { min: 0, max: 0, sortedValues: [] };
+  }
+  const values: number[] = [];
+  let min = Infinity;
+  let max = -Infinity;
+
+  for (const building of buildings) {
+    const rawValue = Number(building.metrics?.[metricKey]?.current ?? 0);
+    const safeValue = Number.isFinite(rawValue) ? Math.max(0, rawValue) : 0;
+    values.push(safeValue);
+    if (safeValue < min) min = safeValue;
+    if (safeValue > max) max = safeValue;
   }
 
-  if (buildings.length === 0) {
-    return { min: 0, max: 0 };
-  }
-
-  return buildings.reduce(
-    (acc, building) => {
-      const rawValue = building.metrics?.[metricKey]?.current ?? 0;
-      const numericValue = Number(rawValue);
-      const safeValue = Number.isFinite(numericValue)
-        ? Math.max(0, numericValue)
-        : 0;
-      return {
-        min: Math.min(acc.min, safeValue),
-        max: Math.max(acc.max, safeValue),
-      };
-    },
-    { min: Infinity, max: -Infinity }
-  );
+  values.sort((a, b) => a - b);
+  return { min, max, sortedValues: values };
 }
 
 let cachedBoundsBuildingsRef: Record<string, Building> | null = null;
@@ -97,15 +109,52 @@ export function getCachedBuildingMetricBounds(
   return cachedMetricBounds;
 }
 
+let cachedEdgesSource: number[] | null = null;
+let cachedEdgesBuckets = 0;
+let cachedEdges: number[] = [];
+export function getBucketEdges(sorted: number[], buckets: number): number[] {
+  if (cachedEdgesSource === sorted && cachedEdgesBuckets === buckets) {
+    return cachedEdges;
+  }
+
+  const edges: number[] = [];
+  for (let i = 1; i <= buckets; i++) {
+    const index = Math.min(
+      sorted.length - 1,
+      Math.max(0, Math.ceil((i / buckets) * sorted.length) - 1)
+    );
+    edges.push(sorted[index]);
+  }
+
+  cachedEdgesSource = sorted;
+  cachedEdgesBuckets = buckets;
+  cachedEdges = edges;
+  return edges;
+}
+
 export function applyMetricMapping(
   value: number,
   mapping: BuildingMetricMapping,
-  bounds?: MetricBounds
+  bounds?: MetricBounds,
+  buckets: number = DEFAULT_METRIC_BUCKETS
 ): number {
   const numericValue = Number(value);
   const safeValue = Number.isFinite(numericValue)
     ? Math.max(0, numericValue)
     : 0;
+
+  if (mapping === BuildingMetricMapping.BucketCount) {
+    const sorted = bounds?.sortedValues;
+    if (!sorted || sorted.length === 0) {
+      return 0;
+    }
+    const edges = getBucketEdges(sorted, Math.max(2, Math.round(buckets)));
+    let bucket = 0;
+    while (bucket < edges.length - 1 && safeValue > edges[bucket]) {
+      bucket++;
+    }
+    return bucket + 1;
+  }
 
   if (mapping === BuildingMetricMapping.Logarithmic) {
     const min = bounds?.min ?? 0;
@@ -142,7 +191,8 @@ export function computeMappedBuildingHeight(
   metricMapping: BuildingMetricMapping,
   buildingFootprint: number,
   buildingHeightMultiplier: number,
-  buildings: Record<string, Building>
+  buildings: Record<string, Building>,
+  metricBuckets: number = DEFAULT_METRIC_BUCKETS
 ): number {
   const metricBounds = getCachedBuildingMetricBounds(buildings, heightMetric);
   const metricValue = building.metrics?.[heightMetric]?.current || 0;
@@ -151,6 +201,6 @@ export function computeMappedBuildingHeight(
     buildingFootprint +
     getMetricMappingMultiplier(heightMetric as MetricKey, metricMapping) *
       buildingHeightMultiplier *
-      applyMetricMapping(metricValue, metricMapping, metricBounds)
+      applyMetricMapping(metricValue, metricMapping, metricBounds, metricBuckets)
   );
 }

@@ -53,6 +53,9 @@ export default function EvolutionAnimationPanel({
   const metricMapping = useUserSettingsStore(
     (s) => s.visualizationSettings.buildingMetricMapping.value
   );
+  const metricBuckets = useUserSettingsStore(
+    (s) => s.visualizationSettings.buildingMetricBuckets.value
+  );
   const updateSetting = useUserSettingsStore((s) => s.updateSetting);
 
   const repositoryName = useCommitTreeStateStore(
@@ -88,29 +91,10 @@ export default function EvolutionAnimationPanel({
 
     let cancelled = false;
     setIsLoading(true);
-    Promise.all([fetchSkeleton(repositoryName), fetchWindow(repositoryName,0,0)])
-      .then(([skeleton, animationWindow]) => {
+    fetchSkeleton(repositoryName)
+      .then((skeleton) => {
         if (cancelled) return;
-        const actions = useEvolutionAnimationStore.getState().actions;
-        actions.setSkeleton(skeleton);
-        actions.setTotalCount(animationWindow.totalCount);
-
-        useRenderingServiceStore
-          .getState()
-          .setAnalysisModeFromEvolutionRenderingConfig({
-            renderDynamic: false,
-            renderStatic: true,
-            renderOnlyDifferences: true,
-            buildingComparisonVisibility: ALL_BUILDING_COMPARISONS_VISIBLE,
-          });
-        useVisibilityServiceStore
-          .getState()
-          .applyEvolutionModeRenderingConfiguration({
-            renderDynamic: false,
-            renderStatic: true,
-            renderOnlyDifferences: true,
-            buildingComparisonVisibility: ALL_BUILDING_COMPARISONS_VISIBLE,
-          });
+        useEvolutionAnimationStore.getState().actions.setSkeleton(skeleton);
       })
       .catch((e) => console.error('Failed to fetch animation frames:', e))
       .finally(() => {
@@ -129,8 +113,10 @@ export default function EvolutionAnimationPanel({
     try {
       const store = useEvolutionAnimationStore.getState();
       const actions = store.actions;
-      const skeleton = await fetchSkeleton(repositoryName);
-      actions.setSkeleton(skeleton);
+      if (!store.stableFrame) {
+        const skeleton = await fetchSkeleton(repositoryName);
+        actions.setSkeleton(skeleton);
+      }
 
       if (store.deltaMode) {
         const firstWindow = await fetchDeltaWindow(
@@ -402,15 +388,35 @@ export default function EvolutionAnimationPanel({
             updateSetting('buildingMetricMapping', e.target.value)
           }
         >
-          {[
-            BuildingMetricMapping.Linear,
-            BuildingMetricMapping.Logarithmic,
-          ].map((m) => (
+          {Object.values(BuildingMetricMapping).map((m) => (
             <option key={m} value={m}>
               {m}
             </option>
           ))}
         </Form.Select>
+
+        {metricMapping === BuildingMetricMapping.BucketCount && (
+          <>
+            <Form.Label
+              style={{ fontSize: '12px', color: '#aaa', marginTop: '6px' }}
+            >
+              Buckets
+            </Form.Label>
+            <Form.Control
+              type="number"
+              size="sm"
+              min={2}
+              max={10}
+              value={metricBuckets}
+              onChange={(e) =>
+                updateSetting(
+                  'buildingMetricBuckets',
+                  Math.max(2, Number(e.target.value))
+                )
+              }
+            />
+          </>
+        )}
       </Form.Group>
       <Form.Group className="mb-3">
         <Form.Check

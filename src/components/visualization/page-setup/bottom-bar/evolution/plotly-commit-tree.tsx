@@ -76,8 +76,10 @@ export default function PlotlyCommitTree({
   const animationActive = useEvolutionAnimationStore(
     (state) => state.totalCount > 0
   );
-  const activeHash = useEvolutionAnimationStore(
-    (state) => state.loadedFrames.get(state.currentFrameIndex)?.commitHash
+  const activeHash = useEvolutionAnimationStore((state) =>
+    state.deltaMode
+      ? state.deltaFrames.get(state.currentFrameIndex)?.commitHash
+      : state.loadedFrames.get(state.currentFrameIndex)?.commitHash
   );
 
   const commitTree = repoNameCommitTreeMap.get(selectedRepoName);
@@ -307,18 +309,12 @@ export default function PlotlyCommitTree({
         if (ordinal !== -1) {
           let Timeordinal: number;
           if (animStore.timeMode === 'time') {
-            const ts = animStore.orderedCommitTimeStamps;
-            const t0 = ts[0];
+            const ts = animStore.orderedCommitTimestamps;
             const bs = animStore.bucketSize;
-            Timeordinal = 0;
-            for (let j = 1; j <= ordinal; j++) {
-              if (
-                Math.floor((ts[j] - t0) / bs) !==
-                Math.floor((ts[j - 1] - t0) / bs)
-              ) {
-                Timeordinal++;
-              }
-            }
+            Timeordinal = Math.max(
+              0,
+              Math.ceil((ts[ordinal] - ts[0]) / bs) - 1
+            );
           } else {
             Timeordinal = Math.floor(ordinal / animStore.granularity);
           }
