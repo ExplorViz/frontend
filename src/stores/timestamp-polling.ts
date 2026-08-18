@@ -9,12 +9,14 @@ import {
   DebugSnapshot,
   useDebugSnapshotRepositoryStore,
 } from 'explorviz-frontend/src/stores/repos/debug-snapshot-repository';
-import { useEvolutionDataRepositoryStore } from 'explorviz-frontend/src/stores/repos/evolution-data-repository';
 import { useTimestampRepositoryStore } from 'explorviz-frontend/src/stores/repos/timestamp-repository';
 import { useSnapshotTokenStore } from 'explorviz-frontend/src/stores/snapshot-token';
 import { useToastHandlerStore } from 'explorviz-frontend/src/stores/toast-handler';
+import {
+  applyNewestCommitSelectionToState,
+  markNewestCommitAutoSelectedForCurrentLandscape,
+} from 'explorviz-frontend/src/utils/code-analysis-reload';
 import eventEmitter from 'explorviz-frontend/src/utils/event-emitter';
-import { buildNewestCommitSelectionMap } from 'explorviz-frontend/src/utils/evolution-data-helpers';
 import { CROSS_COMMIT_IDENTIFIER } from 'explorviz-frontend/src/utils/evolution-schemes/evolution-data';
 import {
   isTimestamp,
@@ -365,29 +367,13 @@ export const useTimestampPollingStore = create<TimestampPollingState>(
 );
 
 async function selectNewestCommit(): Promise<boolean> {
-  const currentLandscapeToken = useLandscapeTokenStore.getState().token?.value;
-  const repoNameCommitTreeMap =
-    useEvolutionDataRepositoryStore.getState()._repoNameCommitTreeMap;
-
-  const selectedCommits = buildNewestCommitSelectionMap(
-    repoNameCommitTreeMap,
-    useCommitTreeStateStore.getState().getXAxisPlacement()
-  );
-
-  if (selectedCommits.size === 0) {
+  if (!applyNewestCommitSelectionToState()) {
     return false;
   }
 
-  const firstRepoName = selectedCommits.keys().next().value!;
-  useCommitTreeStateStore
-    .getState()
-    .setCurrentSelectedRepositoryName(firstRepoName);
-  useCommitTreeStateStore.getState().setSelectedCommits(selectedCommits);
   await useRenderingServiceStore
     .getState()
     .triggerRenderingForSelectedCommits();
-  useTimestampPollingStore.setState({
-    newestCommitAutoSelectedForLandscapeToken: currentLandscapeToken ?? null,
-  });
+  markNewestCommitAutoSelectedForCurrentLandscape();
   return true;
 }
