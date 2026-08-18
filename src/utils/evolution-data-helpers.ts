@@ -1,6 +1,7 @@
 import {
   Branch,
   Commit,
+  CommitAuthor,
   CommitNode,
   CommitTree,
   CommitXAxisPlacement,
@@ -56,6 +57,36 @@ export function getCommitDateMs(commit: CommitNode): number | null {
 
   const ms = Date.parse(commit.commitDate);
   return Number.isNaN(ms) ? null : ms;
+}
+
+export function getCommitAuthorLabel(
+  author: CommitAuthor | null | undefined
+): string {
+  if (author == null) {
+    return 'Unknown author';
+  }
+
+  return (
+    author.githubLogin ||
+    author.gitUsername ||
+    author.email ||
+    (author.contributorId != null
+      ? `#${author.contributorId}`
+      : 'Unknown author')
+  );
+}
+
+export function getCommitAuthorKey(commit: CommitNode): string {
+  if (commit.author?.contributorId != null) {
+    return `id:${commit.author.contributorId}`;
+  }
+
+  const label = getCommitAuthorLabel(commit.author);
+  return label === 'Unknown author' ? 'unknown' : `name:${label}`;
+}
+
+export function commitsHaveAuthorData(commits: CommitNode[]): boolean {
+  return commits.some((commit) => commit.author != null);
 }
 
 export function getCommitTreeDateRange(
@@ -199,7 +230,68 @@ export type BranchChartSeries = {
 
 export type BranchChartSeriesOptions = {
   metricChangeThreshold?: number;
+  authorKeys?: string[];
 };
+
+export type CommitAuthorOption = {
+  authorKey: string;
+  label: string;
+  commitCount: number;
+};
+
+export function getCommitAuthorOptionsFromCommitTree(
+  commitTree: CommitTree | undefined
+): CommitAuthorOption[] {
+  if (!commitTree) {
+    return [];
+  }
+
+  const counts = new Map<string, { label: string; commitCount: number }>();
+
+  for (const branch of commitTree.branches) {
+    for (const commit of branch.commits) {
+      if (!commitHasAnalyzedMetrics(commit)) {
+        continue;
+      }
+
+      const authorKey = getCommitAuthorKey(commit);
+      const label = getCommitAuthorLabel(commit.author);
+      const existing = counts.get(authorKey);
+
+      if (existing) {
+        existing.commitCount += 1;
+      } else {
+        counts.set(authorKey, { label, commitCount: 1 });
+      }
+    }
+  }
+
+  return [...counts.entries()]
+    .map(([authorKey, entry]) => ({
+      authorKey,
+      label: entry.label,
+      commitCount: entry.commitCount,
+    }))
+    .sort((left, right) => {
+      const countDiff = right.commitCount - left.commitCount;
+      if (countDiff !== 0) {
+        return countDiff;
+      }
+
+      return left.label.localeCompare(right.label);
+    });
+}
+
+export function isCommitVisibleWithAuthorFilter(
+  commit: CommitNode,
+  authorKeys: string[] | undefined
+): boolean {
+  if (authorKeys === undefined) {
+    return true;
+  }
+
+  return authorKeys.includes(getCommitAuthorKey(commit));
+}
 
 export function getMetricChangeMagnitude(
   commit: CommitNode,
@@ -341,7 +433,8 @@ export function removeFilteredCommitsFromSelection(
   repoName: string,
   repoNameCommitTreeMap: RepoNameCommitTreeMap,
   metricName: string,
-  threshold: number
+  threshold: number,
+  authorKeys?: string[]
 ): Map<string, Commit[]> {
   const commitTree = repoNameCommitTreeMap.get(repoName);
   if (!commitTree) {
@@ -359,6 +452,16 @@ export function removeFilteredCommitsFromSelection(
     );
     if (!branch) {
       return true;
+    }
+
+    const commitNode = branch.commits.find(
+      (candidate) => candidate.hash === commit.commitId
+    );
+    if (
+      commitNode &&
+      !isCommitVisibleWithAuthorFilter(commitNode, authorKeys)
+    ) {
+      return false;
     }
 
     return isCommitVisibleWithMetricChangeFilter(
@@ -436,11 +539,21 @@ export function buildBranchChartSeries(
       )
     : getCommitIndicesWithAnalyzedMetrics(branch);
 
+  const filteredIndices =
+    options.authorKeys === undefined
+      ? indices
+      : indices.filter((index) =>
+          isCommitVisibleWithAuthorFilter(
+            branch.commits[index],
+            options.authorKeys
+          )
+        );
+
   return buildBranchChartSeriesForIndices(
     branch,
     placement,
     metricName,
-    indices
+    filteredIndices
   );
 }
 

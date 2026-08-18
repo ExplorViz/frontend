@@ -1,4 +1,9 @@
-import { getCommitDateMs } from 'explorviz-frontend/src/utils/evolution-data-helpers';
+import {
+  commitsHaveAuthorData,
+  getCommitAuthorKey,
+  getCommitAuthorLabel,
+  getCommitDateMs,
+} from 'explorviz-frontend/src/utils/evolution-data-helpers';
 import {
   Branch,
   CommitNode,
@@ -13,6 +18,13 @@ export type CommitStatisticsYearGroup = {
   endIndex: number;
 };
 
+export type CommitStatisticsAuthorSeries = {
+  authorKey: string;
+  label: string;
+  values: number[];
+  color: string;
+};
+
 export type CommitStatisticsChartData = {
   labels: string[];
   values: number[];
@@ -21,6 +33,7 @@ export type CommitStatisticsChartData = {
   hoverLabels?: string[];
   monthLabels?: string[];
   yearGroups?: CommitStatisticsYearGroup[];
+  authorSeries?: CommitStatisticsAuthorSeries[];
 };
 
 const MONTH_LABELS = [
@@ -39,6 +52,19 @@ const MONTH_LABELS = [
 ];
 
 const WEEKDAY_LABELS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+
+const AUTHOR_BAR_COLORS = [
+  'rgba(70, 130, 180, 0.85)',
+  'rgba(255, 127, 14, 0.85)',
+  'rgba(44, 160, 44, 0.85)',
+  'rgba(214, 39, 40, 0.85)',
+  'rgba(148, 103, 189, 0.85)',
+  'rgba(140, 86, 75, 0.85)',
+  'rgba(227, 119, 194, 0.85)',
+  'rgba(127, 127, 127, 0.85)',
+  'rgba(188, 189, 34, 0.85)',
+  'rgba(23, 190, 207, 0.85)',
+];
 
 export const COMMIT_STATISTICS_VIEW_OPTIONS: Array<{
   value: CommitStatisticsView;
@@ -121,8 +147,90 @@ function createEmptyCounts(size: number): number[] {
   return Array.from({ length: size }, () => 0);
 }
 
+type AuthorBucketAccumulator = {
+  totals: number[];
+  authorCounts: Map<string, { label: string; counts: number[] }>;
+};
+
+function createAuthorBucketAccumulator(size: number): AuthorBucketAccumulator {
+  return {
+    totals: createEmptyCounts(size),
+    authorCounts: new Map(),
+  };
+}
+
+function recordCommitInBucket(
+  accumulator: AuthorBucketAccumulator,
+  bucketIndex: number,
+  commit: CommitNode,
+  trackAuthors: boolean
+): void {
+  accumulator.totals[bucketIndex] += 1;
+
+  if (!trackAuthors) {
+    return;
+  }
+
+  const authorKey = getCommitAuthorKey(commit);
+  const label = getCommitAuthorLabel(commit.author);
+  const existingEntry = accumulator.authorCounts.get(authorKey);
+
+  if (existingEntry) {
+    existingEntry.counts[bucketIndex] += 1;
+    return;
+  }
+
+  const counts = createEmptyCounts(accumulator.totals.length);
+  counts[bucketIndex] += 1;
+  accumulator.authorCounts.set(authorKey, { label, counts });
+}
+
+function buildAuthorSeries(
+  accumulator: AuthorBucketAccumulator
+): CommitStatisticsAuthorSeries[] {
+  return [...accumulator.authorCounts.entries()]
+    .map(([authorKey, entry]) => ({
+      authorKey,
+      label: entry.label,
+      values: entry.counts,
+      total: entry.counts.reduce((sum, count) => sum + count, 0),
+    }))
+    .sort((left, right) => {
+      const totalDiff = right.total - left.total;
+      if (totalDiff !== 0) {
+        return totalDiff;
+      }
+
+      return left.label.localeCompare(right.label);
+    })
+    .map(({ authorKey, label, values, total: _total }, index) => ({
+      authorKey,
+      label,
+      values,
+      color: AUTHOR_BAR_COLORS[index % AUTHOR_BAR_COLORS.length],
+    }));
+}
+
+function finalizeChartData(
+  base: Omit<CommitStatisticsChartData, 'values' | 'authorSeries'>,
+  accumulator: AuthorBucketAccumulator,
+  includeAuthors: boolean
+): CommitStatisticsChartData {
+  const chartData: CommitStatisticsChartData = {
+    ...base,
+    values: accumulator.totals,
+  };
+
+  if (includeAuthors && accumulator.authorCounts.size > 0) {
+    chartData.authorSeries = buildAuthorSeries(accumulator);
+  }
+
+  return chartData;
+}
+
 function aggregateByYear(commits: CommitNode[]): CommitStatisticsChartData {
   const counts = new Map<number, number>();
+  const includeAuthors = commitsHaveAuthorData(commits);
 
   for (const commit of commits) {
     const commitDateMs = getCommitDateMs(commit);
@@ -135,13 +243,32 @@ function aggregateByYear(commits: CommitNode[]): CommitStatisticsChartData {
   }
 
   const years = [...counts.keys()].sort((left, right) => left - right);
+  const accumulator = createAuthorBucketAccumulator(years.length);
+  const yearToIndex = new Map(years.map((year, index) => [year, index]));
 
-  return {
-    labels: years.map(String),
-    values: years.map((year) => counts.get(year) ?? 0),
-    xAxisTitle: 'Year',
-    yAxisTitle: 'Commits',
-  };
+  for (const commit of commits) {
+    const commitDateMs = getCommitDateMs(commit);
+    if (commitDateMs == null) {
+      continue;
+    }
+
+    const bucketIndex = yearToIndex.get(new Date(commitDateMs).getFullYear());
+    if (bucketIndex == null) {
+      continue;
+    }
+
+    recordCommitInBucket(accumulator, bucketIndex, commit, includeAuthors);
+  }
+
+  return finalizeChartData(
+    {
+      labels: years.map(String),
+      xAxisTitle: 'Year',
+      yAxisTitle: 'Commits',
+    },
+    accumulator,
+    includeAuthors
+  );
 }
 
 function buildYearGroups(years: string[]): CommitStatisticsYearGroup[] {
@@ -189,6 +316,7 @@ function enumerateYearMonths(startKey: string, endKey: string): string[] {
 
 function aggregateByMonth(commits: CommitNode[]): CommitStatisticsChartData {
   const counts = new Map<string, number>();
+  const includeAuthors = commitsHaveAuthorData(commits);
 
   for (const commit of commits) {
     const commitDateMs = getCommitDateMs(commit);
@@ -228,19 +356,44 @@ function aggregateByMonth(commits: CommitNode[]): CommitStatisticsChartData {
     hoverLabels.push(`${monthLabel} ${year}`);
   }
 
-  return {
-    labels: yearMonths,
-    values: yearMonths.map((yearMonth) => counts.get(yearMonth) ?? 0),
-    monthLabels,
-    yearGroups: buildYearGroups(years),
-    hoverLabels,
-    xAxisTitle: '',
-    yAxisTitle: 'Commits',
-  };
+  const accumulator = createAuthorBucketAccumulator(yearMonths.length);
+  const yearMonthToIndex = new Map(
+    yearMonths.map((yearMonth, index) => [yearMonth, index])
+  );
+
+  for (const commit of commits) {
+    const commitDateMs = getCommitDateMs(commit);
+    if (commitDateMs == null) {
+      continue;
+    }
+
+    const date = new Date(commitDateMs);
+    const key = formatYearMonthKey(date.getFullYear(), date.getMonth());
+    const bucketIndex = yearMonthToIndex.get(key);
+    if (bucketIndex == null) {
+      continue;
+    }
+
+    recordCommitInBucket(accumulator, bucketIndex, commit, includeAuthors);
+  }
+
+  return finalizeChartData(
+    {
+      labels: yearMonths,
+      monthLabels,
+      yearGroups: buildYearGroups(years),
+      hoverLabels,
+      xAxisTitle: '',
+      yAxisTitle: 'Commits',
+    },
+    accumulator,
+    includeAuthors
+  );
 }
 
 function aggregateByWeekday(commits: CommitNode[]): CommitStatisticsChartData {
-  const counts = createEmptyCounts(WEEKDAY_LABELS.length);
+  const includeAuthors = commitsHaveAuthorData(commits);
+  const accumulator = createAuthorBucketAccumulator(WEEKDAY_LABELS.length);
 
   for (const commit of commits) {
     const commitDateMs = getCommitDateMs(commit);
@@ -249,21 +402,25 @@ function aggregateByWeekday(commits: CommitNode[]): CommitStatisticsChartData {
     }
 
     const weekdayIndex = (new Date(commitDateMs).getDay() + 6) % 7;
-    counts[weekdayIndex] += 1;
+    recordCommitInBucket(accumulator, weekdayIndex, commit, includeAuthors);
   }
 
-  return {
-    labels: WEEKDAY_LABELS,
-    values: counts,
-    xAxisTitle: 'Weekday',
-    yAxisTitle: 'Commits',
-  };
+  return finalizeChartData(
+    {
+      labels: WEEKDAY_LABELS,
+      xAxisTitle: 'Weekday',
+      yAxisTitle: 'Commits',
+    },
+    accumulator,
+    includeAuthors
+  );
 }
 
 function aggregateByTimeOfDay(
   commits: CommitNode[]
 ): CommitStatisticsChartData {
-  const counts = createEmptyCounts(24);
+  const includeAuthors = commitsHaveAuthorData(commits);
+  const accumulator = createAuthorBucketAccumulator(24);
 
   for (const commit of commits) {
     const commitDateMs = getCommitDateMs(commit);
@@ -271,15 +428,25 @@ function aggregateByTimeOfDay(
       continue;
     }
 
-    counts[new Date(commitDateMs).getHours()] += 1;
+    recordCommitInBucket(
+      accumulator,
+      new Date(commitDateMs).getHours(),
+      commit,
+      includeAuthors
+    );
   }
 
-  return {
-    labels: counts.map((_, hour) => `${String(hour).padStart(2, '0')}:00`),
-    values: counts,
-    xAxisTitle: 'Time of day',
-    yAxisTitle: 'Commits',
-  };
+  return finalizeChartData(
+    {
+      labels: accumulator.totals.map(
+        (_, hour) => `${String(hour).padStart(2, '0')}:00`
+      ),
+      xAxisTitle: 'Time of day',
+      yAxisTitle: 'Commits',
+    },
+    accumulator,
+    includeAuthors
+  );
 }
 
 export function aggregateCommitStatistics(
@@ -297,3 +464,27 @@ export function aggregateCommitStatistics(
       return aggregateByTimeOfDay(commits);
   }
 }
+
+export function filterCommitStatisticsByAuthors(
+  chartData: CommitStatisticsChartData,
+  selectedAuthorKeys: Set<string>
+): CommitStatisticsChartData {
+  if (!chartData.authorSeries?.length) {
+    return chartData;
+  }
+
+  const filteredSeries = chartData.authorSeries.filter((series) =>
+    selectedAuthorKeys.has(series.authorKey)
+  );
+  const values = chartData.labels.map((_, index) =>
+    filteredSeries.reduce((sum, series) => sum + series.values[index], 0)
+  );
+
+  return {
+    ...chartData,
+    values,
+    authorSeries: filteredSeries,
+  };
+}
+
+export { commitsHaveAuthorData };

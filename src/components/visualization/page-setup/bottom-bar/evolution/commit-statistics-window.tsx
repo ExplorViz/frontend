@@ -1,10 +1,13 @@
 import { DownloadIcon, XIcon } from '@primer/octicons-react';
+import { useEvolutionDataRepositoryStore } from 'explorviz-frontend/src/stores/repos/evolution-data-repository';
 import { buildCommitStatisticsPlotlyFigure } from 'explorviz-frontend/src/utils/commit-statistics-chart';
 import {
   aggregateCommitStatistics,
   COMMIT_STATISTICS_VIEW_OPTIONS,
+  commitsHaveAuthorData,
   CommitStatisticsView,
   filterCommitsByDateRange,
+  filterCommitStatisticsByAuthors,
   getBranchCommits,
   getBranchesWithDatedCommits,
 } from 'explorviz-frontend/src/utils/commit-statistics-helpers';
@@ -12,6 +15,7 @@ import { RepoNameCommitTreeMap } from 'explorviz-frontend/src/utils/evolution-sc
 import Plotly from 'plotly.js-dist';
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import Button from 'react-bootstrap/Button';
+import Form from 'react-bootstrap/Form';
 import { createPortal } from 'react-dom';
 
 const BAR_COLOR = 'rgba(70, 130, 180, 0.85)';
@@ -57,6 +61,11 @@ export default function CommitStatisticsWindow({
   const windowRef = useRef<HTMLDivElement>(null);
   const chartRef = useRef<HTMLDivElement>(null);
   const lastPointerPosition = useRef({ x: 0, y: 0 });
+  const hasAttemptedAuthorRefetch = useRef(false);
+
+  const fetchAndStoreRepositoryCommitTrees = useEvolutionDataRepositoryStore(
+    (state) => state.fetchAndStoreRepositoryCommitTrees
+  );
 
   const repositoryNames = useMemo(
     () =>
@@ -77,6 +86,10 @@ export default function CommitStatisticsWindow({
   const [dateTo, setDateTo] = useState('');
   const [statisticsView, setStatisticsView] =
     useState<CommitStatisticsView>('timeOfDay');
+  const [colorByAuthor, setColorByAuthor] = useState(false);
+  const [selectedAuthorKeys, setSelectedAuthorKeys] = useState<Set<string>>(
+    new Set()
+  );
   const [isDownloadingImage, setIsDownloadingImage] = useState(false);
 
   const commitTree = repoNameCommitTreeMap.get(selectedRepoName);
@@ -109,6 +122,70 @@ export default function CommitStatisticsWindow({
     [filteredCommits, statisticsView]
   );
 
+  const hasAuthorData = useMemo(
+    () => commitsHaveAuthorData(filteredCommits),
+    [filteredCommits]
+  );
+
+  const authorSeriesKey = useMemo(
+    () =>
+      chartData.authorSeries?.map((series) => series.authorKey).join('|') ?? '',
+    [chartData.authorSeries]
+  );
+
+  useEffect(() => {
+    setSelectedAuthorKeys(
+      new Set(chartData.authorSeries?.map((series) => series.authorKey) ?? [])
+    );
+  }, [authorSeriesKey]);
+
+  const displayChartData = useMemo(() => {
+    if (!colorByAuthor) {
+      return chartData;
+    }
+
+    return filterCommitStatisticsByAuthors(chartData, selectedAuthorKeys);
+  }, [chartData, colorByAuthor, selectedAuthorKeys]);
+
+  const toggleAuthor = (authorKey: string) => {
+    setSelectedAuthorKeys((currentKeys) => {
+      const nextKeys = new Set(currentKeys);
+      if (nextKeys.has(authorKey)) {
+        nextKeys.delete(authorKey);
+      } else {
+        nextKeys.add(authorKey);
+      }
+      return nextKeys;
+    });
+  };
+
+  const selectAllAuthors = () => {
+    setSelectedAuthorKeys(
+      new Set(chartData.authorSeries?.map((series) => series.authorKey) ?? [])
+    );
+  };
+
+  const deselectAllAuthors = () => {
+    setSelectedAuthorKeys(new Set());
+  };
+
+  useEffect(() => {
+    if (
+      hasAttemptedAuthorRefetch.current ||
+      hasAuthorData ||
+      filteredCommits.length === 0
+    ) {
+      return;
+    }
+
+    hasAttemptedAuthorRefetch.current = true;
+    void fetchAndStoreRepositoryCommitTrees();
+  }, [
+    fetchAndStoreRepositoryCommitTrees,
+    filteredCommits.length,
+    hasAuthorData,
+  ]);
+
   useLayoutEffect(() => {
     const windowElement = windowRef.current;
     if (!windowElement) {
@@ -127,9 +204,11 @@ export default function CommitStatisticsWindow({
 
     const renderChart = () => {
       const { data, layout, config } = buildCommitStatisticsPlotlyFigure(
-        chartData,
+        displayChartData,
         chartElement.offsetWidth,
-        BAR_COLOR
+        chartElement.offsetHeight,
+        BAR_COLOR,
+        colorByAuthor
       );
 
       Plotly.react(chartElement, data, layout, config);
@@ -143,7 +222,7 @@ export default function CommitStatisticsWindow({
     return () => {
       resizeObserver.disconnect();
     };
-  }, [chartData]);
+  }, [displayChartData, colorByAuthor]);
 
   useEffect(() => {
     const chartElement = chartRef.current;
@@ -190,7 +269,7 @@ export default function CommitStatisticsWindow({
   };
 
   const dragStart = (event: React.PointerEvent) => {
-    if ((event.target as HTMLElement).closest('button, select, input')) {
+    if ((event.target as HTMLElement).closest('button')) {
       return;
     }
 
@@ -229,12 +308,14 @@ export default function CommitStatisticsWindow({
     <div
       ref={windowRef}
       className="commit-statistics-window"
-      onPointerDown={dragStart}
       role="dialog"
       aria-labelledby="commit-statistics-window-title"
       aria-modal="false"
     >
-      <div className="commit-statistics-window-header">
+      <div
+        className="commit-statistics-window-header"
+        onPointerDown={dragStart}
+      >
         <h2
           id="commit-statistics-window-title"
           className="commit-statistics-window-title"
@@ -329,13 +410,105 @@ export default function CommitStatisticsWindow({
             ))}
           </select>
         </label>
+
+        <label className="commit-statistics-window-control commit-statistics-window-control--full commit-statistics-window-control--checkbox">
+          <span className="commit-statistics-window-control-label">
+            Authors
+          </span>
+          <span className="commit-statistics-window-checkbox">
+            <input
+              type="checkbox"
+              checked={colorByAuthor}
+              onChange={(event) => setColorByAuthor(event.target.checked)}
+              aria-label="Color bars by commit author"
+            />
+            <span>
+              Color bars by author
+              {!hasAuthorData ? ' (author data unavailable)' : ''}
+            </span>
+          </span>
+        </label>
+
+        {colorByAuthor && hasAuthorData && chartData.authorSeries && (
+          <div className="commit-statistics-window-author-panel commit-statistics-window-control--full">
+            <div className="commit-statistics-window-author-toolbar">
+              <span className="commit-statistics-window-control-label">
+                Filter
+              </span>
+              <div className="commit-statistics-window-author-actions">
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="outline-secondary"
+                  onClick={selectAllAuthors}
+                  disabled={
+                    selectedAuthorKeys.size === chartData.authorSeries.length
+                  }
+                >
+                  Select All
+                </Button>
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="outline-secondary"
+                  onClick={deselectAllAuthors}
+                  disabled={selectedAuthorKeys.size === 0}
+                >
+                  Deselect All
+                </Button>
+              </div>
+            </div>
+            <div className="commit-statistics-window-author-list">
+              {chartData.authorSeries.map((series) => {
+                const totalCommits = series.values.reduce(
+                  (sum, value) => sum + value,
+                  0
+                );
+
+                return (
+                  <Form.Check
+                    key={series.authorKey}
+                    type="checkbox"
+                    id={`commit-statistics-author-${series.authorKey}`}
+                    checked={selectedAuthorKeys.has(series.authorKey)}
+                    onChange={() => toggleAuthor(series.authorKey)}
+                    label={
+                      <span className="commit-statistics-window-author-row">
+                        <span
+                          className="commit-statistics-window-author-swatch"
+                          style={{ backgroundColor: series.color }}
+                          aria-hidden="true"
+                        />
+                        <span className="commit-statistics-window-author-name">
+                          {series.label}
+                        </span>
+                        <span className="commit-statistics-window-author-count">
+                          {totalCommits.toLocaleString('en-US')}
+                        </span>
+                      </span>
+                    }
+                  />
+                );
+              })}
+            </div>
+          </div>
+        )}
       </div>
 
       <div className="commit-statistics-window-summary">
         <span>
           {filteredCommits.length === 0
             ? 'No commits with dates match the current filters.'
-            : `${filteredCommits.length.toLocaleString('en-US')} commits in selection`}
+            : [
+                `${filteredCommits.length.toLocaleString('en-US')} commits in selection`,
+                colorByAuthor && hasAuthorData && chartData.authorSeries
+                  ? `${selectedAuthorKeys.size.toLocaleString('en-US')} of ${chartData.authorSeries.length.toLocaleString('en-US')} authors selected`
+                  : hasAuthorData && chartData.authorSeries
+                    ? `${chartData.authorSeries.length.toLocaleString('en-US')} authors`
+                    : null,
+              ]
+                .filter(Boolean)
+                .join(' · ')}
         </span>
         <Button
           type="button"

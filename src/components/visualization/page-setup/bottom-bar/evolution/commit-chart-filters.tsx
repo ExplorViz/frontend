@@ -103,6 +103,9 @@ export default function CommitChartFilters({
     firstParentOnly: draftFirstParentOnly,
     ...(draftFrom ? { fromTimestamp: fromISO(draftFrom) } : {}),
     ...(draftTo ? { toTimestamp: fromISOEnd(draftTo) } : {}),
+    ...(appliedFilters.authorKeys !== undefined
+      ? { authorKeys: appliedFilters.authorKeys }
+      : {}),
   });
 
   const applyFilters = async (
@@ -132,7 +135,13 @@ export default function CommitChartFilters({
     setDraftFirstParentOnly(true);
     setDraftMetricChangeThresholdInput(String(DEFAULT_METRIC_CHANGE_THRESHOLD));
     await applyFilters(
-      { sampling: 'none', firstParentOnly: true },
+      {
+        sampling: 'none',
+        firstParentOnly: true,
+        ...(appliedFilters.authorKeys !== undefined
+          ? { authorKeys: appliedFilters.authorKeys }
+          : {}),
+      },
       DEFAULT_METRIC_CHANGE_THRESHOLD
     );
   };
@@ -147,100 +156,104 @@ export default function CommitChartFilters({
   }
 
   return (
-    <div
-      id="commit-chart-filter-row"
-      className="commit-metrics-chart-filter-row"
-    >
-      <label className="commit-metrics-chart-control">
-        <span className="commit-metrics-chart-control-label">From</span>
-        <Form.Control
-          type="date"
-          size="sm"
-          className="commit-metrics-chart-date-input"
-          value={draftFrom}
-          onChange={(event) => setDraftFrom(event.target.value)}
-          aria-label="Filter commits from date"
-        />
-      </label>
-      <label className="commit-metrics-chart-control">
-        <span className="commit-metrics-chart-control-label">To</span>
-        <Form.Control
-          type="date"
-          size="sm"
-          className="commit-metrics-chart-date-input"
-          value={draftTo}
-          onChange={(event) => setDraftTo(event.target.value)}
-          aria-label="Filter commits to date"
-        />
-      </label>
-      <label className="commit-metrics-chart-control">
-        <span className="commit-metrics-chart-control-label">Sampling</span>
-        <select
-          value={draftSampling}
-          onChange={(event) =>
-            setDraftSampling(event.target.value as CommitSampling)
-          }
-          aria-label="Commit sampling interval"
-          className="commit-metrics-chart-select commit-metrics-chart-sampling-select"
-        >
-          {SAMPLING_OPTIONS.map((option) => (
-            <option key={option.value} value={option.value}>
-              {option.label}
-            </option>
-          ))}
-        </select>
-      </label>
-      <label className="commit-metrics-chart-control">
-        <span className="commit-metrics-chart-control-label">Min. change</span>
-        <input
-          type="number"
-          min={0}
-          step="any"
-          value={draftMetricChangeThresholdInput}
-          onChange={(event) =>
-            setDraftMetricChangeThresholdInput(event.target.value)
-          }
-          disabled={selectedMetric === NONE_METRIC}
-          aria-label="Minimum metric change to show a commit"
-          title={
-            selectedMetric === NONE_METRIC
-              ? 'Select a metric to filter commits by minimum change'
-              : 'Show the two commits surrounding each metric change of at least this amount. 0 shows all analyzed commits.'
-          }
-          className="commit-metrics-chart-threshold-input"
-        />
-      </label>
-      <Form.Check
-        type="checkbox"
-        id="commit-chart-first-parent-only"
-        className="commit-metrics-chart-control commit-metrics-chart-checkbox"
-        label="First Parent Only"
-        checked={draftFirstParentOnly}
-        onChange={(event) => setDraftFirstParentOnly(event.target.checked)}
-        title="Show only commits reachable via first-parent links, as with git log --first-parent"
-      />
-      <Button
-        variant={hasDraftChanges ? 'primary' : 'outline-secondary'}
-        size="sm"
-        className="commit-metrics-chart-refocus-button"
-        onClick={() => void handleApply()}
-        disabled={isApplying || !hasDraftChanges}
-        title="Apply filter changes to the commit chart"
+    <div className="commit-metrics-chart-filter-panel">
+      <div
+        id="commit-chart-filter-row"
+        className="commit-metrics-chart-filter-row"
       >
-        Apply filters
-      </Button>
-      {hasActiveFilters && (
+        <label className="commit-metrics-chart-control">
+          <span className="commit-metrics-chart-control-label">From</span>
+          <Form.Control
+            type="date"
+            size="sm"
+            className="commit-metrics-chart-date-input"
+            value={draftFrom}
+            onChange={(event) => setDraftFrom(event.target.value)}
+            aria-label="Filter commits from date"
+          />
+        </label>
+        <label className="commit-metrics-chart-control">
+          <span className="commit-metrics-chart-control-label">To</span>
+          <Form.Control
+            type="date"
+            size="sm"
+            className="commit-metrics-chart-date-input"
+            value={draftTo}
+            onChange={(event) => setDraftTo(event.target.value)}
+            aria-label="Filter commits to date"
+          />
+        </label>
+        <label className="commit-metrics-chart-control">
+          <span className="commit-metrics-chart-control-label">Sampling</span>
+          <select
+            value={draftSampling}
+            onChange={(event) =>
+              setDraftSampling(event.target.value as CommitSampling)
+            }
+            aria-label="Commit sampling interval"
+            className="commit-metrics-chart-select commit-metrics-chart-sampling-select"
+          >
+            {SAMPLING_OPTIONS.map((option) => (
+              <option key={option.value} value={option.value}>
+                {option.label}
+              </option>
+            ))}
+          </select>
+        </label>
+        <label className="commit-metrics-chart-control">
+          <span className="commit-metrics-chart-control-label">
+            Min. change
+          </span>
+          <input
+            type="number"
+            min={0}
+            step="any"
+            value={draftMetricChangeThresholdInput}
+            onChange={(event) =>
+              setDraftMetricChangeThresholdInput(event.target.value)
+            }
+            disabled={selectedMetric === NONE_METRIC}
+            aria-label="Minimum metric change to show a commit"
+            title={
+              selectedMetric === NONE_METRIC
+                ? 'Select a metric to filter commits by minimum change'
+                : 'Show the two commits surrounding each metric change of at least this amount. 0 shows all analyzed commits.'
+            }
+            className="commit-metrics-chart-threshold-input"
+          />
+        </label>
+        <Form.Check
+          type="checkbox"
+          id="commit-chart-first-parent-only"
+          className="commit-metrics-chart-control commit-metrics-chart-checkbox"
+          label="First Parent Only"
+          checked={draftFirstParentOnly}
+          onChange={(event) => setDraftFirstParentOnly(event.target.checked)}
+          title="Show only commits reachable via first-parent links, as with git log --first-parent"
+        />
         <Button
-          variant="outline-secondary"
+          variant={hasDraftChanges ? 'primary' : 'outline-secondary'}
           size="sm"
           className="commit-metrics-chart-refocus-button"
-          onClick={() => void handleReset()}
-          disabled={isApplying}
-          title="Clear filters and reload all commits"
+          onClick={() => void handleApply()}
+          disabled={isApplying || !hasDraftChanges}
+          title="Apply filter changes to the commit chart"
         >
-          Reset
+          Apply filters
         </Button>
-      )}
+        {hasActiveFilters && (
+          <Button
+            variant="outline-secondary"
+            size="sm"
+            className="commit-metrics-chart-refocus-button"
+            onClick={() => void handleReset()}
+            disabled={isApplying}
+            title="Clear filters and reload all commits"
+          >
+            Reset
+          </Button>
+        )}
+      </div>
     </div>
   );
 }
