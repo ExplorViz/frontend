@@ -86,6 +86,7 @@ export const useEvolutionDataRepositoryStore =
           fromTimestamp: filters.fromTimestamp,
           toTimestamp: filters.toTimestamp,
           sampling: filters.sampling,
+          firstParentOnly: filters.firstParentOnly,
         };
         const repositoryNames = await useEvolutionDataFetchServiceStore
           .getState()

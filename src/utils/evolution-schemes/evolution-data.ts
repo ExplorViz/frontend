@@ -16,10 +16,12 @@ export type CommitTreeFilters = {
   fromTimestamp?: number;
   toTimestamp?: number;
   sampling: CommitSampling;
+  firstParentOnly: boolean;
 };
 
 export const DEFAULT_COMMIT_TREE_FILTERS: CommitTreeFilters = {
   sampling: 'none',
+  firstParentOnly: true,
 };
 
 export function hasActiveCommitTreeFilters(
@@ -30,6 +32,7 @@ export function hasActiveCommitTreeFilters(
     filters.fromTimestamp != null ||
     filters.toTimestamp != null ||
     filters.sampling !== 'none' ||
+    !filters.firstParentOnly ||
     metricChangeThreshold > 0
   );
 }
@@ -38,6 +41,7 @@ export type CommitTreeFilterOptions = {
   fromTimestamp?: number;
   toTimestamp?: number;
   sampling?: CommitSampling;
+  firstParentOnly?: boolean;
 };
 
 export type CommitNode = {

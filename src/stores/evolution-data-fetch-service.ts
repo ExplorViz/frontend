@@ -86,6 +86,9 @@ export const useEvolutionDataFetchServiceStore =
       if (filters?.sampling && filters.sampling !== 'none') {
         params.set('sampling', filters.sampling);
       }
+      if (filters?.firstParentOnly !== undefined) {
+        params.set('firstParentOnly', String(filters.firstParentOnly));
+      }
       const url = params.toString() ? `${baseUrl}?${params}` : baseUrl;
       const tree = await get()._fetchFromService<CommitTree>(url);
       return normalizeCommitTree(tree, repoName);

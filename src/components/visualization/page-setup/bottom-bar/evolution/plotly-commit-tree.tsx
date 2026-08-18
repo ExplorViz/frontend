@@ -114,9 +114,19 @@ export default function PlotlyCommitTree({
   );
 
   useEffect(() => {
-    const branch = getFirstBranchWithCommits(
-      repoNameCommitTreeMap.get(selectedRepoName)
-    );
+    const commitTreeForRepo = repoNameCommitTreeMap.get(selectedRepoName);
+    const currentBranchStillValid =
+      selectedBranchName !== '' &&
+      commitTreeForRepo?.branches.some(
+        (branch) =>
+          branch.name === selectedBranchName && branchHasAnalyzedCommits(branch)
+      );
+
+    if (currentBranchStillValid) {
+      return;
+    }
+
+    const branch = getFirstBranchWithCommits(commitTreeForRepo);
     if (branch) {
       setSelectedBranchName(branch.name);
       setSelectedMetric(getDefaultMetricName(branch));
@@ -124,7 +134,7 @@ export default function PlotlyCommitTree({
       setSelectedBranchName('');
       setSelectedMetric(NONE_METRIC);
     }
-  }, [selectedRepoName, repoNameCommitTreeMap]);
+  }, [selectedRepoName, repoNameCommitTreeMap, selectedBranchName]);
 
   useEffect(() => {
     if (!selectedBranch) {

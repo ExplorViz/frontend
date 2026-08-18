@@ -64,6 +64,7 @@ export default function CommitChartFilters({
   const [draftFrom, setDraftFrom] = useState('');
   const [draftTo, setDraftTo] = useState('');
   const [draftSampling, setDraftSampling] = useState<CommitSampling>('none');
+  const [draftFirstParentOnly, setDraftFirstParentOnly] = useState(true);
   const [draftMetricChangeThresholdInput, setDraftMetricChangeThresholdInput] =
     useState(String(DEFAULT_METRIC_CHANGE_THRESHOLD));
   const [isApplying, setIsApplying] = useState(false);
@@ -80,6 +81,7 @@ export default function CommitChartFilters({
         : ''
     );
     setDraftSampling(appliedFilters.sampling);
+    setDraftFirstParentOnly(appliedFilters.firstParentOnly);
     setDraftMetricChangeThresholdInput(String(appliedMetricChangeThreshold));
   }, [appliedFilters, appliedMetricChangeThreshold]);
 
@@ -93,10 +95,12 @@ export default function CommitChartFilters({
     (draftTo ? fromISOEnd(draftTo) : undefined) !==
       appliedFilters.toTimestamp ||
     draftSampling !== appliedFilters.sampling ||
+    draftFirstParentOnly !== appliedFilters.firstParentOnly ||
     draftMetricChangeThreshold !== appliedMetricChangeThreshold;
 
   const buildFiltersFromDraft = (): CommitTreeFilters => ({
     sampling: draftSampling,
+    firstParentOnly: draftFirstParentOnly,
     ...(draftFrom ? { fromTimestamp: fromISO(draftFrom) } : {}),
     ...(draftTo ? { toTimestamp: fromISOEnd(draftTo) } : {}),
   });
@@ -125,8 +129,12 @@ export default function CommitChartFilters({
     setDraftFrom('');
     setDraftTo('');
     setDraftSampling('none');
+    setDraftFirstParentOnly(true);
     setDraftMetricChangeThresholdInput(String(DEFAULT_METRIC_CHANGE_THRESHOLD));
-    await applyFilters({ sampling: 'none' }, DEFAULT_METRIC_CHANGE_THRESHOLD);
+    await applyFilters(
+      { sampling: 'none', firstParentOnly: true },
+      DEFAULT_METRIC_CHANGE_THRESHOLD
+    );
   };
 
   const hasActiveFilters = hasActiveCommitTreeFilters(
@@ -202,6 +210,15 @@ export default function CommitChartFilters({
           className="commit-metrics-chart-threshold-input"
         />
       </label>
+      <Form.Check
+        type="checkbox"
+        id="commit-chart-first-parent-only"
+        className="commit-metrics-chart-control commit-metrics-chart-checkbox"
+        label="First Parent Only"
+        checked={draftFirstParentOnly}
+        onChange={(event) => setDraftFirstParentOnly(event.target.checked)}
+        title="Show only commits reachable via first-parent links, as with git log --first-parent"
+      />
       <Button
         variant={hasDraftChanges ? 'primary' : 'outline-secondary'}
         size="sm"
