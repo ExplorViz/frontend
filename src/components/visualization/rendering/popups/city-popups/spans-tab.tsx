@@ -1,6 +1,6 @@
 import { useToastHandlerStore } from 'explorviz-frontend/src/stores/toast-handler';
 import { requestEntitySpans } from 'explorviz-frontend/src/utils/landscape-http-request-util';
-import { Span } from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/trace';
+import { Span } from 'explorviz-frontend/src/utils/landscape-schemes/telemetry/traces';
 import { useEffect, useRef, useState } from 'react';
 import { Accordion, Spinner } from 'react-bootstrap';
 import SpanDetailsCard from './span-details-card';

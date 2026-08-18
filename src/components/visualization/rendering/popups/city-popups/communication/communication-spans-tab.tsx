@@ -3,7 +3,7 @@ import AggregatedCommunication from 'explorviz-frontend/src/utils/landscape-sche
 import {
   CommSpans,
   SpanPair,
-} from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/trace';
+} from 'explorviz-frontend/src/utils/landscape-schemes/telemetry/traces';
 import { useEffect, useRef, useState } from 'react';
 import { Accordion, Spinner } from 'react-bootstrap';
 import SpanDetailsCard from '../span-details-card';

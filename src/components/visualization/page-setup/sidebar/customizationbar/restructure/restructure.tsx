@@ -21,9 +21,9 @@ import { useToastHandlerStore } from 'explorviz-frontend/src/stores/toast-handle
 import { ApiToken } from 'explorviz-frontend/src/stores/user-api-token';
 import eventEmitter from 'explorviz-frontend/src/utils/event-emitter';
 import convertDate from 'explorviz-frontend/src/utils/helpers/time-convter';
-import { DynamicLandscapeData } from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/trace';
 import { LandscapeData } from 'explorviz-frontend/src/utils/landscape-schemes/landscape-data';
 import { StructureLandscapeData } from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
+import { DynamicLandscapeData } from 'explorviz-frontend/src/utils/landscape-schemes/telemetry/traces';
 import { buildSnapshotToken } from 'explorviz-frontend/src/utils/snapshot/snapshot-helpers';
 import { usePlayersList } from 'playroomkit';
 import Button from 'react-bootstrap/Button';

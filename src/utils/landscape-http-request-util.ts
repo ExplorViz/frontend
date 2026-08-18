@@ -21,7 +21,7 @@ import {
   isCommSpans,
   isSpan,
   Span,
-} from './landscape-schemes/dynamic/trace';
+} from './landscape-schemes/telemetry/traces';
 
 /** Base URL for landscape API. Empty string uses same-origin (Vite dev proxy in development). */
 export function getLandscapeServiceUrl(): string {

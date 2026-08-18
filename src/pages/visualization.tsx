@@ -42,7 +42,7 @@ import { useVisibilityServiceStore } from 'explorviz-frontend/src/stores/visibil
 import { useVisualizationStore } from 'explorviz-frontend/src/stores/visualization-store';
 import { ALL_BUILDING_COMPARISONS_VISIBLE } from 'explorviz-frontend/src/utils/city-rendering/building-comparison-visibility';
 import eventEmitter from 'explorviz-frontend/src/utils/event-emitter';
-import { DynamicLandscapeData } from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/trace';
+import { DynamicLandscapeData } from 'explorviz-frontend/src/utils/landscape-schemes/telemetry/traces';
 import { restoreSnapshotFromToken } from 'explorviz-frontend/src/utils/snapshot/snapshot-helpers';
 import TimelineDataObjectHandler from 'explorviz-frontend/src/utils/timeline/timeline-data-object-handler';
 import globalBundlingService from 'explorviz-frontend/src/view-objects/3d/city/global-bundling-service';

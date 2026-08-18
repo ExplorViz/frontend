@@ -1,4 +1,4 @@
-import { Span } from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/trace';
+import { Span } from 'explorviz-frontend/src/utils/landscape-schemes/telemetry/traces';
 import React from 'react';
 import { Badge, Card, Table } from 'react-bootstrap';
 

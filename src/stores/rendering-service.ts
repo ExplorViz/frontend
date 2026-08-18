@@ -5,6 +5,7 @@ import {
 import { useReloadHandlerStore } from 'explorviz-frontend/src/stores/reload-handler';
 import { useEvolutionDataRepositoryStore } from 'explorviz-frontend/src/stores/repos/evolution-data-repository';
 import { useTimestampRepositoryStore } from 'explorviz-frontend/src/stores/repos/timestamp-repository';
+import { useSocialMetricsStore } from 'explorviz-frontend/src/stores/social-metrics';
 import { useTimestampStore } from 'explorviz-frontend/src/stores/timestamp';
 import { useToastHandlerStore } from 'explorviz-frontend/src/stores/toast-handler';
 import { useVisibilityServiceStore } from 'explorviz-frontend/src/stores/visibility-service';
@@ -14,17 +15,16 @@ import { filterFlatLandscapeByBuildingComparisonVisibility } from 'explorviz-fro
 import { areArraysEqual } from 'explorviz-frontend/src/utils/helpers/array-helpers';
 import { combineDynamicLandscapeData } from 'explorviz-frontend/src/utils/landscape-dynamic-helpers';
 import { CommSummary } from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/communication';
-import { DynamicLandscapeData } from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/trace';
 import {
   FlatLandscape,
   getAllIdsOfFlatLandscape,
 } from 'explorviz-frontend/src/utils/landscape-schemes/flat-landscape';
 import { LandscapeData } from 'explorviz-frontend/src/utils/landscape-schemes/landscape-data';
 import { StructureLandscapeData } from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
+import { DynamicLandscapeData } from 'explorviz-frontend/src/utils/landscape-schemes/telemetry/traces';
 import { Timestamp } from 'explorviz-frontend/src/utils/landscape-schemes/timestamp';
 import { createEmptyStructureLandscapeData } from 'explorviz-frontend/src/utils/landscape-structure-helpers';
 import TimelineDataObjectHandler from 'explorviz-frontend/src/utils/timeline/timeline-data-object-handler';
-import { useSocialMetricsStore } from 'explorviz-frontend/src/stores/social-metrics';
 import { create } from 'zustand';
 
 export type AnalysisMode =

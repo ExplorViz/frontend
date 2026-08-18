@@ -1,4 +1,4 @@
-import { DynamicLandscapeData } from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/trace';
+import { DynamicLandscapeData } from 'explorviz-frontend/src/utils/landscape-schemes/telemetry/traces';
 
 export function combineDynamicLandscapeData(
   dynamicsA: DynamicLandscapeData,
