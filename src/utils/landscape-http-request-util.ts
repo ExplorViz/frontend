@@ -43,6 +43,15 @@ export function getTraceServiceUrl(): string {
   return configured.replace(/\/$/, '');
 }
 
+/** Base URL for log API. Empty string uses same-origin (Vite dev proxy in development). */
+export function getLogServiceUrl(): string {
+  const configured = import.meta.env.VITE_LOG_SERV_URL as string | undefined;
+  if (configured === undefined || configured === '') {
+    return '';
+  }
+  return configured.replace(/\/$/, '');
+}
+
 const landscapeService = getLandscapeServiceUrl();
 const traceService = getTraceServiceUrl();
 

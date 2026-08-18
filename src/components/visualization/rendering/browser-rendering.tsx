@@ -51,6 +51,9 @@ import SidebarComponent from '../page-setup/sidebar/sidebar-component';
 import { CodeAnalysisSection } from '../page-setup/sidebar/toolbar/code-analysis-trigger/code-analysis-section';
 import EntityFiltering from '../page-setup/sidebar/toolbar/entity-filtering/entity-filtering';
 import EntityFilteringApplier from '../page-setup/sidebar/toolbar/entity-filtering/entity-filtering-applier';
+import LogSearch, {
+  LogSearchOpener,
+} from '../page-setup/sidebar/toolbar/log-search/log-search';
 import ToolSelection from '../page-setup/sidebar/toolbar/tool-selection';
 import TraceSelectionAndReplayer from '../page-setup/sidebar/toolbar/trace-replayer/trace-selection-and-replayer';
 import AnnotationCoordinator from './annotations/annotation-coordinator';
@@ -357,6 +360,10 @@ export default function BrowserRendering({
                       openedComponent={openedToolComponent}
                       toggleToolsSidebarComponent={toggleToolsSidebarComponent}
                     />
+                    <LogSearchOpener
+                      openedComponent={openedToolComponent}
+                      toggleToolsSidebarComponent={toggleToolsSidebarComponent}
+                    />
                     <CodeAnalysisTriggerOpener
                       openedComponent={openedToolComponent}
                       toggleToolsSidebarComponent={toggleToolsSidebarComponent}
@@ -395,6 +402,7 @@ export default function BrowserRendering({
                             flatData={landscapeData.flatLandscapeData}
                           />
                         )}
+                      {openedToolComponent === 'log-search' && <LogSearch />}
                       {openedToolComponent === 'code-analysis-trigger' && (
                         <>
                           <h5 className="text-center">
