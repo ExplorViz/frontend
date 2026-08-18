@@ -24,6 +24,20 @@ type DualRangeSliderProps = {
   initialValues?: [number, number];
 
   /**
+   * When using within a form, this name will be used to report the lower range value.
+   * If left undefined, then no form value will be reported for the lower bound.
+   */
+  lowerFormName?: string;
+
+  /**
+   * When using within a form, this name will be used to report the upper range value.
+   * If left undefined, then no form value will be reported for the upper bound.
+   */
+  upperFormName?: string;
+
+  disabled?: boolean;
+
+  /**
    * Called whenever a thumb is moved, with the new bounds of the range.
    * The bounds are sorted such that the smaller value will always appear first.
    */
@@ -46,6 +60,9 @@ export default function DualRangeSlider({
   max,
   step = 1,
   initialValues = [min, max],
+  lowerFormName,
+  upperFormName,
+  disabled = false,
   onChange,
   getTooltipText,
 }: DualRangeSliderProps) {
@@ -67,7 +84,7 @@ export default function DualRangeSlider({
     return clamp(snappedValue, min, max);
   };
 
-  const startDragging = (index: 0 | 1, clientX: number) => {
+  const handleMove = (index: 0 | 1, clientX: number) => {
     const newValue = pointerPositionToValue(clientX);
     const newRange: [number, number] =
       index === 0 ? [newValue, range[1]] : [range[0], newValue];
@@ -82,7 +99,8 @@ export default function DualRangeSlider({
       min={min}
       max={max}
       step={step}
-      onMove={(val) => startDragging(0, val)}
+      disabled={disabled}
+      onMove={(val) => handleMove(0, val)}
       setValue={(val) => setRange([clamp(val, min, max), range[1]])}
       getTooltipText={getTooltipText}
     />,
@@ -93,7 +111,8 @@ export default function DualRangeSlider({
       min={min}
       max={max}
       step={step}
-      onMove={(val) => startDragging(1, val)}
+      disabled={disabled}
+      onMove={(val) => handleMove(1, val)}
       setValue={(val) => setRange([range[0], clamp(val, min, max)])}
       getTooltipText={getTooltipText}
     />,
@@ -121,7 +140,7 @@ export default function DualRangeSlider({
           right: 0,
           height: '8px',
           transform: 'translateY(-50%)',
-          background: '#e9ecef',
+          background: 'var(--bs-gray-200)',
           borderRadius: 999,
         }}
       />
@@ -135,7 +154,7 @@ export default function DualRangeSlider({
           width: `${selectedWidth}%`,
           height: '8px',
           transform: 'translateY(-50%)',
-          background: '#2563eb',
+          background: disabled ? 'var(--bs-gray-400)' : 'var(--bs-primary)',
           borderRadius: 999,
         }}
       />
@@ -151,6 +170,22 @@ export default function DualRangeSlider({
       >
         {/* Sort thumbs in DOM for intuitive tab order even after crossover */}
         {range[0] <= range[1] ? thumbs : thumbs.toReversed()}
+
+        {lowerFormName && (
+          <input
+            type="hidden"
+            name={lowerFormName}
+            value={Math.min(range[0], range[1])}
+          />
+        )}
+
+        {upperFormName && (
+          <input
+            type="hidden"
+            name={upperFormName}
+            value={Math.max(range[0], range[1])}
+          />
+        )}
       </div>
     </div>
   );
@@ -161,6 +196,7 @@ interface SliderThumbProps {
   min: number;
   max: number;
   step: number;
+  disabled: boolean;
   onMove: (clientX: number) => void;
   setValue: (value: number) => void;
   getTooltipText?: (value: number) => string;
@@ -171,6 +207,7 @@ function SliderThumb({
   min,
   max,
   step,
+  disabled,
   onMove,
   setValue,
   getTooltipText,
@@ -180,17 +217,23 @@ function SliderThumb({
 
   useEffect(() => popperRef.current?.scheduleUpdate?.(), [value, min, max]);
 
-  const onPointerDown: React.PointerEventHandler = (e) =>
-    e.currentTarget.setPointerCapture(e.pointerId);
+  const handlePointerDown: React.PointerEventHandler = (e) =>
+    !disabled && e.currentTarget.setPointerCapture(e.pointerId);
 
-  const onPointerUp: React.PointerEventHandler = (e) =>
-    e.currentTarget.releasePointerCapture(e.pointerId);
+  const handlePointerUp: React.PointerEventHandler = (e) =>
+    !disabled && e.currentTarget.releasePointerCapture(e.pointerId);
 
-  const onPointerMove: React.PointerEventHandler = (e) => {
-    if (e.currentTarget.hasPointerCapture(e.pointerId)) onMove(e.clientX);
+  const handlePointerMove: React.PointerEventHandler = (e) => {
+    if (!disabled && e.currentTarget.hasPointerCapture(e.pointerId)) {
+      onMove(e.clientX);
+    }
   };
 
-  const onKeyDown: React.KeyboardEventHandler<HTMLDivElement> = (event) => {
+  const handleKeyDown: React.KeyboardEventHandler<HTMLDivElement> = (event) => {
+    if (disabled) {
+      return;
+    }
+
     switch (event.key) {
       case 'ArrowLeft':
         setValue(value - step);
@@ -227,12 +270,12 @@ function SliderThumb({
       >
         <div
           className="dual-range-thumb"
-          tabIndex={0}
-          onPointerDown={onPointerDown}
-          onPointerUp={onPointerUp}
-          onPointerCancel={onPointerUp}
-          onPointerMove={onPointerMove}
-          onKeyDown={onKeyDown}
+          tabIndex={disabled ? undefined : 0}
+          onPointerDown={handlePointerDown}
+          onPointerUp={handlePointerUp}
+          onPointerCancel={handlePointerUp}
+          onPointerMove={handlePointerMove}
+          onKeyDown={handleKeyDown}
           draggable="false"
           ref={thumbDivRef}
           style={{
@@ -244,15 +287,16 @@ function SliderThumb({
             height: 16,
             transform: 'translate(-50%, -50%)',
             borderRadius: '50%',
-            cursor: 'grab',
           }}
         />
       </OverlayTrigger>
 
-      <style>{`
+      {!disabled ? (
+        <style>{`
         .dual-range-thumb {
             background: var(--bs-primary);
             transition: background-color 0.15s ease-in-out;
+            cursor: grab;
 
             -webkit-touch-callout: none !important;
             -webkit-user-select: none !important;
@@ -277,6 +321,13 @@ function SliderThumb({
             outline: 1px solid #ffffff;
         }
     `}</style>
+      ) : (
+        <style>{`
+        .dual-range-thumb {
+          background: var(--bs-gray-600);
+        }
+    `}</style>
+      )}
     </>
   );
 }
