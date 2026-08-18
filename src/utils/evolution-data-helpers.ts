@@ -58,6 +58,67 @@ export function getCommitDateMs(commit: CommitNode): number | null {
   return Number.isNaN(ms) ? null : ms;
 }
 
+export function getCommitTreeDateRange(
+  commitTree: CommitTree | undefined
+): { from: number; to: number } | null {
+  if (!commitTree) {
+    return null;
+  }
+
+  let min: number | null = null;
+  let max: number | null = null;
+
+  for (const branch of commitTree.branches) {
+    for (const commit of branch.commits) {
+      const commitDateMs = getCommitDateMs(commit);
+      if (commitDateMs == null) {
+        continue;
+      }
+      min = min == null ? commitDateMs : Math.min(min, commitDateMs);
+      max = max == null ? commitDateMs : Math.max(max, commitDateMs);
+    }
+  }
+
+  if (min == null || max == null) {
+    return null;
+  }
+
+  return { from: min, to: max };
+}
+
+export function removeCommitsNotInCommitTrees(
+  selectedCommits: Map<string, Commit[]>,
+  repoNameCommitTreeMap: RepoNameCommitTreeMap
+): Map<string, Commit[]> {
+  let changed = false;
+  const updatedSelectedCommits = new Map<string, Commit[]>();
+
+  for (const [repoName, commits] of selectedCommits.entries()) {
+    const commitTree = repoNameCommitTreeMap.get(repoName);
+    const visibleCommits = commits.filter((commit) =>
+      commitTree?.branches.some(
+        (branch) =>
+          branch.name === commit.branchName &&
+          branch.commits.some(
+            (commitNode) => commitNode.hash === commit.commitId
+          )
+      )
+    );
+
+    if (visibleCommits.length !== commits.length) {
+      changed = true;
+    }
+
+    if (visibleCommits.length > 0) {
+      updatedSelectedCommits.set(repoName, visibleCommits);
+    } else if (commits.length > 0) {
+      changed = true;
+    }
+  }
+
+  return changed ? updatedSelectedCommits : selectedCommits;
+}
+
 export function calculateCommitOffset(
   repoNameCommitTreeMap: RepoNameCommitTreeMap,
   selectedRepoName: string,

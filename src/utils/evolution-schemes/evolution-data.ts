@@ -10,6 +10,36 @@ export type CommitTree = {
 
 export type CommitXAxisPlacement = 'equidistant' | 'time';
 
+export type CommitSampling = 'none' | 'daily' | 'monthly' | 'yearly';
+
+export type CommitTreeFilters = {
+  fromTimestamp?: number;
+  toTimestamp?: number;
+  sampling: CommitSampling;
+};
+
+export const DEFAULT_COMMIT_TREE_FILTERS: CommitTreeFilters = {
+  sampling: 'none',
+};
+
+export function hasActiveCommitTreeFilters(
+  filters: CommitTreeFilters,
+  metricChangeThreshold = 0
+): boolean {
+  return (
+    filters.fromTimestamp != null ||
+    filters.toTimestamp != null ||
+    filters.sampling !== 'none' ||
+    metricChangeThreshold > 0
+  );
+}
+
+export type CommitTreeFilterOptions = {
+  fromTimestamp?: number;
+  toTimestamp?: number;
+  sampling?: CommitSampling;
+};
+
 export type CommitNode = {
   hash: string;
   commitDate?: string;
