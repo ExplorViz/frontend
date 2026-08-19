@@ -57,43 +57,19 @@ let DISTRICT_LABEL_PLACEMENT: string;
 let METRIC_BUCKETS: number;
 
 //Caching for performance reasons
-let cachedLayoutSignature: string | null = null;
 let cachedLayoutResult: Map<string, BoxLayout> | null = null;
+let cachedLayoutSignature: string | null = null;
+let cachedSkeletonRef: FlatLandscape | null = null;
+let pendingLayout: Promise<Map<string, BoxLayout>> | null = null;
+let pendingSkeletonRef: FlatLandscape | null = null;
+let pendingSignature: string | null = null;
 
-function computeLayoutSignature(
-  landscape: FlatLandscape,
-  removedDistrictIds: Set<string>
-): string {
+function layoutInputSignature(removedDistrictIds: Set<string>): string {
   const { visualizationSettings: vs } = useUserSettingsStore.getState();
-  const parts: string[] = [
-    Object.entries(vs)
-      .map(([id, setting]) => `${id}=${(setting as { value: unknown }).value}`)
-      .join('|'),
-    `removed=${[...removedDistrictIds].join(',')}`,
-  ];
-  for (const id in landscape.cities) {
-    const city = landscape.cities[id];
-    parts.push(
-      `c|${id}|${city.districtIds.join(',')}|${city.buildingIds.join(',')}` +
-        `|${city.allContainedBuildingIds.length}`
-    );
-  }
-  for (const id in landscape.districts) {
-    const district = landscape.districts[id];
-    parts.push(
-      `d|${id}|${district.parentDistrictId ?? ''}` +
-        `|${district.districtIds.join(',')}|${district.buildingIds.join(',')}`
-    );
-  }
-  for (const id in landscape.buildings) {
-    const building = landscape.buildings[id];
-    parts.push(
-      `b|${id}|${building.metrics?.[WIDTH_METRIC]?.current ?? ''}` +
-        `|${building.metrics?.[DEPTH_METRIC]?.current ?? ''}`
-    );
-  }
-
-  return parts.join(';');
+  const settings = Object.entries(vs)
+    .map(([id, setting]) => `${id}=${(setting as { value: unknown }).value}`)
+    .join('|');
+  return `${settings};removed=${[...removedDistrictIds].join(',')}`;
 }
 
 function setVisualizationSettings() {
@@ -139,17 +115,59 @@ export default async function layoutLandscape(
 ) {
 
   setVisualizationSettings();
-  const signature = computeLayoutSignature(landscape, removedDistrictIds);
-  const animationActive = useEvolutionAnimationStore.getState().totalCount > 0;
+  const animationState = useEvolutionAnimationStore.getState();
+  const skeleton = animationState.stableFrame;
+  const cacheable = skeleton != null;
+  const signature = cacheable
+    ? layoutInputSignature(removedDistrictIds)
+    : null;
   if (
-    animationActive &&
+    cacheable &&
     cachedLayoutResult !== null &&
-    signature === cachedLayoutSignature
+    cachedSkeletonRef === skeleton &&
+    cachedLayoutSignature === signature
   ) {
     return cachedLayoutResult;
   }
+  if (
+    cacheable &&
+    pendingLayout !== null &&
+    pendingSkeletonRef === skeleton &&
+    pendingSignature === signature
+  ) {
+    return pendingLayout;
+  }
+
+  const run = computeLayout(landscape, removedDistrictIds);
+
+  if (cacheable) {
+    pendingLayout = run;
+    pendingSkeletonRef = skeleton;
+    pendingSignature = signature;
+  }
+
+  try {
+    const boxLayoutMap = await run;
+    if (cacheable) {
+      cachedLayoutSignature = signature;
+      cachedSkeletonRef = skeleton;
+      cachedLayoutResult = boxLayoutMap;
+    }
+    return boxLayoutMap;
+  } finally {
+    if (pendingLayout === run) {
+      pendingLayout = null;
+      pendingSkeletonRef = null;
+      pendingSignature = null;
+    }
+  }
+}
+
+ async function computeLayout(
+  landscape: FlatLandscape,
+  removedDistrictIds: Set<string>
+) {
   const elk = new ELK();
-  const _t0 = performance.now();
 
   WIDTH_METRIC_BOUNDS = getCachedBuildingMetricBounds(
     landscape.buildings,
@@ -206,14 +224,10 @@ export default async function layoutLandscape(
         );
       }
       landscapeGraph.children.push(
-        createdFixedSizeCity(
-          city,
-          {
-            width: citySideLength,
-            depth: citySideLength,
-          },
-          landscape
-        )
+        createdFixedSizeCity(city, {
+          width: citySideLength,
+          depth: citySideLength,
+        })
       );
       // Layout without special class layout algorithm
     } else {
@@ -238,12 +252,6 @@ export default async function layoutLandscape(
       applySpiralLayoutToBuildings(boxLayoutMap, landscape, cities);
     }
   }
-  console.log(
-    `[layout] ${Math.round(performance.now() - _t0)}ms for ` +
-    `${Object.keys(landscape.buildings).length} buildings`
-  );
-  cachedLayoutSignature = signature;
-  cachedLayoutResult = boxLayoutMap;
   return boxLayoutMap;
 }
 
@@ -273,8 +281,7 @@ function createCityGraph(
 
 function createdFixedSizeCity(
   city: City,
-  size: { width: number; depth: number },
-  landscape: FlatLandscape
+  size: { width: number; depth: number }
 ) {
   const buildingGraph: any = {
     id: CITY_PREFIX + city.id,

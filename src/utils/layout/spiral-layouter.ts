@@ -118,18 +118,22 @@ export function applySpiralLayoutToClasses(
     }
 
     // Get all buildings in this city
+    const { fqnToFirstFrame } = useEvolutionAnimationStore.getState();
     const buildings = city.allContainedBuildingIds
       .map((id) => flatLandscape.buildings[id])
       .filter((building) => building !== undefined)
-      //.sort((a, b) => {(a.fqn ?? a.name).localeCompare(b.fqn ?? b.name))};
+      .map((building) => ({
+        building,
+        first: fqnToFirstFrame.get(building.fqn ?? '') ?? Infinity,
+        name: building.fqn ?? building.name,
+      }))
       .sort((a, b) => {
-          const {fqnToFirstFrame} = useEvolutionAnimationStore.getState();
-          const aFirst = fqnToFirstFrame.get(a.fqn ?? '') ?? Infinity;
-          const bFirst = fqnToFirstFrame.get(b.fqn ?? '') ?? Infinity;
-          if (aFirst !== bFirst) return aFirst - bFirst;
-          // fallback to name sort (non-animation mode or tie)
-          return (a.fqn ?? a.name).localeCompare(b.fqn ?? b.name);
-        });
+        if (a.first !== b.first) {
+          return a.first - b.first;
+        }
+        return a.name < b.name ? -1 : a.name > b.name ? 1 : 0;
+      })
+      .map((entry) => entry.building);
 
 
     if (buildings.length === 0) {
