@@ -1,7 +1,6 @@
 import { useEvolutionAnimationFetchServiceStore } from 'explorviz-frontend/src/components/visualization/page-setup/bottom-bar/animation/evolution-animation-fetch-service.ts';
-import { buildMergedFlatLandscape } from 'explorviz-frontend/src/components/visualization/page-setup/bottom-bar/animation/evolution-frame-visuals';
+import { applyAnimationFrameLayout } from 'explorviz-frontend/src/components/visualization/page-setup/bottom-bar/animation/evolution-rendering-setup';
 import { useCommitTreeStateStore } from 'explorviz-frontend/src/stores/commit-tree-state.ts';
-import { useRenderingServiceStore } from 'explorviz-frontend/src/stores/rendering-service';
 import { useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { useShallow } from 'zustand/react/shallow';
@@ -42,9 +41,6 @@ export default function EvolutionPlaybackControls() {
     (s) => s.fetchAnimationWindow
   );
 
-  const triggerRendering = useRenderingServiceStore(
-    (state) => state.triggerRenderingForGivenLandscapeData
-  );
   const fetchDeltaWindow = useEvolutionAnimationFetchServiceStore(
     (s) => s.fetchAnimationDeltaWindow
   );
@@ -104,18 +100,13 @@ export default function EvolutionPlaybackControls() {
     fetchWindow,
   ]);
 
-  // One-time layout setup for the stable skeleton; frame visuals update via frameVersion.
+  // One-time frame layout after animation starts; skeleton layout is applied on load.
   useEffect(() => {
     if (!stableFrame || totalCount === 0 || initialLayoutDoneRef.current) {
       return;
     }
 
-    const store = useEvolutionAnimationStore.getState();
-    const mergedFrame = buildMergedFlatLandscape(store);
-    if (!mergedFrame) return;
-
-    triggerRendering(mergedFrame, [], { metrics: {}, communications: [] });
-    store.actions.reapplyCurrentFrameVisuals();
+    applyAnimationFrameLayout();
     initialLayoutDoneRef.current = true;
   }, [
     stableFrame,
@@ -124,7 +115,6 @@ export default function EvolutionPlaybackControls() {
     deltaFrames,
     deltaMode,
     currentFrameIndex,
-    triggerRendering,
   ]);
 
   useEffect(() => {

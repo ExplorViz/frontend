@@ -3,11 +3,12 @@ import {
   useEvolutionAnimationStore,
   WINDOW_SIZE,
 } from 'explorviz-frontend/src/components/visualization/page-setup/bottom-bar/animation/evolution-animation-store';
+import {
+  applyEvolutionRenderingConfig,
+  applySkeletonLayout,
+} from 'explorviz-frontend/src/components/visualization/page-setup/bottom-bar/animation/evolution-rendering-setup';
 import { useCommitTreeStateStore } from 'explorviz-frontend/src/stores/commit-tree-state';
-import { useRenderingServiceStore } from 'explorviz-frontend/src/stores/rendering-service';
 import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
-import { useVisibilityServiceStore } from 'explorviz-frontend/src/stores/visibility-service';
-import { ALL_BUILDING_COMPARISONS_VISIBLE } from 'explorviz-frontend/src/utils/city-rendering/building-comparison-visibility';
 import {
   BuildingMetricMapping,
   SELECTED_BUILDING_METRIC_OPTIONS,
@@ -104,6 +105,7 @@ export default function EvolutionAnimationPanel({
         'buildingLayoutAlgorithm',
         layoutMode === 'spiral' ? 'spiral' : 'None'
       );
+    applySkeletonLayout();
   }, [layoutMode]);
 
   //On mount
@@ -118,6 +120,7 @@ export default function EvolutionAnimationPanel({
       .then((skeleton) => {
         if (cancelled) return;
         useEvolutionAnimationStore.getState().actions.setSkeleton(skeleton);
+        applySkeletonLayout(skeleton.landscape);
       })
       .catch((e) => console.error('Failed to fetch animation frames:', e))
       .finally(() => {
@@ -164,22 +167,7 @@ export default function EvolutionAnimationPanel({
         actions.addFrames(firstWindow.frames);
       }
       actions.markBlockRequested(0);
-      useRenderingServiceStore
-        .getState()
-        .setAnalysisModeFromEvolutionRenderingConfig({
-          renderDynamic: false,
-          renderStatic: true,
-          renderOnlyDifferences: true,
-          buildingComparisonVisibility: ALL_BUILDING_COMPARISONS_VISIBLE,
-        });
-      useVisibilityServiceStore
-        .getState()
-        .applyEvolutionModeRenderingConfiguration({
-          renderDynamic: false,
-          renderStatic: true,
-          renderOnlyDifferences: true,
-          buildingComparisonVisibility: ALL_BUILDING_COMPARISONS_VISIBLE,
-        });
+      applyEvolutionRenderingConfig();
       useEvolutionAnimationStore.getState().actions.setSpeed(speedMs);
       useEvolutionAnimationStore.getState().actions.play(); // auto-start
     } catch (e) {
