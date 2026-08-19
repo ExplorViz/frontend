@@ -1,5 +1,7 @@
 import SnapshotSelection from 'explorviz-frontend/src/components/snapshot-selection';
-import TokenCreationModal from 'explorviz-frontend/src/components/token-creation-modal';
+import TokenCreationModal, {
+  LandscapeTokenCreateParams,
+} from 'explorviz-frontend/src/components/token-creation-modal';
 import TokenSelection from 'explorviz-frontend/src/components/token-selection';
 import LandscapeLoader from 'explorviz-frontend/src/pages/landscapes-loading';
 import { useAuthStore } from 'explorviz-frontend/src/stores/auth';
@@ -129,9 +131,9 @@ export default function Landscapes() {
     });
   };
 
-  const createToken = async (tokenAlias: string) => {
+  const createToken = async (params: LandscapeTokenCreateParams) => {
     try {
-      const token = await sendTokenCreateRequest(tokenAlias);
+      const token = await sendTokenCreateRequest(params);
       closeTokenCreationModal();
       useToastHandlerStore
         .getState()
@@ -159,7 +161,7 @@ export default function Landscapes() {
     refreshRoute();
   };
 
-  const sendTokenCreateRequest = (alias = '') => {
+  const sendTokenCreateRequest = (params: LandscapeTokenCreateParams) => {
     let uId = user?.sub;
 
     if (!uId) {
@@ -168,6 +170,19 @@ export default function Landscapes() {
 
     uId = encodeURI(uId);
 
+    const body: Record<string, string | boolean> = {
+      alias: params.alias,
+      isRequestedFromVSCodeExtension: false,
+      projectName: '',
+      commitId: '',
+    };
+    if (params.value) {
+      body.value = params.value;
+    }
+    if (params.secret) {
+      body.secret = params.secret;
+    }
+
     return new Promise<any>((resolve, reject) => {
       fetch(`${import.meta.env.VITE_USER_SERV_URL}/user/${uId}/token`, {
         headers: {
@@ -175,12 +190,7 @@ export default function Landscapes() {
           'Content-Type': 'application/json',
         },
         method: 'POST',
-        body: JSON.stringify({
-          alias,
-          isRequestedFromVSCodeExtension: false,
-          projectName: '',
-          commitId: '',
-        }),
+        body: JSON.stringify(body),
       })
         .then(async (response: Response) => {
           if (response.ok) {
