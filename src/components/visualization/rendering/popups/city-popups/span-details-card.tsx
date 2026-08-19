@@ -1,6 +1,6 @@
-import { Span } from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/trace';
-import React from 'react';
-import { Badge, Card, Table } from 'react-bootstrap';
+import AttributesTable from 'explorviz-frontend/src/components/attributes-table';
+import { Span } from 'explorviz-frontend/src/utils/landscape-schemes/telemetry/traces';
+import { Card } from 'react-bootstrap';
 
 interface SpanDetailsCardProps {
   span: Span;
@@ -62,37 +62,5 @@ export default function SpanDetailsCard({
         </dl>
       </Card.Body>
     </Card>
-  );
-}
-
-function AttributesTable({
-  attributes,
-}: {
-  attributes: Record<string, string>;
-}) {
-  return (
-    <Table striped bordered hover size="sm" className="small w-auto text-break">
-      <tbody>
-        {Object.entries(attributes).map(([k, v]) => {
-          // Filter out ExplorViz-specific attributes
-          return k.startsWith('explorviz.') ? (
-            <React.Fragment key={k} />
-          ) : (
-            <tr key={k}>
-              <td>
-                <Badge bg="secondary" text="light" pill>
-                  {k}
-                </Badge>
-              </td>
-              <td>
-                <code className="text-secondary bg-secondary-subtle px-1 rounded-1">
-                  {v}
-                </code>
-              </td>
-            </tr>
-          );
-        })}
-      </tbody>
-    </Table>
   );
 }

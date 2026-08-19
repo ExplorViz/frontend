@@ -1,5 +1,5 @@
-import { Span } from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/trace';
 import { Building } from 'explorviz-frontend/src/utils/landscape-schemes/flat-landscape';
+import { Span } from 'explorviz-frontend/src/utils/landscape-schemes/telemetry/traces';
 
 export class TraceNode {
   readonly id: string;

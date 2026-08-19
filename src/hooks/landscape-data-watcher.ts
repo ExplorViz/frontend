@@ -9,9 +9,9 @@ import {
   computeBuildingCommunication,
 } from 'explorviz-frontend/src/utils/city-rendering/communication-computer';
 import { areArraysEqual } from 'explorviz-frontend/src/utils/helpers/array-helpers';
-import { DynamicLandscapeData } from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/trace';
 import { getAllIdsOfFlatLandscape } from 'explorviz-frontend/src/utils/landscape-schemes/flat-landscape';
 import { LandscapeData } from 'explorviz-frontend/src/utils/landscape-schemes/landscape-data';
+import { DynamicLandscapeData } from 'explorviz-frontend/src/utils/landscape-schemes/telemetry/traces';
 import layoutLandscape from 'explorviz-frontend/src/utils/layout/elk-layouter';
 import { tryApplyPendingSerializedRoom } from 'explorviz-frontend/src/utils/snapshot/snapshot-helpers';
 

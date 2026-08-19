@@ -21,9 +21,9 @@ import { removeAllHighlighting } from 'explorviz-frontend/src/utils/city-renderi
 import { SerializedRoom } from 'explorviz-frontend/src/utils/collaboration/web-socket-messages/types/serialized-room';
 import { CROSS_COMMIT_IDENTIFIER } from 'explorviz-frontend/src/utils/evolution-schemes/evolution-data';
 import { CommSummary } from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/communication';
-import { DynamicLandscapeData } from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/trace';
 import { FlatLandscape } from 'explorviz-frontend/src/utils/landscape-schemes/flat-landscape';
 import { LandscapeData } from 'explorviz-frontend/src/utils/landscape-schemes/landscape-data';
+import { DynamicLandscapeData } from 'explorviz-frontend/src/utils/landscape-schemes/telemetry/traces';
 import { Timestamp } from 'explorviz-frontend/src/utils/landscape-schemes/timestamp';
 
 export function buildSnapshotStructureData(

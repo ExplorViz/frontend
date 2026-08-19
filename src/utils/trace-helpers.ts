@@ -1,7 +1,7 @@
 import {
   Span,
   Trace,
-} from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/trace';
+} from 'explorviz-frontend/src/utils/landscape-schemes/telemetry/traces';
 
 /**
  * Returns the span's total duration in nanoseconds

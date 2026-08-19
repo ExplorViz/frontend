@@ -4,9 +4,9 @@ import { useToastHandlerStore } from 'explorviz-frontend/src/stores/toast-handle
 import { getCircularReplacer } from 'explorviz-frontend/src/utils/circular-replacer';
 import { SerializedRoom } from 'explorviz-frontend/src/utils/collaboration/web-socket-messages/types/serialized-room';
 import { CommSummary } from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/communication';
-import { DynamicLandscapeData } from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/trace';
 import { FlatLandscape } from 'explorviz-frontend/src/utils/landscape-schemes/flat-landscape';
 import { StructureLandscapeData } from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
+import { DynamicLandscapeData } from 'explorviz-frontend/src/utils/landscape-schemes/telemetry/traces';
 import { Timestamp } from 'explorviz-frontend/src/utils/landscape-schemes/timestamp';
 import { reject } from 'rsvp';
 import { create } from 'zustand';

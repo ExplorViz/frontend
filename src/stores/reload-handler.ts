@@ -2,13 +2,13 @@ import { useCommunicationStore } from 'explorviz-frontend/src/stores/communicati
 import { useTimestampRepositoryStore } from 'explorviz-frontend/src/stores/repos/timestamp-repository';
 import { requestData } from 'explorviz-frontend/src/utils/landscape-http-request-util';
 import { CommSummary } from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/communication';
-import { DynamicLandscapeData } from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/trace';
 import { FlatLandscape } from 'explorviz-frontend/src/utils/landscape-schemes/flat-landscape';
 import {
   preProcessAndEnhanceStructureLandscape,
   StructureLandscapeData,
   TypeOfAnalysis,
 } from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
+import { DynamicLandscapeData } from 'explorviz-frontend/src/utils/landscape-schemes/telemetry/traces';
 import { create } from 'zustand';
 import { useTimestampPollingStore } from './timestamp-polling';
 

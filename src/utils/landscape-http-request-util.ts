@@ -21,7 +21,7 @@ import {
   isCommSpans,
   isSpan,
   Span,
-} from './landscape-schemes/dynamic/trace';
+} from './landscape-schemes/telemetry/traces';
 
 /** Base URL for landscape API. Empty string uses same-origin (Vite dev proxy in development). */
 export function getLandscapeServiceUrl(): string {
@@ -37,6 +37,15 @@ export function getLandscapeServiceUrl(): string {
 /** Base URL for trace API. Empty string uses same-origin (Vite dev proxy in development). */
 export function getTraceServiceUrl(): string {
   const configured = import.meta.env.VITE_TRACE_SERV_URL as string | undefined;
+  if (configured === undefined || configured === '') {
+    return '';
+  }
+  return configured.replace(/\/$/, '');
+}
+
+/** Base URL for log API. Empty string uses same-origin (Vite dev proxy in development). */
+export function getLogServiceUrl(): string {
+  const configured = import.meta.env.VITE_LOG_SERV_URL as string | undefined;
   if (configured === undefined || configured === '') {
     return '';
   }

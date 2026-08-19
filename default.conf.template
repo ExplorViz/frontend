@@ -62,6 +62,31 @@ server {
 
   # END trace-service
 
+  # BEGIN log-service
+
+  location ~ ^/v3/landscapes/[^/]+/logs(?:/.*|$) {
+    set $upstream_log ${LOG_SERV_URL};
+    proxy_pass $upstream_log;
+    proxy_http_version 1.1;
+    proxy_set_header Host $host;
+  }
+
+  location ~ ^/v3/landscapes/[^/]+/log-levels(?:/.*|$) {
+    set $upstream_log ${LOG_SERV_URL};
+    proxy_pass $upstream_log;
+    proxy_http_version 1.1;
+    proxy_set_header Host $host;
+  }
+
+  location ~ ^/v3/landscapes/[^/]+/entities/[^/]+/logs(?:/.*|$) {
+    set $upstream_log ${LOG_SERV_URL};
+    proxy_pass $upstream_log;
+    proxy_http_version 1.1;
+    proxy_set_header Host $host;
+  }
+
+  # END log-service
+
   # BEGIN landscape-service
 
   location /v2/code {
