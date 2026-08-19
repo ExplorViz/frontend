@@ -27,10 +27,12 @@ interface EvolutionAnimationFetchState {
     granularity?: number,
     groupBy?: string,
     bucketSize?: number,
-    agingWindow?: number
+    agingWindow?: number,
+    rangeFrom?: number,
+    rangeTo?: number
   ): Promise<AnimationDeltaWindow>;
 
-  fetchAnimationSkeleton(repositoryName: string): Promise<AnimationSkeleton>;
+  fetchAnimationSkeleton(repositoryName: string, rangeFrom?: number, rangeTo?: number): Promise<AnimationSkeleton>;
   _getLandscapeToken(): string;
   _constructUrl(endpoint: string, ...params: string[]): string;
   _fetchFromService<T>(url: string): Promise<T>;
@@ -70,7 +72,9 @@ export const useEvolutionAnimationFetchServiceStore =
       granularity?: number,
       groupBy?: string,
       bucketSize?: number,
-      agingWindow?: number
+      agingWindow?: number,
+      rangeFrom?: number,
+      rangeTo?: number
     ): Promise<AnimationDeltaWindow> => {
       const base = get()._constructUrl(
         'structure/evolution',
@@ -88,20 +92,29 @@ export const useEvolutionAnimationFetchServiceStore =
         params.set('bucketSize', String(bucketSize));
       if (agingWindow !== undefined)
         params.set('agingWindow', String(agingWindow));
+      if (rangeFrom !== undefined) params.set('rangeFrom', String(rangeFrom));
+      if (rangeTo !== undefined) params.set('rangeTo', String(rangeTo));
       const query = params.toString();
       const url = query ? `${base}?${query}` : base;
       return await get()._fetchFromService<AnimationDeltaWindow>(url);
     },
 
     fetchAnimationSkeleton: async (
-      repositoryName: string
+      repositoryName: string,
+      rangeFrom?: number,
+      rangeTo?: number
     ): Promise<AnimationSkeleton> => {
-      const url = get()._constructUrl(
+      const base = get()._constructUrl(
         'structure/evolution',
         repositoryName,
         'animation',
         'skeleton'
       );
+      const params = new URLSearchParams();
+      if (rangeFrom !== undefined) params.set('rangeFrom', String(rangeFrom));
+      if (rangeTo !== undefined) params.set('rangeTo', String(rangeTo));
+      const query = params.toString();
+      const url = query ? `${base}?${query}` : base;
       return await get()._fetchFromService<AnimationSkeleton>(url);
     },
     _getLandscapeToken: (): string => {

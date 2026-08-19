@@ -68,7 +68,9 @@ export default function EvolutionPlaybackControls() {
           s.granularity,
           s.timeMode,
           s.bucketSize,
-          s.loadedAgingWindow
+          s.loadedAgingWindow,
+          s.rangeFrom,
+          s.rangeTo
         );
         useEvolutionAnimationStore
           .getState()
@@ -216,11 +218,11 @@ export default function EvolutionPlaybackControls() {
           agingFactor,
         };
       });
-
       triggerRendering({ ...stableFrame, buildings: mergedBuildings }, [], {
         metrics: {},
         communications: [],
       });
+
     }, [
       deltaMode,
       deltaFrames,

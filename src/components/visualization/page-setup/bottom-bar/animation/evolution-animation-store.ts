@@ -18,6 +18,8 @@ interface EvolutionAnimationState {
   timeMode: 'commit' | 'time';
   speedMs: number;
   bucketSize: number;
+  rangeFrom: number;
+  rangeTo: number;
   orderedCommitTimestamps: number[];
   agingEnabled: boolean;
   agingCommits: number; // threshold in frames (commit mode)
@@ -40,6 +42,7 @@ interface EvolutionAnimationState {
     setTimeMode: (mode: 'commit' | 'time') => void;
     setSpeed: (ms: number) => void;
     setBucketSize: (bucketSize: number) => void;
+    setRange: (from: number, to: number) => void;
     setAgingEnabled: (enabled: boolean) => void;
     setAgingCommits: (commits: number) => void;
     setAgingMs: (ms: number) => void;
@@ -81,6 +84,8 @@ export const useEvolutionAnimationStore = create<EvolutionAnimationState>((set) 
   timeMode: 'commit',
   speedMs: 1000,
   bucketSize: 86400000,
+  rangeFrom: 0,
+  rangeTo: 0,
   orderedCommitTimestamps: [],
   agingEnabled: false,
   agingCommits: 10,
@@ -97,7 +102,7 @@ export const useEvolutionAnimationStore = create<EvolutionAnimationState>((set) 
         orderedCommitTimestamps: skeleton.orderedCommitTimestamps,
       }),
     setTotalCount: (total) =>
-      set((s) =>({
+      set((s) => ({
         totalCount: total,
         loadedFrames: new Map(),
         requestedBlocks: new Set(),
@@ -138,6 +143,21 @@ export const useEvolutionAnimationStore = create<EvolutionAnimationState>((set) 
     setTimeMode: (mode: 'commit' | 'time') => set({ timeMode: mode }),
     setSpeed: (ms) => set({ speedMs: ms }),
     setBucketSize: (bucketSize) => set({ bucketSize: Math.max(1, bucketSize) }),
+    setRange: (from, to) =>
+      set({
+        rangeFrom: Math.max(0, from),
+        rangeTo: Math.max(0, to),
+        stableFrame: null,
+        fqnToFirstFrame: new Map(),
+        orderedCommitHashes: [],
+        orderedCommitTimestamps: [],
+        totalCount: 0,
+        loadedFrames: new Map(),
+        deltaFrames: new Map(),
+        requestedBlocks: new Set(),
+        currentFrameIndex: 0,
+        isPlaying: false,
+      }),
     setAgingEnabled: (enabled) =>
       set((s) =>
         applyAgingWindow(s, enabled, s.agingCommits, s.agingMs, {

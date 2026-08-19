@@ -25,7 +25,7 @@ export default function EvolutionAnimationPanel({
 }: {
   onClose: () => void;
 }) {
-  const { layoutMode, timeMode, speedMs, granularity, bucketSize, agingEnabled, agingCommits, agingMs, deltaMode } = useEvolutionAnimationStore(
+  const { layoutMode, timeMode, speedMs, granularity, bucketSize, agingEnabled, agingCommits, agingMs, deltaMode, rangeFrom, rangeTo } = useEvolutionAnimationStore(
     useShallow((state) => ({
       layoutMode: state.layoutMode,
       timeMode: state.timeMode,
@@ -36,9 +36,11 @@ export default function EvolutionAnimationPanel({
       agingCommits: state.agingCommits,
       agingMs: state.agingMs,
       deltaMode: state.deltaMode,
+      rangeFrom: state.rangeFrom,
+      rangeTo: state.rangeTo,
     }))
   );
-  const { setLayoutMode, setTimeMode, setSpeed, setGranularity, setBucketSize, setAgingEnabled, setAgingCommits, setAgingMs, setDeltaMode } =
+  const { setLayoutMode, setTimeMode, setSpeed, setGranularity, setBucketSize, setAgingEnabled, setAgingCommits, setAgingMs, setDeltaMode, setRange } =
     useEvolutionAnimationStore.getState().actions;
   const [isLoading, setIsLoading] = useState(false);
   const [timeCount, setTimeCount] = useState(1);
@@ -84,6 +86,7 @@ export default function EvolutionAnimationPanel({
   }, [layoutMode]);
 
  //On mount
+  /*
   useEffect(() => {
     if (!repositoryName) return;
 
@@ -91,7 +94,8 @@ export default function EvolutionAnimationPanel({
 
     let cancelled = false;
     setIsLoading(true);
-    fetchSkeleton(repositoryName)
+    const mountState = useEvolutionAnimationStore.getState();
+    fetchSkeleton(repositoryName, mountState.rangeFrom, mountState.rangeTo)
       .then((skeleton) => {
         if (cancelled) return;
         useEvolutionAnimationStore.getState().actions.setSkeleton(skeleton);
@@ -104,7 +108,11 @@ export default function EvolutionAnimationPanel({
     return () => {
       cancelled = true;
     };
-  },[]);
+  },[]);*/
+  useEffect(() => {
+    if (!repositoryName) return;
+    useCommitTreeStateStore.getState().resetSelectedCommits();
+  }, []);
 
 
   const handleStart = async () => {
@@ -114,7 +122,11 @@ export default function EvolutionAnimationPanel({
       const store = useEvolutionAnimationStore.getState();
       const actions = store.actions;
       if (!store.stableFrame) {
-        const skeleton = await fetchSkeleton(repositoryName);
+        const skeleton = await fetchSkeleton(
+          repositoryName,
+          store.rangeFrom,
+          store.rangeTo
+        );
         actions.setSkeleton(skeleton);
       }
 
@@ -126,7 +138,9 @@ export default function EvolutionAnimationPanel({
           store.granularity,
           store.timeMode,
           store.bucketSize,
-          store.loadedAgingWindow
+          store.loadedAgingWindow,
+          store.rangeFrom,
+          store.rangeTo
         );
         actions.setTotalCount(firstWindow.totalCount);
         actions.addDeltaFrames(firstWindow.frames);
@@ -172,7 +186,9 @@ export default function EvolutionAnimationPanel({
           store.granularity,
           store.timeMode,
           store.bucketSize,
-          store.loadedAgingWindow
+          store.loadedAgingWindow,
+          store.rangeFrom,
+          store.rangeTo
         );
         store.actions.setTotalCount(win.totalCount);
         store.actions.addDeltaFrames(win.frames);
@@ -429,6 +445,36 @@ export default function EvolutionAnimationPanel({
           onChange={(e) => setDeltaMode(e.target.checked)}
           style={{ fontSize: '12px' }}
         />
+      </Form.Group>
+      <Form.Group className="mb-3">
+        {/* Scope: must be set before Start — changing it discards the skeleton. */}
+        <Form.Label style={{ fontSize: '12px', color: '#aaa' }}>
+          Zeitraum (leer = gesamte Historie)
+        </Form.Label>
+        <div style={{ display: 'flex', gap: '4px' }}>
+          <Form.Control
+            type="date"
+            size="sm"
+            value={rangeFrom ? new Date(rangeFrom).toISOString().slice(0, 10) : ''}
+            onChange={(e) =>
+              setRange(
+                e.target.value ? Date.parse(e.target.value + 'T00:00:00Z') : 0,
+                rangeTo
+              )
+            }
+          />
+          <Form.Control
+            type="date"
+            size="sm"
+            value={rangeTo ? new Date(rangeTo).toISOString().slice(0, 10) : ''}
+            onChange={(e) =>
+              setRange(
+                rangeFrom,
+                e.target.value ? Date.parse(e.target.value + 'T23:59:59Z') : 0
+              )
+            }
+          />
+        </div>
       </Form.Group>
       <Form.Group className="mb-3">
         <Form.Check
