@@ -2,14 +2,17 @@ import {
   SelectedCommit,
   useCommitTreeStateStore,
 } from 'explorviz-frontend/src/stores/commit-tree-state';
-import { useEvolutionDataFetchServiceStore } from 'explorviz-frontend/src/stores/evolution-data-fetch-service';
+import {
+  SocialMetricDto,
+  useEvolutionDataFetchServiceStore,
+} from 'explorviz-frontend/src/stores/evolution-data-fetch-service';
 import { getCommitXPosition } from 'explorviz-frontend/src/utils/evolution-data-helpers';
 import {
   CommitTree,
+  CommitTreeFilterOptions,
   RepoNameCommitTreeMap,
 } from 'explorviz-frontend/src/utils/evolution-schemes/evolution-data';
 import { FlatLandscape } from 'explorviz-frontend/src/utils/landscape-schemes/flat-landscape';
-import { SocialMetricDto } from 'explorviz-frontend/src/stores/evolution-data-fetch-service';
 import { mergeSocialMetricsIntoFlatLandscape } from 'explorviz-frontend/src/utils/landscape-schemes/social-metrics-helpers';
 import { create } from 'zustand';
 
@@ -54,12 +57,13 @@ interface EvolutionDataRepositoryState {
   resetAllEvolutionData: () => void;
   resetRepoNameCommitTreeMap: () => void;
   _fetchCommitTreeForRepoName: (
-    repoName: string
+    repoName: string,
+    filters?: CommitTreeFilterOptions
   ) => Promise<CommitTree | undefined>;
   sortSelectedCommitsForComparison: (
-  repoNameCommitTreeMap: RepoNameCommitTreeMap,
-  repositoryName: string,
-  commits: SelectedCommit[],
+    repoNameCommitTreeMap: RepoNameCommitTreeMap,
+    repositoryName: string,
+    commits: SelectedCommit[]
   ) => SelectedCommit[];
   applySocialMetrics: (dtos: SocialMetricDto[]) => void;
 }
@@ -75,13 +79,25 @@ export const useEvolutionDataRepositoryStore =
 
     fetchAndStoreRepositoryCommitTrees: async (): Promise<boolean> => {
       try {
+        const filters = useCommitTreeStateStore
+          .getState()
+          .getCommitTreeFilters();
+        const filterOptions: CommitTreeFilterOptions = {
+          fromTimestamp: filters.fromTimestamp,
+          toTimestamp: filters.toTimestamp,
+          sampling: filters.sampling,
+          firstParentOnly: filters.firstParentOnly,
+        };
         const repositoryNames = await useEvolutionDataFetchServiceStore
           .getState()
           .fetchRepositories();
         const repoNameCommitTreeMap: RepoNameCommitTreeMap = new Map();
 
         for (const repoName of repositoryNames) {
-          const commitTree = await get()._fetchCommitTreeForRepoName(repoName);
+          const commitTree = await get()._fetchCommitTreeForRepoName(
+            repoName,
+            filterOptions
+          );
           if (commitTree) {
             repoNameCommitTreeMap.set(repoName, commitTree);
           }
@@ -148,8 +164,12 @@ export const useEvolutionDataRepositoryStore =
     applySocialMetrics: (dtos: SocialMetricDto[]): void => {
       const merged = new Map<string, FlatLandscape>();
 
-      for (const [repoName, flatLandscape] of get()._repoNameToFlatLandscapeMap) {
-        merged.set(repoName, mergeSocialMetricsIntoFlatLandscape(flatLandscape, dtos));
+      for (const [repoName, flatLandscape] of get()
+        ._repoNameToFlatLandscapeMap) {
+        merged.set(
+          repoName,
+          mergeSocialMetricsIntoFlatLandscape(flatLandscape, dtos)
+        );
       }
 
       set({ _repoNameToFlatLandscapeMap: merged });
@@ -164,12 +184,13 @@ export const useEvolutionDataRepositoryStore =
     },
 
     _fetchCommitTreeForRepoName: async (
-      repoName: string
+      repoName: string,
+      filters?: CommitTreeFilterOptions
     ): Promise<CommitTree | undefined> => {
       try {
         return await useEvolutionDataFetchServiceStore
           .getState()
-          .fetchCommitTreeForRepoName(repoName);
+          .fetchCommitTreeForRepoName(repoName, filters);
       } catch (reason) {
         console.error(
           `Failed to fetch Commit Tree for repoName: ${repoName}, reason: ${reason}`

@@ -58,7 +58,19 @@ function getVisibleYearGroupIndices(
   return visibleIndices;
 }
 
-function getBottomMargin(
+function getLegendRowCount(
+  legendItemCount: number,
+  chartWidth: number
+): number {
+  const itemsPerRow = Math.max(1, Math.floor((chartWidth - 40) / 120));
+  return Math.ceil(Math.max(legendItemCount, 1) / itemsPerRow);
+}
+
+function getLegendAreaHeight(rowCount: number): number {
+  return 12 + rowCount * 22;
+}
+
+function getAxisBottomMargin(
   hasYearGroups: boolean,
   showMonthLabels: boolean,
   hasAnyYearLabels: boolean
@@ -82,10 +94,68 @@ function getBottomMargin(
   return 40;
 }
 
+function getBottomLayout(
+  chartHeight: number,
+  chartWidth: number,
+  axisBottomMargin: number,
+  showLegend: boolean,
+  legendItemCount: number
+): { marginBottom: number; legendY: number } {
+  const topMargin = 20;
+  const axisLegendGap = 10;
+
+  if (!showLegend) {
+    return { marginBottom: axisBottomMargin, legendY: 0 };
+  }
+
+  const legendRowCount = getLegendRowCount(legendItemCount, chartWidth);
+  const legendAreaHeight = getLegendAreaHeight(legendRowCount);
+  const marginBottom = axisBottomMargin + axisLegendGap + legendAreaHeight;
+  const plotHeight = Math.max(chartHeight - topMargin - marginBottom, 1);
+  const legendY = -(axisBottomMargin + axisLegendGap) / plotHeight;
+
+  return { marginBottom, legendY };
+}
+
+function buildSingleSeriesData(
+  chartData: CommitStatisticsChartData,
+  barColor: string
+): Plotly.Data[] {
+  return [
+    {
+      type: 'bar',
+      x: chartData.labels,
+      y: chartData.values,
+      marker: { color: barColor },
+      customdata: chartData.hoverLabels ?? chartData.labels,
+      hovertemplate: '%{customdata}<br>%{y} commits<extra></extra>',
+    },
+  ];
+}
+
+function buildAuthorSeriesData(
+  chartData: CommitStatisticsChartData
+): Plotly.Data[] {
+  const hoverLabels = chartData.hoverLabels ?? chartData.labels;
+
+  return (chartData.authorSeries ?? []).map((series) => ({
+    type: 'bar' as const,
+    name: series.label,
+    x: chartData.labels,
+    y: series.values,
+    marker: { color: series.color },
+    customdata: hoverLabels,
+    hovertemplate:
+      '%{customdata}<br>%{fullData.name}: %{y} commits<extra></extra>',
+  }));
+}
+
 export function buildCommitStatisticsPlotlyFigure(
   chartData: CommitStatisticsChartData,
   chartWidth: number,
-  barColor: string
+  chartHeight: number,
+  barColor: string,
+  colorByAuthor = false
 ): {
   data: Plotly.Data[];
   layout: Partial<Plotly.Layout>;
@@ -100,17 +170,26 @@ export function buildCommitStatisticsPlotlyFigure(
     ? getVisibleYearGroupIndices(yearGroups, barCount, chartWidth)
     : new Set<number>();
   const hasAnyYearLabels = visibleYearGroupIndices.size > 0;
+  const useAuthorSeries =
+    colorByAuthor && (chartData.authorSeries?.length ?? 0) > 0;
+  const showLegend = useAuthorSeries;
+  const legendItemCount = chartData.authorSeries?.length ?? 0;
+  const axisBottomMargin = getAxisBottomMargin(
+    hasYearGroups,
+    showMonthLabels,
+    hasAnyYearLabels
+  );
+  const { marginBottom, legendY } = getBottomLayout(
+    chartHeight,
+    chartWidth,
+    axisBottomMargin,
+    showLegend,
+    legendItemCount
+  );
 
-  const data: Plotly.Data[] = [
-    {
-      type: 'bar',
-      x: chartData.labels,
-      y: chartData.values,
-      marker: { color: barColor },
-      customdata: chartData.hoverLabels ?? chartData.labels,
-      hovertemplate: '%{customdata}<br>%{y} commits<extra></extra>',
-    },
-  ];
+  const data = useAuthorSeries
+    ? buildAuthorSeriesData(chartData)
+    : buildSingleSeriesData(chartData, barColor);
 
   const yearAnnotations: Partial<Plotly.Annotations>[] = yearGroups.flatMap(
     (group, index) =>
@@ -147,8 +226,20 @@ export function buildCommitStatisticsPlotlyFigure(
   const layout: Partial<Plotly.Layout> = {
     hovermode: 'closest',
     dragmode: false,
+    barmode: useAuthorSeries ? 'stack' : 'group',
+    showlegend: showLegend,
+    legend: showLegend
+      ? {
+          orientation: 'h',
+          yanchor: 'top',
+          y: legendY,
+          xanchor: 'left',
+          x: 0,
+          font: AXIS_LABEL_STYLE,
+        }
+      : undefined,
     margin: {
-      b: getBottomMargin(hasYearGroups, showMonthLabels, hasAnyYearLabels),
+      b: marginBottom,
       l: 50,
       pad: 5,
       t: 20,
@@ -174,7 +265,7 @@ export function buildCommitStatisticsPlotlyFigure(
         font: AXIS_TITLE_STYLE,
       },
       tickfont: AXIS_LABEL_STYLE,
-      automargin: true,
+      automargin: !showLegend,
     },
     yaxis: {
       title: {

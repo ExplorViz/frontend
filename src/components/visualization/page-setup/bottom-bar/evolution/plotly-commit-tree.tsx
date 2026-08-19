@@ -1,4 +1,6 @@
 import LinkButton from 'explorviz-frontend/src/components/link-button.tsx';
+import CommitChartAuthorFilters from 'explorviz-frontend/src/components/visualization/page-setup/bottom-bar/evolution/commit-chart-author-filters';
+import CommitChartFilters from 'explorviz-frontend/src/components/visualization/page-setup/bottom-bar/evolution/commit-chart-filters';
 import CommitChartSearch from 'explorviz-frontend/src/components/visualization/page-setup/bottom-bar/evolution/commit-chart-search';
 import CommitStatisticsWindow from 'explorviz-frontend/src/components/visualization/page-setup/bottom-bar/evolution/commit-statistics-window';
 import { useCommitTreeStateStore } from 'explorviz-frontend/src/stores/commit-tree-state';
@@ -8,9 +10,11 @@ import {
   buildBranchChartLineSegments,
   buildBranchChartSeries,
   formatCommitDate,
+  getCommitAuthorOptionsFromCommitTree,
   getFirstBranchWithCommits,
   getMetricValue,
   hasSkippedCommitsBetweenVisiblePoints,
+  removeCommitsNotInCommitTrees,
   removeFilteredCommitsFromSelection,
   toggleCommitInSelection,
 } from 'explorviz-frontend/src/utils/evolution-data-helpers';
@@ -21,6 +25,8 @@ import {
   CROSS_COMMIT_IDENTIFIER,
   getAvailableMetricNames,
   getDefaultMetricName,
+  hasActiveAuthorFilter,
+  hasActiveCommitTreeFilters,
   NONE_METRIC,
   RepoNameCommitTreeMap,
 } from 'explorviz-frontend/src/utils/evolution-schemes/evolution-data';
@@ -73,10 +79,14 @@ export default function PlotlyCommitTree({
   const plotlyCommitDivRef = useRef<HTMLDivElement>(null);
   const [selectedBranchName, setSelectedBranchName] = useState('');
   const [selectedMetric, setSelectedMetric] = useState(NONE_METRIC);
-  const [metricChangeThresholdInput, setMetricChangeThresholdInput] = useState(
-    String(DEFAULT_METRIC_CHANGE_THRESHOLD)
-  );
+  const [appliedMetricChangeThreshold, setAppliedMetricChangeThreshold] =
+    useState(DEFAULT_METRIC_CHANGE_THRESHOLD);
+  const [showFiltersRow, setShowFiltersRow] = useState(false);
+  const [showAuthorsRow, setShowAuthorsRow] = useState(false);
   const [showStatisticsWindow, setShowStatisticsWindow] = useState(false);
+  const appliedCommitTreeFilters = useCommitTreeStateStore(
+    (state) => state._commitTreeFilters
+  );
   const xAxisPlacement = useCommitTreeStateStore(
     (state) => state._xAxisPlacement
   );
@@ -102,11 +112,30 @@ export default function PlotlyCommitTree({
   const availableMetrics = selectedBranch
     ? getAvailableMetricNames(selectedBranch)
     : [];
+  const hasActiveFilters = hasActiveCommitTreeFilters(
+    appliedCommitTreeFilters,
+    appliedMetricChangeThreshold
+  );
+  const hasAuthorOptions = useMemo(
+    () => getCommitAuthorOptionsFromCommitTree(commitTree).length > 0,
+    [commitTree]
+  );
+  const isAuthorFilterActive = hasActiveAuthorFilter(appliedCommitTreeFilters);
 
   useEffect(() => {
-    const branch = getFirstBranchWithCommits(
-      repoNameCommitTreeMap.get(selectedRepoName)
-    );
+    const commitTreeForRepo = repoNameCommitTreeMap.get(selectedRepoName);
+    const currentBranchStillValid =
+      selectedBranchName !== '' &&
+      commitTreeForRepo?.branches.some(
+        (branch) =>
+          branch.name === selectedBranchName && branchHasAnalyzedCommits(branch)
+      );
+
+    if (currentBranchStillValid) {
+      return;
+    }
+
+    const branch = getFirstBranchWithCommits(commitTreeForRepo);
     if (branch) {
       setSelectedBranchName(branch.name);
       setSelectedMetric(getDefaultMetricName(branch));
@@ -114,7 +143,7 @@ export default function PlotlyCommitTree({
       setSelectedBranchName('');
       setSelectedMetric(NONE_METRIC);
     }
-  }, [selectedRepoName, repoNameCommitTreeMap]);
+  }, [selectedRepoName, repoNameCommitTreeMap, selectedBranchName]);
 
   useEffect(() => {
     if (!selectedBranch) {
@@ -129,14 +158,15 @@ export default function PlotlyCommitTree({
     }
   }, [selectedBranch, selectedMetric, availableMetrics]);
 
-  const metricChangeThreshold = useMemo(
-    () => parseMetricChangeThreshold(metricChangeThresholdInput),
-    [metricChangeThresholdInput]
-  );
+  const metricChangeThreshold = appliedMetricChangeThreshold;
   const isMetricChangeFilterActive =
-    selectedMetric !== NONE_METRIC &&
-    metricChangeThreshold != null &&
-    metricChangeThreshold > 0;
+    selectedMetric !== NONE_METRIC && metricChangeThreshold > 0;
+  const authorKeys = appliedCommitTreeFilters.authorKeys;
+
+  const branchChartSeriesOptions = {
+    ...(isMetricChangeFilterActive ? { metricChangeThreshold } : {}),
+    ...(authorKeys !== undefined ? { authorKeys } : {}),
+  };
 
   useEffect(() => {
     if (!selectedRepoName) {
@@ -148,9 +178,8 @@ export default function PlotlyCommitTree({
       selectedRepoName,
       repoNameCommitTreeMap,
       selectedMetric,
-      isMetricChangeFilterActive && metricChangeThreshold != null
-        ? metricChangeThreshold
-        : 0
+      isMetricChangeFilterActive ? metricChangeThreshold : 0,
+      authorKeys
     );
 
     if (updatedSelectedCommits === selectedCommits) {
@@ -162,6 +191,7 @@ export default function PlotlyCommitTree({
   }, [
     isMetricChangeFilterActive,
     metricChangeThreshold,
+    authorKeys,
     selectedMetric,
     selectedRepoName,
     repoNameCommitTreeMap,
@@ -182,7 +212,8 @@ export default function PlotlyCommitTree({
     selectedRepoName,
     repoNameCommitTreeMap,
     xAxisPlacement,
-    metricChangeThresholdInput,
+    appliedMetricChangeThreshold,
+    appliedCommitTreeFilters.authorKeys,
   ]);
 
   useEffect(() => {
@@ -202,9 +233,7 @@ export default function PlotlyCommitTree({
       selectedBranch,
       xAxisPlacement,
       selectedMetric,
-      isMetricChangeFilterActive
-        ? { metricChangeThreshold: metricChangeThreshold! }
-        : {}
+      branchChartSeriesOptions
     );
     const {
       commits: chartCommits,
@@ -287,9 +316,7 @@ export default function PlotlyCommitTree({
       selectedBranch,
       xAxisPlacement,
       selectedMetric,
-      isMetricChangeFilterActive
-        ? { metricChangeThreshold: metricChangeThreshold! }
-        : {}
+      branchChartSeriesOptions
     );
     const layout = buildLayout(
       selectedMetric,
@@ -394,6 +421,38 @@ export default function PlotlyCommitTree({
     triggerVizRenderingForSelectedCommits();
   };
 
+  const handleFiltersApplied = (metricChangeThreshold: number) => {
+    setAppliedMetricChangeThreshold(metricChangeThreshold);
+
+    const updatedSelectedCommits = removeCommitsNotInCommitTrees(
+      selectedCommits,
+      repoNameCommitTreeMap
+    );
+
+    let nextSelectedCommits = updatedSelectedCommits;
+    if (selectedRepoName) {
+      nextSelectedCommits = removeFilteredCommitsFromSelection(
+        updatedSelectedCommits,
+        selectedRepoName,
+        repoNameCommitTreeMap,
+        selectedMetric,
+        selectedMetric !== NONE_METRIC && metricChangeThreshold > 0
+          ? metricChangeThreshold
+          : 0,
+        authorKeys
+      );
+    }
+
+    if (nextSelectedCommits !== selectedCommits) {
+      setSelectedCommits(nextSelectedCommits);
+      triggerVizRenderingForSelectedCommits();
+    }
+  };
+
+  const handleAuthorFilterApplied = () => {
+    handleFiltersApplied(appliedMetricChangeThreshold);
+  };
+
   if (
     !repoNameCommitTreeMap ||
     !selectedRepoName ||
@@ -411,8 +470,74 @@ export default function PlotlyCommitTree({
   }
 
   return (
-    <div className="commit-metrics-chart">
+    <div
+      className={
+        showFiltersRow || showAuthorsRow
+          ? 'commit-metrics-chart'
+          : 'commit-metrics-chart commit-metrics-chart--filters-collapsed'
+      }
+    >
       <div className="commit-metrics-chart-controls">
+        <Button
+          variant={
+            hasActiveFilters
+              ? 'success'
+              : showFiltersRow
+                ? 'secondary'
+                : 'outline-secondary'
+          }
+          size="sm"
+          className="commit-metrics-chart-filters-toggle"
+          onClick={() => setShowFiltersRow((visible) => !visible)}
+          aria-expanded={showFiltersRow}
+          aria-controls="commit-chart-filter-row"
+          title={
+            showFiltersRow
+              ? 'Hide the filter row below'
+              : 'Show the filter row below'
+          }
+        >
+          <span className="commit-metrics-chart-filters-toggle-label">
+            {showFiltersRow ? 'Hide filters' : 'Show filters'}
+          </span>
+          <span
+            className={`commit-metrics-chart-filters-toggle-chevron${showFiltersRow ? ' commit-metrics-chart-filters-toggle-chevron--expanded' : ''}`}
+            aria-hidden="true"
+          >
+            ▼
+          </span>
+        </Button>
+        {hasAuthorOptions && (
+          <Button
+            variant={
+              isAuthorFilterActive
+                ? 'success'
+                : showAuthorsRow
+                  ? 'secondary'
+                  : 'outline-secondary'
+            }
+            size="sm"
+            className="commit-metrics-chart-filters-toggle"
+            onClick={() => setShowAuthorsRow((visible) => !visible)}
+            aria-expanded={showAuthorsRow}
+            aria-controls="commit-chart-author-row"
+            title={
+              showAuthorsRow
+                ? 'Hide the author filter section below'
+                : 'Show the author filter section below'
+            }
+          >
+            <span className="commit-metrics-chart-filters-toggle-label">
+              {showAuthorsRow ? 'Hide authors' : 'Authors'}
+            </span>
+            <span
+              className={`commit-metrics-chart-filters-toggle-chevron${showAuthorsRow ? ' commit-metrics-chart-filters-toggle-chevron--expanded' : ''}`}
+              aria-hidden="true"
+            >
+              ▼
+            </span>
+          </Button>
+        )}
         <label className="commit-metrics-chart-control">
           <span className="commit-metrics-chart-control-label">Branch</span>
           <select
@@ -454,28 +579,6 @@ export default function PlotlyCommitTree({
               </option>
             ))}
           </select>
-        </label>
-        <label className="commit-metrics-chart-control">
-          <span className="commit-metrics-chart-control-label">
-            Min. change
-          </span>
-          <input
-            type="number"
-            min={0}
-            step="any"
-            value={metricChangeThresholdInput}
-            onChange={(event) =>
-              setMetricChangeThresholdInput(event.target.value)
-            }
-            disabled={selectedMetric === NONE_METRIC}
-            aria-label="Minimum metric change to show a commit"
-            title={
-              selectedMetric === NONE_METRIC
-                ? 'Select a metric to filter commits by minimum change'
-                : 'Show the two commits surrounding each metric change of at least this amount. 0 shows all analyzed commits.'
-            }
-            className="commit-metrics-chart-threshold-input"
-          />
         </label>
         <label className="commit-metrics-chart-control">
           <span className="commit-metrics-chart-control-label">X-axis</span>
@@ -527,6 +630,17 @@ export default function PlotlyCommitTree({
           onSelectCommit={handleSearchSelectCommit}
         />
       </div>
+      <CommitChartFilters
+        expanded={showFiltersRow}
+        selectedMetric={selectedMetric}
+        appliedMetricChangeThreshold={appliedMetricChangeThreshold}
+        onFiltersApplied={handleFiltersApplied}
+      />
+      <CommitChartAuthorFilters
+        expanded={showAuthorsRow}
+        commitTree={commitTree}
+        onAuthorFilterApplied={handleAuthorFilterApplied}
+      />
       <div ref={plotlyCommitDivRef} className="plotlyCommitDiv" />
       {showStatisticsWindow && (
         <CommitStatisticsWindow
@@ -636,20 +750,6 @@ function buildPlotlyTraces({
   }
 
   return traces;
-}
-
-function parseMetricChangeThreshold(input: string): number | null {
-  const trimmed = input.trim();
-  if (trimmed === '') {
-    return null;
-  }
-
-  const parsed = Number(trimmed);
-  if (!Number.isFinite(parsed) || parsed < 0) {
-    return DEFAULT_METRIC_CHANGE_THRESHOLD;
-  }
-
-  return parsed;
 }
 
 function markTaggedCommits(

@@ -41,6 +41,10 @@ import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-setting
 import { useVisibilityServiceStore } from 'explorviz-frontend/src/stores/visibility-service';
 import { useVisualizationStore } from 'explorviz-frontend/src/stores/visualization-store';
 import { ALL_BUILDING_COMPARISONS_VISIBLE } from 'explorviz-frontend/src/utils/city-rendering/building-comparison-visibility';
+import {
+  applyNewestCommitSelectionToState,
+  markNewestCommitAutoSelectedForCurrentLandscape,
+} from 'explorviz-frontend/src/utils/code-analysis-reload';
 import eventEmitter from 'explorviz-frontend/src/utils/event-emitter';
 import { DynamicLandscapeData } from 'explorviz-frontend/src/utils/landscape-schemes/telemetry/traces';
 import { restoreSnapshotFromToken } from 'explorviz-frontend/src/utils/snapshot/snapshot-helpers';
@@ -440,30 +444,43 @@ export default function Visualization() {
     // Fetch repositories for evolution mode
     await fetchAndStoreRepositoryCommitTrees();
 
+    const repoNameCommitTreeMap =
+      useEvolutionDataRepositoryStore.getState()._repoNameCommitTreeMap;
+
+    const commitTreeState = useCommitTreeStateStore.getState();
+    if (commitTreeState.getSelectedCommits().size === 0) {
+      if (applyNewestCommitSelectionToState()) {
+        markNewestCommitAutoSelectedForCurrentLandscape();
+      }
+    }
+
     let showEvolutionVisualization = false;
 
-    const selectedRepo = getCurrentSelectedRepositoryName();
-    const selectedCommitsForCurrentSelectedRepo =
-      selectedCommits.get(selectedRepo);
-    setCommit1(
+    const updatedCommitTreeState = useCommitTreeStateStore.getState();
+    const selectedRepo =
+      updatedCommitTreeState.getCurrentSelectedRepositoryName();
+    const selectedCommitsForCurrentSelectedRepo = updatedCommitTreeState
+      .getSelectedCommits()
+      .get(selectedRepo);
+    const initialCommit1 =
       selectedCommitsForCurrentSelectedRepo &&
-        selectedCommitsForCurrentSelectedRepo.length > 0
+      selectedCommitsForCurrentSelectedRepo.length > 0
         ? selectedCommitsForCurrentSelectedRepo[0].commitId
-        : undefined
-    );
-    setCommit2(
+        : undefined;
+    const initialCommit2 =
       selectedCommitsForCurrentSelectedRepo &&
-        selectedCommitsForCurrentSelectedRepo.length > 1
+      selectedCommitsForCurrentSelectedRepo.length > 1
         ? selectedCommitsForCurrentSelectedRepo[1].commitId
-        : undefined
-    );
+        : undefined;
+    setCommit1(initialCommit1);
+    setCommit2(initialCommit2);
 
     // check what kind of rendering we should start
-    if (commit1 && commit1.length > 0) {
+    if (initialCommit1 && initialCommit1.length > 0) {
       showEvolutionVisualization = setDefaultState(
-        repoNameCommitTreeMapEvolutionDataRepository,
-        commit1,
-        commit2
+        repoNameCommitTreeMap,
+        initialCommit1,
+        initialCommit2
       );
 
       // Check which bottom bar should be displayed by default
@@ -477,7 +494,7 @@ export default function Visualization() {
     }
 
     if (showEvolutionVisualization) {
-      renderingServiceTriggerRenderingForSelectedCommits();
+      await renderingServiceTriggerRenderingForSelectedCommits();
     } else {
       applyRuntimeVisualizationDefaults();
       restartTimestampPollingAndVizUpdate([]);

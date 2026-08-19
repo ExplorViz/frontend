@@ -10,9 +10,57 @@ export type CommitTree = {
 
 export type CommitXAxisPlacement = 'equidistant' | 'time';
 
+export type CommitSampling = 'none' | 'daily' | 'monthly' | 'yearly';
+
+export type CommitTreeFilters = {
+  fromTimestamp?: number;
+  toTimestamp?: number;
+  sampling: CommitSampling;
+  firstParentOnly: boolean;
+  /** When set, only commits from these author keys are shown on the chart. */
+  authorKeys?: string[];
+};
+
+export const DEFAULT_COMMIT_TREE_FILTERS: CommitTreeFilters = {
+  sampling: 'none',
+  firstParentOnly: true,
+};
+
+export function hasActiveCommitTreeFilters(
+  filters: CommitTreeFilters,
+  metricChangeThreshold = 0
+): boolean {
+  return (
+    filters.fromTimestamp != null ||
+    filters.toTimestamp != null ||
+    filters.sampling !== 'none' ||
+    !filters.firstParentOnly ||
+    metricChangeThreshold > 0
+  );
+}
+
+export function hasActiveAuthorFilter(filters: CommitTreeFilters): boolean {
+  return filters.authorKeys !== undefined;
+}
+
+export type CommitTreeFilterOptions = {
+  fromTimestamp?: number;
+  toTimestamp?: number;
+  sampling?: CommitSampling;
+  firstParentOnly?: boolean;
+};
+
+export type CommitAuthor = {
+  contributorId?: number;
+  gitUsername?: string | null;
+  githubLogin?: string | null;
+  email?: string | null;
+};
+
 export type CommitNode = {
   hash: string;
   commitDate?: string;
+  author?: CommitAuthor;
   metrics?: Record<string, number>;
   hasAccumulatedMetrics?: boolean;
   tags?: string[];
@@ -73,12 +121,44 @@ export function normalizeCommitNode(commit: CommitNode | string): CommitNode {
     commit.hasAccumulatedMetrics ??
     (metrics != null && Object.keys(metrics).length > 0);
 
+  const normalizedAuthor = normalizeCommitAuthor(commit.author);
+
   return {
     hash: commit.hash,
     ...(commit.commitDate != null && { commitDate: commit.commitDate }),
+    ...(normalizedAuthor && { author: normalizedAuthor }),
     ...(hasAccumulatedMetrics && metrics && { metrics }),
     ...(tags.length > 0 && { tags }),
     hasAccumulatedMetrics,
+  };
+}
+
+function normalizeCommitAuthor(
+  author: CommitAuthor | null | undefined
+): CommitAuthor | undefined {
+  if (author == null) {
+    return undefined;
+  }
+
+  const contributorId = author.contributorId;
+  const gitUsername = author.gitUsername?.trim() || undefined;
+  const githubLogin = author.githubLogin?.trim() || undefined;
+  const email = author.email?.trim() || undefined;
+
+  if (
+    contributorId == null &&
+    gitUsername == null &&
+    githubLogin == null &&
+    email == null
+  ) {
+    return undefined;
+  }
+
+  return {
+    ...(contributorId != null && { contributorId }),
+    ...(gitUsername != null && { gitUsername }),
+    ...(githubLogin != null && { githubLogin }),
+    ...(email != null && { email }),
   };
 }
 
