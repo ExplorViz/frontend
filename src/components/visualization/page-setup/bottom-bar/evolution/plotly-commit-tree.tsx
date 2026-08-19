@@ -36,7 +36,14 @@ import {
   getCommitChartLinkTooltip,
 } from 'explorviz-frontend/src/utils/repository-file-url';
 import Plotly from 'plotly.js-dist';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type RefObject,
+} from 'react';
 import Button from 'react-bootstrap/Button';
 
 interface PlotlyCommitTreeArgs {
@@ -60,6 +67,17 @@ const BRANCH_LINE_COLOR = 'rgba(70, 130, 180, 1)';
 const SKIPPED_COMMIT_LINE_COLOR = 'rgba(70, 130, 180, 0.55)';
 const EMPTY_SELECTED_COMMITS: Commit[] = [];
 const DEFAULT_METRIC_CHANGE_THRESHOLD = 0;
+const MARKER_TRACE_INDEX = 0;
+const LABEL_TRACE_INDEX = 1;
+const INTERACTION_SETTLE_MS = 120;
+const COMMIT_HOVER_DISTANCE_PX = 20;
+const PLOTLY_CHART_CONFIG: Partial<Plotly.Config> = {
+  displayModeBar: false,
+  doubleClick: false,
+  responsive: false,
+  scrollZoom: true,
+  plotGlPixelRatio: 1,
+};
 
 const X_AXIS_PLACEMENT_OPTIONS: Array<{
   value: CommitXAxisPlacement;
@@ -68,6 +86,252 @@ const X_AXIS_PLACEMENT_OPTIONS: Array<{
   { value: 'equidistant', label: 'Equidistant' },
   { value: 'time', label: 'Time-based' },
 ];
+
+type PlotlyChartDiv = HTMLDivElement & {
+  removeAllListeners?: (event: string) => void;
+  on?: (event: string, handler: (data: Plotly.PlotMouseEvent) => void) => void;
+};
+
+type CommitChartListenerRefs = {
+  chartCommitsRef: RefObject<CommitNode[]>;
+  chartXValuesRef: RefObject<number[]>;
+  chartYValuesRef: RefObject<Array<number | null>>;
+  branchNameRef: RefObject<string>;
+  selectedCommitsRef: RefObject<Map<string, Commit[]>>;
+  selectedRepoNameRef: RefObject<string>;
+  repoNameCommitTreeMapRef: RefObject<RepoNameCommitTreeMap>;
+  xAxisPlacementRef: RefObject<CommitXAxisPlacement>;
+  setSelectedCommitsRef: RefObject<
+    (newSelectedCommits: Map<string, Commit[]>) => void
+  >;
+  triggerVizRenderingRef: RefObject<() => void>;
+  dashedLineTraceIndexRef: RefObject<number | null>;
+  interactionTimeoutRef: RefObject<number | undefined>;
+  isInteractingRef: RefObject<boolean>;
+};
+
+function toNumericDatum(value: Plotly.Datum): number | null {
+  if (typeof value === 'number' && Number.isFinite(value)) {
+    return value;
+  }
+
+  if (typeof value === 'string') {
+    const parsedDate = Date.parse(value);
+    if (!Number.isNaN(parsedDate)) {
+      return parsedDate;
+    }
+
+    const parsedNumber = Number(value);
+    if (Number.isFinite(parsedNumber)) {
+      return parsedNumber;
+    }
+  }
+
+  return null;
+}
+
+function resolveClickedCommitIndex(
+  data: Plotly.PlotMouseEvent,
+  xValues: number[],
+  yValues: Array<number | null>
+): number | null {
+  const markerPoint = data.points.find(
+    (point) => point.curveNumber === MARKER_TRACE_INDEX
+  );
+  if (markerPoint?.pointNumber != null) {
+    return markerPoint.pointNumber;
+  }
+
+  const clickedPoint = data.points[0];
+  if (!clickedPoint) {
+    return null;
+  }
+
+  const clickX = toNumericDatum(clickedPoint.x);
+  const clickY = toNumericDatum(clickedPoint.y);
+  if (clickX == null || clickY == null) {
+    return null;
+  }
+
+  let bestIndex: number | null = null;
+  let bestDistance = Infinity;
+
+  for (let index = 0; index < xValues.length; index++) {
+    const yValue = yValues[index];
+    if (yValue == null) {
+      continue;
+    }
+
+    const dx = xValues[index] - clickX;
+    const dy = yValue - clickY;
+    const distance = dx * dx + dy * dy;
+    if (distance < bestDistance) {
+      bestDistance = distance;
+      bestIndex = index;
+    }
+  }
+
+  return bestIndex;
+}
+
+type PlotlyFullLayoutAxis = {
+  _rangeInitial0?: number | string;
+  _rangeInitial1?: number | string;
+  range?: [unknown, unknown];
+};
+
+type PlotlyChartDivWithLayout = PlotlyChartDiv & {
+  _fullLayout?: {
+    xaxis: PlotlyFullLayoutAxis;
+    yaxis: PlotlyFullLayoutAxis;
+  };
+};
+
+function getDefaultAxisRange(
+  axis: PlotlyFullLayoutAxis | undefined,
+  fallbackRange?: [unknown, unknown]
+): [unknown, unknown] | undefined {
+  if (
+    axis?._rangeInitial0 !== undefined &&
+    axis?._rangeInitial1 !== undefined
+  ) {
+    return [axis._rangeInitial0, axis._rangeInitial1];
+  }
+
+  if (fallbackRange) {
+    return fallbackRange;
+  }
+
+  if (axis?.range) {
+    return [axis.range[0], axis.range[1]];
+  }
+
+  return undefined;
+}
+
+function getLayoutAxisRanges(chartLayout: ReturnType<typeof buildLayout>): {
+  xRange?: [unknown, unknown];
+  yRange?: [unknown, unknown];
+} {
+  const yValues = chartLayout.yaxis.range;
+  const yRange =
+    yValues && yValues.length >= 2
+      ? ([yValues[0], yValues[1]] as [unknown, unknown])
+      : undefined;
+
+  const xValues = chartLayout.xaxis.range;
+  if (!xValues || xValues.length < 2) {
+    return { yRange };
+  }
+
+  const xAxis = chartLayout.xaxis;
+  const xRange =
+    'type' in xAxis && xAxis.type === 'date'
+      ? ([
+          new Date(xValues[0]).toISOString(),
+          new Date(xValues[1]).toISOString(),
+        ] as [unknown, unknown])
+      : ([xValues[0], xValues[1]] as [unknown, unknown]);
+
+  return { xRange, yRange };
+}
+
+function attachCommitChartListeners(
+  plotlyDiv: PlotlyChartDiv,
+  refs: CommitChartListenerRefs
+) {
+  plotlyDiv.removeAllListeners?.('plotly_hover');
+  plotlyDiv.removeAllListeners?.('plotly_unhover');
+  plotlyDiv.removeAllListeners?.('plotly_relayouting');
+  plotlyDiv.removeAllListeners?.('plotly_click');
+
+  const dragLayer = plotlyDiv.querySelector('.nsewdrag') as HTMLElement | null;
+
+  const restoreInteractionState = () => {
+    if (!refs.isInteractingRef.current) {
+      return;
+    }
+
+    refs.isInteractingRef.current = false;
+
+    const tracesToShow = [LABEL_TRACE_INDEX];
+    const dashedLineTraceIndex = refs.dashedLineTraceIndexRef.current;
+    if (dashedLineTraceIndex != null) {
+      tracesToShow.push(dashedLineTraceIndex);
+    }
+
+    void Plotly.restyle(plotlyDiv, { visible: true }, tracesToShow);
+  };
+
+  const scheduleInteractionRestore = () => {
+    window.clearTimeout(refs.interactionTimeoutRef.current);
+    refs.interactionTimeoutRef.current = window.setTimeout(() => {
+      restoreInteractionState();
+    }, INTERACTION_SETTLE_MS);
+  };
+
+  plotlyDiv.on?.('plotly_hover', () => {
+    if (refs.isInteractingRef.current) {
+      return;
+    }
+    if (dragLayer) {
+      dragLayer.style.cursor = 'pointer';
+    }
+  });
+
+  plotlyDiv.on?.('plotly_unhover', () => {
+    if (dragLayer) {
+      dragLayer.style.cursor = '';
+    }
+  });
+
+  plotlyDiv.on?.('plotly_relayouting', () => {
+    if (!refs.isInteractingRef.current) {
+      refs.isInteractingRef.current = true;
+
+      const tracesToHide = [LABEL_TRACE_INDEX];
+      const dashedLineTraceIndex = refs.dashedLineTraceIndexRef.current;
+      if (dashedLineTraceIndex != null) {
+        tracesToHide.push(dashedLineTraceIndex);
+      }
+
+      void Plotly.restyle(plotlyDiv, { visible: false }, tracesToHide);
+    }
+
+    scheduleInteractionRestore();
+  });
+
+  plotlyDiv.on?.('plotly_click', (data) => {
+    const pointNumber = resolveClickedCommitIndex(
+      data,
+      refs.chartXValuesRef.current ?? [],
+      refs.chartYValuesRef.current ?? []
+    );
+    if (pointNumber == null) {
+      return;
+    }
+
+    const commitId =
+      refs.chartCommitsRef.current?.[pointNumber]?.hash ??
+      CROSS_COMMIT_IDENTIFIER;
+    const selectedCommit: Commit = {
+      commitId,
+      branchName: refs.branchNameRef.current ?? '',
+    };
+
+    const newSelectedCommits = toggleCommitInSelection(
+      refs.selectedCommitsRef.current ?? new Map(),
+      refs.selectedRepoNameRef.current ?? '',
+      selectedCommit,
+      refs.repoNameCommitTreeMapRef.current ?? new Map(),
+      refs.xAxisPlacementRef.current ?? 'equidistant',
+      MAX_COMMIT_SELECTION_PER_APP
+    );
+
+    refs.setSelectedCommitsRef.current?.(newSelectedCommits);
+    refs.triggerVizRenderingRef.current?.();
+  });
+}
 
 export default function PlotlyCommitTree({
   repoNameCommitTreeMap,
@@ -168,6 +432,155 @@ export default function PlotlyCommitTree({
     ...(authorKeys !== undefined ? { authorKeys } : {}),
   };
 
+  const chartSeries = useMemo(() => {
+    if (!selectedBranch) {
+      return null;
+    }
+
+    return buildBranchChartSeries(
+      selectedBranch,
+      xAxisPlacement,
+      selectedMetric,
+      branchChartSeriesOptions
+    );
+  }, [
+    selectedBranch,
+    xAxisPlacement,
+    selectedMetric,
+    isMetricChangeFilterActive,
+    metricChangeThreshold,
+    authorKeys,
+  ]);
+
+  const useSegmentedLines = useMemo(() => {
+    if (!chartSeries) {
+      return false;
+    }
+
+    return (
+      isMetricChangeFilterActive ||
+      hasSkippedCommitsBetweenVisiblePoints(chartSeries.originalIndices)
+    );
+  }, [chartSeries, isMetricChangeFilterActive]);
+
+  const hoverText = useMemo(
+    () =>
+      chartSeries ? buildHoverText(chartSeries.commits, selectedMetric) : [],
+    [chartSeries, selectedMetric]
+  );
+
+  const baseMarkerStyles = useMemo(() => {
+    if (!chartSeries) {
+      return null;
+    }
+
+    const colors = chartSeries.commits.map(() => BRANCH_LINE_COLOR);
+    const sizes = chartSeries.commits.map(() => COMMIT_UNSELECTED_SIZE);
+    const texts = chartSeries.commits.map(() => '');
+    markTaggedCommits(chartSeries.commits, sizes, texts);
+
+    return { colors, sizes, texts };
+  }, [chartSeries]);
+
+  const chartLayout = useMemo(() => {
+    if (!chartSeries) {
+      return null;
+    }
+
+    return buildLayout(
+      selectedMetric,
+      chartSeries.yValues,
+      chartSeries.xValues,
+      xAxisPlacement,
+      chartSeries.commits.length
+    );
+  }, [chartSeries, selectedMetric, xAxisPlacement]);
+
+  const chartUiRevision = useMemo(() => {
+    if (!chartSeries || !selectedBranch) {
+      return '';
+    }
+
+    const firstCommitHash = chartSeries.commits[0]?.hash ?? '';
+    const lastCommitHash =
+      chartSeries.commits[chartSeries.commits.length - 1]?.hash ?? '';
+
+    return [
+      selectedBranch.name,
+      selectedMetric,
+      xAxisPlacement,
+      appliedMetricChangeThreshold,
+      authorKeys?.join('|') ?? 'all-authors',
+      chartSeries.commits.length,
+      firstCommitHash,
+      lastCommitHash,
+    ].join(':');
+  }, [
+    chartSeries,
+    selectedBranch,
+    selectedMetric,
+    xAxisPlacement,
+    appliedMetricChangeThreshold,
+    authorKeys,
+  ]);
+
+  const chartCommitsRef = useRef<CommitNode[]>([]);
+  const chartXValuesRef = useRef<number[]>([]);
+  const chartYValuesRef = useRef<Array<number | null>>([]);
+  const branchNameRef = useRef('');
+  const selectedRepoNameRef = useRef(selectedRepoName);
+  const repoNameCommitTreeMapRef = useRef(repoNameCommitTreeMap);
+  const xAxisPlacementRef = useRef(xAxisPlacement);
+  const setSelectedCommitsRef = useRef(setSelectedCommits);
+  const triggerVizRenderingRef = useRef(triggerVizRenderingForSelectedCommits);
+  const chartReadyRef = useRef(false);
+  const dashedLineTraceIndexRef = useRef<number | null>(null);
+  const interactionTimeoutRef = useRef<number | undefined>(undefined);
+  const isInteractingRef = useRef(false);
+  const defaultAxisRangesRef = useRef<{
+    x: [unknown, unknown];
+    y: [unknown, unknown];
+  } | null>(null);
+  const selectedCommitsRef = useRef(selectedCommits);
+
+  useEffect(() => {
+    selectedCommitsRef.current = selectedCommits;
+    selectedRepoNameRef.current = selectedRepoName;
+    repoNameCommitTreeMapRef.current = repoNameCommitTreeMap;
+    xAxisPlacementRef.current = xAxisPlacement;
+    setSelectedCommitsRef.current = setSelectedCommits;
+    triggerVizRenderingRef.current = triggerVizRenderingForSelectedCommits;
+  }, [
+    selectedCommits,
+    selectedRepoName,
+    repoNameCommitTreeMap,
+    xAxisPlacement,
+    setSelectedCommits,
+    triggerVizRenderingForSelectedCommits,
+  ]);
+
+  const applySelectionToMarkerStyles = useCallback(
+    (styles: { colors: string[]; sizes: number[]; texts: string[] }) => {
+      if (!chartSeries) {
+        return styles;
+      }
+
+      const colors = [...styles.colors];
+      const sizes = [...styles.sizes];
+      const texts = [...styles.texts];
+      markSelectedCommits(
+        selectedCommitsForRepo,
+        chartSeries.commits,
+        colors,
+        sizes,
+        texts
+      );
+
+      return { colors, sizes, texts };
+    },
+    [chartSeries, selectedCommitsForRepo]
+  );
+
   useEffect(() => {
     if (!selectedRepoName) {
       return;
@@ -200,200 +613,201 @@ export default function PlotlyCommitTree({
     triggerVizRenderingForSelectedCommits,
   ]);
 
+  const listenerRefs: CommitChartListenerRefs = {
+    chartCommitsRef,
+    chartXValuesRef,
+    chartYValuesRef,
+    branchNameRef,
+    selectedCommitsRef,
+    selectedRepoNameRef,
+    repoNameCommitTreeMapRef,
+    xAxisPlacementRef,
+    setSelectedCommitsRef,
+    triggerVizRenderingRef,
+    dashedLineTraceIndexRef,
+    interactionTimeoutRef,
+    isInteractingRef,
+  };
+
+  const renderCommitChart = useCallback(
+    (
+      markerStyles: { colors: string[]; sizes: number[]; texts: string[] },
+      uiRevision: string
+    ) => {
+      if (
+        !plotlyCommitDivRef.current ||
+        !chartLayout ||
+        !chartSeries ||
+        !selectedBranch
+      ) {
+        return false;
+      }
+
+      chartCommitsRef.current = chartSeries.commits;
+      chartXValuesRef.current = chartSeries.xValues;
+      chartYValuesRef.current = chartSeries.yValues;
+      branchNameRef.current = selectedBranch.name;
+
+      const { traces, dashedLineTraceIndex } = buildPlotlyTraces({
+        branchName: selectedBranch.name,
+        colors: markerStyles.colors,
+        sizes: markerStyles.sizes,
+        texts: markerStyles.texts,
+        xValues: chartSeries.xValues,
+        yValues: chartSeries.yValues,
+        originalIndices: chartSeries.originalIndices,
+        hoverText,
+        useSegmentedLines,
+      });
+      dashedLineTraceIndexRef.current = dashedLineTraceIndex;
+
+      Plotly.react(
+        plotlyCommitDivRef.current,
+        traces,
+        {
+          ...chartLayout,
+          uirevision: uiRevision,
+        },
+        PLOTLY_CHART_CONFIG
+      );
+
+      attachCommitChartListeners(
+        plotlyCommitDivRef.current as PlotlyChartDiv,
+        listenerRefs
+      );
+
+      queueMicrotask(() => {
+        const plotlyDiv =
+          plotlyCommitDivRef.current as PlotlyChartDivWithLayout | null;
+        const layoutRanges = getLayoutAxisRanges(chartLayout);
+        const xRange = getDefaultAxisRange(
+          plotlyDiv?._fullLayout?.xaxis,
+          layoutRanges.xRange
+        );
+        const yRange = getDefaultAxisRange(
+          plotlyDiv?._fullLayout?.yaxis,
+          layoutRanges.yRange
+        );
+
+        if (xRange && yRange) {
+          defaultAxisRangesRef.current = { x: xRange, y: yRange };
+        }
+      });
+
+      chartReadyRef.current = true;
+      return true;
+    },
+    [chartLayout, chartSeries, selectedBranch, hoverText, useSegmentedLines]
+  );
+
   useEffect(() => {
-    if (!selectedBranch || !plotlyCommitDivRef.current) {
+    if (!selectedBranch || !baseMarkerStyles) {
+      chartReadyRef.current = false;
       return;
     }
 
-    renderChart(false);
+    renderCommitChart(baseMarkerStyles, chartUiRevision);
+  }, [selectedBranch, baseMarkerStyles, chartUiRevision, renderCommitChart]);
+
+  useEffect(() => {
+    if (
+      !chartReadyRef.current ||
+      !plotlyCommitDivRef.current ||
+      !baseMarkerStyles
+    ) {
+      return;
+    }
+
+    const markerStyles = applySelectionToMarkerStyles(baseMarkerStyles);
+    const labelTraceData = buildLabelTraceData(
+      chartSeries?.xValues ?? [],
+      chartSeries?.yValues ?? [],
+      markerStyles.texts
+    );
+
+    void Plotly.restyle(
+      plotlyCommitDivRef.current,
+      {
+        'marker.color': [markerStyles.colors],
+        'marker.size': [markerStyles.sizes],
+      },
+      [MARKER_TRACE_INDEX]
+    );
+
+    if (labelTraceData) {
+      void Plotly.restyle(
+        plotlyCommitDivRef.current,
+        {
+          x: [labelTraceData.x],
+          y: [labelTraceData.y],
+          text: [labelTraceData.text],
+          visible: isInteractingRef.current ? false : true,
+        },
+        [LABEL_TRACE_INDEX]
+      );
+    } else {
+      void Plotly.restyle(plotlyCommitDivRef.current, { visible: false }, [
+        LABEL_TRACE_INDEX,
+      ]);
+    }
   }, [
-    selectedBranch,
-    selectedMetric,
-    selectedRepoName,
-    repoNameCommitTreeMap,
-    xAxisPlacement,
-    appliedMetricChangeThreshold,
-    appliedCommitTreeFilters.authorKeys,
+    selectedCommitsForRepo,
+    baseMarkerStyles,
+    applySelectionToMarkerStyles,
+    chartSeries,
   ]);
 
   useEffect(() => {
-    if (!selectedBranch || !plotlyCommitDivRef.current) {
-      return;
-    }
-
-    renderChart(true);
-  }, [selectedCommits]);
-
-  const renderChart = (preserveView: boolean) => {
-    if (!selectedBranch || !plotlyCommitDivRef.current) {
-      return;
-    }
-
-    const chartSeries = buildBranchChartSeries(
-      selectedBranch,
-      xAxisPlacement,
-      selectedMetric,
-      branchChartSeriesOptions
-    );
-    const {
-      commits: chartCommits,
-      xValues,
-      yValues,
-      originalIndices,
-    } = chartSeries;
-
-    const colors = chartCommits.map(() => BRANCH_LINE_COLOR);
-    const sizes = chartCommits.map(() => COMMIT_UNSELECTED_SIZE);
-    const texts = chartCommits.map(() => '');
-
-    markTaggedCommits(chartCommits, sizes, texts);
-    markSelectedCommits(
-      selectedCommits.get(selectedRepoName) || [],
-      chartCommits,
-      colors,
-      sizes,
-      texts
-    );
-
-    const layout = buildLayout(
-      selectedMetric,
-      yValues,
-      xValues,
-      xAxisPlacement,
-      chartCommits.length
-    );
-    const plotlyDiv = plotlyCommitDivRef.current as HTMLDivElement & {
-      layout?: { xaxis?: { range?: number[] }; yaxis?: { range?: number[] } };
-      removeAllListeners?: (event: string) => void;
-      on?: (
-        event: string,
-        handler: (data: Plotly.PlotMouseEvent) => void
-      ) => void;
-    };
-
-    if (preserveView && plotlyDiv.layout?.xaxis?.range) {
-      layout.xaxis.range = [...plotlyDiv.layout.xaxis.range];
-    }
-    if (preserveView && plotlyDiv.layout?.yaxis?.range) {
-      layout.yaxis.range = [...plotlyDiv.layout.yaxis.range];
-    }
-
-    Plotly.react(
-      plotlyCommitDivRef.current,
-      buildPlotlyTraces({
-        branchName: selectedBranch.name,
-        chartCommits,
-        colors,
-        sizes,
-        texts,
-        xValues,
-        yValues,
-        originalIndices,
-        selectedMetric,
-        isMetricChangeFilterActive,
-        useSegmentedLines:
-          isMetricChangeFilterActive ||
-          hasSkippedCommitsBetweenVisiblePoints(originalIndices),
-      }),
-      layout,
-      {
-        displayModeBar: false,
-        doubleClick: false,
-        responsive: true,
-        scrollZoom: true,
+    const plotlyDiv = plotlyCommitDivRef.current;
+    return () => {
+      window.clearTimeout(interactionTimeoutRef.current);
+      if (plotlyDiv) {
+        Plotly.purge(plotlyDiv);
       }
-    );
-
-    setupPlotlyListener(selectedBranch.name, chartCommits);
-  };
+      chartReadyRef.current = false;
+    };
+  }, []);
 
   const refocusChart = () => {
-    if (!selectedBranch || !plotlyCommitDivRef.current) {
+    const plotlyDiv =
+      plotlyCommitDivRef.current as PlotlyChartDivWithLayout | null;
+    if (!plotlyDiv?._fullLayout) {
       return;
     }
 
-    const chartSeries = buildBranchChartSeries(
-      selectedBranch,
-      xAxisPlacement,
-      selectedMetric,
-      branchChartSeriesOptions
-    );
-    const layout = buildLayout(
-      selectedMetric,
-      chartSeries.yValues,
-      chartSeries.xValues,
-      xAxisPlacement,
-      chartSeries.commits.length
-    );
+    isInteractingRef.current = false;
+    window.clearTimeout(interactionTimeoutRef.current);
 
-    Plotly.relayout(plotlyCommitDivRef.current, {
-      'xaxis.range': layout.xaxis.range,
-      'yaxis.range': layout.yaxis.range,
-    });
-  };
+    const layoutRanges = chartLayout
+      ? getLayoutAxisRanges(chartLayout)
+      : { xRange: undefined, yRange: undefined };
+    const storedRanges = defaultAxisRangesRef.current;
+    const xRange =
+      storedRanges?.x ??
+      getDefaultAxisRange(plotlyDiv._fullLayout.xaxis, layoutRanges.xRange);
+    const yRange =
+      storedRanges?.y ??
+      getDefaultAxisRange(plotlyDiv._fullLayout.yaxis, layoutRanges.yRange);
 
-  const setupPlotlyListener = (
-    branchName: string,
-    chartCommits: CommitNode[]
-  ) => {
-    const plotlyDiv = plotlyCommitDivRef.current as HTMLDivElement & {
-      layout?: object;
-      removeAllListeners?: (event: string) => void;
-      on?: (
-        event: string,
-        handler: (data: Plotly.PlotMouseEvent) => void
-      ) => void;
-    };
-    const dragLayer = document.getElementsByClassName('nsewdrag')[0] as
-      | HTMLElement
-      | undefined;
-
-    if (!plotlyDiv?.layout) {
+    if (!xRange || !yRange) {
       return;
     }
 
-    plotlyDiv.removeAllListeners?.('plotly_hover');
-    plotlyDiv.removeAllListeners?.('plotly_unhover');
-    plotlyDiv.removeAllListeners?.('plotly_click');
-
-    plotlyDiv.on?.('plotly_hover', () => {
-      if (dragLayer) {
-        dragLayer.style.cursor = 'pointer';
-      }
-    });
-
-    plotlyDiv.on?.('plotly_unhover', () => {
-      if (dragLayer) {
-        dragLayer.style.cursor = '';
-      }
-    });
-
-    plotlyDiv.on?.('plotly_click', (data) => {
-      const markerPoint = data.points.find((point) => point.curveNumber === 0);
-      const pointNumber =
-        markerPoint?.pointNumber ?? data.points[0]?.pointNumber;
-      if (pointNumber == null) {
-        return;
+    void Plotly.relayout(plotlyDiv, {
+      'xaxis.autorange': false,
+      'xaxis.range[0]': xRange[0],
+      'xaxis.range[1]': xRange[1],
+      'yaxis.autorange': false,
+      'yaxis.range[0]': yRange[0],
+      'yaxis.range[1]': yRange[1],
+    }).then(() => {
+      const tracesToShow = [LABEL_TRACE_INDEX];
+      const dashedLineTraceIndex = dashedLineTraceIndexRef.current;
+      if (dashedLineTraceIndex != null) {
+        tracesToShow.push(dashedLineTraceIndex);
       }
 
-      const commitId =
-        chartCommits[pointNumber]?.hash ?? CROSS_COMMIT_IDENTIFIER;
-      const selectedCommit: Commit = {
-        commitId,
-        branchName,
-      };
-
-      const newSelectedCommits = toggleCommitInSelection(
-        selectedCommits,
-        selectedRepoName,
-        selectedCommit,
-        repoNameCommitTreeMap,
-        xAxisPlacement,
-        MAX_COMMIT_SELECTION_PER_APP
-      );
-
-      setSelectedCommits(newSelectedCommits);
-      triggerVizRenderingForSelectedCommits();
+      void Plotly.restyle(plotlyDiv, { visible: true }, tracesToShow);
     });
   };
 
@@ -654,62 +1068,102 @@ export default function PlotlyCommitTree({
   );
 }
 
+function buildLabelTraceData(
+  xValues: number[],
+  yValues: Array<number | null>,
+  texts: string[]
+): { x: number[]; y: number[]; text: string[] } | null {
+  const x: number[] = [];
+  const y: number[] = [];
+  const text: string[] = [];
+
+  for (let index = 0; index < texts.length; index++) {
+    const label = texts[index];
+    if (!label) {
+      continue;
+    }
+
+    x.push(xValues[index]);
+    y.push(yValues[index] ?? 0);
+    text.push(label);
+  }
+
+  if (x.length === 0) {
+    return null;
+  }
+
+  return { x, y, text };
+}
+
 function buildPlotlyTraces({
   branchName,
-  chartCommits,
   colors,
   sizes,
   texts,
   xValues,
   yValues,
   originalIndices,
-  selectedMetric,
-  isMetricChangeFilterActive,
+  hoverText,
   useSegmentedLines,
 }: {
   branchName: string;
-  chartCommits: CommitNode[];
   colors: string[];
   sizes: number[];
   texts: string[];
   xValues: number[];
   yValues: Array<number | null>;
   originalIndices: number[];
-  selectedMetric: string;
-  isMetricChangeFilterActive: boolean;
+  hoverText: string[];
   useSegmentedLines: boolean;
-}): Plotly.Data[] {
-  const hoverText = buildHoverText(chartCommits, selectedMetric);
+}): { traces: Plotly.Data[]; dashedLineTraceIndex: number | null } {
   const markerTrace: Plotly.Data = {
     name: branchName,
+    type: 'scattergl',
     marker: { color: colors, size: sizes },
-    mode: 'markers+text',
-    type: 'scatter',
+    mode: 'markers',
     hoverinfo: 'text',
+    hoveron: 'points',
     hoverlabel: { align: 'left' },
-    text: texts,
-    texttemplate: '%{text}',
-    cliponaxis: false,
+    cliponaxis: true,
     hovertext: hoverText,
+    x: xValues,
+    y: yValues,
+  };
+
+  const labelTraceData = buildLabelTraceData(xValues, yValues, texts);
+  const labelTrace: Plotly.Data = {
+    type: 'scatter',
+    mode: 'text',
+    x: labelTraceData?.x ?? [],
+    y: labelTraceData?.y ?? [],
+    text: labelTraceData?.text ?? [],
     textposition: 'middle center',
     textfont: {
       color: 'white',
       size: 10,
       family: 'Arial, sans-serif',
     },
-    x: xValues,
-    y: yValues,
+    hoverinfo: 'skip',
+    showlegend: false,
+    visible: labelTraceData != null,
+    cliponaxis: false,
   };
 
+  const traces: Plotly.Data[] = [markerTrace, labelTrace];
+  let dashedLineTraceIndex: number | null = null;
+
   if (!useSegmentedLines) {
-    return [
-      {
-        ...markerTrace,
-        line: { color: BRANCH_LINE_COLOR, width: 2 },
-        mode: 'lines+markers+text',
-        connectgaps: false,
-      },
-    ];
+    traces.push({
+      type: 'scattergl',
+      mode: 'lines',
+      x: xValues,
+      y: yValues,
+      line: { color: BRANCH_LINE_COLOR, width: 2 },
+      hoverinfo: 'skip',
+      showlegend: false,
+      connectgaps: false,
+    });
+    return { traces, dashedLineTraceIndex };
   }
 
   const lineSegments = buildBranchChartLineSegments(
@@ -717,11 +1171,10 @@ function buildPlotlyTraces({
     yValues,
     originalIndices
   );
-  const traces: Plotly.Data[] = [markerTrace];
 
   if (lineSegments.solid.x.length > 0) {
     traces.push({
-      type: 'scatter',
+      type: 'scattergl',
       mode: 'lines',
       x: lineSegments.solid.x,
       y: lineSegments.solid.y,
@@ -733,6 +1186,7 @@ function buildPlotlyTraces({
   }
 
   if (lineSegments.dashed.x.length > 0) {
+    dashedLineTraceIndex = traces.length;
     traces.push({
       type: 'scatter',
       mode: 'lines',
@@ -749,7 +1203,7 @@ function buildPlotlyTraces({
     });
   }
 
-  return traces;
+  return { traces, dashedLineTraceIndex };
 }
 
 function markTaggedCommits(
@@ -772,11 +1226,14 @@ function markSelectedCommits(
   sizes: number[],
   texts: string[]
 ) {
+  const commitIndexByHash = new Map<string, number>();
+  chartCommits.forEach((commit, index) => {
+    commitIndexByHash.set(commit.hash, index);
+  });
+
   allSelectedCommits.forEach((selectedCommit, selectionIndex) => {
-    const index = chartCommits.findIndex(
-      (commit) => commit.hash === selectedCommit.commitId
-    );
-    if (index !== -1) {
+    const index = commitIndexByHash.get(selectedCommit.commitId);
+    if (index !== undefined) {
       colors[index] = HIGHLIGHTED_MARKER_COLOR;
       sizes[index] = COMMIT_SELECTED_SIZE;
       texts[index] = (selectionIndex + 1).toString();
@@ -809,6 +1266,28 @@ function buildHoverText(
   });
 }
 
+function getNumericMinMax(values: Array<number | null>): {
+  min: number;
+  max: number;
+} {
+  let min = Number.POSITIVE_INFINITY;
+  let max = Number.NEGATIVE_INFINITY;
+
+  for (const value of values) {
+    if (value == null || !Number.isFinite(value)) {
+      continue;
+    }
+    min = Math.min(min, value);
+    max = Math.max(max, value);
+  }
+
+  if (!Number.isFinite(min) || !Number.isFinite(max)) {
+    return { min: 0, max: 1 };
+  }
+
+  return { min, max };
+}
+
 function buildLayout(
   metricName: string,
   yValues: Array<number | null>,
@@ -816,21 +1295,9 @@ function buildLayout(
   placement: CommitXAxisPlacement,
   commitCount = yValues.length
 ) {
-  const numericValues = yValues.filter(
-    (value): value is number => value != null && Number.isFinite(value)
-  );
-  const minY =
-    metricName === NONE_METRIC
-      ? -1
-      : numericValues.length > 0
-        ? Math.min(...numericValues)
-        : 0;
-  const maxY =
-    metricName === NONE_METRIC
-      ? 1
-      : numericValues.length > 0
-        ? Math.max(...numericValues)
-        : 1;
+  const { min: rawMinY, max: rawMaxY } = getNumericMinMax(yValues);
+  const minY = metricName === NONE_METRIC ? -1 : rawMinY;
+  const maxY = metricName === NONE_METRIC ? 1 : rawMaxY;
   const yPadding = metricName === NONE_METRIC ? 0 : (maxY - minY || 1) * 0.1;
 
   const xAxis =
@@ -840,9 +1307,11 @@ function buildLayout(
 
   return {
     hovermode: 'closest',
-    hoverdistance: 3,
+    hoverdistance: COMMIT_HOVER_DISTANCE_PX,
+    spikedistance: 0,
     dragmode: 'pan',
     margin: {
+      autoexpand: false,
       b: placement === 'time' ? 90 : 50,
       l: metricName === NONE_METRIC ? 20 : 60,
       pad: 5,
@@ -856,7 +1325,8 @@ function buildLayout(
       zeroline: metricName !== NONE_METRIC,
       showline: metricName !== NONE_METRIC,
       showticklabels: metricName !== NONE_METRIC,
-      automargin: metricName !== NONE_METRIC,
+      automargin: false,
+      ticklabeloverflow: 'allow',
       tickformat: metricName === NONE_METRIC ? undefined : '.2s',
       tickfont: { color: '#7f7f7f', size: 11 },
       title: {
@@ -881,6 +1351,7 @@ function buildEquidistantXAxis(commitCount: number) {
     tickvals,
     ticktext: tickvals.map((value) => String(value + 1)),
     tickangle: 0,
+    ticklabeloverflow: 'allow',
     tickfont: { color: '#7f7f7f', size: 11 },
     title: {
       text: 'Commits',
@@ -917,11 +1388,21 @@ function getEquidistantTickValues(
 }
 
 function buildTimeXAxis(xValues: number[]) {
-  const numericXValues = xValues.filter((value) => Number.isFinite(value));
-  const minX =
-    numericXValues.length > 0 ? Math.min(...numericXValues) : Date.now();
-  const maxX =
-    numericXValues.length > 0 ? Math.max(...numericXValues) : minX + 86_400_000;
+  let minX = Number.POSITIVE_INFINITY;
+  let maxX = Number.NEGATIVE_INFINITY;
+
+  for (const value of xValues) {
+    if (!Number.isFinite(value)) {
+      continue;
+    }
+    minX = Math.min(minX, value);
+    maxX = Math.max(maxX, value);
+  }
+
+  if (!Number.isFinite(minX) || !Number.isFinite(maxX)) {
+    minX = Date.now();
+    maxX = minX + 86_400_000;
+  }
   const spanMs = maxX - minX;
   const xPadding = Math.max(spanMs * 0.05, 86_400_000);
   const tickFormat = spanMs > 365 * 86_400_000 ? '%b %Y' : '%b %d, %Y';
@@ -934,9 +1415,11 @@ function buildTimeXAxis(xValues: number[]) {
     showgrid: true,
     gridcolor: '#e9ecef',
     showticklabels: true,
-    automargin: true,
+    automargin: false,
+    nticks: 6,
     tickangle: 0,
     tickformat: tickFormat,
+    ticklabeloverflow: 'allow',
     tickfont: { color: '#7f7f7f', size: 11 },
     title: {
       text: 'Commit date',
