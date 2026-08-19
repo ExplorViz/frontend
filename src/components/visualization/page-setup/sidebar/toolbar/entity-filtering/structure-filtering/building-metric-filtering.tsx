@@ -1,6 +1,7 @@
 import React, { forwardRef, useImperativeHandle } from 'react';
 
 import HelpTooltip from 'explorviz-frontend/src/components/help-tooltip';
+import { formatWithUpToTwoDecimals } from 'explorviz-frontend/src/components/visualization/rendering/popups/city-popups/building-metrics-utils';
 import { useRenderingServiceStore } from 'explorviz-frontend/src/stores/rendering-service';
 import { sortBuildingMetricNames } from 'explorviz-frontend/src/utils/settings/settings-schemas';
 
@@ -62,6 +63,12 @@ const BuildingMetricFiltering = forwardRef<
     },
   }));
 
+  const isNormalizedMetricBounds = (bounds: { min: number; max: number }) =>
+    bounds.min === 0 && bounds.max <= 1;
+
+  const getMetricStep = (bounds: { min: number; max: number }) =>
+    isNormalizedMetricBounds(bounds) ? 0.01 : 1;
+
   const clampMetricValue = (
     value: number,
     bounds: { min: number; max: number }
@@ -69,7 +76,8 @@ const BuildingMetricFiltering = forwardRef<
     if (!Number.isFinite(value)) {
       return bounds.min;
     }
-    return Math.min(bounds.max, Math.max(bounds.min, Math.round(value)));
+    const clamped = Math.min(bounds.max, Math.max(bounds.min, value));
+    return isNormalizedMetricBounds(bounds) ? clamped : Math.round(clamped);
   };
 
   const onValueInput = (
@@ -128,7 +136,7 @@ const BuildingMetricFiltering = forwardRef<
                   min={bounds.min}
                   max={bounds.max}
                   type="range"
-                  step="1"
+                  step={getMetricStep(bounds)}
                   className="building-metric-filter-slider form-control"
                   style={{ gridColumn: '2 / 5', gridRow: rowStart }}
                   onPointerUp={(event) => onPointerUp(event, metricName)}
@@ -138,14 +146,14 @@ const BuildingMetricFiltering = forwardRef<
                   className="building-metric-filter-bound building-metric-filter-bound--min"
                   style={{ gridColumn: 2, gridRow: rowStart + 1 }}
                 >
-                  {bounds.min}
+                  {formatWithUpToTwoDecimals(bounds.min)}
                 </span>
                 <input
                   className="building-metric-filter-value form-control"
                   type="number"
                   min={bounds.min}
                   max={bounds.max}
-                  step="1"
+                  step={getMetricStep(bounds)}
                   value={selected}
                   aria-label={`${metricName} threshold`}
                   style={{ gridColumn: 3, gridRow: rowStart + 1 }}
@@ -156,7 +164,7 @@ const BuildingMetricFiltering = forwardRef<
                   className="building-metric-filter-bound building-metric-filter-bound--max"
                   style={{ gridColumn: 4, gridRow: rowStart + 1 }}
                 >
-                  {bounds.max}
+                  {formatWithUpToTwoDecimals(bounds.max)}
                 </span>
               </React.Fragment>
             );
