@@ -1,5 +1,6 @@
-import { extend, ThreeElement, ThreeEvent } from '@react-three/fiber';
+import { extend, ThreeElement, ThreeEvent, useFrame } from '@react-three/fiber';
 import { InstancedMesh2 } from '@three.ez/instanced-mesh';
+import { useEvolutionAnimationStore } from 'explorviz-frontend/src/components/visualization/page-setup/bottom-bar/animation/evolution-animation-store';
 import useClickPreventionOnDoubleClick from 'explorviz-frontend/src/hooks/useClickPreventionOnDoubleClick';
 import { useCommitTreeStateStore } from 'explorviz-frontend/src/stores/commit-tree-state';
 import {
@@ -145,6 +146,7 @@ const GeometryGroup: React.FC<GeometryGroupProps> = ({
   const layoutMap = useLayoutStore((state) => state.buildingLayouts);
   const buildings = useModelStore((state) => state.buildings);
   const geometry = getBuildingGeometry(geometryType);
+  const lastAppliedFrameVersionRef = useRef(0);
 
   const {
     hiddenBuildingIds,
@@ -253,8 +255,84 @@ const GeometryGroup: React.FC<GeometryGroupProps> = ({
     );
   }
 
-  function computeColor(buildingId: string) {
+  function resolveBuilding(buildingId: string) {
     const building = buildings[buildingId];
+    if (!building) return undefined;
+
+    const { buildingVisualStates, totalCount } =
+      useEvolutionAnimationStore.getState();
+    if (totalCount === 0) return building;
+
+    const visual = buildingVisualStates.get(buildingId);
+    if (!visual) return building;
+
+    return { ...building, ...visual };
+  }
+
+  function isVisibleDueToEvolution(building: Building | undefined) {
+    if (!building || building.isPlaceholder) {
+      return false;
+    }
+    if (isDiffMode || evoConfig.renderOnlyDifferences) {
+      return !!building.commitComparison;
+    }
+    if (
+      building.originOfData === TypeOfAnalysis.Static ||
+      building.originOfData === TypeOfAnalysis.StaticAndDynamic
+    ) {
+      return evoConfig.renderStatic;
+    }
+    if (building.originOfData === TypeOfAnalysis.Dynamic) {
+      return evoConfig.renderDynamic;
+    }
+    return true;
+  }
+
+  function applyBuildingVisuals(changedOnly = false) {
+    if (meshRef === null || typeof meshRef === 'function' || !meshRef.current) {
+      return;
+    }
+
+    const { changedBuildingIds } = useEvolutionAnimationStore.getState();
+    const buildingIdsToUpdate =
+      changedOnly && changedBuildingIds.size > 0
+        ? changedBuildingIds
+        : buildingIdToInstanceIdRef.current.keys();
+
+    for (const buildingId of buildingIdsToUpdate) {
+      const instanceId = buildingIdToInstanceIdRef.current.get(buildingId);
+      if (instanceId === undefined) continue;
+
+      const building = resolveBuilding(buildingId);
+      meshRef.current?.setColorAt(instanceId, computeColor(buildingId));
+      meshRef.current?.setVisibilityAt(
+        instanceId,
+        isBuildingVisible({
+          buildingId,
+          building,
+          hiddenBuildingIds,
+          removedDistrictIds,
+          hiddenLanguages,
+        }) && isVisibleDueToEvolution(building)
+      );
+    }
+  }
+
+  useFrame(() => {
+    const { frameVersion, totalCount } = useEvolutionAnimationStore.getState();
+    if (totalCount === 0) {
+      lastAppliedFrameVersionRef.current = 0;
+      return;
+    }
+    if (frameVersion === lastAppliedFrameVersionRef.current) {
+      return;
+    }
+    lastAppliedFrameVersionRef.current = frameVersion;
+    applyBuildingVisuals(true);
+  });
+
+  function computeColor(buildingId: string) {
+    const building = resolveBuilding(buildingId);
     if (!building) {
       return new THREE.Color('red');
     }
@@ -424,8 +502,7 @@ const GeometryGroup: React.FC<GeometryGroupProps> = ({
     }
 
     const layoutsReady =
-      buildingIds.length === 0 ||
-      buildingIds.every((id) => layoutMap.has(id));
+      buildingIds.length === 0 || buildingIds.every((id) => layoutMap.has(id));
 
     if (!layoutsReady) {
       return;
@@ -440,77 +517,79 @@ const GeometryGroup: React.FC<GeometryGroupProps> = ({
       buildingIds.length === buildingIdToInstanceIdRef.current.size &&
       buildingIds.every((id) => buildingIdToInstanceIdRef.current.has(id));
 
-    if (hasMatchingInstances && enableAnimations) {
-      if (buildingIdToInstanceIdRef.current.size === 0) {
-        return;
-      }
-
-      const mesh = meshRef.current;
-      buildingIdToInstanceIdRef.current.forEach((instanceId, buildingId) => {
-        const tempMatrix = new Matrix4();
-        const pos = new Vector3();
-        const quat = new Quaternion();
-        const scale = new Vector3();
-
-        const building = useModelStore.getState().getBuilding(buildingId);
-        const layout = layoutMap.get(buildingId);
-        if (!building || !layout) return;
-
-        const targetHeight = getBuildingHeight(building);
-        const targetPositionX = layout.center.x;
-        const targetPositionY = layout.position.y + targetHeight / 2;
-        const targetPositionZ = layout.center.z;
-        const targetWidth = layout.width;
-        const targetDepth = layout.depth;
-
-        try {
-          mesh.getMatrixAt(instanceId, tempMatrix);
-        } catch {
-          return;
-        }
-        tempMatrix.decompose(pos, quat, scale);
-
-        if (
-          pos.x === targetPositionX &&
-          pos.y === targetPositionY &&
-          pos.z === targetPositionZ &&
-          scale.x === targetWidth &&
-          scale.y === targetHeight &&
-          scale.z === targetDepth
-        ) {
+    if (hasMatchingInstances) {
+      if (enableAnimations) {
+        if (buildingIdToInstanceIdRef.current.size === 0) {
           return;
         }
 
-        const values = {
-          width: scale.x,
-          depth: scale.z,
-          height: scale.y,
-          positionX: pos.x,
-          positionY: pos.y,
-          positionZ: pos.z,
-        };
+        const mesh = meshRef.current;
+        buildingIdToInstanceIdRef.current.forEach((instanceId, buildingId) => {
+          const tempMatrix = new Matrix4();
+          const pos = new Vector3();
+          const quat = new Quaternion();
+          const scale = new Vector3();
 
-        gsap.to(values, {
-          duration: animationDuration,
-          width: targetWidth,
-          height: targetHeight,
-          depth: targetDepth,
-          positionX: targetPositionX,
-          positionY: targetPositionY,
-          positionZ: targetPositionZ,
-          onUpdate: () => {
-            scale.x = values.width;
-            scale.y = values.height;
-            scale.z = values.depth;
-            pos.x = values.positionX;
-            pos.y = values.positionY;
-            pos.z = values.positionZ;
-            tempMatrix.compose(pos, quat, scale);
-            if (!meshRef || typeof meshRef === 'function') return;
-            mesh.setMatrixAt(instanceId, tempMatrix);
-          },
+          const building = useModelStore.getState().getBuilding(buildingId);
+          const layout = layoutMap.get(buildingId);
+          if (!building || !layout) return;
+
+          const targetHeight = getBuildingHeight(building);
+          const targetPositionX = layout.center.x;
+          const targetPositionY = layout.position.y + targetHeight / 2;
+          const targetPositionZ = layout.center.z;
+          const targetWidth = layout.width;
+          const targetDepth = layout.depth;
+
+          try {
+            mesh.getMatrixAt(instanceId, tempMatrix);
+          } catch {
+            return;
+          }
+          tempMatrix.decompose(pos, quat, scale);
+
+          if (
+            pos.x === targetPositionX &&
+            pos.y === targetPositionY &&
+            pos.z === targetPositionZ &&
+            scale.x === targetWidth &&
+            scale.y === targetHeight &&
+            scale.z === targetDepth
+          ) {
+            return;
+          }
+
+          const values = {
+            width: scale.x,
+            depth: scale.z,
+            height: scale.y,
+            positionX: pos.x,
+            positionY: pos.y,
+            positionZ: pos.z,
+          };
+
+          gsap.to(values, {
+            duration: animationDuration,
+            width: targetWidth,
+            height: targetHeight,
+            depth: targetDepth,
+            positionX: targetPositionX,
+            positionY: targetPositionY,
+            positionZ: targetPositionZ,
+            onUpdate: () => {
+              scale.x = values.width;
+              scale.y = values.height;
+              scale.z = values.depth;
+              pos.x = values.positionX;
+              pos.y = values.positionY;
+              pos.z = values.positionZ;
+              tempMatrix.compose(pos, quat, scale);
+              if (!meshRef || typeof meshRef === 'function') return;
+              mesh.setMatrixAt(instanceId, tempMatrix);
+            },
+          });
         });
-      });
+      }
       return;
     }
 
@@ -607,56 +686,37 @@ const GeometryGroup: React.FC<GeometryGroupProps> = ({
     enableHoverEffects,
   ]);
 
-  // React on changes of color
+  // React on changes of color and visibility outside animation playback
   useEffect(() => {
-    if (meshRef === null || typeof meshRef === 'function' || !meshRef.current) {
+    if (useEvolutionAnimationStore.getState().totalCount > 0) {
       return;
     }
-    buildingIdToInstanceIdRef.current.forEach((instanceId, buildingId) => {
-      meshRef.current?.setColorAt(instanceId, computeColor(buildingId));
-    });
+    applyBuildingVisuals();
   }, [
     highlightedEntityColor,
     heatmapActive,
     selectedBuildingMetric,
     selectedValueMapping,
     evoConfig.renderOnlyDifferences,
+    evoConfig.renderStatic,
+    evoConfig.renderDynamic,
     isDiffMode,
     addedBuildingColor,
     removedBuildingColor,
     modifiedBuildingColor,
     unchangedBuildingColor,
     agedBuildingColor,
-    hoveredEntityId,
-    highlightedEntityIds,
     visualizationSettings,
     enableHoverEffects,
     buildings,
+    hiddenBuildingIds,
+    removedDistrictIds,
+    hiddenLanguages,
   ]);
 
-  // React on changes of building visibility
   useEffect(() => {
-    if (meshRef === null || typeof meshRef === 'function') {
-      return;
-    }
-    if (!meshRef.current) return;
-
-    // Update the visibility of the instances based
-    instanceIdToBuildingIdRef.current.forEach((buildingId, instanceId) => {
-      // Set visibility based on hidden buildings
-      const building = useModelStore.getState().getBuilding(buildingId);
-      meshRef.current?.setVisibilityAt(
-        instanceId,
-        isBuildingVisible({
-          buildingId,
-          building,
-          hiddenBuildingIds,
-          removedDistrictIds,
-          hiddenLanguages,
-        }) && !building?.isPlaceholder
-      );
-    });
-  }, [meshRef, hiddenBuildingIds, removedDistrictIds, hiddenLanguages]);
+    applyBuildingVisuals();
+  }, [hoveredEntityId, highlightedEntityIds]);
 
   const handleClick = (e: ThreeEvent<MouseEvent>) => {
     if (meshRef === null || typeof meshRef === 'function') {

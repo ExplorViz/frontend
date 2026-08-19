@@ -1,4 +1,5 @@
 import ELK from 'elkjs/lib/elk.bundled.js';
+import { useEvolutionAnimationStore } from 'explorviz-frontend/src/components/visualization/page-setup/bottom-bar/animation/evolution-animation-store.ts';
 import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
 import {
   Building,
@@ -23,7 +24,6 @@ import {
   BuildingMetricMapping,
   SelectedBuildingMetric,
 } from 'explorviz-frontend/src/utils/settings/settings-schemas';
-import { useEvolutionAnimationStore } from 'explorviz-frontend/src/components/visualization/page-setup/bottom-bar/animation/evolution-animation-store.ts';
 
 // Prefixes with leading non-number characters are temporarily added
 // since ELK cannot handle IDs with leading numbers
@@ -137,7 +137,6 @@ export default async function layoutLandscape(
   landscape: FlatLandscape,
   removedDistrictIds: Set<string>
 ) {
-
   setVisualizationSettings();
   const signature = computeLayoutSignature(landscape, removedDistrictIds);
   const animationActive = useEvolutionAnimationStore.getState().totalCount > 0;
@@ -240,7 +239,7 @@ export default async function layoutLandscape(
   }
   console.log(
     `[layout] ${Math.round(performance.now() - _t0)}ms for ` +
-    `${Object.keys(landscape.buildings).length} buildings`
+      `${Object.keys(landscape.buildings).length} buildings`
   );
   cachedLayoutSignature = signature;
   cachedLayoutResult = boxLayoutMap;

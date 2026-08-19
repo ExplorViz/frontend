@@ -1,6 +1,15 @@
-import { FlatLandscape,  AnimationFrame, AnimationSkeleton, AnimationDeltaFrame} from 'explorviz-frontend/src/utils/landscape-schemes/flat-landscape';
+import {
+  AnimationDeltaFrame,
+  AnimationFrame,
+  AnimationSkeleton,
+  FlatLandscape,
+} from 'explorviz-frontend/src/utils/landscape-schemes/flat-landscape';
 import { create } from 'zustand';
-
+import {
+  computeEvolutionFrameVisuals,
+  EvolutionBuildingVisualState,
+  mergeEvolutionVisualStates,
+} from './evolution-frame-visuals';
 
 export const WINDOW_SIZE = 50;
 
@@ -20,10 +29,13 @@ interface EvolutionAnimationState {
   bucketSize: number;
   orderedCommitTimestamps: number[];
   agingEnabled: boolean;
-  agingCommits: number; // threshold in frames (commit mode)
-  agingMs: number; // threshold in milliseconds (time mode)
+  agingCommits: number;
+  agingMs: number;
   deltaMode: boolean;
   deltaFrames: Map<number, AnimationDeltaFrame>;
+  buildingVisualStates: Map<string, EvolutionBuildingVisualState>;
+  frameVersion: number;
+  changedBuildingIds: Set<string>;
   actions: {
     setSkeleton: (skeleton: AnimationSkeleton) => void;
     setTotalCount: (total: number) => void;
@@ -44,106 +56,199 @@ interface EvolutionAnimationState {
     setAgingMs: (ms: number) => void;
     addDeltaFrames: (frames: AnimationDeltaFrame[]) => void;
     setDeltaMode: (enabled: boolean) => void;
+    reapplyCurrentFrameVisuals: () => void;
     reset: () => void;
   };
 }
 
-export const useEvolutionAnimationStore = create<EvolutionAnimationState>((set) => ({
-  totalCount: 0,
-  loadedFrames: new Map(),
-  requestedBlocks: new Set(),
-  orderedCommitHashes: [],
-  granularity: 1,
-  stableFrame: null,
-  fqnToFirstFrame: new Map(),
-  currentFrameIndex: 0,
-  isPlaying: false,
-  layoutMode: 'spiral',
-  timeMode: 'commit',
-  speedMs: 1000,
-  bucketSize: 86400000,
-  orderedCommitTimestamps: [],
-  agingEnabled: false,
-  agingCommits: 10,
-  agingMs: 2592000000, // 30 days
-  deltaMode: true,
-  deltaFrames: new Map(),
-  actions: {
-    setSkeleton: (skeleton) =>
-      set({
-        stableFrame: skeleton.landscape,
-        fqnToFirstFrame: new Map(Object.entries(skeleton.fqnToFirstOrdinal)),
-        orderedCommitHashes: skeleton.orderedCommitHashes,
-        orderedCommitTimestamps: skeleton.orderedCommitTimestamps,
-      }),
-    setTotalCount: (total) =>
-      set({
-        totalCount: total,
-        loadedFrames: new Map(),
-        requestedBlocks: new Set(),
-        currentFrameIndex: 0,
-        isPlaying: false,
-        deltaFrames: new Map(),
-      }),
-    addFrames: (frames) =>
-      set((s) => {
-        const next = new Map(s.loadedFrames);
-        frames.forEach((f) => next.set(f.ordinal, f));
-        return { loadedFrames: next };
-      }),
-    markBlockRequested: (block) =>
-      set((s) => ({ requestedBlocks: new Set(s.requestedBlocks).add(block) })),
-    setGranularity: (granul: number) =>
-      set({ granularity: Math.max(1, granul) }),
-    play: () => set({ isPlaying: true }),
-    pause: () => set({ isPlaying: false }),
-    stepForward: () =>
-      set((s) => ({
-        currentFrameIndex: Math.min(s.currentFrameIndex + 1, s.totalCount - 1),
-      })),
-    stepBack: () =>
-      set((s) => ({
-        currentFrameIndex: Math.max(s.currentFrameIndex - 1, 0),
-      })),
-    seekTo: (index) =>
-      set((s) => ({
-        currentFrameIndex: Math.max(0, Math.min(index, s.totalCount - 1)),
-      })),
-    setLayoutMode: (mode: 'city' | 'spiral') => set({ layoutMode: mode }),
-    setTimeMode: (mode: 'commit' | 'time') => set({ timeMode: mode }),
-    setSpeed: (ms) => set({ speedMs: ms }),
-    setBucketSize: (bucketSize) => set({ bucketSize: Math.max(1, bucketSize) }),
-    setAgingEnabled: (enabled) => set({ agingEnabled: enabled }),
-    setAgingCommits: (commits) => set({ agingCommits: Math.max(1, commits) }),
-    setAgingMs: (ms) => set({ agingMs: Math.max(1, ms) }),
-    addDeltaFrames: (frames) =>
-      set((s) => {
-        const next = new Map(s.deltaFrames);
-        frames.forEach((f) => next.set(f.ordinal, f));
-        return { deltaFrames: next };
-      }),
-    setDeltaMode: (enabled) =>
-      set({
-        deltaMode: enabled,
-        loadedFrames: new Map(),
-        deltaFrames: new Map(),
-        requestedBlocks: new Set(),
-      }),
-    reset: () =>
-      set({
-        totalCount: 0,
-        loadedFrames: new Map(),
-        requestedBlocks: new Set(),
-        orderedCommitHashes: [],
-        stableFrame: null,
-        currentFrameIndex: 0,
-        isPlaying: false,
-        deltaFrames: new Map(),
-      }),
-  },
-}));
+function applyFrameVisuals(
+  state: EvolutionAnimationState,
+  frameIndex: number = state.currentFrameIndex
+): Partial<EvolutionAnimationState> {
+  const nextVisuals = computeEvolutionFrameVisuals({
+    currentFrameIndex: frameIndex,
+    stableFrame: state.stableFrame,
+    loadedFrames: state.loadedFrames,
+    deltaFrames: state.deltaFrames,
+    deltaMode: state.deltaMode,
+    agingEnabled: state.agingEnabled,
+    agingCommits: state.agingCommits,
+    agingMs: state.agingMs,
+    timeMode: state.timeMode,
+  });
+
+  if (!nextVisuals) {
+    return {};
+  }
+
+  const merged = mergeEvolutionVisualStates(
+    state.buildingVisualStates,
+    nextVisuals,
+    state.frameVersion
+  );
+
+  if (!merged.changed) {
+    return {};
+  }
+
+  return {
+    buildingVisualStates: merged.buildingVisualStates,
+    frameVersion: merged.frameVersion,
+    changedBuildingIds: merged.changedBuildingIds,
+  };
+}
+
+function updateFrameIndex(
+  state: EvolutionAnimationState,
+  frameIndex: number
+): Partial<EvolutionAnimationState> {
+  return {
+    currentFrameIndex: frameIndex,
+    ...applyFrameVisuals(state, frameIndex),
+  };
+}
+
+export const useEvolutionAnimationStore = create<EvolutionAnimationState>(
+  (set) => ({
+    totalCount: 0,
+    loadedFrames: new Map(),
+    requestedBlocks: new Set(),
+    orderedCommitHashes: [],
+    granularity: 1,
+    stableFrame: null,
+    fqnToFirstFrame: new Map(),
+    currentFrameIndex: 0,
+    isPlaying: false,
+    layoutMode: 'spiral',
+    timeMode: 'commit',
+    speedMs: 1000,
+    bucketSize: 86400000,
+    orderedCommitTimestamps: [],
+    agingEnabled: false,
+    agingCommits: 10,
+    agingMs: 2592000000,
+    deltaMode: true,
+    deltaFrames: new Map(),
+    buildingVisualStates: new Map(),
+    frameVersion: 0,
+    changedBuildingIds: new Set(),
+    actions: {
+      setSkeleton: (skeleton) =>
+        set({
+          stableFrame: skeleton.landscape,
+          fqnToFirstFrame: new Map(Object.entries(skeleton.fqnToFirstOrdinal)),
+          orderedCommitHashes: skeleton.orderedCommitHashes,
+          orderedCommitTimestamps: skeleton.orderedCommitTimestamps,
+        }),
+      setTotalCount: (total) =>
+        set({
+          totalCount: total,
+          loadedFrames: new Map(),
+          requestedBlocks: new Set(),
+          currentFrameIndex: 0,
+          isPlaying: false,
+          deltaFrames: new Map(),
+          buildingVisualStates: new Map(),
+          frameVersion: 0,
+          changedBuildingIds: new Set(),
+        }),
+      addFrames: (frames) =>
+        set((s) => {
+          const next = new Map(s.loadedFrames);
+          frames.forEach((f) => next.set(f.ordinal, f));
+          const nextState = { ...s, loadedFrames: next };
+          return {
+            loadedFrames: next,
+            ...applyFrameVisuals(nextState),
+          };
+        }),
+      markBlockRequested: (block) =>
+        set((s) => ({
+          requestedBlocks: new Set(s.requestedBlocks).add(block),
+        })),
+      setGranularity: (granul: number) =>
+        set({ granularity: Math.max(1, granul) }),
+      play: () => set({ isPlaying: true }),
+      pause: () => set({ isPlaying: false }),
+      stepForward: () =>
+        set((s) => {
+          const nextIndex = Math.min(s.currentFrameIndex + 1, s.totalCount - 1);
+          if (nextIndex === s.currentFrameIndex) return s;
+          return updateFrameIndex(s, nextIndex);
+        }),
+      stepBack: () =>
+        set((s) => {
+          const nextIndex = Math.max(s.currentFrameIndex - 1, 0);
+          if (nextIndex === s.currentFrameIndex) return s;
+          return updateFrameIndex(s, nextIndex);
+        }),
+      seekTo: (index) =>
+        set((s) => {
+          const nextIndex = Math.max(0, Math.min(index, s.totalCount - 1));
+          if (nextIndex === s.currentFrameIndex) return s;
+          return updateFrameIndex(s, nextIndex);
+        }),
+      setLayoutMode: (mode: 'city' | 'spiral') => set({ layoutMode: mode }),
+      setTimeMode: (mode: 'commit' | 'time') => set({ timeMode: mode }),
+      setSpeed: (ms) => set({ speedMs: ms }),
+      setBucketSize: (bucketSize) =>
+        set({ bucketSize: Math.max(1, bucketSize) }),
+      setAgingEnabled: (enabled) =>
+        set((s) => ({
+          agingEnabled: enabled,
+          ...applyFrameVisuals({ ...s, agingEnabled: enabled }),
+        })),
+      setAgingCommits: (commits) =>
+        set((s) => ({
+          agingCommits: Math.max(1, commits),
+          ...applyFrameVisuals({ ...s, agingCommits: Math.max(1, commits) }),
+        })),
+      setAgingMs: (ms) =>
+        set((s) => ({
+          agingMs: Math.max(1, ms),
+          ...applyFrameVisuals({ ...s, agingMs: Math.max(1, ms) }),
+        })),
+      addDeltaFrames: (frames) =>
+        set((s) => {
+          const next = new Map(s.deltaFrames);
+          frames.forEach((f) => next.set(f.ordinal, f));
+          const nextState = { ...s, deltaFrames: next };
+          return {
+            deltaFrames: next,
+            ...applyFrameVisuals(nextState),
+          };
+        }),
+      setDeltaMode: (enabled) =>
+        set({
+          deltaMode: enabled,
+          loadedFrames: new Map(),
+          deltaFrames: new Map(),
+          requestedBlocks: new Set(),
+          buildingVisualStates: new Map(),
+          frameVersion: 0,
+          changedBuildingIds: new Set(),
+        }),
+      reapplyCurrentFrameVisuals: () => set((s) => applyFrameVisuals(s)),
+      reset: () =>
+        set({
+          totalCount: 0,
+          loadedFrames: new Map(),
+          requestedBlocks: new Set(),
+          orderedCommitHashes: [],
+          stableFrame: null,
+          currentFrameIndex: 0,
+          isPlaying: false,
+          deltaFrames: new Map(),
+          buildingVisualStates: new Map(),
+          frameVersion: 0,
+          changedBuildingIds: new Set(),
+        }),
+    },
+  })
+);
 
 export const getCurrentFrame = (): FlatLandscape | null => {
-  const { loadedFrames, currentFrameIndex } = useEvolutionAnimationStore.getState();
+  const { loadedFrames, currentFrameIndex } =
+    useEvolutionAnimationStore.getState();
   return loadedFrames.get(currentFrameIndex)?.landscape ?? null;
 };
