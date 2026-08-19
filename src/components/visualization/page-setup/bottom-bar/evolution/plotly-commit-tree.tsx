@@ -658,6 +658,7 @@ export default function PlotlyCommitTree({
         originalIndices: chartSeries.originalIndices,
         hoverText,
         useSegmentedLines,
+        xAxisPlacement,
       });
       dashedLineTraceIndexRef.current = dashedLineTraceIndex;
 
@@ -697,7 +698,14 @@ export default function PlotlyCommitTree({
       chartReadyRef.current = true;
       return true;
     },
-    [chartLayout, chartSeries, selectedBranch, hoverText, useSegmentedLines]
+    [
+      chartLayout,
+      chartSeries,
+      selectedBranch,
+      hoverText,
+      useSegmentedLines,
+      xAxisPlacement,
+    ]
   );
 
   useEffect(() => {
@@ -1069,11 +1077,11 @@ export default function PlotlyCommitTree({
 }
 
 function buildLabelTraceData(
-  xValues: number[],
+  xValues: Plotly.Datum[],
   yValues: Array<number | null>,
   texts: string[]
-): { x: number[]; y: number[]; text: string[] } | null {
-  const x: number[] = [];
+): { x: Plotly.Datum[]; y: number[]; text: string[] } | null {
+  const x: Plotly.Datum[] = [];
   const y: number[] = [];
   const text: string[] = [];
 
@@ -1095,6 +1103,36 @@ function buildLabelTraceData(
   return { x, y, text };
 }
 
+function toPlotlyDateValue(ms: number): string {
+  return new Date(ms).toISOString();
+}
+
+function toPlotlyXValues(
+  xValues: number[],
+  placement: CommitXAxisPlacement
+): Plotly.Datum[] {
+  if (placement !== 'time') {
+    return xValues;
+  }
+
+  return xValues.map((value) =>
+    Number.isFinite(value) ? toPlotlyDateValue(value) : value
+  );
+}
+
+function toPlotlyNullableXValues(
+  xValues: Array<number | null>,
+  placement: CommitXAxisPlacement
+): Array<Plotly.Datum | null> {
+  if (placement !== 'time') {
+    return xValues;
+  }
+
+  return xValues.map((value) =>
+    value != null && Number.isFinite(value) ? toPlotlyDateValue(value) : value
+  );
+}
+
 function buildPlotlyTraces({
   branchName,
   colors,
@@ -1105,6 +1143,7 @@ function buildPlotlyTraces({
   originalIndices,
   hoverText,
   useSegmentedLines,
+  xAxisPlacement,
 }: {
   branchName: string;
   colors: string[];
@@ -1115,7 +1154,10 @@ function buildPlotlyTraces({
   originalIndices: number[];
   hoverText: string[];
   useSegmentedLines: boolean;
+  xAxisPlacement: CommitXAxisPlacement;
 }): { traces: Plotly.Data[]; dashedLineTraceIndex: number | null } {
+  const plotlyXValues = toPlotlyXValues(xValues, xAxisPlacement);
+
   const markerTrace: Plotly.Data = {
     name: branchName,
     type: 'scattergl',
@@ -1126,11 +1168,11 @@ function buildPlotlyTraces({
     hoverlabel: { align: 'left' },
     cliponaxis: true,
     hovertext: hoverText,
-    x: xValues,
+    x: plotlyXValues,
     y: yValues,
   };
 
-  const labelTraceData = buildLabelTraceData(xValues, yValues, texts);
+  const labelTraceData = buildLabelTraceData(plotlyXValues, yValues, texts);
   const labelTrace: Plotly.Data = {
     type: 'scatter',
     mode: 'text',
@@ -1156,7 +1198,7 @@ function buildPlotlyTraces({
     traces.push({
       type: 'scattergl',
       mode: 'lines',
-      x: xValues,
+      x: plotlyXValues,
       y: yValues,
       line: { color: BRANCH_LINE_COLOR, width: 2 },
       hoverinfo: 'skip',
@@ -1176,7 +1218,7 @@ function buildPlotlyTraces({
     traces.push({
       type: 'scattergl',
       mode: 'lines',
-      x: lineSegments.solid.x,
+      x: toPlotlyNullableXValues(lineSegments.solid.x, xAxisPlacement),
       y: lineSegments.solid.y,
       line: { color: BRANCH_LINE_COLOR, width: 2 },
       hoverinfo: 'skip',
@@ -1190,7 +1232,7 @@ function buildPlotlyTraces({
     traces.push({
       type: 'scatter',
       mode: 'lines',
-      x: lineSegments.dashed.x,
+      x: toPlotlyNullableXValues(lineSegments.dashed.x, xAxisPlacement),
       y: lineSegments.dashed.y,
       line: {
         color: SKIPPED_COMMIT_LINE_COLOR,
@@ -1311,8 +1353,8 @@ function buildLayout(
     spikedistance: 0,
     dragmode: 'pan',
     margin: {
-      autoexpand: false,
-      b: placement === 'time' ? 90 : 50,
+      autoexpand: placement === 'time',
+      b: placement === 'time' ? 70 : 50,
       l: metricName === NONE_METRIC ? 20 : 60,
       pad: 5,
       t: 10,
@@ -1409,17 +1451,19 @@ function buildTimeXAxis(xValues: number[]) {
 
   return {
     type: 'date' as const,
-    range: [minX - xPadding, maxX + xPadding],
+    range: [
+      toPlotlyDateValue(minX - xPadding),
+      toPlotlyDateValue(maxX + xPadding),
+    ],
     showline: true,
     linecolor: '#adb5bd',
     showgrid: true,
     gridcolor: '#e9ecef',
     showticklabels: true,
-    automargin: false,
-    nticks: 6,
+    automargin: true,
     tickangle: 0,
     tickformat: tickFormat,
-    ticklabeloverflow: 'allow',
+    hoverformat: '%b %d, %Y',
     tickfont: { color: '#7f7f7f', size: 11 },
     title: {
       text: 'Commit date',
