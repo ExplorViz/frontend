@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { OverlayTrigger, Tooltip } from 'react-bootstrap';
-import { PopperRef } from 'react-bootstrap/esm/types';
+import { PopperRef } from 'react-bootstrap/types';
 
 function clamp(value: number, min: number, max: number) {
   return Math.max(min, Math.min(max, value));
