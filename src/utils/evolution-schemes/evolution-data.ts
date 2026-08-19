@@ -23,7 +23,7 @@ export type CommitTreeFilters = {
 
 export const DEFAULT_COMMIT_TREE_FILTERS: CommitTreeFilters = {
   sampling: 'none',
-  firstParentOnly: true,
+  firstParentOnly: false,
 };
 
 export function hasActiveCommitTreeFilters(
@@ -33,8 +33,8 @@ export function hasActiveCommitTreeFilters(
   return (
     filters.fromTimestamp != null ||
     filters.toTimestamp != null ||
-    filters.sampling !== 'none' ||
-    !filters.firstParentOnly ||
+    filters.sampling !== DEFAULT_COMMIT_TREE_FILTERS.sampling ||
+    filters.firstParentOnly !== DEFAULT_COMMIT_TREE_FILTERS.firstParentOnly ||
     metricChangeThreshold > 0
   );
 }

@@ -3,6 +3,7 @@ import { useEvolutionDataRepositoryStore } from 'explorviz-frontend/src/stores/r
 import {
   CommitSampling,
   CommitTreeFilters,
+  DEFAULT_COMMIT_TREE_FILTERS,
   hasActiveCommitTreeFilters,
   NONE_METRIC,
 } from 'explorviz-frontend/src/utils/evolution-schemes/evolution-data';
@@ -63,8 +64,12 @@ export default function CommitChartFilters({
 
   const [draftFrom, setDraftFrom] = useState('');
   const [draftTo, setDraftTo] = useState('');
-  const [draftSampling, setDraftSampling] = useState<CommitSampling>('none');
-  const [draftFirstParentOnly, setDraftFirstParentOnly] = useState(true);
+  const [draftSampling, setDraftSampling] = useState<CommitSampling>(
+    DEFAULT_COMMIT_TREE_FILTERS.sampling
+  );
+  const [draftFirstParentOnly, setDraftFirstParentOnly] = useState(
+    DEFAULT_COMMIT_TREE_FILTERS.firstParentOnly
+  );
   const [draftMetricChangeThresholdInput, setDraftMetricChangeThresholdInput] =
     useState(String(DEFAULT_METRIC_CHANGE_THRESHOLD));
   const [isApplying, setIsApplying] = useState(false);
@@ -131,13 +136,12 @@ export default function CommitChartFilters({
   const handleReset = async () => {
     setDraftFrom('');
     setDraftTo('');
-    setDraftSampling('none');
-    setDraftFirstParentOnly(true);
+    setDraftSampling(DEFAULT_COMMIT_TREE_FILTERS.sampling);
+    setDraftFirstParentOnly(DEFAULT_COMMIT_TREE_FILTERS.firstParentOnly);
     setDraftMetricChangeThresholdInput(String(DEFAULT_METRIC_CHANGE_THRESHOLD));
     await applyFilters(
       {
-        sampling: 'none',
-        firstParentOnly: true,
+        ...DEFAULT_COMMIT_TREE_FILTERS,
         ...(appliedFilters.authorKeys !== undefined
           ? { authorKeys: appliedFilters.authorKeys }
           : {}),
