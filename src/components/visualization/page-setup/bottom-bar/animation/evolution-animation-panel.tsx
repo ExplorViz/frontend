@@ -125,7 +125,8 @@ export default function EvolutionAnimationPanel({
           WINDOW_SIZE,
           store.granularity,
           store.timeMode,
-          store.bucketSize
+          store.bucketSize,
+          store.loadedAgingWindow
         );
         actions.setTotalCount(firstWindow.totalCount);
         actions.addDeltaFrames(firstWindow.frames);
@@ -170,7 +171,8 @@ export default function EvolutionAnimationPanel({
           WINDOW_SIZE,
           store.granularity,
           store.timeMode,
-          store.bucketSize
+          store.bucketSize,
+          store.loadedAgingWindow
         );
         store.actions.setTotalCount(win.totalCount);
         store.actions.addDeltaFrames(win.frames);

@@ -22,6 +22,7 @@ interface EvolutionAnimationState {
   agingEnabled: boolean;
   agingCommits: number; // threshold in frames (commit mode)
   agingMs: number; // threshold in milliseconds (time mode)
+  loadedAgingWindow: number;
   deltaMode: boolean;
   deltaFrames: Map<number, AnimationDeltaFrame>;
   actions: {
@@ -47,6 +48,24 @@ interface EvolutionAnimationState {
     reset: () => void;
   };
 }
+function applyAgingWindow(
+  state: { loadedAgingWindow: number; timeMode: 'commit' | 'time' },
+  enabled: boolean,
+  commits: number,
+  ms: number,
+  patch: object
+) {
+  const wanted = enabled ? (state.timeMode === 'time' ? ms : commits) : 1;
+  if (wanted <= state.loadedAgingWindow) {
+    return patch;
+  }
+  return {
+    ...patch,
+    loadedAgingWindow: wanted,
+    deltaFrames: new Map<number, AnimationDeltaFrame>(),
+    requestedBlocks: new Set<number>(),
+  };
+}
 
 export const useEvolutionAnimationStore = create<EvolutionAnimationState>((set) => ({
   totalCount: 0,
@@ -66,6 +85,7 @@ export const useEvolutionAnimationStore = create<EvolutionAnimationState>((set) 
   agingEnabled: false,
   agingCommits: 10,
   agingMs: 2592000000, // 30 days
+  loadedAgingWindow: 1,
   deltaMode: true,
   deltaFrames: new Map(),
   actions: {
@@ -77,14 +97,19 @@ export const useEvolutionAnimationStore = create<EvolutionAnimationState>((set) 
         orderedCommitTimestamps: skeleton.orderedCommitTimestamps,
       }),
     setTotalCount: (total) =>
-      set({
+      set((s) =>({
         totalCount: total,
         loadedFrames: new Map(),
         requestedBlocks: new Set(),
         currentFrameIndex: 0,
         isPlaying: false,
         deltaFrames: new Map(),
-      }),
+        loadedAgingWindow: s.agingEnabled
+          ? s.timeMode === 'time'
+            ? s.agingMs
+            : s.agingCommits
+          : 1,
+      })),
     addFrames: (frames) =>
       set((s) => {
         const next = new Map(s.loadedFrames);
@@ -113,9 +138,26 @@ export const useEvolutionAnimationStore = create<EvolutionAnimationState>((set) 
     setTimeMode: (mode: 'commit' | 'time') => set({ timeMode: mode }),
     setSpeed: (ms) => set({ speedMs: ms }),
     setBucketSize: (bucketSize) => set({ bucketSize: Math.max(1, bucketSize) }),
-    setAgingEnabled: (enabled) => set({ agingEnabled: enabled }),
-    setAgingCommits: (commits) => set({ agingCommits: Math.max(1, commits) }),
-    setAgingMs: (ms) => set({ agingMs: Math.max(1, ms) }),
+    setAgingEnabled: (enabled) =>
+      set((s) =>
+        applyAgingWindow(s, enabled, s.agingCommits, s.agingMs, {
+          agingEnabled: enabled,
+        })
+      ),
+    setAgingCommits: (commits) =>
+      set((s) => {
+        const next = Math.max(1, commits);
+        return applyAgingWindow(s, s.agingEnabled, next, s.agingMs, {
+          agingCommits: next,
+        });
+      }),
+    setAgingMs: (ms) =>
+      set((s) => {
+        const next = Math.max(1, ms);
+        return applyAgingWindow(s, s.agingEnabled, s.agingCommits, next, {
+          agingMs: next,
+        });
+      }),
     addDeltaFrames: (frames) =>
       set((s) => {
         const next = new Map(s.deltaFrames);

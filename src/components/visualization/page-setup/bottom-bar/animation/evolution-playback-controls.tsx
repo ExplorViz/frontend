@@ -67,7 +67,8 @@ export default function EvolutionPlaybackControls() {
           WINDOW_SIZE,
           s.granularity,
           s.timeMode,
-          s.bucketSize
+          s.bucketSize,
+          s.loadedAgingWindow
         );
         useEvolutionAnimationStore
           .getState()
@@ -190,7 +191,7 @@ export default function EvolutionPlaybackControls() {
     useEffect(() => {
       if (!deltaMode || !stableFrame) return;
       const decoded = decodeDeltaFrame(deltaFrames, currentFrameIndex);
-      if (!decoded) return; // block still loading → keep showing the previous frame
+      if (!decoded) return;
 
       const currentDate = deltaFrames.get(currentFrameIndex)?.authorDate ?? 0;
       const mergedBuildings = { ...stableFrame.buildings };
@@ -243,6 +244,26 @@ export default function EvolutionPlaybackControls() {
     }, speedMs);
     return () => clearInterval(interval);
   }, [isPlaying, speedMs]);
+
+  useEffect(() => {
+    if (!stableFrame) return;
+    if (deltaMode ? deltaFrames.size > 0 : loadedFrames.size > 0) return;
+
+    const placeholders = { ...stableFrame.buildings };
+    Object.keys(placeholders).forEach((id) => {
+      placeholders[id] = {
+        ...placeholders[id],
+        isPlaceholder: true,
+        commitComparison: undefined,
+        agingFactor: undefined,
+      };
+    });
+
+    triggerRendering({ ...stableFrame, buildings: placeholders }, [], {
+      metrics: {},
+      communications: [],
+    });
+  }, [stableFrame, deltaMode, deltaFrames, loadedFrames]);
 
   if (totalCount === 0) return null;
 

@@ -26,7 +26,8 @@ interface EvolutionAnimationFetchState {
     count?: number,
     granularity?: number,
     groupBy?: string,
-    bucketSize?: number
+    bucketSize?: number,
+    agingWindow?: number
   ): Promise<AnimationDeltaWindow>;
 
   fetchAnimationSkeleton(repositoryName: string): Promise<AnimationSkeleton>;
@@ -68,7 +69,8 @@ export const useEvolutionAnimationFetchServiceStore =
       count?: number,
       granularity?: number,
       groupBy?: string,
-      bucketSize?: number
+      bucketSize?: number,
+      agingWindow?: number
     ): Promise<AnimationDeltaWindow> => {
       const base = get()._constructUrl(
         'structure/evolution',
@@ -84,6 +86,8 @@ export const useEvolutionAnimationFetchServiceStore =
       if (groupBy !== undefined) params.set('groupBy', groupBy);
       if (bucketSize !== undefined)
         params.set('bucketSize', String(bucketSize));
+      if (agingWindow !== undefined)
+        params.set('agingWindow', String(agingWindow));
       const query = params.toString();
       const url = query ? `${base}?${query}` : base;
       return await get()._fetchFromService<AnimationDeltaWindow>(url);
