@@ -1,4 +1,5 @@
 import ELK from 'elkjs/lib/elk.bundled.js';
+import { useEvolutionAnimationStore } from 'explorviz-frontend/src/components/visualization/page-setup/bottom-bar/animation/evolution-animation-store.ts';
 import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
 import {
   Building,
@@ -23,7 +24,6 @@ import {
   BuildingMetricMapping,
   SelectedBuildingMetric,
 } from 'explorviz-frontend/src/utils/settings/settings-schemas';
-import { useEvolutionAnimationStore } from 'explorviz-frontend/src/components/visualization/page-setup/bottom-bar/animation/evolution-animation-store.ts';
 
 // Prefixes with leading non-number characters are temporarily added
 // since ELK cannot handle IDs with leading numbers
@@ -113,7 +113,6 @@ export default async function layoutLandscape(
   landscape: FlatLandscape,
   removedDistrictIds: Set<string>
 ) {
-
   setVisualizationSettings();
   const animationState = useEvolutionAnimationStore.getState();
   const skeleton = animationState.stableFrame;

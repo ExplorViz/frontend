@@ -1,17 +1,23 @@
-import { useCommitTreeStateStore } from 'explorviz-frontend/src/stores/commit-tree-state';
 import { useEvolutionAnimationFetchServiceStore } from 'explorviz-frontend/src/components/visualization/page-setup/bottom-bar/animation/evolution-animation-fetch-service';
-import { useEvolutionAnimationStore, WINDOW_SIZE } from 'explorviz-frontend/src/components/visualization/page-setup/bottom-bar/animation/evolution-animation-store';
-import { useState, useEffect } from 'react';
-import { useShallow } from 'zustand/react/shallow';
-import { createPortal } from 'react-dom';
+import {
+  useEvolutionAnimationStore,
+  WINDOW_SIZE,
+} from 'explorviz-frontend/src/components/visualization/page-setup/bottom-bar/animation/evolution-animation-store';
+import {
+  applyEvolutionRenderingConfig,
+  applySkeletonLayout,
+} from 'explorviz-frontend/src/components/visualization/page-setup/bottom-bar/animation/evolution-rendering-setup';
+import { useCommitTreeStateStore } from 'explorviz-frontend/src/stores/commit-tree-state';
+import {
+  BuildingMetricMapping,
+  SELECTED_BUILDING_METRIC_OPTIONS,
+} from 'explorviz-frontend/src/utils/settings/settings-schemas';
+import { useEffect, useState } from 'react';
 import Button from 'react-bootstrap/Button';
 import Form from 'react-bootstrap/Form';
-import { useRenderingServiceStore } from 'explorviz-frontend/src/stores/rendering-service';
-import { useVisibilityServiceStore } from 'explorviz-frontend/src/stores/visibility-service';
 import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
-import { ALL_BUILDING_COMPARISONS_VISIBLE } from 'explorviz-frontend/src/utils/city-rendering/building-comparison-visibility';
-import { SELECTED_BUILDING_METRIC_OPTIONS } from 'explorviz-frontend/src/utils/settings/settings-schemas';
-import { BuildingMetricMapping } from 'explorviz-frontend/src/utils/settings/settings-schemas';
+import { createPortal } from 'react-dom';
+import { useShallow } from 'zustand/react/shallow';
 
 const UNITS = [
   { label: 'Hour', ms: 3600000 },
@@ -25,13 +31,25 @@ export default function EvolutionAnimationPanel({
 }: {
   onClose: () => void;
 }) {
-  const { layoutMode, timeMode, speedMs, granularity, bucketSize, agingEnabled, agingCommits, agingMs, deltaMode, rangeFrom, rangeTo } = useEvolutionAnimationStore(
+  const {
+    layoutMode,
+    timeMode,
+    speedMs,
+    granularity,
+    bucketSize,
+    agingEnabled,
+    agingCommits,
+    agingMs,
+    deltaMode,
+    rangeFrom,
+    rangeTo
+  } = useEvolutionAnimationStore(
     useShallow((state) => ({
       layoutMode: state.layoutMode,
       timeMode: state.timeMode,
       speedMs: state.speedMs,
       granularity: state.granularity,
-      bucketSize:state.bucketSize,
+      bucketSize: state.bucketSize,
       agingEnabled: state.agingEnabled,
       agingCommits: state.agingCommits,
       agingMs: state.agingMs,
@@ -40,8 +58,18 @@ export default function EvolutionAnimationPanel({
       rangeTo: state.rangeTo,
     }))
   );
-  const { setLayoutMode, setTimeMode, setSpeed, setGranularity, setBucketSize, setAgingEnabled, setAgingCommits, setAgingMs, setDeltaMode, setRange } =
-    useEvolutionAnimationStore.getState().actions;
+  const {
+    setLayoutMode,
+    setTimeMode,
+    setSpeed,
+    setGranularity,
+    setBucketSize,
+    setAgingEnabled,
+    setAgingCommits,
+    setAgingMs,
+    setDeltaMode,
+    setRange,
+  } = useEvolutionAnimationStore.getState().actions;
   const [isLoading, setIsLoading] = useState(false);
   const [timeCount, setTimeCount] = useState(1);
   const [timeUnit, setTimeUnit] = useState(86400000);
@@ -74,18 +102,18 @@ export default function EvolutionAnimationPanel({
     (state) => state.fetchAnimationDeltaWindow
   );
 
-    //Sync when layout is toggeled
+  //Sync when layout is toggeled
   useEffect(() => {
-
     useUserSettingsStore
       .getState()
       .updateSetting(
         'buildingLayoutAlgorithm',
         layoutMode === 'spiral' ? 'spiral' : 'None'
       );
+    applySkeletonLayout();
   }, [layoutMode]);
 
- //On mount
+  //On mount
   /*
   useEffect(() => {
     if (!repositoryName) return;
@@ -108,12 +136,12 @@ export default function EvolutionAnimationPanel({
     return () => {
       cancelled = true;
     };
+  }, []);
   },[]);*/
   useEffect(() => {
     if (!repositoryName) return;
     useCommitTreeStateStore.getState().resetSelectedCommits();
   }, []);
-
 
   const handleStart = async () => {
     if (!repositoryName) return;
@@ -128,6 +156,7 @@ export default function EvolutionAnimationPanel({
           store.rangeTo
         );
         actions.setSkeleton(skeleton);
+        applySkeletonLayout(skeleton.landscape);
       }
 
       if (store.deltaMode) {
@@ -144,29 +173,20 @@ export default function EvolutionAnimationPanel({
         );
         actions.setTotalCount(firstWindow.totalCount);
         actions.addDeltaFrames(firstWindow.frames);
-      }else{
-        const firstWindow = await fetchWindow(repositoryName, 0, WINDOW_SIZE, store.granularity, store.timeMode, store.bucketSize
+      } else {
+        const firstWindow = await fetchWindow(
+          repositoryName,
+          0,
+          WINDOW_SIZE,
+          store.granularity,
+          store.timeMode,
+          store.bucketSize
         );
         actions.setTotalCount(firstWindow.totalCount);
         actions.addFrames(firstWindow.frames);
       }
       actions.markBlockRequested(0);
-      useRenderingServiceStore
-        .getState()
-        .setAnalysisModeFromEvolutionRenderingConfig({
-          renderDynamic: false,
-          renderStatic: true,
-          renderOnlyDifferences: true,
-          buildingComparisonVisibility: ALL_BUILDING_COMPARISONS_VISIBLE,
-        });
-      useVisibilityServiceStore
-        .getState()
-        .applyEvolutionModeRenderingConfiguration({
-          renderDynamic: false,
-          renderStatic: true,
-          renderOnlyDifferences: true,
-          buildingComparisonVisibility: ALL_BUILDING_COMPARISONS_VISIBLE,
-        });
+      applyEvolutionRenderingConfig();
       useEvolutionAnimationStore.getState().actions.setSpeed(speedMs);
       useEvolutionAnimationStore.getState().actions.play(); // auto-start
     } catch (e) {
@@ -175,42 +195,41 @@ export default function EvolutionAnimationPanel({
       setIsLoading(false);
     }
   };
-    const reloadAnimation = async () => {
-      if (!repositoryName) return;
-      const store = useEvolutionAnimationStore.getState();
-      if (store.deltaMode) {
-        const win = await fetchDeltaWindow(
-          repositoryName,
-          0,
-          WINDOW_SIZE,
-          store.granularity,
-          store.timeMode,
-          store.bucketSize,
-          store.loadedAgingWindow,
-          store.rangeFrom,
-          store.rangeTo
-        );
-        store.actions.setTotalCount(win.totalCount);
-        store.actions.addDeltaFrames(win.frames);
-      } else {
-        const win = await fetchWindow(
-          repositoryName,
-          0,
-          WINDOW_SIZE,
-          store.granularity,
-          store.timeMode,
-          store.bucketSize
-        );
-        store.actions.setTotalCount(win.totalCount);
-        store.actions.addFrames(win.frames);
-      }
-      store.actions.markBlockRequested(0);
-    };
+  const reloadAnimation = async () => {
+    if (!repositoryName) return;
+    const store = useEvolutionAnimationStore.getState();
+    if (store.deltaMode) {
+      const win = await fetchDeltaWindow(
+        repositoryName,
+        0,
+        WINDOW_SIZE,
+        store.granularity,
+        store.timeMode,
+        store.bucketSize,
+        store.loadedAgingWindow,
+        store.rangeFrom,
+        store.rangeTo
+      );
+      store.actions.setTotalCount(win.totalCount);
+      store.actions.addDeltaFrames(win.frames);
+    } else {
+      const win = await fetchWindow(
+        repositoryName,
+        0,
+        WINDOW_SIZE,
+        store.granularity,
+        store.timeMode,
+        store.bucketSize
+      );
+      store.actions.setTotalCount(win.totalCount);
+      store.actions.addFrames(win.frames);
+    }
+    store.actions.markBlockRequested(0);
+  };
   const applyTimeBucket = (count: number, unitMs: number) => {
     setBucketSize(Math.max(1, count * unitMs));
     void reloadAnimation();
   };
-
 
   return createPortal(
     <div
@@ -378,7 +397,7 @@ export default function EvolutionAnimationPanel({
       )}
       <Form.Group className="mb-3">
         <Form.Label style={{ fontSize: '12px', color: '#aaa' }}>
-          Höhen-Metrik
+          Height Metric
         </Form.Label>
         <Form.Select
           size="sm"
@@ -397,7 +416,7 @@ export default function EvolutionAnimationPanel({
         <Form.Label
           style={{ fontSize: '12px', color: '#aaa', marginTop: '6px' }}
         >
-          Strategie
+          Strategy
         </Form.Label>
         <Form.Select
           size="sm"
@@ -440,7 +459,7 @@ export default function EvolutionAnimationPanel({
         <Form.Check
           type="switch"
           id="delta-switch"
-          label="Delta-Modus (Streaming)"
+          label="Delta Mode (Streaming)"
           checked={deltaMode}
           onChange={(e) => setDeltaMode(e.target.checked)}
           style={{ fontSize: '12px' }}
@@ -480,7 +499,7 @@ export default function EvolutionAnimationPanel({
         <Form.Check
           type="switch"
           id="aging-switch"
-          label="Aging (Ausgrauen)"
+          label="Aging (grey out)"
           checked={agingEnabled}
           onChange={(e) => setAgingEnabled(e.target.checked)}
           style={{ fontSize: '12px' }}
@@ -490,7 +509,7 @@ export default function EvolutionAnimationPanel({
             <Form.Label
               style={{ fontSize: '12px', color: '#aaa', marginTop: '6px' }}
             >
-              Ausgrauen nach: {agingCommits} Commits
+              Grey out after: {agingCommits} Commits
             </Form.Label>
             <Form.Control
               type="number"
@@ -508,7 +527,7 @@ export default function EvolutionAnimationPanel({
             <Form.Label
               style={{ fontSize: '12px', color: '#aaa', marginTop: '6px' }}
             >
-              Ausgrauen nach
+              Grey out after
             </Form.Label>
             <div style={{ display: 'flex', gap: '4px' }}>
               <Form.Control

@@ -1,9 +1,10 @@
 import LinkButton from 'explorviz-frontend/src/components/link-button.tsx';
-import CommitChartSearch from 'explorviz-frontend/src/components/visualization/page-setup/bottom-bar/evolution/commit-chart-search';
 import { useEvolutionAnimationStore } from 'explorviz-frontend/src/components/visualization/page-setup/bottom-bar/animation/evolution-animation-store';
+import CommitChartSearch from 'explorviz-frontend/src/components/visualization/page-setup/bottom-bar/evolution/commit-chart-search';
 import { useCommitTreeStateStore } from 'explorviz-frontend/src/stores/commit-tree-state';
 import {
   addCommitToSelection,
+  BranchChartSeries,
   buildBranchChartSeries,
   formatCommitDate,
   getFirstBranchWithCommits,
@@ -11,6 +12,7 @@ import {
   toggleCommitInSelection,
 } from 'explorviz-frontend/src/utils/evolution-data-helpers';
 import {
+  Branch,
   Commit,
   CommitNode,
   CommitXAxisPlacement,
@@ -45,7 +47,8 @@ const MAX_COMMIT_SELECTION_PER_APP = 2;
 const COMMIT_UNSELECTED_SIZE = 8;
 const COMMIT_SELECTED_SIZE = 20;
 const HIGHLIGHTED_MARKER_COLOR = 'red';
-const ANIMATION_MARKER_COLOR = 'blue';
+const ANIMATION_POSITION_BAR_COLOR = 'red';
+const ANIMATION_POSITION_BAR_WIDTH = 1;
 const BRANCH_LINE_COLOR = 'rgba(70, 130, 180, 1)';
 const EMPTY_SELECTED_COMMITS: Commit[] = [];
 
@@ -65,28 +68,29 @@ export default function PlotlyCommitTree({
   setSelectedCommits,
 }: PlotlyCommitTreeArgs) {
   const plotlyCommitDivRef = useRef<HTMLDivElement>(null);
+  const chartSeriesRef = useRef<BranchChartSeries | null>(null);
+  const lastAnimationBarXRef = useRef<number | null>(null);
   const [selectedBranchName, setSelectedBranchName] = useState('');
   const [selectedMetric, setSelectedMetric] = useState(NONE_METRIC);
-  const xAxisPlacement = useCommitTreeStateStore((state) => state._xAxisPlacement);
+  const xAxisPlacement = useCommitTreeStateStore(
+    (state) => state._xAxisPlacement
+  );
   const setXAxisPlacement = useCommitTreeStateStore(
     (state) => state.setXAxisPlacement
   );
-
-  // Show moving marker instead of fixed marker
+  const animationFrameVersion = useEvolutionAnimationStore(
+    (state) => state.frameVersion
+  );
   const animationActive = useEvolutionAnimationStore(
     (state) => state.totalCount > 0
-  );
-  const activeHash = useEvolutionAnimationStore((state) =>
-    state.deltaMode
-      ? state.deltaFrames.get(state.currentFrameIndex)?.commitHash
-      : state.loadedFrames.get(state.currentFrameIndex)?.commitHash
   );
 
   const commitTree = repoNameCommitTreeMap.get(selectedRepoName);
   const selectedCommitsForRepo =
     selectedCommits.get(selectedRepoName) ?? EMPTY_SELECTED_COMMITS;
   const chartLinkUrl = useMemo(
-    () => buildCommitChartLinkUrl(commitTree?.remoteUrl, selectedCommitsForRepo),
+    () =>
+      buildCommitChartLinkUrl(commitTree?.remoteUrl, selectedCommitsForRepo),
     [commitTree?.remoteUrl, selectedCommitsForRepo]
   );
   const chartLinkLabel = getCommitChartLinkLabel(selectedCommitsForRepo.length);
@@ -149,12 +153,45 @@ export default function PlotlyCommitTree({
   }, [selectedCommits]);
 
   useEffect(() => {
-    if (!selectedBranch || !plotlyCommitDivRef.current) {
+    updateAnimationPositionBar();
+  }, [
+    animationFrameVersion,
+    animationActive,
+    selectedBranch,
+    selectedMetric,
+    xAxisPlacement,
+  ]);
+
+  const updateAnimationPositionBar = () => {
+    const plotlyDiv = plotlyCommitDivRef.current;
+    const chartSeries = chartSeriesRef.current;
+    if (!plotlyDiv || !chartSeries || !selectedBranch) {
       return;
     }
 
-    renderChart(true);
-  }, [activeHash, animationActive]);
+    const animStore = useEvolutionAnimationStore.getState();
+    if (animStore.totalCount === 0) {
+      if (lastAnimationBarXRef.current !== null) {
+        Plotly.relayout(plotlyDiv, { shapes: [] });
+        lastAnimationBarXRef.current = null;
+      }
+      return;
+    }
+
+    const x = resolveAnimationPositionX(
+      chartSeries,
+      selectedBranch,
+      xAxisPlacement
+    );
+    if (x == null || x === lastAnimationBarXRef.current) {
+      return;
+    }
+
+    lastAnimationBarXRef.current = x;
+    Plotly.relayout(plotlyDiv, {
+      shapes: [buildAnimationPositionBarShape(x)],
+    });
+  };
 
   const renderChart = (preserveView: boolean) => {
     if (!selectedBranch || !plotlyCommitDivRef.current) {
@@ -167,34 +204,34 @@ export default function PlotlyCommitTree({
       selectedMetric
     );
     const { commits: chartCommits, xValues, yValues } = chartSeries;
+    chartSeriesRef.current = chartSeries;
+    lastAnimationBarXRef.current = null;
 
     const colors = chartCommits.map(() => BRANCH_LINE_COLOR);
     const sizes = chartCommits.map(() => COMMIT_UNSELECTED_SIZE);
     const texts = chartCommits.map(() => '');
 
-    if (animationActive) {
-      const activeIndex = chartCommits.findIndex(
-        (commit) => commit.hash === activeHash
-      );
-      if (activeIndex !== -1) {
-        colors[activeIndex] = ANIMATION_MARKER_COLOR;
-        sizes[activeIndex] = COMMIT_SELECTED_SIZE;
-      }
-    } else {
-      markSelectedCommits(
-        selectedCommits.get(selectedRepoName) || [],
-        chartCommits,
-        colors,
-        sizes,
-        texts
-      );
-    }
+    markSelectedCommits(
+      selectedCommits.get(selectedRepoName) || [],
+      chartCommits,
+      colors,
+      sizes,
+      texts
+    );
 
-    const layout = buildLayout(selectedMetric, yValues, xValues, xAxisPlacement);
+    const layout = buildLayout(
+      selectedMetric,
+      yValues,
+      xValues,
+      xAxisPlacement
+    );
     const plotlyDiv = plotlyCommitDivRef.current as HTMLDivElement & {
       layout?: { xaxis?: { range?: number[] }; yaxis?: { range?: number[] } };
       removeAllListeners?: (event: string) => void;
-      on?: (event: string, handler: (data: Plotly.PlotMouseEvent) => void) => void;
+      on?: (
+        event: string,
+        handler: (data: Plotly.PlotMouseEvent) => void
+      ) => void;
     };
 
     if (preserveView && plotlyDiv.layout?.xaxis?.range) {
@@ -240,6 +277,7 @@ export default function PlotlyCommitTree({
     );
 
     setupPlotlyListener(selectedBranch.name, chartCommits);
+    updateAnimationPositionBar();
   };
 
   const refocusChart = () => {
@@ -265,11 +303,17 @@ export default function PlotlyCommitTree({
     });
   };
 
-  const setupPlotlyListener = (branchName: string, chartCommits: CommitNode[]) => {
+  const setupPlotlyListener = (
+    branchName: string,
+    chartCommits: CommitNode[]
+  ) => {
     const plotlyDiv = plotlyCommitDivRef.current as HTMLDivElement & {
       layout?: object;
       removeAllListeners?: (event: string) => void;
-      on?: (event: string, handler: (data: Plotly.PlotMouseEvent) => void) => void;
+      on?: (
+        event: string,
+        handler: (data: Plotly.PlotMouseEvent) => void
+      ) => void;
     };
     const dragLayer = document.getElementsByClassName('nsewdrag')[0] as
       | HTMLElement
@@ -472,6 +516,78 @@ export default function PlotlyCommitTree({
   );
 }
 
+function buildAnimationPositionBarShape(x: number) {
+  return {
+    type: 'line' as const,
+    xref: 'x' as const,
+    yref: 'paper' as const,
+    x0: x,
+    x1: x,
+    y0: 0,
+    y1: 1,
+    line: {
+      color: ANIMATION_POSITION_BAR_COLOR,
+      width: ANIMATION_POSITION_BAR_WIDTH,
+    },
+    layer: 'above' as const,
+  };
+}
+
+function resolveAnimationPositionX(
+  chartSeries: BranchChartSeries,
+  branch: Branch,
+  xAxisPlacement: CommitXAxisPlacement
+): number | null {
+  const animStore = useEvolutionAnimationStore.getState();
+  const frameIndex = animStore.currentFrameIndex;
+  const activeFrame = animStore.deltaMode
+    ? animStore.deltaFrames.get(frameIndex)
+    : animStore.loadedFrames.get(frameIndex);
+
+  if (!activeFrame) {
+    return null;
+  }
+
+  if (xAxisPlacement === 'time') {
+    if (Number.isFinite(activeFrame.authorDate)) {
+      return activeFrame.authorDate;
+    }
+
+    const chartIndex = chartSeries.commits.findIndex(
+      (commit) => commit.hash === activeFrame.commitHash
+    );
+    if (chartIndex !== -1) {
+      return chartSeries.xValues[chartIndex];
+    }
+  }
+
+  const chartIndex = chartSeries.commits.findIndex(
+    (commit) => commit.hash === activeFrame.commitHash
+  );
+  if (chartIndex !== -1) {
+    return chartSeries.xValues[chartIndex];
+  }
+
+  const branchIndex = branch.commits.findIndex(
+    (commit) => commit.hash === activeFrame.commitHash
+  );
+  if (branchIndex === -1 || chartSeries.originalIndices.length === 0) {
+    return null;
+  }
+
+  let nearestChartIndex = 0;
+  let nearestDistance = Number.POSITIVE_INFINITY;
+  chartSeries.originalIndices.forEach((originalIndex, index) => {
+    const distance = Math.abs(originalIndex - branchIndex);
+    if (distance < nearestDistance) {
+      nearestDistance = distance;
+      nearestChartIndex = index;
+    }
+  });
+
+  return chartSeries.xValues[nearestChartIndex] ?? null;
+}
+
 function markSelectedCommits(
   allSelectedCommits: Commit[],
   chartCommits: CommitNode[],
@@ -630,8 +746,7 @@ function buildTimeXAxis(xValues: number[]) {
     numericXValues.length > 0 ? Math.max(...numericXValues) : minX + 86_400_000;
   const spanMs = maxX - minX;
   const xPadding = Math.max(spanMs * 0.05, 86_400_000);
-  const tickFormat =
-    spanMs > 365 * 86_400_000 ? '%b %Y' : '%b %d, %Y';
+  const tickFormat = spanMs > 365 * 86_400_000 ? '%b %Y' : '%b %d, %Y';
 
   return {
     type: 'date' as const,
