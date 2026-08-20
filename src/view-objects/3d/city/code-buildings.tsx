@@ -276,7 +276,6 @@ const GeometryGroup: React.FC<GeometryGroupProps> = ({
     return { ...building, ...visual };
   }
 
-
   function applyBuildingVisuals(changedOnly = false) {
     if (meshRef === null || typeof meshRef === 'function' || !meshRef.current) {
       return;
@@ -297,7 +296,6 @@ const GeometryGroup: React.FC<GeometryGroupProps> = ({
       meshRef.current?.setVisibilityAt(
         instanceId,
         isVisible(buildingId, building)
-
       );
     }
   }
@@ -377,20 +375,9 @@ const GeometryGroup: React.FC<GeometryGroupProps> = ({
 
   const applyInstanceAppearance = (mesh: InstancedMesh2) => {
     buildingIdToInstanceIdRef.current.forEach((instanceId, buildingId) => {
-      const building = useModelStore.getState().getBuilding(buildingId);
+      const building = resolveBuilding(buildingId);
       mesh.setColorAt(instanceId, computeColor(buildingId));
-      mesh.setVisibilityAt(
-        instanceId,
-        isBuildingVisible({
-          buildingId,
-          building,
-          hiddenBuildingIds,
-          removedDistrictIds,
-          hiddenLanguages,
-          evoConfig,
-          isDiffMode,
-        })
-      );
+      mesh.setVisibilityAt(instanceId, isVisible(buildingId, building));
     });
   };
 
@@ -581,27 +568,27 @@ const GeometryGroup: React.FC<GeometryGroupProps> = ({
             positionZ: pos.z,
           };
 
-        gsap.to(values, {
-          duration: animationDuration,
-          width: targetWidth,
-          height: targetHeight,
-          depth: targetDepth,
-          positionX: targetPositionX,
-          positionY: targetPositionY,
-          positionZ: targetPositionZ,
-          onUpdate: () => {
-            scale.x = values.width;
-            scale.y = values.height;
-            scale.z = values.depth;
-            pos.x = values.positionX;
-            pos.y = values.positionY;
-            pos.z = values.positionZ;
-            tempMatrix.compose(pos, quat, scale);
-            if (!meshRef || typeof meshRef === 'function') return;
-            mesh.setMatrixAt(instanceId, tempMatrix);
-          },
+          gsap.to(values, {
+            duration: animationDuration,
+            width: targetWidth,
+            height: targetHeight,
+            depth: targetDepth,
+            positionX: targetPositionX,
+            positionY: targetPositionY,
+            positionZ: targetPositionZ,
+            onUpdate: () => {
+              scale.x = values.width;
+              scale.y = values.height;
+              scale.z = values.depth;
+              pos.x = values.positionX;
+              pos.y = values.positionY;
+              pos.z = values.positionZ;
+              tempMatrix.compose(pos, quat, scale);
+              if (!meshRef || typeof meshRef === 'function') return;
+              mesh.setMatrixAt(instanceId, tempMatrix);
+            },
+          });
         });
-      });
       }
       applyInstanceAppearance(meshRef.current);
       return;
@@ -631,7 +618,7 @@ const GeometryGroup: React.FC<GeometryGroupProps> = ({
       );
 
       obj.scale.set(layout.width, buildingHeight, layout.depth);
-      obj.visible = isVisible(building.id, building);
+      obj.visible = isVisible(building.id, resolveBuilding(building.id));
       obj.color = computeColor(building.id);
       obj.updateMatrix();
       i++;
@@ -667,8 +654,6 @@ const GeometryGroup: React.FC<GeometryGroupProps> = ({
     modifiedBuildingColor,
     unchangedBuildingColor,
     agedBuildingColor,
-    hoveredEntityId,
-    highlightedEntityIds,
     visualizationSettings,
     enableHoverEffects,
   ]);
@@ -703,9 +688,10 @@ const GeometryGroup: React.FC<GeometryGroupProps> = ({
     removedDistrictIds,
     hiddenLanguages,
   ]);
-    useEffect(() => {
-      applyBuildingVisuals();
-    }, [hoveredEntityId, highlightedEntityIds]);
+
+  useEffect(() => {
+    applyBuildingVisuals();
+  }, [hoveredEntityId, highlightedEntityIds]);
 
   const handleClick = (e: ThreeEvent<MouseEvent>) => {
     if (meshRef === null || typeof meshRef === 'function') {

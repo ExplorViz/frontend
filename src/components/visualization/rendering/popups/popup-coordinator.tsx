@@ -72,7 +72,12 @@ export default function PopupCoordinator({
     vizStore.actions.setHoveredEntityId(entity.id);
   };
 
-  const onPointerOut = () => {
+  const onPointerLeave = (event: React.PointerEvent<HTMLDivElement>) => {
+    const relatedTarget = event.relatedTarget as Node | null;
+    if (relatedTarget && element.current?.contains(relatedTarget)) {
+      return;
+    }
+
     updatePopup({ ...popupData, hovered: false });
     vizStore.actions.setHoveredEntityId(null);
   };
@@ -234,7 +239,7 @@ export default function PopupCoordinator({
       }}
       onPointerDown={dragMouseDown}
       onPointerOver={onPointerOver}
-      onPointerOut={onPointerOut}
+      onPointerLeave={onPointerLeave}
       ref={element}
     >
       <>
