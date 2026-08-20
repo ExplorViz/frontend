@@ -12,8 +12,10 @@ import SocialMetricsPanel from 'explorviz-frontend/src/components/visualization/
 import BrowserRendering from 'explorviz-frontend/src/components/visualization/rendering/browser-rendering';
 import PlayPauseButton from 'explorviz-frontend/src/components/visualization/rendering/play-pause-button';
 import XrRendering from 'explorviz-frontend/src/components/visualization/rendering/xr-rendering';
+import { useChatStore } from 'explorviz-frontend/src/stores/chat';
 import { useLocalUserStore } from 'explorviz-frontend/src/stores/collaboration/local-user';
 import { useCommitTreeStateStore } from 'explorviz-frontend/src/stores/commit-tree-state';
+import { useEntityFilteringStore } from 'explorviz-frontend/src/stores/entity-filtering-store';
 import { useImmersiveViewStore } from 'explorviz-frontend/src/stores/immersive-view-store';
 import { useLandscapeRestructureStore } from 'explorviz-frontend/src/stores/landscape-restructure';
 import { useLandscapeTokenStore } from 'explorviz-frontend/src/stores/landscape-token';
@@ -83,6 +85,9 @@ function resetVisualizationSessionState(options?: { clearModels?: boolean }) {
   useVisualizationStore.getState().actions.setRemovedDistricts(new Set());
   useTimestampStore.getState().resetState();
   applyRuntimeVisualizationDefaults();
+  useEntityFilteringStore.getState().actions.resetFilters();
+  useCommitTreeStateStore.getState().resetCommitTreeFilters();
+  useChatStore.getState().clearFilter();
 
   if (options?.clearModels) {
     useModelStore.getState().clearAll();

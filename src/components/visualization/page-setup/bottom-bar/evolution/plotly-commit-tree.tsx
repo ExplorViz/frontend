@@ -1083,6 +1083,15 @@ export default function PlotlyCommitTree({
         >
           Re-focus
         </Button>
+        <Button
+          variant="outline-secondary"
+          size="sm"
+          className="commit-metrics-chart-refocus-button"
+          onClick={() => setShowStatisticsWindow(true)}
+          title="Open commit statistics"
+        >
+          Statistics
+        </Button>
         <EvolutionAnimationButton
           variant="outline-secondary"
           size="sm"
