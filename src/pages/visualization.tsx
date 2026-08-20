@@ -1,6 +1,9 @@
 import { useEffect, useRef, useState } from 'react';
 
 import { ChevronUpIcon, SyncIcon } from '@primer/octicons-react';
+import BottomBarChartDropdown, {
+  type BottomBarChartView,
+} from 'explorviz-frontend/src/components/visualization/page-setup/bottom-bar/bottom-bar-chart-dropdown';
 import CommitTreeRepositorySelection from 'explorviz-frontend/src/components/visualization/page-setup/bottom-bar/evolution/commit-tree-repository-selection';
 import EvolutionRenderingButtons from 'explorviz-frontend/src/components/visualization/page-setup/bottom-bar/evolution/evolution-rendering-buttons';
 import PlotlyCommitTree from 'explorviz-frontend/src/components/visualization/page-setup/bottom-bar/evolution/plotly-commit-tree';
@@ -9,7 +12,6 @@ import SocialMetricsPanel from 'explorviz-frontend/src/components/visualization/
 import BrowserRendering from 'explorviz-frontend/src/components/visualization/rendering/browser-rendering';
 import PlayPauseButton from 'explorviz-frontend/src/components/visualization/rendering/play-pause-button';
 import XrRendering from 'explorviz-frontend/src/components/visualization/rendering/xr-rendering';
-import EvolutionAnimationButton from 'explorviz-frontend/src/components/visualization/page-setup/bottom-bar/animation/animation-rendering-buttons';
 import { useLocalUserStore } from 'explorviz-frontend/src/stores/collaboration/local-user';
 import { useCommitTreeStateStore } from 'explorviz-frontend/src/stores/commit-tree-state';
 import { useImmersiveViewStore } from 'explorviz-frontend/src/stores/immersive-view-store';
@@ -533,18 +535,35 @@ export default function Visualization() {
   };
 
   // #region Template Action
-  const toggleBottomChart = () => {
-    // Disable keyboard events for button to prevent space bar
-    document.getElementById('bottom-bar-toggle-chart-button')?.blur();
-
-    setIsSocialMetricsSelected(false);
-    setIsCommitTreeSelected((prev) => !prev);
-    setIsRuntimeTimelineSelected((prev) => !prev);
+  const getBottomBarChartView = (): BottomBarChartView => {
+    if (isRuntimeTimelineSelected) {
+      return 'runtime-chart';
+    }
+    if (isSocialMetricsSelected) {
+      return 'social-metrics';
+    }
+    return 'commit-chart';
   };
 
-  const toggleSocialMetrics = () => {
-    document.getElementById('bottom-bar-toggle-social-button')?.blur();
-    setIsSocialMetricsSelected((prev) => !prev);
+  const selectBottomBarChartView = (view: BottomBarChartView) => {
+    switch (view) {
+      case 'runtime-chart':
+        setIsRuntimeTimelineSelected(true);
+        setIsCommitTreeSelected(false);
+        setIsSocialMetricsSelected(false);
+        break;
+      case 'social-metrics':
+        setIsRuntimeTimelineSelected(false);
+        setIsCommitTreeSelected(true);
+        setIsSocialMetricsSelected(true);
+        break;
+      case 'commit-chart':
+      default:
+        setIsRuntimeTimelineSelected(false);
+        setIsCommitTreeSelected(true);
+        setIsSocialMetricsSelected(false);
+        break;
+    }
   };
 
   const toggleVisibilityBottomBar = () => {
@@ -675,28 +694,10 @@ export default function Visualization() {
                 ${isCommitTreeSelected && isBottomBarMaximized ? 'bottom-bar-chart-commitTree' : ''}
                 ${!isBottomBarMaximized ? 'bottom-bar-chart-hide' : ''}`}
             >
-              <div id="bottom-bar-chart-button-div">
-                <Button
-                  id="bottom-bar-toggle-chart-button"
-                  onClick={toggleBottomChart}
-                  className="bottom-bar-chart-button"
-                >
-                  {isRuntimeTimelineSelected ? 'Show Commit Chart' : ''}
-                  {isCommitTreeSelected ? 'Show Runtime Chart' : ''}
-                </Button>
-                {isCommitTreeSelected && <EvolutionAnimationButton />}
-                {isCommitTreeSelected && (
-                  <Button
-                    id="bottom-bar-toggle-social-button"
-                    className="bottom-bar-chart-button ms-2"
-                    onClick={toggleSocialMetrics}
-                  >
-                    {isSocialMetricsSelected
-                      ? 'Show Commit Chart'
-                      : 'Show Social Metrics'}
-                  </Button>
-                )}
-              </div>
+              <BottomBarChartDropdown
+                selectedView={getBottomBarChartView()}
+                onSelectView={selectBottomBarChartView}
+              />
 
               {isRuntimeTimelineSelected && (
                 <>

@@ -79,6 +79,9 @@
 #navbar-user-options > .dropdown > .dropdown-menu {
   font-size: 14px;
   width: 200px;
+  left: auto;
+  right: 0;
+  margin-top: 2rem !important;
 
   &.dropdown-item:nth-child(0):hover {
     background-color: var(--bs-body-bg, #f8f9fa);
@@ -87,12 +90,6 @@
   > .dropdown-item:active {
     background-color: var(--bs-primary, #0d6efd);
   }
-}
-
-.dropdown-menu {
-  left: auto;
-  right: 0;
-  margin-top: 2rem !important;
 }
 
 @media (max-width: 767.98px) {

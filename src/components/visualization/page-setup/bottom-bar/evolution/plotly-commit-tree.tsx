@@ -1,4 +1,5 @@
 import LinkButton from 'explorviz-frontend/src/components/link-button.tsx';
+import EvolutionAnimationButton from 'explorviz-frontend/src/components/visualization/page-setup/bottom-bar/animation/animation-rendering-buttons';
 import { useEvolutionAnimationStore } from 'explorviz-frontend/src/components/visualization/page-setup/bottom-bar/animation/evolution-animation-store';
 import CommitChartAuthorFilters from 'explorviz-frontend/src/components/visualization/page-setup/bottom-bar/evolution/commit-chart-author-filters';
 import CommitChartFilters from 'explorviz-frontend/src/components/visualization/page-setup/bottom-bar/evolution/commit-chart-filters';
@@ -1082,6 +1083,11 @@ export default function PlotlyCommitTree({
         >
           Re-focus
         </Button>
+        <EvolutionAnimationButton
+          variant="outline-secondary"
+          size="sm"
+          className="commit-metrics-chart-refocus-button"
+        />
         <LinkButton
           url={chartLinkUrl}
           disabled={!chartLinkUrl}
@@ -1461,7 +1467,7 @@ function buildLayout(
   const xAxis =
     placement === 'time'
       ? buildTimeXAxis(xValues)
-      : buildEquidistantXAxis(commitCount)
+      : buildEquidistantXAxis(commitCount);
 
   return {
     hovermode: 'closest',

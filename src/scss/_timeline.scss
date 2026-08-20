@@ -301,13 +301,32 @@
   overflow: hidden;
 }
 
-#bottom-bar-chart-button-div {
+#bottom-bar-chart-button-div,
+.bottom-bar-chart-dropdown {
   width: max-content;
   margin-left: 50%;
   transform: translate(-50%, -50%);
   margin-top: 23px;
   position: relative;
   z-index: 500;
+}
+
+.bottom-bar-chart-dropdown-menu {
+  min-width: 100%;
+
+  &.show {
+    display: block;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: auto;
+    margin-top: var(--bs-dropdown-spacer, 0.125rem);
+    z-index: 600;
+  }
+}
+
+.bottom-bar-chart-dropdown .bottom-bar-chart-button {
+  font-weight: 700 !important;
 }
 
 .bottom-bar-chart-button {

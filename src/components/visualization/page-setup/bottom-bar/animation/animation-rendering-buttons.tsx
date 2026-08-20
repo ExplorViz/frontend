@@ -1,13 +1,13 @@
-import { useState, useEffect, useRef } from 'react';
-import Button from 'react-bootstrap/Button';
 import EvolutionAnimationPanel from 'explorviz-frontend/src/components/visualization/page-setup/bottom-bar/animation/evolution-animation-panel';
+import { useEvolutionAnimationStore } from 'explorviz-frontend/src/components/visualization/page-setup/bottom-bar/animation/evolution-animation-store';
 import EvolutionPlaybackControls from 'explorviz-frontend/src/components/visualization/page-setup/bottom-bar/animation/evolution-playback-controls';
 import { useLandscapeTokenStore } from 'explorviz-frontend/src/stores/landscape-token';
-import { useEvolutionAnimationStore } from 'explorviz-frontend/src/components/visualization/page-setup/bottom-bar/animation/evolution-animation-store';
 import { useRenderingServiceStore } from 'explorviz-frontend/src/stores/rendering-service';
+import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
 import { useVisibilityServiceStore } from 'explorviz-frontend/src/stores/visibility-service';
 import { ALL_BUILDING_COMPARISONS_VISIBLE } from 'explorviz-frontend/src/utils/city-rendering/building-comparison-visibility';
-import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
+import { useEffect, useRef, useState } from 'react';
+import Button from 'react-bootstrap/Button';
 
 const NORMAL_RENDER_CONFIG = {
   renderDynamic: false,
@@ -16,11 +16,20 @@ const NORMAL_RENDER_CONFIG = {
   buildingComparisonVisibility: ALL_BUILDING_COMPARISONS_VISIBLE,
 };
 
-export default function EvolutionAnimationButton() {
+interface EvolutionAnimationButtonProps {
+  className?: string;
+  variant?: 'primary' | 'secondary' | 'outline-secondary';
+  size?: 'sm' | 'lg';
+}
+
+export default function EvolutionAnimationButton({
+  className = 'bottom-bar-chart-button ms-2',
+  variant,
+  size,
+}: EvolutionAnimationButtonProps = {}) {
   const [showPanel, setShowPanel] = useState(false);
   const hasFrames = useEvolutionAnimationStore((state) => state.totalCount > 0);
   const landscapeToken = useLandscapeTokenStore((s) => s.token?.value);
-
 
   const overriddenLayoutRef = useRef<string | null>(null);
 
@@ -59,10 +68,12 @@ export default function EvolutionAnimationButton() {
     <>
       <Button
         type="button"
-        className="bottom-bar-chart-button ms-2"
+        variant={variant}
+        size={size}
+        className={className}
         onClick={togglePanel}
       >
-        Repo Evolution
+        Evolution Animation
       </Button>
 
       {showPanel && (
@@ -73,12 +84,3 @@ export default function EvolutionAnimationButton() {
     </>
   );
 }
-
-
-
-
-
-
-
-
-
