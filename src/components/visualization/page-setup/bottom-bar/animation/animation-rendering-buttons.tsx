@@ -59,9 +59,7 @@ export default function EvolutionAnimationButton() {
     <>
       <Button
         type="button"
-        variant="primary"
-        size="sm"
-        className="ms-2"
+        className="bottom-bar-chart-button ms-2"
         onClick={togglePanel}
       >
         Repo Evolution

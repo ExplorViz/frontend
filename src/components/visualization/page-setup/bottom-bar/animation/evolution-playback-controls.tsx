@@ -1,14 +1,26 @@
 import { useEvolutionAnimationFetchServiceStore } from 'explorviz-frontend/src/components/visualization/page-setup/bottom-bar/animation/evolution-animation-fetch-service.ts';
 import { applyAnimationFrameLayout } from 'explorviz-frontend/src/components/visualization/page-setup/bottom-bar/animation/evolution-rendering-setup';
 import { useCommitTreeStateStore } from 'explorviz-frontend/src/stores/commit-tree-state.ts';
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useCallback } from 'react';
 import { createPortal } from 'react-dom';
 import { useShallow } from 'zustand/react/shallow';
 import {
   useEvolutionAnimationStore,
   WINDOW_SIZE,
 } from './evolution-animation-store';
-
+import Form from 'react-bootstrap/Form';
+import {
+  ChevronLeftIcon,
+  ChevronRightIcon,
+  ChevronUpIcon,
+  PauseIcon,
+  PlayIcon,
+  XIcon
+} from '@primer/octicons-react';
+import {
+  useFloatingPanel,
+  FloatingPanelPosition,
+  } from 'explorviz-frontend/src/components/visualization/page-setup/bottom-bar/animation/floating-panel.ts';
 export default function EvolutionPlaybackControls() {
   const {
     loadedFrames,
@@ -40,7 +52,29 @@ export default function EvolutionPlaybackControls() {
   const fetchWindow = useEvolutionAnimationFetchServiceStore(
     (s) => s.fetchAnimationWindow
   );
+  const anchorNextToPanel = useCallback((): FloatingPanelPosition | null => {
+    const panel = document.querySelector('.evolution-animation-panel');
+    if (panel) {
+      const rect = panel.getBoundingClientRect();
+      return { left: rect.right + 8, top: rect.top };
+    }
+    const toolSidebar = document.getElementById('toolsSidebarButtonContainer');
+    if (toolSidebar) {
+      const rect = toolSidebar.getBoundingClientRect();
+      return { left: rect.right + 8, top: rect.top };
+    }
+    const tools = document.querySelector('.sidebar-tools-button');
+    if (tools) {
+      const rect = tools.getBoundingClientRect();
+      return { left: rect.left, top: rect.bottom + 8 };
+    }
+    return null;
+  }, []);
 
+  const { ref, isMinimized, toggleMinimized, onDragStart } = useFloatingPanel(
+    anchorNextToPanel,
+    8
+  );
   const fetchDeltaWindow = useEvolutionAnimationFetchServiceStore(
     (s) => s.fetchAnimationDeltaWindow
   );
@@ -144,103 +178,117 @@ export default function EvolutionPlaybackControls() {
 
   return createPortal(
     <div
-      style={{
-        position: 'fixed',
-        top: '150px',
-        left: '260px',
-        backgroundColor: '#1a1a1a',
-        border: '1px solid #444',
-        borderRadius: '8px',
-        padding: '16px',
-        width: '300px',
-        zIndex: 9999,
-        color: 'white',
-        boxShadow: '0 4px 12px rgba(0,0,0,0.5)',
-      }}
+      className={`evolution-playback-controls${
+        isMinimized ? ' evolution-playback-controls--minimized' : ''
+      }`}
+      ref={ref}
     >
-      <button
-        onClick={actions.stepBack}
-        disabled={currentFrameIndex === 0}
-        style={btnStyle}
+      <div
+        className="evolution-playback-controls__transport"
+        onPointerDown={onDragStart}
       >
-        Back
-      </button>
+        <button
+          type="button"
+          className="btn btn-sm btn-outline-secondary evolution-playback-controls__button"
+          onClick={actions.stepBack}
+          disabled={currentFrameIndex === 0}
+          title="Frame Back"
+          aria-label="Frame Ahead"
+          onPointerDown={(e) => e.stopPropagation()}
+        >
+          <ChevronLeftIcon size="small" verticalAlign="middle" />
+        </button>
 
-      <button
-        onClick={isPlaying ? actions.pause : actions.play}
-        style={btnStyle}
-      >
-        {isPlaying ? 'Pause' : 'Play'}
-      </button>
+        <button
+          type="button"
+          className="btn btn-sm btn-primary evolution-playback-controls__button"
+          onClick={isPlaying ? actions.pause : actions.play}
+          title={isPlaying ? 'Pause' : 'Play'}
+          aria-label={isPlaying ? 'Pause' : 'Play'}
+          onPointerDown={(e) => e.stopPropagation()}
+        >
+          {isPlaying ? (
+            <PauseIcon size="small" verticalAlign="middle" />
+          ) : (
+            <PlayIcon size="small" verticalAlign="middle" />
+          )}
+        </button>
 
-      <button
-        onClick={actions.stepForward}
-        disabled={currentFrameIndex === totalCount - 1}
-        style={btnStyle}
-      >
-        Forward
-      </button>
+        <button
+          type="button"
+          className="btn btn-sm btn-outline-secondary evolution-playback-controls__button"
+          onClick={actions.stepForward}
+          disabled={currentFrameIndex === totalCount - 1}
+          title="Step Ahead"
+          aria-label="Step Ahead"
+          onPointerDown={(e) => e.stopPropagation()}
+        >
+          <ChevronRightIcon size="small" verticalAlign="middle" />
+        </button>
 
-      <span style={{ fontSize: '13px', color: '#aaa' }}>
-        {currentFrameIndex + 1} / {totalCount}
-      </span>
+        <span className="evolution-playback-controls__grip" />
 
-      <input
-        type="range"
+        <button
+          type="button"
+          className="btn evolution-playback-controls__icon-button"
+          onClick={toggleMinimized}
+          title={isMinimized ? 'Maximize' : 'Minimize'}
+          aria-label={isMinimized ? 'Maximize' : 'Minimize'}
+          onPointerDown={(e) => e.stopPropagation()}
+        >
+          <ChevronUpIcon
+            size="small"
+            className={isMinimized ? '' : 'hide-bottom-bar-icon-down'}
+          />
+        </button>
+
+        <button
+          type="button"
+          className="btn evolution-playback-controls__icon-button"
+          aria-label="Stop Animation"
+          title="Stop Animation"
+          onClick={actions.reset}
+          onPointerDown={(e) => e.stopPropagation()}
+        >
+          <XIcon size="small" verticalAlign="middle" />
+        </button>
+      </div>
+
+      <Form.Range
+        className="evolution-playback-controls__slider"
         min={0}
         max={totalCount - 1}
         value={currentFrameIndex}
         onChange={(e) => actions.seekTo(Number(e.target.value))}
-        style={{ width: '225px' }}
       />
 
-      <button
-        onClick={() => {
-          actions.reset();
-        }}
-        style={{ ...btnStyle, marginLeft: '8px', color: '#aaa' }}
-      >
-        Close
-      </button>
+      <div className="evolution-playback-controls__hash-row">
+        <code className="evolution-playback-controls__hash">
+          {active ? active.commitHash.slice(0, 7) : '—'}
+        </code>
+        <span className="evolution-playback-controls__counter">
+          {currentFrameIndex + 1} / {totalCount}
+        </span>
+      </div>
 
-      {active && (
-        <div style={{ fontSize: '12px', marginTop: '8px' }}>
-          <div>
-            <code style={{ color: 'blue' }}>
-              {active.commitHash.slice(0, 7)}
-            </code>
-            <span style={{ color: '#aaa', marginLeft: '8px' }}>
-              {new Date(active.authorDate).toLocaleString()}
-            </span>
-          </div>
-          {activeDelta && (
-            <div style={{ color: '#aaa', marginTop: '4px' }}>
-              {activeDelta.tsFrom === activeDelta.tsTo
+      <div className="evolution-playback-controls__range">
+        {activeDelta
+          ? `${
+              activeDelta.tsFrom === activeDelta.tsTo
                 ? new Date(activeDelta.tsFrom).toLocaleDateString()
                 : `${new Date(activeDelta.tsFrom).toLocaleDateString()} – ${new Date(
                     activeDelta.tsTo
-                  ).toLocaleDateString()}`}
-              <span style={{ marginLeft: '8px' }}>
-                {activeDelta.commitCount === 0
-                  ? '· keine Commits'
-                  : `· ${activeDelta.commitCount} Commit${
-                      activeDelta.commitCount === 1 ? '' : 's'
-                    }`}
-              </span>
-            </div>
-          )}
-        </div>
-      )}
+                  ).toLocaleDateString()}`
+            } · ${
+              activeDelta.commitCount === 0
+                ? 'No Commits'
+                : `${activeDelta.commitCount} Commit${
+                    activeDelta.commitCount === 1 ? '' : 's'
+                  }`
+            }`
+          : active && new Date(active.authorDate).toLocaleString()}
+      </div>
     </div>,
     document.body
   );
-}
-
-const btnStyle: React.CSSProperties = {
-  background: 'none',
-  border: 'none',
-  color: 'white',
-  cursor: 'pointer',
-  fontSize: '18px',
-  padding: '2px 6px',
 };
