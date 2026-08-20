@@ -2,7 +2,7 @@ import { useCopilotChatInternal } from '@copilotkit/react-core';
 import { DownloadIcon } from '@primer/octicons-react';
 import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
 import { useVisualizationStore } from 'explorviz-frontend/src/stores/visualization-store';
-import { getCircularReplacer } from 'explorviz-frontend/src/utils/circularReplacer';
+import { getCircularReplacer } from 'explorviz-frontend/src/utils/circular-replacer';
 import { defaultVizSettings } from 'explorviz-frontend/src/utils/settings/default-settings';
 import {
   VisualizationSettingId,

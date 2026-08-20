@@ -16,11 +16,11 @@ import {
 } from 'explorviz-frontend/src/stores/trace-replay';
 import { useVisualizationStore } from 'explorviz-frontend/src/stores/visualization-store';
 import { openAllDistrictsInLandscape } from 'explorviz-frontend/src/utils/city-rendering/entity-manipulation';
-import { Trace } from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/dynamic-data';
 import {
   FlatLandscape,
   getFunctionIdToBuildingMap,
 } from 'explorviz-frontend/src/utils/landscape-schemes/flat-landscape';
+import { Trace } from 'explorviz-frontend/src/utils/landscape-schemes/telemetry/traces';
 import { getSortedTraceSpans } from 'explorviz-frontend/src/utils/trace-helpers';
 import { useEffect, useState } from 'react';
 import * as THREE from 'three';

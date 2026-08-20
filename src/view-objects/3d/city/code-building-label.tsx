@@ -1,21 +1,23 @@
 import { Text } from '@react-three/drei';
 import { useClusterStore } from 'explorviz-frontend/src/stores/cluster-store';
+import { useCommitTreeStateStore } from 'explorviz-frontend/src/stores/commit-tree-state';
 import { useLayoutStore } from 'explorviz-frontend/src/stores/layout-store';
 import { useModelStore } from 'explorviz-frontend/src/stores/repos/model-repository';
 import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
+import { useVisibilityServiceStore } from 'explorviz-frontend/src/stores/visibility-service';
 import { useVisualizationStore } from 'explorviz-frontend/src/stores/visualization-store';
 import { getTruncatedDisplayName } from 'explorviz-frontend/src/utils/annotation-utils';
 import { isBuildingVisible } from 'explorviz-frontend/src/utils/city-rendering/building-visibility';
 import { Building } from 'explorviz-frontend/src/utils/landscape-schemes/flat-landscape';
 import BoxLayout from 'explorviz-frontend/src/utils/layout/box-layout';
-import { computeMappedBuildingHeight } from 'explorviz-frontend/src/utils/settings/building-metrics';
+import {
+  computeMappedBuildingHeight,
+  getCachedBuildingMetricBounds,
+} from 'explorviz-frontend/src/utils/settings/building-metrics';
 import gsap from 'gsap';
 import { useEffect, useState } from 'react';
 import * as THREE from 'three';
 import { useShallow } from 'zustand/react/shallow';
-import { useCommitTreeStateStore } from 'explorviz-frontend/src/stores/commit-tree-state';
-import { useVisibilityServiceStore } from 'explorviz-frontend/src/stores/visibility-service';
-import { TypeOfAnalysis } from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
 
 function createLabelPosition(
   layout: BoxLayout,
@@ -44,17 +46,15 @@ export default function CodeBuildingLabel({
     isParentHovered,
     isBuildingHighlighted,
     isParentHighlighted,
-    isCurrentBuildingVisible,
+    hiddenBuildingIds,
+    removedDistrictIds,
+    hiddenLanguages,
   } = useVisualizationStore(
     useShallow((state) => ({
       isBuildingHovered: state.hoveredEntityId === buildingId,
-      isCurrentBuildingVisible: isBuildingVisible({
-        buildingId,
-        building,
-        hiddenBuildingIds: state.hiddenBuildingIds,
-        removedDistrictIds: state.removedDistrictIds,
-        hiddenLanguages: state.hiddenLanguages,
-      }),
+      hiddenBuildingIds: state.hiddenBuildingIds,
+      removedDistrictIds: state.removedDistrictIds,
+      hiddenLanguages: state.hiddenLanguages,
       isParentHovered:
         state.hoveredEntityId === building?.parentDistrictId ||
         (!building?.parentDistrictId &&
@@ -66,6 +66,30 @@ export default function CodeBuildingLabel({
       ),
     }))
   );
+
+  const evoConfig = useVisibilityServiceStore(
+    (state) => state._evolutionModeRenderingConfiguration
+  );
+
+  const _selectedCommits = useCommitTreeStateStore(
+    (state) => state._selectedCommits
+  );
+  const currentSelectedRepo = useCommitTreeStateStore(
+    (state) => state._currentSelectedRepositoryName
+  );
+
+  const isDiffMode =
+    (_selectedCommits.get(currentSelectedRepo)?.length || 0) === 2;
+
+  const isCurrentBuildingVisible = isBuildingVisible({
+    buildingId,
+    building,
+    hiddenBuildingIds,
+    removedDistrictIds,
+    hiddenLanguages,
+    evoConfig,
+    isDiffMode,
+  });
 
   const sceneLayers = useVisualizationStore((state) => state.sceneLayers);
   const {
@@ -116,36 +140,10 @@ export default function CodeBuildingLabel({
   );
 
   const buildings = useModelStore((state) => state.buildings);
-  const evoConfig = useVisibilityServiceStore(
-    (state) => state._evolutionModeRenderingConfiguration
+  const heightMetricBounds = getCachedBuildingMetricBounds(
+    buildings,
+    heightMetric
   );
-  const selectedCommits = useCommitTreeStateStore(
-    (state) => state._selectedCommits
-  );
-  const currentSelectedRepo = useCommitTreeStateStore(
-    (state) => state._currentSelectedRepositoryName
-  );
-  const isDiffMode =
-    (selectedCommits.get(currentSelectedRepo)?.length || 0) === 2;
-
-  const visibleDueToEvo = (() => {
-    if (building?.isPlaceholder) {
-      return false;
-    }
-    if (isDiffMode || evoConfig.renderOnlyDifferences) {
-      return !!building?.commitComparison;
-    }
-    if (
-      building?.originOfData === TypeOfAnalysis.Static ||
-      building?.originOfData === TypeOfAnalysis.StaticAndDynamic
-    ) {
-      return evoConfig.renderStatic;
-    }
-    if (building?.originOfData === TypeOfAnalysis.Dynamic) {
-      return evoConfig.renderDynamic;
-    }
-    return true;
-  })();
 
   function getBuildingHeight(targetBuilding: Building) {
     return computeMappedBuildingHeight(
@@ -154,7 +152,7 @@ export default function CodeBuildingLabel({
       metricMapping,
       buildingFootprint,
       buildingHeightMultiplier,
-      buildings,
+      heightMetricBounds,
       metricBuckets
     );
   }
@@ -259,7 +257,7 @@ export default function CodeBuildingLabel({
       : !enableClustering;
 
   const shouldShowLabel =
-    visibleDueToEvo &&
+    isCurrentBuildingVisible &&
     (showAllBuildingLabels ||
       isBuildingHovered ||
       isParentHovered ||

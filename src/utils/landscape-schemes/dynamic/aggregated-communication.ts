@@ -1,9 +1,16 @@
+import { useCommunicationStore } from 'explorviz-frontend/src/stores/communication-store';
 import {
   Building,
   District,
 } from 'explorviz-frontend/src/utils/landscape-schemes/flat-landscape';
 import isObject from 'explorviz-frontend/src/utils/object-helpers';
+import { Comm } from './communication';
 
+/**
+ * An AggregatedCommunication bundles communication originating from potentially multiple entities into a single communication.
+ * The resulting communication may be originating from a building, but also a container (e.g. district) in the hierarchy.
+ * This can be used to display communication even when the container is currently collapsed.
+ */
 export default class AggregatedCommunication {
   id: string = '';
 
@@ -19,9 +26,9 @@ export default class AggregatedCommunication {
 
   originalCommIds: string[] = [];
 
-  from?: number;
+  fromUnixNano: bigint;
 
-  to?: number;
+  toUnixNano: bigint;
 
   sourceCity?: any;
 
@@ -44,14 +51,36 @@ export default class AggregatedCommunication {
     id: string,
     sourceEntity: District | Building,
     targetEntity: District | Building,
+    fromUnixNano: bigint,
+    toUnixNano: bigint,
     buildingCommunicationIds: string[] = [],
     originalCommIds: string[] = []
   ) {
     this.id = id;
     this.sourceEntity = sourceEntity;
     this.targetEntity = targetEntity;
+    this.fromUnixNano = fromUnixNano;
+    this.toUnixNano = toUnixNano;
     this.buildingCommunicationIds = buildingCommunicationIds;
     this.originalCommIds = originalCommIds.length > 0 ? originalCommIds : [id];
+  }
+
+  /**
+   * Retrieves the building communications from which this communication was aggregated.
+   * @returns An array of the underlying building communications
+   */
+  getBuildingCommunications(): Comm[] {
+    const allComms = useCommunicationStore.getState().communications;
+
+    return this.buildingCommunicationIds.reduce((res, key) => {
+      const comm = allComms.get(key);
+      if (comm) {
+        res.push(comm);
+      } else {
+        console.warn(`Could not find building communication with ID ${key}`);
+      }
+      return res;
+    }, [] as Comm[]);
   }
 }
 

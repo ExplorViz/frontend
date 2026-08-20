@@ -1,21 +1,16 @@
 import { RepoAnalysisProgress } from 'explorviz-frontend/src/components/repo-analysis-progress';
 import { useWatchAnalysisState } from 'explorviz-frontend/src/hooks/useWatchAnalysisState';
-import { useReloadHandlerStore } from 'explorviz-frontend/src/stores/reload-handler';
-import { useRenderingServiceStore } from 'explorviz-frontend/src/stores/rendering-service';
 import { useToastHandlerStore } from 'explorviz-frontend/src/stores/toast-handler';
-import { Timestamp } from 'explorviz-frontend/src/utils/landscape-schemes/timestamp';
+import { reloadLandscapeAfterCodeAnalysis } from 'explorviz-frontend/src/utils/code-analysis-reload';
 import { useState } from 'react';
 import CodeAnalysisTriggerForm from './code-analysis-trigger-form';
 
-export const CodeAnalysisSection = () => {
+type Props = {
+  landscapeToken?: string;
+};
+
+export const CodeAnalysisSection = ({ landscapeToken }: Props) => {
   const [mode, setMode] = useState<'form' | 'running'>('form');
-  const loadLandscapeByTimestamp = useReloadHandlerStore(
-    (state) => state.loadLandscapeByTimestamp
-  );
-  const renderingServiceTriggerRenderingForGivenTimestamp =
-    useRenderingServiceStore(
-      (state) => state.triggerRenderingForGivenTimestamps
-    );
 
   const { state: progress, start } = useWatchAnalysisState({
     onFinished: async () => {
@@ -23,19 +18,7 @@ export const CodeAnalysisSection = () => {
         .getState()
         .showSuccessToastMessage('Analysis finished successfully.');
       setMode('form');
-
-      // TODO: following lines copied from visualization page,
-      // Check whether we should refactor this later
-      // or is there other way to do this
-      const timestamp = Date.now();
-      const commitToSelectedTimestampMap = new Map<string, Timestamp[]>();
-      commitToSelectedTimestampMap.set('cross-commit', [
-        { epochNano: timestamp, spanCount: 0 },
-      ]);
-      await loadLandscapeByTimestamp(timestamp);
-      renderingServiceTriggerRenderingForGivenTimestamp(
-        commitToSelectedTimestampMap
-      );
+      await reloadLandscapeAfterCodeAnalysis();
     },
     onFailed: () => {
       useToastHandlerStore
@@ -58,7 +41,8 @@ export const CodeAnalysisSection = () => {
         <RepoAnalysisProgress state={progress} />
       ) : (
         <CodeAnalysisTriggerForm
-          assignRandomToken={true}
+          landscapeToken={landscapeToken}
+          assignRandomToken={!landscapeToken}
           onSubmitSuccess={onSubmitSuccess}
         />
       )}

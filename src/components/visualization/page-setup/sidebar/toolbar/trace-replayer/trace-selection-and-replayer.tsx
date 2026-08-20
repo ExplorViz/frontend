@@ -2,13 +2,13 @@ import TraceReplayerControls from 'explorviz-frontend/src/components/visualizati
 import TraceSelection from 'explorviz-frontend/src/components/visualization/page-setup/sidebar/toolbar/trace-replayer/trace-selection';
 import { useRenderingServiceStore } from 'explorviz-frontend/src/stores/rendering-service';
 import {
-  DynamicLandscapeData,
-  Trace,
-} from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/dynamic-data';
-import {
   FlatLandscape,
   getFunctionIdToBuildingMap,
 } from 'explorviz-frontend/src/utils/landscape-schemes/flat-landscape';
+import {
+  DynamicLandscapeData,
+  Trace,
+} from 'explorviz-frontend/src/utils/landscape-schemes/telemetry/traces';
 import { getSortedTraceSpans } from 'explorviz-frontend/src/utils/trace-helpers';
 import React, { useEffect, useState } from 'react';
 import { useShallow } from 'zustand/react/shallow';
@@ -42,7 +42,7 @@ const TraceSelectionAndReplayer: React.FC<TraceSelectionAndReplayerProps> = ({
   const functionIdToBuildingMap = getFunctionIdToBuildingMap(flatData);
 
   const applicationTraces = dynamicData.filter((trace) => {
-    return trace.spanList.some(
+    return trace.spans.some(
       (span) => functionIdToBuildingMap.get(span.functionId) !== undefined
     );
   });

@@ -42,6 +42,80 @@ function isValidCommitHash(commitId: string): boolean {
   return commitId.length > 0 && commitId !== CROSS_COMMIT_IDENTIFIER;
 }
 
+export function fqnToRepositoryPath(
+  fqn: string | undefined,
+  repositoryName: string | undefined
+): string | undefined {
+  if (!fqn?.trim()) {
+    return undefined;
+  }
+
+  const normalizedFqn = fqn.replace(/\\/g, '/');
+  if (
+    repositoryName?.trim() &&
+    normalizedFqn.startsWith(`${repositoryName}/`)
+  ) {
+    return normalizedFqn.substring(repositoryName.length + 1);
+  }
+
+  return normalizedFqn;
+}
+
+function buildTreeUrlForHost(
+  repositoryUrl: string,
+  commitSha: string,
+  directoryPath?: string
+): string | undefined {
+  const normalizedDirectoryPath = directoryPath?.replace(/\\/g, '/').trim();
+  const pathSuffix =
+    normalizedDirectoryPath && normalizedDirectoryPath.length > 0
+      ? `/${normalizedDirectoryPath}`
+      : '';
+
+  switch (getGitHost(repositoryUrl)) {
+    case 'github':
+      return `${repositoryUrl}/tree/${commitSha}${pathSuffix}`;
+    case 'gitlab':
+      return `${repositoryUrl}/-/tree/${commitSha}${pathSuffix}`;
+    case 'bitbucket':
+      return `${repositoryUrl}/src/${commitSha}${pathSuffix}`;
+    default:
+      return undefined;
+  }
+}
+
+export function buildRepositoryTreeUrl(
+  remoteUrl: string | undefined,
+  commitHash: string | undefined
+): string | undefined {
+  const repositoryUrl = normalizeRepositoryUrl(remoteUrl);
+  if (!repositoryUrl || !commitHash || !isValidCommitHash(commitHash)) {
+    return undefined;
+  }
+
+  return buildTreeUrlForHost(repositoryUrl, commitHash);
+}
+
+export function buildDirectoryTreeUrl(
+  remoteUrl: string | undefined,
+  commitHash: string | undefined,
+  fqn: string | undefined,
+  repositoryName: string | undefined
+): string | undefined {
+  const repositoryUrl = normalizeRepositoryUrl(remoteUrl);
+  const directoryPath = fqnToRepositoryPath(fqn, repositoryName);
+  if (
+    !repositoryUrl ||
+    !commitHash ||
+    !directoryPath ||
+    !isValidCommitHash(commitHash)
+  ) {
+    return undefined;
+  }
+
+  return buildTreeUrlForHost(repositoryUrl, commitHash, directoryPath);
+}
+
 function buildCommitPageUrl(
   repositoryUrl: string,
   commitHash: string
@@ -149,8 +223,5 @@ export function applyCommitHashToRepositoryFileUrl(
     return fileUrl;
   }
 
-  return fileUrl.replace(
-    HOST_FILE_URL_COMMIT_PATTERN,
-    `$1${commitHash}$3`
-  );
+  return fileUrl.replace(HOST_FILE_URL_COMMIT_PATTERN, `$1${commitHash}$3`);
 }

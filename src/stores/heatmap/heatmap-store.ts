@@ -1,26 +1,19 @@
 import { useModelStore } from 'explorviz-frontend/src/stores/repos/model-repository';
 import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
+import { getMetricBoundsForHeatmap } from 'explorviz-frontend/src/utils/settings/building-metrics';
 import { create } from 'zustand';
 
 function getMinMaxMetricValues(metricName: BuildingMetricIds): {
   min: number;
   max: number;
 } {
-  const buildings = useModelStore.getState().buildings;
-  const buildingsArray = Object.values(buildings);
+  const buildings = Object.values(useModelStore.getState().buildings);
 
-  if (buildingsArray.length === 0) return { min: 0, max: 0 };
+  if (buildings.length === 0) {
+    return { min: 0, max: 0 };
+  }
 
-  return buildingsArray.reduce(
-    (acc, b) => {
-      const val = b.metrics?.[metricName]?.current || (b as any)[metricName] || 0;
-      return {
-        min: Math.min(acc.min, val),
-        max: Math.max(acc.max, val),
-      };
-    },
-    { min: Infinity, max: -Infinity }
-  );
+  return getMetricBoundsForHeatmap(buildings, metricName);
 }
 
 export enum SelectedBuildingHeatmapMetric {
@@ -33,6 +26,14 @@ export enum SelectedBuildingHeatmapMetric {
   classCount = 'classCount',
   functionCount = 'functionCount',
   variableCount = 'variableCount',
+  commitCount = 'commitCount',
+  commitActivity = 'commitActivity',
+  coreContributorActivity = 'coreContributorActivity',
+  knowledgeSilo = 'knowledgeSilo',
+  issueActivity = 'issueActivity',
+  reviewFriction = 'reviewFriction',
+  knowledgeStaleness = 'knowledgeStaleness',
+  abandonedKnowledgeSilo = 'abandonedKnowledgeSilo',
 }
 
 export enum BuildingMetricIds {
@@ -45,6 +46,14 @@ export enum BuildingMetricIds {
   classCount = 'classCount',
   functionCount = 'functionCount',
   variableCount = 'variableCount',
+  commitCount = 'commitCount',
+  commitActivity = 'commitActivity',
+  coreContributorActivity = 'coreContributorActivity',
+  knowledgeSilo = 'knowledgeSilo',
+  issueActivity = 'issueActivity',
+  reviewFriction = 'reviewFriction',
+  knowledgeStaleness = 'knowledgeStaleness',
+  abandonedKnowledgeSilo = 'abandonedKnowledgeSilo',
 }
 
 export const ORDERED_BUILDING_METRIC_IDS: BuildingMetricIds[] = [
@@ -57,6 +66,14 @@ export const ORDERED_BUILDING_METRIC_IDS: BuildingMetricIds[] = [
   BuildingMetricIds.classCount,
   BuildingMetricIds.functionCount,
   BuildingMetricIds.variableCount,
+  BuildingMetricIds.commitCount,
+  BuildingMetricIds.commitActivity,
+  BuildingMetricIds.coreContributorActivity,
+  BuildingMetricIds.knowledgeSilo,
+  BuildingMetricIds.issueActivity,
+  BuildingMetricIds.reviewFriction,
+  BuildingMetricIds.knowledgeStaleness,
+  BuildingMetricIds.abandonedKnowledgeSilo,
 ];
 
 const NO_SELECTED_METRIC: BuildingMetric = {
@@ -100,6 +117,7 @@ interface HeatmapConfigurationState {
   setSelectedGradient: (gradient: HeatmapGradient) => void;
   getSelectedValueMapping: () => HeatmapValueMapping;
   setSelectedValueMapping: (mapping: HeatmapValueMapping) => void;
+  refreshSelectedMetricBounds: () => void;
   toggleLegend: () => void;
   cleanup: () => void;
   setShowLegendValues: (show: boolean) => void;
@@ -148,7 +166,15 @@ export const useHeatmapStore = create<HeatmapConfigurationState>(
         case BuildingMetricIds.importCount:
         case BuildingMetricIds.classCount:
         case BuildingMetricIds.functionCount:
-        case BuildingMetricIds.variableCount: {
+        case BuildingMetricIds.variableCount:
+        case BuildingMetricIds.commitCount:
+        case BuildingMetricIds.commitActivity:
+        case BuildingMetricIds.coreContributorActivity:
+        case BuildingMetricIds.knowledgeSilo:
+        case BuildingMetricIds.issueActivity:
+        case BuildingMetricIds.reviewFriction:
+        case BuildingMetricIds.knowledgeStaleness:
+        case BuildingMetricIds.abandonedKnowledgeSilo: {
           const { min, max } = getMinMaxMetricValues(metricName);
           set({
             selectedBuildingMetric: {
@@ -179,6 +205,14 @@ export const useHeatmapStore = create<HeatmapConfigurationState>(
     },
     setSelectedValueMapping: (mapping: HeatmapValueMapping) => {
       set({ selectedValueMapping: mapping });
+    },
+    refreshSelectedMetricBounds: () => {
+      const metricName = get().selectedBuildingMetric.name;
+      if (metricName === BuildingMetricIds.None) {
+        return;
+      }
+
+      get().setSelectedBuildingMetric(metricName as BuildingMetricIds);
     },
     toggleLegend: () => {
       set({ legendActive: !get().legendActive });

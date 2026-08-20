@@ -1,4 +1,8 @@
 import { useModelStore } from 'explorviz-frontend/src/stores/repos/model-repository';
+import {
+  FlatLandscape,
+  getFlatLandscapeEntityType,
+} from 'explorviz-frontend/src/utils/landscape-schemes/flat-landscape';
 import BoxLayout from 'explorviz-frontend/src/utils/layout/box-layout';
 import { create } from 'zustand';
 
@@ -12,7 +16,10 @@ interface LayoutStoreState {
   maxDistrictDepth: number | null;
 
   // Actions
-  updateLayouts: (boxLayoutMap: Map<string, BoxLayout>) => void;
+  updateLayouts: (
+    boxLayoutMap: Map<string, BoxLayout>,
+    flatLandscape?: FlatLandscape
+  ) => void;
   getLayout: (entityId: string) => BoxLayout | undefined;
   getLandscapeLayout: () => BoxLayout | null;
   getCityLayouts: () => Map<string, BoxLayout>;
@@ -29,7 +36,10 @@ export const useLayoutStore = create<LayoutStoreState>((set, get) => ({
   fullLayoutMap: new Map<string, BoxLayout>(),
   maxDistrictDepth: null,
 
-  updateLayouts: (boxLayoutMap: Map<string, BoxLayout>) => {
+  updateLayouts: (
+    boxLayoutMap: Map<string, BoxLayout>,
+    flatLandscape?: FlatLandscape
+  ) => {
     const modelStore = useModelStore.getState();
     const landscapeLayout = boxLayoutMap.get('landscape') || null;
 
@@ -44,7 +54,10 @@ export const useLayoutStore = create<LayoutStoreState>((set, get) => ({
         return;
       }
 
-      const entityType = modelStore.getEntityType(entityId);
+      const entityType =
+        (flatLandscape &&
+          getFlatLandscapeEntityType(entityId, flatLandscape)) ||
+        modelStore.getEntityType(entityId);
       switch (entityType) {
         case 'city':
           cityLayouts.set(entityId, layout);

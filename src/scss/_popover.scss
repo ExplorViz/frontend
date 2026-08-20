@@ -24,7 +24,7 @@
 // Popover Styling
 .popover {
   border: none;
-  z-index: 100;
+  z-index: 10000010;
   border-radius: var(--ev-radius-lg);
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
   background: var(--bs-body-bg, #f8f9fa);
@@ -234,6 +234,37 @@
       background: var(--bs-danger-text-emphasis, #c82333);
       border-color: var(--bs-danger-text-emphasis, #c82333);
     }
+  }
+}
+
+.entity-files-list {
+  padding: 0 0.75rem 0.75rem;
+}
+
+.entity-files-list-item {
+  border-bottom: 1px solid var(--bs-border-color, #dee2e6);
+  font-size: 0.85rem;
+  min-height: 2rem;
+  padding: 0.35rem 0;
+}
+
+.entity-files-list-item:last-child {
+  border-bottom: none;
+}
+
+.entity-files-list .entity-files-action-button {
+  align-items: center;
+  display: inline-flex;
+  justify-content: center;
+  min-height: 1rem;
+  min-width: 1rem;
+  padding: 0;
+  width: 1rem;
+  height: 1rem;
+
+  svg {
+    height: 0.625rem;
+    width: 0.625rem;
   }
 }
 

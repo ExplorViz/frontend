@@ -2,11 +2,13 @@ import { useEffect, useRef } from 'react';
 
 import {
   getLanguageCountsFromBuildings,
+  getLanguageFileExtensionStatsFromBuildings,
   useEntityFilteringStore,
 } from 'explorviz-frontend/src/stores/entity-filtering-store';
 import { useRenderingServiceStore } from 'explorviz-frontend/src/stores/rendering-service';
 import { NEW_SELECTED_TIMESTAMP_EVENT } from 'explorviz-frontend/src/stores/timestamp';
 import { useVisualizationStore } from 'explorviz-frontend/src/stores/visualization-store';
+import { pruneFlatLandscapeByRemainingBuildings } from 'explorviz-frontend/src/utils/city-rendering/flat-landscape-filter';
 import eventEmitter from 'explorviz-frontend/src/utils/event-emitter';
 import {
   Building,
@@ -100,6 +102,9 @@ export default function EntityFilteringApplier({
   const setBaselineLanguageStats = useEntityFilteringStore(
     (state) => state.actions.setBaselineLanguageStats
   );
+  const setBaselineLanguageFileExtensionStats = useEntityFilteringStore(
+    (state) => state.actions.setBaselineLanguageFileExtensionStats
+  );
 
   const latestLandscapeDataRef = useRef<LandscapeData>(landscapeData);
   const latestFlatLandscapeDataRef = useRef<FlatLandscape>(flatLandscapeData);
@@ -168,24 +173,7 @@ export default function EntityFilteringApplier({
       delete deepCopyFlatLandscape.buildings[building.id];
     }
 
-    const remainingBuildingIds = new Set(
-      Object.keys(deepCopyFlatLandscape.buildings)
-    );
-
-    for (const district of Object.values(deepCopyFlatLandscape.districts)) {
-      district.buildingIds = district.buildingIds.filter((id) =>
-        remainingBuildingIds.has(id)
-      );
-    }
-
-    for (const city of Object.values(deepCopyFlatLandscape.cities)) {
-      city.buildingIds = city.buildingIds.filter((id) =>
-        remainingBuildingIds.has(id)
-      );
-      city.allContainedBuildingIds = city.allContainedBuildingIds.filter((id) =>
-        remainingBuildingIds.has(id)
-      );
-    }
+    pruneFlatLandscapeByRemainingBuildings(deepCopyFlatLandscape);
 
     ignoreNextLandscapeUpdateRef.current = true;
     triggerRenderingForGivenLandscapeData(
@@ -196,10 +184,10 @@ export default function EntityFilteringApplier({
   };
 
   const updateBaseline = (nextFlatLandscapeData: FlatLandscape) => {
-    setBaselineLanguageStats(
-      getLanguageCountsFromBuildings(
-        Object.values(nextFlatLandscapeData.buildings)
-      )
+    const buildings = Object.values(nextFlatLandscapeData.buildings);
+    setBaselineLanguageStats(getLanguageCountsFromBuildings(buildings));
+    setBaselineLanguageFileExtensionStats(
+      getLanguageFileExtensionStatsFromBuildings(buildings)
     );
   };
 

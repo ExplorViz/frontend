@@ -199,7 +199,9 @@ export const useUserSettingsStore = create<UserSettingsState>()(
         for (settingId in visualizationSettings) {
           const setting = visualizationSettings[settingId];
           if (isColorSetting(setting)) {
-            colors[settingId as ColorSettingId] = new THREE.Color(setting.value);
+            colors[settingId as ColorSettingId] = new THREE.Color(
+              setting.value
+            );
           }
         }
 
@@ -364,8 +366,12 @@ export const useUserSettingsStore = create<UserSettingsState>()(
               continue;
             }
 
-            // Value type is compatible — use the stored setting
-            mergedVisualizationSettings[settingId] = storedSetting;
+            // Value type is compatible — keep the stored value but use current
+            // defaults for metadata such as select options.
+            mergedVisualizationSettings[settingId] = {
+              ...defaultSetting,
+              value: storedSetting.value,
+            };
           }
         }
 

@@ -3,7 +3,6 @@ import {
   getAllClassesInApplication,
   getAllMethodHashCodesInApplication,
 } from 'explorviz-frontend/src/utils/application-helpers';
-import { Trace } from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/dynamic-data';
 import {
   Application,
   BaseModel,
@@ -15,6 +14,7 @@ import {
   StructureLandscapeData,
   TypeOfAnalysis,
 } from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
+import { Trace } from 'explorviz-frontend/src/utils/landscape-schemes/telemetry/traces';
 import {
   getAncestorPackages,
   getPackageById,
@@ -171,7 +171,7 @@ export function getSpanIdToClassMap(
 
   const spanIdToClassMap = new Map<string, Class>();
 
-  trace.spanList.forEach((span) => {
+  trace.spans.forEach((span) => {
     const { functionId, spanId } = span;
 
     const cls = hashCodeToClassMap.get(functionId);
@@ -243,7 +243,7 @@ export function combineStructureLandscapeData(
         name: nodeB.name,
         ipAddress: nodeB.ipAddress,
         hostName: nodeB.hostName,
-        originOfData: TypeOfAnalysis.StaticAndDynamic,
+        originOfData: TypeOfAnalysis.StaticAndRuntime,
         applications: [],
       };
       const applications: Application[] = combineApplications(
@@ -309,7 +309,7 @@ function combineMethods(methodsA: Method[], methodsB: Method[]): Method[] {
     if (!commonMethod) {
       methods.push(methodB);
     } else {
-      commonMethod.originOfData = TypeOfAnalysis.StaticAndDynamic;
+      commonMethod.originOfData = TypeOfAnalysis.StaticAndRuntime;
     }
   }
 
@@ -339,7 +339,7 @@ function combineClasses(classesA: Class[], classesB: Class[]): Class[] {
         id: classB.id,
         level: classB.level,
         fqn: classB.fqn,
-        originOfData: TypeOfAnalysis.StaticAndDynamic,
+        originOfData: TypeOfAnalysis.StaticAndRuntime,
         name: classB.name,
         methods: [],
         parent: classB.parent,
@@ -372,7 +372,7 @@ function combinePackages(
     if (packageB) {
       const combinedPackage: Package = {
         id: packageB.id,
-        originOfData: TypeOfAnalysis.StaticAndDynamic,
+        originOfData: TypeOfAnalysis.StaticAndRuntime,
         fqn: packageB.fqn,
         level: packageB.level,
         name: packageB.name,
@@ -416,7 +416,7 @@ function combineApplications(
     if (applicationB) {
       const application: Application = {
         id: applicationB.id,
-        originOfData: TypeOfAnalysis.StaticAndDynamic,
+        originOfData: TypeOfAnalysis.StaticAndRuntime,
         name: applicationB.name,
         language: applicationB.language,
         instanceId: applicationB.instanceId,

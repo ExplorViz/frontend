@@ -1,5 +1,5 @@
-import { Span } from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/dynamic-data';
 import { Building } from 'explorviz-frontend/src/utils/landscape-schemes/flat-landscape';
+import { Span } from 'explorviz-frontend/src/utils/landscape-schemes/telemetry/traces';
 
 export class TraceNode {
   readonly id: string;
@@ -126,8 +126,8 @@ export class TraceTreeBuilder {
         span.spanId,
         name,
         targetClass,
-        span.startTime,
-        span.endTime
+        span.startUnixNano,
+        span.endUnixNano
       );
       node.targetClass = targetClass;
       return node;

@@ -135,24 +135,24 @@ export const useVisibilityServiceStore = create<VisibilityServiceState>(
           );
 
         if (!renderDynamic && !renderStatic) {
-          hideVis(TypeOfAnalysis.StaticAndDynamic);
+          hideVis(TypeOfAnalysis.StaticAndRuntime);
           hideVis(TypeOfAnalysis.Static);
-          hideVis(TypeOfAnalysis.Dynamic);
+          hideVis(TypeOfAnalysis.Runtime);
           return;
         }
 
         if (needToChangeDynamic) {
           if (renderDynamic) {
-            showVis(TypeOfAnalysis.StaticAndDynamic, true);
-            showVis(TypeOfAnalysis.Dynamic, true);
+            showVis(TypeOfAnalysis.StaticAndRuntime, true);
+            showVis(TypeOfAnalysis.Runtime, true);
           } else {
-            hideVis(TypeOfAnalysis.Dynamic);
+            hideVis(TypeOfAnalysis.Runtime);
           }
         }
 
         if (needToChangeStatic) {
           if (renderStatic) {
-            showVis(TypeOfAnalysis.StaticAndDynamic, renderDynamic);
+            showVis(TypeOfAnalysis.StaticAndRuntime, renderDynamic);
             showVis(TypeOfAnalysis.Static, renderDynamic);
           } else {
             hideVis(TypeOfAnalysis.Static);
@@ -162,13 +162,13 @@ export const useVisibilityServiceStore = create<VisibilityServiceState>(
         if (needToChangeDifferenceRendering) {
           if (renderOnlyDifferences) {
             if (renderDynamic && renderStatic)
-              hideVis(TypeOfAnalysis.StaticAndDynamic, true);
-            if (renderDynamic) hideVis(TypeOfAnalysis.Dynamic, true);
+              hideVis(TypeOfAnalysis.StaticAndRuntime, true);
+            if (renderDynamic) hideVis(TypeOfAnalysis.Runtime, true);
             if (renderStatic) hideVis(TypeOfAnalysis.Static, true);
           } else {
             if (renderDynamic && renderStatic)
-              showVis(TypeOfAnalysis.StaticAndDynamic, renderDynamic);
-            if (renderDynamic) showVis(TypeOfAnalysis.Dynamic, true);
+              showVis(TypeOfAnalysis.StaticAndRuntime, renderDynamic);
+            if (renderDynamic) showVis(TypeOfAnalysis.Runtime, true);
             if (renderStatic) showVis(TypeOfAnalysis.Static, renderDynamic);
           }
         }
@@ -330,8 +330,8 @@ export const useVisibilityServiceStore = create<VisibilityServiceState>(
             )
           );
           if (
-            dataTypeToHide === TypeOfAnalysis.Dynamic ||
-            dataTypeToHide === TypeOfAnalysis.StaticAndDynamic
+            dataTypeToHide === TypeOfAnalysis.Runtime ||
+            dataTypeToHide === TypeOfAnalysis.StaticAndRuntime
           ) {
             // hide communication links
             useLinkRendererStore

@@ -1,4 +1,10 @@
-import { VisualizationSettingId } from 'explorviz-frontend/src/utils/settings/settings-schemas';
+import {
+  SELECTED_BUILDING_METRIC_OPTIONS,
+  VisualizationSettingId,
+} from 'explorviz-frontend/src/utils/settings/settings-schemas';
+
+/** Code and social activity metrics available in Building Config dimension mapping. */
+export const BUILDING_CONFIG_METRIC_OPTIONS = SELECTED_BUILDING_METRIC_OPTIONS;
 
 export const BUILDING_METRIC_MAPPING_SETTING_ID =
   'buildingMetricMapping' as const satisfies VisualizationSettingId;

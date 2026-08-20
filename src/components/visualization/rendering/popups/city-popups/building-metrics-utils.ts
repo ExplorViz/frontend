@@ -1,5 +1,6 @@
 import { useModelStore } from 'explorviz-frontend/src/stores/repos/model-repository';
 import { MetricValue } from 'explorviz-frontend/src/utils/landscape-schemes/flat-landscape';
+import { SOCIAL_METRICS } from 'explorviz-frontend/src/utils/landscape-schemes/social-metrics-helpers';
 
 export const NULL_METRIC_DISPLAY = '—';
 
@@ -87,6 +88,10 @@ export function formatMetricValue(
     }
 
     return formatSizeMetric(numericValue);
+  }
+
+  if (SOCIAL_METRICS.has(name)) {
+    return formatWithUpToTwoDecimals(value);
   }
 
   return formatInteger(value);

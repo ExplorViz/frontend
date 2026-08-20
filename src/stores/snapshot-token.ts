@@ -1,19 +1,19 @@
 import { useAuthStore } from 'explorviz-frontend/src/stores/auth';
 import { LandscapeToken } from 'explorviz-frontend/src/stores/landscape-token';
 import { useToastHandlerStore } from 'explorviz-frontend/src/stores/toast-handler';
-import { getCircularReplacer } from 'explorviz-frontend/src/utils/circularReplacer';
+import { getCircularReplacer } from 'explorviz-frontend/src/utils/circular-replacer';
 import { SerializedRoom } from 'explorviz-frontend/src/utils/collaboration/web-socket-messages/types/serialized-room';
-import { AggregatedBuildingCommunication } from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/aggregated-file-communication';
-import { DynamicLandscapeData } from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/dynamic-data';
+import { CommSummary } from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/communication';
 import { FlatLandscape } from 'explorviz-frontend/src/utils/landscape-schemes/flat-landscape';
 import { StructureLandscapeData } from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
+import { DynamicLandscapeData } from 'explorviz-frontend/src/utils/landscape-schemes/telemetry/traces';
 import { Timestamp } from 'explorviz-frontend/src/utils/landscape-schemes/timestamp';
 import { reject } from 'rsvp';
 import { create } from 'zustand';
 
 export type SnapshotStructureData = {
   flatLandscapeData?: FlatLandscape;
-  aggregatedFileCommunication?: AggregatedBuildingCommunication;
+  aggregatedFileCommunication?: CommSummary;
   structureLandscapeData?: StructureLandscapeData;
   dynamicLandscapeData?: DynamicLandscapeData;
 };

@@ -16,7 +16,11 @@ interface LandscapeTokenState {
   _isValidToken: (token: unknown) => token is LandscapeToken;
   _isStringArray: (possibleArray: unknown) => possibleArray is string[];
   _isObject: (variable: unknown) => variable is object;
-  createToken: (alias: string) => Promise<LandscapeToken>;
+  createToken: (params: {
+    alias: string;
+    value?: string;
+    secret?: string;
+  }) => Promise<LandscapeToken>;
   updateTokenAlias: (tokenValue: string, alias: string) => Promise<void>;
 }
 
@@ -138,10 +142,18 @@ export const useLandscapeTokenStore = create<LandscapeTokenState>(
     _isObject: (variable: unknown): variable is object => {
       return Object.prototype.toString.call(variable) === '[object Object]';
     },
-    createToken: async (alias: string) => {
+    createToken: async ({ alias, value, secret }) => {
       const userId = encodeURI(useAuthStore.getState().user?.sub || '');
       if (!userId) {
         throw new Error('User not authenticated');
+      }
+
+      const body: Record<string, string> = { alias };
+      if (value) {
+        body.value = value;
+      }
+      if (secret) {
+        body.secret = secret;
       }
 
       const response = await fetch(`${userService}/user/${userId}/token`, {
@@ -150,7 +162,7 @@ export const useLandscapeTokenStore = create<LandscapeTokenState>(
           'Content-Type': 'application/json',
           Authorization: `Bearer ${useAuthStore.getState().accessToken}`,
         },
-        body: JSON.stringify({ alias }),
+        body: JSON.stringify(body),
       });
 
       if (!response.ok) {

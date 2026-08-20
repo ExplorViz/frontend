@@ -1,7 +1,10 @@
-import { Building } from 'explorviz-frontend/src/utils/landscape-schemes/flat-landscape';
+import { useCommitTreeStateStore } from 'explorviz-frontend/src/stores/commit-tree-state';
+import {
+  Building,
+  MetricValue,
+} from 'explorviz-frontend/src/utils/landscape-schemes/flat-landscape';
 import {
   BuildingMetricMapping,
-  SELECTED_BUILDING_METRIC_OPTIONS,
   SelectedBuildingMetric,
 } from 'explorviz-frontend/src/utils/settings/settings-schemas';
 
@@ -31,6 +34,14 @@ export const metricMappingMultipliers = {
     [SelectedBuildingMetric.classCount]: 10,
     [SelectedBuildingMetric.functionCount]: 10,
     [SelectedBuildingMetric.variableCount]: 10,
+    [SelectedBuildingMetric.commitCount]: 10,
+    [SelectedBuildingMetric.commitActivity]: 10,
+    [SelectedBuildingMetric.coreContributorActivity]: 10,
+    [SelectedBuildingMetric.knowledgeSilo]: 10,
+    [SelectedBuildingMetric.issueActivity]: 10,
+    [SelectedBuildingMetric.reviewFriction]: 10,
+    [SelectedBuildingMetric.knowledgeStaleness]: 10,
+    [SelectedBuildingMetric.abandonedKnowledgeSilo]: 10,
   },
   [BuildingMetricMapping.Logarithmic]: {
     [SelectedBuildingMetric.None]: 1,
@@ -42,6 +53,14 @@ export const metricMappingMultipliers = {
     [SelectedBuildingMetric.classCount]: 20,
     [SelectedBuildingMetric.functionCount]: 25,
     [SelectedBuildingMetric.variableCount]: 20,
+    [SelectedBuildingMetric.commitCount]: 20,
+    [SelectedBuildingMetric.commitActivity]: 20,
+    [SelectedBuildingMetric.coreContributorActivity]: 20,
+    [SelectedBuildingMetric.knowledgeSilo]: 10,
+    [SelectedBuildingMetric.issueActivity]: 10,
+    [SelectedBuildingMetric.reviewFriction]: 10,
+    [SelectedBuildingMetric.knowledgeStaleness]: 10,
+    [SelectedBuildingMetric.abandonedKnowledgeSilo]: 10,
   },
   [BuildingMetricMapping.BucketCount]: {
     [SelectedBuildingMetric.None]: 1,
@@ -53,60 +72,125 @@ export const metricMappingMultipliers = {
     [SelectedBuildingMetric.classCount]: 10,
     [SelectedBuildingMetric.functionCount]: 10,
     [SelectedBuildingMetric.variableCount]: 10,
+    [SelectedBuildingMetric.commitCount]: 20,
+    [SelectedBuildingMetric.commitActivity]: 20,
+    [SelectedBuildingMetric.coreContributorActivity]: 20,
+    [SelectedBuildingMetric.knowledgeSilo]: 10,
+    [SelectedBuildingMetric.issueActivity]: 10,
+    [SelectedBuildingMetric.reviewFriction]: 10,
+    [SelectedBuildingMetric.knowledgeStaleness]: 10,
+    [SelectedBuildingMetric.abandonedKnowledgeSilo]: 10,
   },
 } as const;
 
-export const metricKeys = SELECTED_BUILDING_METRIC_OPTIONS;
+function toSafeMetricValue(value: number | null | undefined): number {
+  const numericValue = Number(value);
+  return Number.isFinite(numericValue) ? Math.max(0, numericValue) : 0;
+}
 
-export function getMetricBoundsForBuildings(
+export function isCommitComparisonDiffMode(): boolean {
+  const repositoryName = useCommitTreeStateStore
+    .getState()
+    .getCurrentSelectedRepositoryName();
+  const selectedCommits = useCommitTreeStateStore
+    .getState()
+    .getSelectedCommits();
+
+  return (selectedCommits.get(repositoryName)?.length ?? 0) === 2;
+}
+
+export function getBuildingMetricValueForSizing(
+  building: Building,
+  metricKey: string,
+  useCommitComparisonDiff = isCommitComparisonDiffMode()
+): number {
+  const metric = building.metrics?.[metricKey];
+  if (!metric) {
+    return 0;
+  }
+
+  const shouldUseComparisonDiff =
+    useCommitComparisonDiff && building.commitComparison !== undefined;
+
+  return getMetricValueForSizing(metric, shouldUseComparisonDiff);
+}
+
+export function getMetricValueForSizing(
+  metric: MetricValue,
+  useCommitComparisonDiff = isCommitComparisonDiffMode()
+): number {
+  const current = toSafeMetricValue(metric.current);
+
+  if (!useCommitComparisonDiff) {
+    return current;
+  }
+
+  const previous = toSafeMetricValue(metric.previous);
+  return Math.abs(current - previous);
+}
+
+export function getBuildingMetricValueForHeatmap(
+  building: Building,
+  metricKey: string
+): number | null {
+  const metric = building.metrics?.[metricKey];
+  if (!metric) {
+    return null;
+  }
+
+  const shouldUseComparisonDiff =
+    isCommitComparisonDiffMode() && building.commitComparison !== undefined;
+
+  if (!shouldUseComparisonDiff) {
+    if (metric.current === null || metric.current === undefined) {
+      return null;
+    }
+
+    return toSafeMetricValue(metric.current);
+  }
+
+  return getMetricValueForSizing(metric, true);
+}
+
+export function formatBuildingMetricDisplayName(
+  metric: string,
+  useDiffSuffix: boolean
+): string {
+  if (!useDiffSuffix || metric === SelectedBuildingMetric.None) {
+    return metric;
+  }
+
+  return `${metric} diff`;
+}
+
+export function getMetricBoundsForHeatmap(
   buildings: Building[],
   metricKey: string
 ): MetricBounds {
-  if (
-    !metricKey ||
-    metricKey === SelectedBuildingMetric.None ||
-    buildings.length === 0
-  ) {
-    return { min: 0, max: 0, sortedValues: [] };
-  }
-  const values: number[] = [];
-  let min = Infinity;
-  let max = -Infinity;
-
-  for (const building of buildings) {
-    const rawValue = Number(building.metrics?.[metricKey]?.current ?? 0);
-    const safeValue = Number.isFinite(rawValue) ? Math.max(0, rawValue) : 0;
-    values.push(safeValue);
-    if (safeValue < min) min = safeValue;
-    if (safeValue > max) max = safeValue;
+  if (buildings.length === 0) {
+    return { min: 0, max: 0 };
   }
 
-  values.sort((a, b) => a - b);
-  return { min, max, sortedValues: values };
-}
+  const bounds = buildings.reduce(
+    (acc, building) => {
+      const value = getBuildingMetricValueForHeatmap(building, metricKey);
+      if (value === null) {
+        return acc;
+      }
 
-let cachedBoundsBuildingsRef: Record<string, Building> | null = null;
-let cachedBoundsMetricKey = '';
-let cachedMetricBounds: MetricBounds = { min: 0, max: 0 };
-
-export function getCachedBuildingMetricBounds(
-  buildings: Record<string, Building>,
-  metricKey: string
-): MetricBounds {
-  if (
-    cachedBoundsBuildingsRef === buildings &&
-    cachedBoundsMetricKey === metricKey
-  ) {
-    return cachedMetricBounds;
-  }
-
-  cachedBoundsBuildingsRef = buildings;
-  cachedBoundsMetricKey = metricKey;
-  cachedMetricBounds = getMetricBoundsForBuildings(
-    Object.values(buildings),
-    metricKey
+      return {
+        min: Math.min(acc.min, value),
+        max: Math.max(acc.max, value),
+      };
+    },
+    { min: Infinity, max: -Infinity }
   );
-  return cachedMetricBounds;
+
+  if (!Number.isFinite(bounds.min) || !Number.isFinite(bounds.max)) {
+    return { min: 0, max: 0 };
+  }
+
+  return bounds;
 }
 
 let cachedEdgesSource: number[] | null = null;
@@ -138,10 +222,7 @@ export function applyMetricMapping(
   bounds?: MetricBounds,
   buckets: number = DEFAULT_METRIC_BUCKETS
 ): number {
-  const numericValue = Number(value);
-  const safeValue = Number.isFinite(numericValue)
-    ? Math.max(0, numericValue)
-    : 0;
+  const safeValue = toSafeMetricValue(value);
 
   if (mapping === BuildingMetricMapping.BucketCount) {
     const sorted = bounds?.sortedValues;
@@ -185,22 +266,87 @@ export function getMetricMappingMultiplier(
   return metricMappingMultipliers[mapping][metric];
 }
 
+
+export function getMetricBoundsForBuildings(
+  buildings: Building[],
+  metricKey: string
+): MetricBounds {
+  if (
+    !metricKey ||
+    metricKey === SelectedBuildingMetric.None ||
+    buildings.length === 0
+  ) {
+    return { min: 0, max: 0, sortedValues: [] };
+  }
+  const useCommitComparisonDiff = isCommitComparisonDiffMode();
+  const values: number[] = [];
+  let min = Infinity;
+  let max = -Infinity;
+
+  for (const building of buildings) {
+    const safeValue = getBuildingMetricValueForSizing(
+      building,
+      metricKey,
+      useCommitComparisonDiff
+    );    values.push(safeValue);
+    if (safeValue < min) min = safeValue;
+    if (safeValue > max) max = safeValue;
+  }
+
+  values.sort((a, b) => a - b);
+  return { min, max, sortedValues: values };
+}
+let cachedBoundsBuildingsRef: Record<string, Building> | null = null;
+let cachedBoundsMetricKey = '';
+let cachedBoundsUseCommitComparisonDiff = false;
+let cachedMetricBounds: MetricBounds = { min: 0, max: 0 };
+
+export function invalidateBuildingMetricBoundsCache(): void {
+  cachedBoundsBuildingsRef = null;
+  cachedBoundsMetricKey = '';
+  cachedBoundsUseCommitComparisonDiff = false;
+  cachedMetricBounds = { min: 0, max: 0 };
+}
+
+export function getCachedBuildingMetricBounds(
+  buildings: Record<string, Building>,
+  metricKey: string
+): MetricBounds {
+  const useCommitComparisonDiff = isCommitComparisonDiffMode();
+
+  if (
+    cachedBoundsBuildingsRef === buildings &&
+    cachedBoundsMetricKey === metricKey &&
+    cachedBoundsUseCommitComparisonDiff === useCommitComparisonDiff
+  ) {
+    return cachedMetricBounds;
+  }
+
+  cachedBoundsBuildingsRef = buildings;
+  cachedBoundsMetricKey = metricKey;
+  cachedBoundsUseCommitComparisonDiff = useCommitComparisonDiff;
+  cachedMetricBounds = getMetricBoundsForBuildings(
+    Object.values(buildings),
+    metricKey
+  );
+  return cachedMetricBounds;
+}
+
 export function computeMappedBuildingHeight(
   building: Building,
   heightMetric: string,
   metricMapping: BuildingMetricMapping,
   buildingFootprint: number,
   buildingHeightMultiplier: number,
-  buildings: Record<string, Building>,
+  bounds?: MetricBounds,
   metricBuckets: number = DEFAULT_METRIC_BUCKETS
 ): number {
-  const metricBounds = getCachedBuildingMetricBounds(buildings, heightMetric);
-  const metricValue = building.metrics?.[heightMetric]?.current || 0;
+  const metricValue = getBuildingMetricValueForSizing(building, heightMetric);
 
   return (
     buildingFootprint +
     getMetricMappingMultiplier(heightMetric as MetricKey, metricMapping) *
       buildingHeightMultiplier *
-      applyMetricMapping(metricValue, metricMapping, metricBounds, metricBuckets)
+      applyMetricMapping(metricValue, metricMapping, bounds,metricBuckets)
   );
 }

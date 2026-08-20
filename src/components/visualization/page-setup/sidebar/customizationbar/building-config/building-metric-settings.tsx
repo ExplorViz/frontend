@@ -1,5 +1,6 @@
 import RangeSetting from 'explorviz-frontend/src/components/visualization/page-setup/sidebar/customizationbar/settings/setting-type/range-setting';
 import SelectSetting from 'explorviz-frontend/src/components/visualization/page-setup/sidebar/customizationbar/settings/setting-type/select-setting';
+import { useCommitTreeStateStore } from 'explorviz-frontend/src/stores/commit-tree-state';
 import { useToastHandlerStore } from 'explorviz-frontend/src/stores/toast-handler';
 import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
 import {
@@ -8,6 +9,7 @@ import {
   BUILDING_FOOTPRINT_SETTING_ID,
   BUILDING_METRIC_MAPPING_SETTING_ID,
 } from 'explorviz-frontend/src/utils/settings/building-config-settings';
+import { formatBuildingMetricDisplayName } from 'explorviz-frontend/src/utils/settings/building-metrics';
 import {
   SelectedBuildingMetric,
   SettingDependency,
@@ -45,7 +47,26 @@ function isDependencyMet(
   return false;
 }
 
+function formatBuildingMetricOptionLabel(
+  option: unknown,
+  isCommitComparisonMode: boolean
+): string {
+  return formatBuildingMetricDisplayName(
+    option as SelectedBuildingMetric,
+    isCommitComparisonMode
+  );
+}
+
 export default function BuildingMetricSettings() {
+  const currentSelectedRepo = useCommitTreeStateStore(
+    (state) => state._currentSelectedRepositoryName
+  );
+  const selectedCommitCount =
+    useCommitTreeStateStore(
+      (state) => state._selectedCommits.get(currentSelectedRepo)?.length
+    ) ?? 0;
+  const isCommitComparisonMode = selectedCommitCount >= 2;
+
   const visualizationSettings = useUserSettingsStore(
     (state) => state.visualizationSettings
   );
@@ -76,8 +97,10 @@ export default function BuildingMetricSettings() {
   return (
     <div className="building-config-metrics">
       <p className="building-config-section-description">
-        Choose which code metrics control building size. Use multipliers to fine
-        tune the visual scale.
+        Choose which code and social activity metrics control building size. Use
+        multipliers to fine tune the visual scale.
+        {isCommitComparisonMode &&
+          ' With two commits selected, dimensions reflect the absolute difference between the commits.'}
       </p>
 
       <div className="building-config-metric-card">
@@ -110,6 +133,9 @@ export default function BuildingMetricSettings() {
             <SelectSetting
               settingId={metricSettingId}
               onChange={updateSelectSetting}
+              formatOptionLabel={(option) =>
+                formatBuildingMetricOptionLabel(option, isCommitComparisonMode)
+              }
             />
             {showMultiplier && (
               <RangeSetting
@@ -123,7 +149,9 @@ export default function BuildingMetricSettings() {
 
       <div className="building-config-metric-card">
         <div className="building-config-dimension-header">
-          <span className="building-config-dimension-label">Base footprint</span>
+          <span className="building-config-dimension-label">
+            Base footprint
+          </span>
           <span className="building-config-dimension-caption">
             Default width and depth when no metric is selected
           </span>

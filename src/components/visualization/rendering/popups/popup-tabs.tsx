@@ -38,7 +38,7 @@ export default function PopupTabs({
     if (methodsTab) {
       return 'methods';
     }
-    if (runtimeTab && isValidPopupSection('dynamic', originOfData)) {
+    if (runtimeTab && isValidPopupSection('runtime', originOfData)) {
       return 'runtime';
     }
     if (codeTab && isValidPopupSection('static', originOfData)) {
@@ -63,7 +63,7 @@ export default function PopupTabs({
           </Tab>
         )}
 
-        {runtimeTab && isValidPopupSection('dynamic', originOfData) && (
+        {runtimeTab && isValidPopupSection('runtime', originOfData) && (
           <Tab eventKey="runtime" title="Runtime">
             {runtimeTab}
           </Tab>

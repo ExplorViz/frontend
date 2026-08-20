@@ -7,7 +7,9 @@ import {
 } from 'explorviz-frontend/src/utils/evolution-data-helpers';
 import {
   Commit,
+  CommitTreeFilters,
   CommitXAxisPlacement,
+  DEFAULT_COMMIT_TREE_FILTERS,
   RepoNameCommitTreeMap,
 } from 'explorviz-frontend/src/utils/evolution-schemes/evolution-data';
 import { create } from 'zustand';
@@ -19,9 +21,13 @@ interface CommitTreeStateState {
   _repoNameAndBranchNameToColorMap: Map<string, string>;
   _currentSelectedRepositoryName: string;
   _xAxisPlacement: CommitXAxisPlacement;
+  _commitTreeFilters: CommitTreeFilters;
   getSelectedCommits: () => Map<string, Commit[]>;
   getCurrentSelectedRepositoryName: () => string;
   getXAxisPlacement: () => CommitXAxisPlacement;
+  getCommitTreeFilters: () => CommitTreeFilters;
+  setCommitTreeFilters: (filters: CommitTreeFilters) => void;
+  resetCommitTreeFilters: () => void;
   setXAxisPlacement: (placement: CommitXAxisPlacement) => void;
   setDefaultState: (
     currentRepoNameCommitTreeMap: RepoNameCommitTreeMap,
@@ -110,6 +116,7 @@ export const useCommitTreeStateStore = create<CommitTreeStateState>(
     _repoNameAndBranchNameToColorMap: new Map(),
     _currentSelectedRepositoryName: '',
     _xAxisPlacement: 'equidistant',
+    _commitTreeFilters: { ...DEFAULT_COMMIT_TREE_FILTERS },
 
     getSelectedCommits: () => {
       return get()._selectedCommits;
@@ -121,6 +128,18 @@ export const useCommitTreeStateStore = create<CommitTreeStateState>(
 
     getXAxisPlacement: () => {
       return get()._xAxisPlacement;
+    },
+
+    getCommitTreeFilters: () => {
+      return get()._commitTreeFilters;
+    },
+
+    setCommitTreeFilters: (filters: CommitTreeFilters) => {
+      set({ _commitTreeFilters: filters });
+    },
+
+    resetCommitTreeFilters: () => {
+      set({ _commitTreeFilters: { ...DEFAULT_COMMIT_TREE_FILTERS } });
     },
 
     setXAxisPlacement: (placement: CommitXAxisPlacement) => {

@@ -31,8 +31,10 @@ export function triggerEvolutionLandscapeRendering(
   useRenderingServiceStore
     .getState()
     .triggerRenderingForGivenLandscapeData(flatLandscape, [], {
-      metrics: {},
       communications: [],
+      fromUnixNano: 0n,
+      toUnixNano: 0n,
+      metrics: {},
     });
 }
 

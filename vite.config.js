@@ -8,6 +8,9 @@ export default defineConfig(({ mode }) => {
     env.VITE_LANDSCAPE_SERV_URL || 'http://localhost:8085';
   const codeAnalyzerTarget =
     env.VITE_CODE_ANALYZER_URL || 'http://localhost:8078';
+  const traceTarget = env.VITE_TRACE_SERV_URL || 'http://localhost:8081';
+  const metricsTarget = env.VITE_METRICS_SERV_URL || 'http://localhost:8082';
+  const logTarget = env.VITE_LOG_SERV_URL || 'http://localhost:8083';
 
   return {
     plugins: [
@@ -32,6 +35,27 @@ export default defineConfig(({ mode }) => {
         },
         '/api': {
           target: 'http://localhost:9123',
+          changeOrigin: true,
+        },
+        '^/v3/landscapes/[^/]+/(?:communication|timestamps|trace-data)(?:/.*|\\?[^/]+|$)':
+          {
+            target: traceTarget,
+            changeOrigin: true,
+          },
+        '^/v3/landscapes/[^/]+/entities/[^/]+/spans(?:/.*|\\?[^/]+|$)': {
+          target: traceTarget,
+          changeOrigin: true,
+        },
+        '^/v3/landscapes/[^/]+/logs(?:/.*|\\?[^/]+|$)': {
+          target: logTarget,
+          changeOrigin: true,
+        },
+        '^/v3/landscapes/[^/]+/log-levels(?:/.*|\\?[^/]+|$)': {
+          target: logTarget,
+          changeOrigin: true,
+        },
+        '^/v3/landscapes/[^/]+/entities/[^/]+/logs(?:/.*|\\?[^/]+|$)': {
+          target: logTarget,
           changeOrigin: true,
         },
         '/v3/landscapes': {

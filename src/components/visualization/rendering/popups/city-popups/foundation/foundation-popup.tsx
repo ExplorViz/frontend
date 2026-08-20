@@ -1,12 +1,19 @@
-import CopyButton from 'explorviz-frontend/src/components/copy-button.tsx';
+import LinkButton from 'explorviz-frontend/src/components/link-button.tsx';
 import AggregatedBuildingMetricsTable from 'explorviz-frontend/src/components/visualization/rendering/popups/city-popups/aggregated-building-metrics-table';
 import EntityStructureStatsTable from 'explorviz-frontend/src/components/visualization/rendering/popups/city-popups/entity-structure-stats-table';
+import FilesTab from 'explorviz-frontend/src/components/visualization/rendering/popups/city-popups/files-tab';
 import { useLiveCity } from 'explorviz-frontend/src/components/visualization/rendering/popups/city-popups/use-live-flat-entity';
 import PopupData from 'explorviz-frontend/src/components/visualization/rendering/popups/popup-data';
+import { useCommitTreeStateStore } from 'explorviz-frontend/src/stores/commit-tree-state';
+import { useEvolutionDataRepositoryStore } from 'explorviz-frontend/src/stores/repos/evolution-data-repository';
+import { getSourceReferenceCommitHash } from 'explorviz-frontend/src/utils/evolution-data-helpers';
 import generateUuidv4 from 'explorviz-frontend/src/utils/helpers/uuid4-generator';
 import { City } from 'explorviz-frontend/src/utils/landscape-schemes/flat-landscape';
+import { TypeOfAnalysis } from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
+import { buildRepositoryTreeUrl } from 'explorviz-frontend/src/utils/repository-file-url';
 import { useMemo } from 'react';
 import { Tab, Tabs } from 'react-bootstrap';
+import SpansTab from '../spans-tab';
 
 interface FoundationPopupProps {
   popupData: PopupData;
@@ -15,13 +22,48 @@ interface FoundationPopupProps {
 export default function FoundationPopup({ popupData }: FoundationPopupProps) {
   const city = useLiveCity(popupData.entityId) ?? (popupData.entity as City);
   const uuid = useMemo(() => generateUuidv4(), []);
+  const selectedCommits = useCommitTreeStateStore(
+    (state) => state._selectedCommits
+  );
+  const currentSelectedRepositoryName = useCommitTreeStateStore(
+    (state) => state._currentSelectedRepositoryName
+  );
+  const remoteUrl = useEvolutionDataRepositoryStore(
+    (state) =>
+      state._repoNameCommitTreeMap.get(currentSelectedRepositoryName)?.remoteUrl
+  );
+  const sourceReferenceCommitHash = useMemo(
+    () =>
+      getSourceReferenceCommitHash(
+        selectedCommits,
+        currentSelectedRepositoryName
+      ),
+    [selectedCommits, currentSelectedRepositoryName]
+  );
+  const isStatic =
+    city.originOfData === TypeOfAnalysis.Static ||
+    city.originOfData === TypeOfAnalysis.StaticAndRuntime;
+  const repositoryTreeUrl = buildRepositoryTreeUrl(
+    remoteUrl,
+    sourceReferenceCommitHash
+  );
+  const showSourceLink = isStatic && !!city.id;
+  const sourceLinkTooltip = repositoryTreeUrl
+    ? 'Open repository'
+    : 'Repository unavailable';
 
   return (
     <>
       <h3 className="popover-header">
         <div className="d-flex align-items-center justify-content-center gap-2">
           <div className="text-center text-break fw-bold pl-1">{city.name}</div>
-          <CopyButton text={city.name} />
+          {showSourceLink && (
+            <LinkButton
+              url={repositoryTreeUrl}
+              disabled={!repositoryTreeUrl}
+              tooltip={sourceLinkTooltip}
+            />
+          )}
         </div>
       </h3>
       <div className="popover-body">
@@ -38,10 +80,21 @@ export default function FoundationPopup({ popupData }: FoundationPopupProps) {
               containedBuildingCount={city.allContainedBuildingIds.length}
             />
           </Tab>
+          {city.telemetryKey && (
+            <Tab eventKey="spans" title="Spans" mountOnEnter={true}>
+              <SpansTab
+                key={city.telemetryKey}
+                telemetryKey={city.telemetryKey}
+              />
+            </Tab>
+          )}
           <Tab eventKey="metrics" title="Metrics">
             <AggregatedBuildingMetricsTable
               buildingIds={city.allContainedBuildingIds}
             />
+          </Tab>
+          <Tab eventKey="files" title="Files">
+            <FilesTab buildingIds={city.allContainedBuildingIds} />
           </Tab>
         </Tabs>
       </div>

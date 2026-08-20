@@ -44,6 +44,49 @@ server {
 
   # END User-Service
 
+  # BEGIN trace-service
+
+  location ~ ^/v3/landscapes/[^/]+/(?:communication|timestamps|trace-data)(?:/.*|$) {
+    set $upstream_trace ${TRACE_SERV_URL};
+    proxy_pass $upstream_trace;
+    proxy_http_version 1.1;
+    proxy_set_header Host $host;
+  }
+
+  location ~ ^/v3/landscapes/[^/]+/entities/[^/]+/spans(?:/.*|$) {
+    set $upstream_trace ${TRACE_SERV_URL};
+    proxy_pass $upstream_trace;
+    proxy_http_version 1.1;
+    proxy_set_header Host $host;
+  }
+
+  # END trace-service
+
+  # BEGIN log-service
+
+  location ~ ^/v3/landscapes/[^/]+/logs(?:/.*|$) {
+    set $upstream_log ${LOG_SERV_URL};
+    proxy_pass $upstream_log;
+    proxy_http_version 1.1;
+    proxy_set_header Host $host;
+  }
+
+  location ~ ^/v3/landscapes/[^/]+/log-levels(?:/.*|$) {
+    set $upstream_log ${LOG_SERV_URL};
+    proxy_pass $upstream_log;
+    proxy_http_version 1.1;
+    proxy_set_header Host $host;
+  }
+
+  location ~ ^/v3/landscapes/[^/]+/entities/[^/]+/logs(?:/.*|$) {
+    set $upstream_log ${LOG_SERV_URL};
+    proxy_pass $upstream_log;
+    proxy_http_version 1.1;
+    proxy_set_header Host $host;
+  }
+
+  # END log-service
+
   # BEGIN landscape-service
 
   location /v2/code {

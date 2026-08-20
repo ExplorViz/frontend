@@ -4,16 +4,16 @@ import { create } from 'zustand';
 export const NEW_SELECTED_TIMESTAMP_EVENT = 'new_selected_timestamp';
 
 interface TimestampState {
-  timestamp: Map<string, number[]>;
-  getLatestTimestampByCommitOrFallback: (commit: string) => number;
-  updateSelectedTimestamp: (timestamp: Map<string, number[]>) => void;
+  timestamp: Map<string, bigint[]>;
+  getLatestTimestampByCommitOrFallback: (commit: string) => bigint;
+  updateSelectedTimestamp: (timestamp: Map<string, bigint[]>) => void;
   resetState: () => void;
 }
 
 export const useTimestampStore = create<TimestampState>((set, get) => ({
   timestamp: new Map(), // tracked
 
-  getLatestTimestampByCommitOrFallback: (commit: string): number => {
+  getLatestTimestampByCommitOrFallback: (commit: string): bigint => {
     let returnValue;
 
     const latestTimestampsForCommit = get().timestamp.get(commit) ?? [];
@@ -41,7 +41,7 @@ export const useTimestampStore = create<TimestampState>((set, get) => ({
     return returnValue!;
   },
 
-  updateSelectedTimestamp: (timestamp: Map<string, number[]>) => {
+  updateSelectedTimestamp: (timestamp: Map<string, bigint[]>) => {
     set({ timestamp: timestamp });
     eventEmitter.emit(NEW_SELECTED_TIMESTAMP_EVENT, get().timestamp);
   },

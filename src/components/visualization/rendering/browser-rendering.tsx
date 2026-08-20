@@ -28,9 +28,9 @@ import { ApiToken } from 'explorviz-frontend/src/stores/user-api-token';
 import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
 import GamepadControls from 'explorviz-frontend/src/utils/controls/gamepad/gamepad-controls';
 import eventEmitter from 'explorviz-frontend/src/utils/event-emitter';
-import { DynamicLandscapeData } from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/dynamic-data';
 import { LandscapeData } from 'explorviz-frontend/src/utils/landscape-schemes/landscape-data';
 import { StructureLandscapeData } from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
+import { DynamicLandscapeData } from 'explorviz-frontend/src/utils/landscape-schemes/telemetry/traces';
 import { useEffect, useRef, useState } from 'react';
 import Button from 'react-bootstrap/Button';
 import { useShallow } from 'zustand/react/shallow';
@@ -51,6 +51,9 @@ import SidebarComponent from '../page-setup/sidebar/sidebar-component';
 import { CodeAnalysisSection } from '../page-setup/sidebar/toolbar/code-analysis-trigger/code-analysis-section';
 import EntityFiltering from '../page-setup/sidebar/toolbar/entity-filtering/entity-filtering';
 import EntityFilteringApplier from '../page-setup/sidebar/toolbar/entity-filtering/entity-filtering-applier';
+import LogSearch, {
+  LogSearchOpener,
+} from '../page-setup/sidebar/toolbar/log-search/log-search';
 import ToolSelection from '../page-setup/sidebar/toolbar/tool-selection';
 import TraceSelectionAndReplayer from '../page-setup/sidebar/toolbar/trace-replayer/trace-selection-and-replayer';
 import AnnotationCoordinator from './annotations/annotation-coordinator';
@@ -316,7 +319,10 @@ export default function BrowserRendering({
               .heatmapEnabled.value && <HeatmapInfo />}
 
             <ContextMenu>
-              <CanvasWrapper landscapeData={landscapeData} />
+              <CanvasWrapper
+                key={landscapeToken?.value ?? 'no-token'}
+                landscapeData={landscapeData}
+              />
             </ContextMenu>
 
             {landscapeData && <Popups landscapeData={landscapeData} />}
@@ -351,6 +357,10 @@ export default function BrowserRendering({
                       toggleToolsSidebarComponent={toggleToolsSidebarComponent}
                     />
                     <TraceReplayerOpener
+                      openedComponent={openedToolComponent}
+                      toggleToolsSidebarComponent={toggleToolsSidebarComponent}
+                    />
+                    <LogSearchOpener
                       openedComponent={openedToolComponent}
                       toggleToolsSidebarComponent={toggleToolsSidebarComponent}
                     />
@@ -392,12 +402,15 @@ export default function BrowserRendering({
                             flatData={landscapeData.flatLandscapeData}
                           />
                         )}
+                      {openedToolComponent === 'log-search' && <LogSearch />}
                       {openedToolComponent === 'code-analysis-trigger' && (
                         <>
                           <h5 className="text-center">
                             Git Repository Analysis
                           </h5>
-                          <CodeAnalysisSection />
+                          <CodeAnalysisSection
+                            landscapeToken={landscapeToken.value}
+                          />
                         </>
                       )}
                       {openedToolComponent === 'kubernetes-diagrams' && (

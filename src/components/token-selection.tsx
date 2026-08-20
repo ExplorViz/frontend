@@ -74,6 +74,7 @@ export default function TokenSelection({
   const user = useAuthStore((state) => state.user);
 
   const landscapeService = import.meta.env.VITE_LANDSCAPE_SERV_URL;
+  const traceService = import.meta.env.VITE_TRACE_SERV_URL;
 
   const sortBy = (property: keyof LandscapeToken) => {
     if (property === sortProperty) {
@@ -132,9 +133,7 @@ export default function TokenSelection({
     });
 
     const trees = (await Promise.all(treePromises))
-      .filter(
-        (t): t is { repoName: string; tree: CommitTree } => t !== null
-      )
+      .filter((t): t is { repoName: string; tree: CommitTree } => t !== null)
       .map(({ repoName, tree }) => ({
         repoName,
         tree: normalizeCommitTree(tree, repoName),
@@ -160,10 +159,10 @@ export default function TokenSelection({
       `${landscapeService}/v3/landscapes/${token.value}/structure/runtime`
     );
     const dynamicPromise = getJsonBlob(
-      `${landscapeService}/v3/landscapes/${token.value}/file-communication`
+      `${traceService}/v3/landscapes/${token.value}/communication`
     );
     const timestampPromise = getJsonBlob(
-      `${landscapeService}/v3/landscapes/${token.value}/timestamps`
+      `${traceService}/v3/landscapes/${token.value}/timestamps`
     );
 
     // Wait on all downloads

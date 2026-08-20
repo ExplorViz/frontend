@@ -34,7 +34,7 @@ export default function MethodPopup({
 
       <PopupTabs
         restructureMode={restructureMode}
-        originOfData={TypeOfAnalysis.Dynamic}
+        originOfData={TypeOfAnalysis.Runtime}
         codeTab={<>Not implemented yet.</>}
         runtimeTab={
           <>

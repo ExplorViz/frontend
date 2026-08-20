@@ -388,6 +388,14 @@ export enum BuildingMetrics {
   classCount = 'classCount',
   functionCount = 'functionCount',
   variableCount = 'variableCount',
+  commitCount = 'commitCount',
+  commitActivity = 'commitActivity',
+  coreContributorActivity = 'coreContributorActivity',
+  knowledgeSilo = 'knowledgeSilo',
+  issueActivity = 'issueActivity',
+  reviewFriction = 'reviewFriction',
+  knowledgeStaleness = 'knowledgeStaleness',
+  abandonedKnowledgeSilo = 'abandonedKnowledgeSilo',
 }
 
 export const BUILDING_METRIC_NAMES = Object.values(BuildingMetrics);
@@ -402,6 +410,14 @@ export enum SelectedBuildingMetric {
   classCount = 'classCount',
   functionCount = 'functionCount',
   variableCount = 'variableCount',
+  commitCount = 'commitCount',
+  commitActivity = 'commitActivity',
+  coreContributorActivity = 'coreContributorActivity',
+  knowledgeSilo = 'knowledgeSilo',
+  issueActivity = 'issueActivity',
+  reviewFriction = 'reviewFriction',
+  knowledgeStaleness = 'knowledgeStaleness',
+  abandonedKnowledgeSilo = 'abandonedKnowledgeSilo',
 }
 
 export const SELECTED_BUILDING_METRIC_OPTIONS: SelectedBuildingMetric[] = [
@@ -414,6 +430,14 @@ export const SELECTED_BUILDING_METRIC_OPTIONS: SelectedBuildingMetric[] = [
   SelectedBuildingMetric.classCount,
   SelectedBuildingMetric.functionCount,
   SelectedBuildingMetric.variableCount,
+  SelectedBuildingMetric.commitCount,
+  SelectedBuildingMetric.commitActivity,
+  SelectedBuildingMetric.coreContributorActivity,
+  SelectedBuildingMetric.knowledgeSilo,
+  SelectedBuildingMetric.issueActivity,
+  SelectedBuildingMetric.reviewFriction,
+  SelectedBuildingMetric.knowledgeStaleness,
+  SelectedBuildingMetric.abandonedKnowledgeSilo,
 ];
 
 export function sortBuildingMetricNames(names: Iterable<string>): string[] {

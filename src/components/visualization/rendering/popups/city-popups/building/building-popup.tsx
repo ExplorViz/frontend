@@ -1,26 +1,27 @@
 import LinkButton from 'explorviz-frontend/src/components/link-button.tsx';
-import { useCommitTreeStateStore } from 'explorviz-frontend/src/stores/commit-tree-state';
 import {
   coerceMetricNumber,
   formatInteger,
   formatMetricValue,
 } from 'explorviz-frontend/src/components/visualization/rendering/popups/city-popups/building-metrics-utils';
 import PopupData from 'explorviz-frontend/src/components/visualization/rendering/popups/popup-data';
+import { useCommitTreeStateStore } from 'explorviz-frontend/src/stores/commit-tree-state';
 import { usePopupHandlerStore } from 'explorviz-frontend/src/stores/popup-handler';
-import generateUuidv4 from 'explorviz-frontend/src/utils/helpers/uuid4-generator';
 import { getSourceReferenceCommitHash } from 'explorviz-frontend/src/utils/evolution-data-helpers';
+import generateUuidv4 from 'explorviz-frontend/src/utils/helpers/uuid4-generator';
 import { requestFileDetailedData } from 'explorviz-frontend/src/utils/landscape-http-request-util';
-import { Building } from 'explorviz-frontend/src/utils/landscape-schemes/flat-landscape';
 import {
   ClazzDto,
   FileDetailedDto,
   FunctionDto,
 } from 'explorviz-frontend/src/utils/landscape-schemes/file-detailed-data';
+import { Building } from 'explorviz-frontend/src/utils/landscape-schemes/flat-landscape';
 import { TypeOfAnalysis } from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
-import { getOrderedBuildingMetricEntries } from 'explorviz-frontend/src/utils/settings/settings-schemas';
 import { applyCommitHashToRepositoryFileUrl } from 'explorviz-frontend/src/utils/repository-file-url';
+import { getOrderedBuildingMetricEntries } from 'explorviz-frontend/src/utils/settings/settings-schemas';
 import { useEffect, useMemo, useState } from 'react';
 import { Accordion, Tab, Tabs } from 'react-bootstrap';
+import SpansTab from '../spans-tab';
 import {
   requestFileHistory,
   FileHistory,
@@ -136,9 +137,7 @@ function FileTabContent({
           className="evolution-accordion"
         >
           <Accordion.Item eventKey="imports">
-            <Accordion.Header>
-              Imports ({importNames.length})
-            </Accordion.Header>
+            <Accordion.Header>Imports ({importNames.length})</Accordion.Header>
             <Accordion.Body>
               <StringList items={importNames} emptyMessage="No imports found" />
             </Accordion.Body>
@@ -254,7 +253,7 @@ export default function BuildingPopup({ popupData }: BuildingPopupProps) {
   useEffect(() => {
     const isStatic =
       building.originOfData === TypeOfAnalysis.Static ||
-      building.originOfData === TypeOfAnalysis.StaticAndDynamic;
+      building.originOfData === TypeOfAnalysis.StaticAndRuntime;
 
     if (popupData.fileDetailedData || !isStatic || !building.id) {
       return;
@@ -309,7 +308,7 @@ export default function BuildingPopup({ popupData }: BuildingPopupProps) {
 
   const isStatic =
     building.originOfData === TypeOfAnalysis.Static ||
-    building.originOfData === TypeOfAnalysis.StaticAndDynamic;
+    building.originOfData === TypeOfAnalysis.StaticAndRuntime;
   const sourceFileUrl = applyCommitHashToRepositoryFileUrl(
     detailedData?.fileUrl,
     sourceReferenceCommitHash
@@ -463,10 +462,17 @@ export default function BuildingPopup({ popupData }: BuildingPopupProps) {
               )}
             </div>
           </Tab>
-
           <Tab eventKey="file" title="File">
             <FileTabContent detailedData={detailedData} uuid={uuid} />
           </Tab>
+          {building.telemetryKey && (
+            <Tab eventKey="spans" title="Spans" mountOnEnter={true}>
+              <SpansTab
+                key={building.telemetryKey}
+                telemetryKey={building.telemetryKey}
+              />
+            </Tab>
+          )}
         </Tabs>
       </div>
     </>

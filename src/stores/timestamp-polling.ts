@@ -1,5 +1,4 @@
 import { useAuthStore } from 'explorviz-frontend/src/stores/auth';
-import { useSnapshotTokenStore } from 'explorviz-frontend/src/stores/snapshot-token';
 import {
   SelectedCommit,
   useCommitTreeStateStore,
@@ -10,16 +9,22 @@ import {
   DebugSnapshot,
   useDebugSnapshotRepositoryStore,
 } from 'explorviz-frontend/src/stores/repos/debug-snapshot-repository';
-import { useEvolutionDataRepositoryStore } from 'explorviz-frontend/src/stores/repos/evolution-data-repository';
 import { useTimestampRepositoryStore } from 'explorviz-frontend/src/stores/repos/timestamp-repository';
+import { useSnapshotTokenStore } from 'explorviz-frontend/src/stores/snapshot-token';
 import { useToastHandlerStore } from 'explorviz-frontend/src/stores/toast-handler';
+import {
+  applyNewestCommitSelectionToState,
+  markNewestCommitAutoSelectedForCurrentLandscape,
+} from 'explorviz-frontend/src/utils/code-analysis-reload';
 import eventEmitter from 'explorviz-frontend/src/utils/event-emitter';
-import { buildNewestCommitSelectionMap } from 'explorviz-frontend/src/utils/evolution-data-helpers';
 import { CROSS_COMMIT_IDENTIFIER } from 'explorviz-frontend/src/utils/evolution-schemes/evolution-data';
-import { Timestamp } from 'explorviz-frontend/src/utils/landscape-schemes/timestamp';
+import {
+  isTimestamp,
+  Timestamp,
+} from 'explorviz-frontend/src/utils/landscape-schemes/timestamp';
 import { create } from 'zustand';
 
-const landscapeService = import.meta.env.VITE_LANDSCAPE_SERV_URL;
+const traceService = import.meta.env.VITE_TRACE_SERV_URL;
 const vsCodeService = import.meta.env.VITE_VSCODE_SERV_URL;
 
 export const TIMESTAMP_POLLING_START_EVENT = 'timestamp_polling_start';
@@ -27,7 +32,10 @@ export const TIMESTAMP_POLLING_START_EVENT = 'timestamp_polling_start';
 interface TimestampPollingState {
   timer: NodeJS.Timeout | null;
   currentCommits: SelectedCommit[] | null;
+
+  /** Granularity of timestamps in milliseconds */
   bucketSize: number;
+
   newestCommitAutoSelectedForLandscapeToken: string | null;
   currentCallback:
     | ((commitToTimestampMap: Map<string, Timestamp[]>) => void)
@@ -286,7 +294,7 @@ export const useTimestampPollingStore = create<TimestampPollingState>(
           return;
         }
 
-        let url = `${landscapeService}/v3/landscapes/${useLandscapeTokenStore.getState().token!.value}/timestamps`;
+        let url = `${traceService}/v3/landscapes/${useLandscapeTokenStore.getState().token!.value}/timestamps`;
 
         let parameter = '?';
 
@@ -310,12 +318,17 @@ export const useTimestampPollingStore = create<TimestampPollingState>(
           },
         })
           .then(async (response: Response) => {
-            if (response.ok) {
-              const timestamps = (await response.json()) as Timestamp[];
-              resolve(timestamps);
-            } else {
-              reject();
+            if (!response.ok) {
+              return reject(
+                new Error(`Non-ok response status ${response.status}`)
+              );
             }
+            const timestamps = JSON.parse(await response.text(), (k, v) => {
+              return k === 'epochNano' ? BigInt(v) : v;
+            });
+            return Array.isArray(timestamps) && timestamps.every(isTimestamp)
+              ? resolve(timestamps)
+              : reject(new Error(`JSON fails type guard ${isTimestamp.name}`));
           })
           .catch((e) => reject(e));
       });
@@ -323,8 +336,7 @@ export const useTimestampPollingStore = create<TimestampPollingState>(
     _httpFetchDebugSnapshots: (newestLocalTimestamp?: Timestamp) => {
       return new Promise<DebugSnapshot[]>((resolve, reject) => {
         if (!useLandscapeTokenStore.getState().token) {
-          reject(new Error('No landscape token selected'));
-          return;
+          return reject(new Error('No landscape token selected'));
         }
 
         let url = `${vsCodeService}/savepoints/${useLandscapeTokenStore.getState().token!.value}`;
@@ -340,12 +352,13 @@ export const useTimestampPollingStore = create<TimestampPollingState>(
           },
         })
           .then(async (response: Response) => {
-            if (response.ok) {
-              const debugSnapshots = (await response.json()) as DebugSnapshot[];
-              resolve(debugSnapshots);
-            } else {
-              reject();
+            if (!response.ok) {
+              return reject(
+                new Error(`Non-ok response status ${response.status}`)
+              );
             }
+            const debugSnapshots = (await response.json()) as DebugSnapshot[];
+            return resolve(debugSnapshots);
           })
           .catch((e) => reject(e));
       });
@@ -354,29 +367,13 @@ export const useTimestampPollingStore = create<TimestampPollingState>(
 );
 
 async function selectNewestCommit(): Promise<boolean> {
-  const currentLandscapeToken = useLandscapeTokenStore.getState().token?.value;
-  const repoNameCommitTreeMap =
-    useEvolutionDataRepositoryStore.getState()._repoNameCommitTreeMap;
-
-  const selectedCommits = buildNewestCommitSelectionMap(
-    repoNameCommitTreeMap,
-    useCommitTreeStateStore.getState().getXAxisPlacement()
-  );
-
-  if (selectedCommits.size === 0) {
+  if (!applyNewestCommitSelectionToState()) {
     return false;
   }
 
-  const firstRepoName = selectedCommits.keys().next().value!;
-  useCommitTreeStateStore
-    .getState()
-    .setCurrentSelectedRepositoryName(firstRepoName);
-  useCommitTreeStateStore.getState().setSelectedCommits(selectedCommits);
   await useRenderingServiceStore
     .getState()
     .triggerRenderingForSelectedCommits();
-  useTimestampPollingStore.setState({
-    newestCommitAutoSelectedForLandscapeToken: currentLandscapeToken ?? null,
-  });
+  markNewestCommitAutoSelectedForCurrentLandscape();
   return true;
 }

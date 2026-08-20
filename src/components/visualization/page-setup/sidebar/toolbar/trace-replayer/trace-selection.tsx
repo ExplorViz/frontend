@@ -1,11 +1,11 @@
 import { TimeUnit } from 'explorviz-frontend/src/components/visualization/page-setup/sidebar/toolbar/trace-replayer/trace-selection-and-replayer';
 import { formatNumber } from 'explorviz-frontend/src/utils/format-number';
-import { Trace } from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/dynamic-data';
 import {
   Building,
   FlatLandscape,
   getFunctionIdToBuildingMap,
 } from 'explorviz-frontend/src/utils/landscape-schemes/flat-landscape';
+import { Trace } from 'explorviz-frontend/src/utils/landscape-schemes/telemetry/traces';
 import {
   calculateDuration,
   getSortedTraceSpans,

@@ -2,28 +2,28 @@ import { useAnnotationHandlerStore } from 'explorviz-frontend/src/stores/annotat
 import { useCameraControlsStore } from 'explorviz-frontend/src/stores/camera-controls-store';
 import { useRoomSerializerStore } from 'explorviz-frontend/src/stores/collaboration/room-serializer';
 import { useCommunicationStore } from 'explorviz-frontend/src/stores/communication-store';
-import { useSnapshotTokenStore } from 'explorviz-frontend/src/stores/snapshot-token';
 import { LandscapeToken } from 'explorviz-frontend/src/stores/landscape-token';
+import { usePopupHandlerStore } from 'explorviz-frontend/src/stores/popup-handler';
 import { useReloadHandlerStore } from 'explorviz-frontend/src/stores/reload-handler';
 import { useRenderingServiceStore } from 'explorviz-frontend/src/stores/rendering-service';
 import { useTimestampRepositoryStore } from 'explorviz-frontend/src/stores/repos/timestamp-repository';
 import {
-  SnapshotToken,
   SnapshotStructureData,
+  SnapshotToken,
+  useSnapshotTokenStore,
 } from 'explorviz-frontend/src/stores/snapshot-token';
 import { useTimestampStore } from 'explorviz-frontend/src/stores/timestamp';
 import { useTimestampPollingStore } from 'explorviz-frontend/src/stores/timestamp-polling';
-import { usePopupHandlerStore } from 'explorviz-frontend/src/stores/popup-handler';
 import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
 import { useVisualizationStore } from 'explorviz-frontend/src/stores/visualization-store';
 import { closeDistrictsByList } from 'explorviz-frontend/src/utils/city-rendering/entity-manipulation';
 import { removeAllHighlighting } from 'explorviz-frontend/src/utils/city-rendering/highlighting';
 import { SerializedRoom } from 'explorviz-frontend/src/utils/collaboration/web-socket-messages/types/serialized-room';
 import { CROSS_COMMIT_IDENTIFIER } from 'explorviz-frontend/src/utils/evolution-schemes/evolution-data';
-import { AggregatedBuildingCommunication } from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/aggregated-file-communication';
-import { DynamicLandscapeData } from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/dynamic-data';
+import { CommSummary } from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/communication';
 import { FlatLandscape } from 'explorviz-frontend/src/utils/landscape-schemes/flat-landscape';
 import { LandscapeData } from 'explorviz-frontend/src/utils/landscape-schemes/landscape-data';
+import { DynamicLandscapeData } from 'explorviz-frontend/src/utils/landscape-schemes/telemetry/traces';
 import { Timestamp } from 'explorviz-frontend/src/utils/landscape-schemes/timestamp';
 
 export function buildSnapshotStructureData(
@@ -116,12 +116,10 @@ function seedSnapshotTimestamps(timestamps: Timestamp[]): void {
   );
 }
 
-async function resolveSnapshotLandscapeData(
-  snapshot: SnapshotToken
-): Promise<{
+async function resolveSnapshotLandscapeData(snapshot: SnapshotToken): Promise<{
   flat: FlatLandscape;
   dynamic: DynamicLandscapeData;
-  aggregated: AggregatedBuildingCommunication;
+  aggregated: CommSummary;
 } | null> {
   const { structureData } = snapshot;
 
@@ -183,19 +181,23 @@ export async function restoreSnapshotFromToken(
 
   const selectedEpoch = snapshot.serializedRoom?.landscape?.timestamp;
   if (selectedEpoch) {
-    useTimestampStore.getState().updateSelectedTimestamp(
-      new Map([[CROSS_COMMIT_IDENTIFIER, [selectedEpoch]]])
-    );
+    useTimestampStore
+      .getState()
+      .updateSelectedTimestamp(
+        new Map([[CROSS_COMMIT_IDENTIFIER, [selectedEpoch]]])
+      );
   }
 
   const landscape = await resolveSnapshotLandscapeData(snapshot);
   if (landscape) {
     useCommunicationStore.getState().setCommunications(landscape.aggregated);
-    useRenderingServiceStore.getState().triggerRenderingForGivenLandscapeData(
-      landscape.flat,
-      landscape.dynamic,
-      landscape.aggregated
-    );
+    useRenderingServiceStore
+      .getState()
+      .triggerRenderingForGivenLandscapeData(
+        landscape.flat,
+        landscape.dynamic,
+        landscape.aggregated
+      );
   }
 
   useRoomSerializerStore.getState().setSerializedRoom(snapshot.serializedRoom);

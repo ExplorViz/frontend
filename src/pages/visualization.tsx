@@ -5,6 +5,7 @@ import CommitTreeRepositorySelection from 'explorviz-frontend/src/components/vis
 import EvolutionRenderingButtons from 'explorviz-frontend/src/components/visualization/page-setup/bottom-bar/evolution/evolution-rendering-buttons';
 import PlotlyCommitTree from 'explorviz-frontend/src/components/visualization/page-setup/bottom-bar/evolution/plotly-commit-tree';
 import PlotlyTimeline from 'explorviz-frontend/src/components/visualization/page-setup/bottom-bar/runtime/plotly-timeline';
+import SocialMetricsPanel from 'explorviz-frontend/src/components/visualization/page-setup/bottom-bar/social-metrics/social-metrics-panel';
 import BrowserRendering from 'explorviz-frontend/src/components/visualization/rendering/browser-rendering';
 import PlayPauseButton from 'explorviz-frontend/src/components/visualization/rendering/play-pause-button';
 import XrRendering from 'explorviz-frontend/src/components/visualization/rendering/xr-rendering';
@@ -14,10 +15,12 @@ import { useCommitTreeStateStore } from 'explorviz-frontend/src/stores/commit-tr
 import { useImmersiveViewStore } from 'explorviz-frontend/src/stores/immersive-view-store';
 import { useLandscapeRestructureStore } from 'explorviz-frontend/src/stores/landscape-restructure';
 import { useLandscapeTokenStore } from 'explorviz-frontend/src/stores/landscape-token';
+import { useLayoutStore } from 'explorviz-frontend/src/stores/layout-store';
 import { usePopupHandlerStore } from 'explorviz-frontend/src/stores/popup-handler';
 import { useReloadHandlerStore } from 'explorviz-frontend/src/stores/reload-handler';
 import {
   AnalysisMode,
+  EvolutionModeRenderingConfiguration,
   useRenderingServiceStore,
 } from 'explorviz-frontend/src/stores/rendering-service';
 import { useEvolutionDataRepositoryStore } from 'explorviz-frontend/src/stores/repos/evolution-data-repository';
@@ -25,6 +28,7 @@ import { useModelStore } from 'explorviz-frontend/src/stores/repos/model-reposit
 import { useTimestampRepositoryStore } from 'explorviz-frontend/src/stores/repos/timestamp-repository';
 import { useSnapshotTokenStore } from 'explorviz-frontend/src/stores/snapshot-token';
 import { useSpectateConfigurationStore } from 'explorviz-frontend/src/stores/spectate-configuration';
+import { useTimestampStore } from 'explorviz-frontend/src/stores/timestamp';
 import {
   TIMESTAMP_POLLING_START_EVENT,
   useTimestampPollingStore,
@@ -35,14 +39,56 @@ import {
   useUserApiTokenStore,
 } from 'explorviz-frontend/src/stores/user-api-token';
 import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
+import { useVisibilityServiceStore } from 'explorviz-frontend/src/stores/visibility-service';
+import { useVisualizationStore } from 'explorviz-frontend/src/stores/visualization-store';
+import { ALL_BUILDING_COMPARISONS_VISIBLE } from 'explorviz-frontend/src/utils/city-rendering/building-comparison-visibility';
+import {
+  applyNewestCommitSelectionToState,
+  markNewestCommitAutoSelectedForCurrentLandscape,
+} from 'explorviz-frontend/src/utils/code-analysis-reload';
 import eventEmitter from 'explorviz-frontend/src/utils/event-emitter';
-import { DynamicLandscapeData } from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/dynamic-data';
+import { DynamicLandscapeData } from 'explorviz-frontend/src/utils/landscape-schemes/telemetry/traces';
 import { restoreSnapshotFromToken } from 'explorviz-frontend/src/utils/snapshot/snapshot-helpers';
 import TimelineDataObjectHandler from 'explorviz-frontend/src/utils/timeline/timeline-data-object-handler';
+import globalBundlingService from 'explorviz-frontend/src/view-objects/3d/city/global-bundling-service';
+import { HAPSystemManager } from 'explorviz-frontend/src/view-objects/3d/city/hap-system-manager';
 import { Button } from 'react-bootstrap';
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { useDebugSnapshotRepositoryStore } from '../stores/repos/debug-snapshot-repository';
 import { FlatLandscape } from '../utils/landscape-schemes/flat-landscape';
+
+const RUNTIME_VISUALIZATION_DEFAULTS: EvolutionModeRenderingConfiguration = {
+  renderDynamic: true,
+  renderStatic: true,
+  renderOnlyDifferences: false,
+  buildingComparisonVisibility: ALL_BUILDING_COMPARISONS_VISIBLE,
+};
+
+function applyRuntimeVisualizationDefaults() {
+  useVisibilityServiceStore
+    .getState()
+    .applyEvolutionModeRenderingConfiguration(RUNTIME_VISUALIZATION_DEFAULTS);
+  useRenderingServiceStore
+    .getState()
+    .setAnalysisModeFromEvolutionRenderingConfig(
+      RUNTIME_VISUALIZATION_DEFAULTS
+    );
+}
+
+function resetVisualizationSessionState(options?: { clearModels?: boolean }) {
+  useLayoutStore.getState().clearLayouts();
+  useVisualizationStore.getState().actions.resetVisualizationState();
+  useVisualizationStore.getState().actions.setRemovedDistricts(new Set());
+  useTimestampStore.getState().resetState();
+  applyRuntimeVisualizationDefaults();
+
+  if (options?.clearModels) {
+    useModelStore.getState().clearAll();
+  }
+
+  HAPSystemManager.getInstance().clearAllHAPSystems();
+  globalBundlingService.reset();
+}
 
 export default function Visualization() {
   const bottomBar = useRef<AnalysisMode | undefined | null>(undefined);
@@ -69,6 +115,8 @@ export default function Visualization() {
     useState<boolean>(false);
   const [isCommitTreeSelected, setIsCommitTreeSelected] =
     useState<boolean>(true);
+  const [isSocialMetricsSelected, setIsSocialMetricsSelected] =
+    useState<boolean>(false);
   const [isCommitTreeRefreshing, setIsCommitTreeRefreshing] =
     useState<boolean>(false);
   const [countdown, setCountdown] = useState<number>(10);
@@ -275,6 +323,7 @@ export default function Visualization() {
     );
   };
 
+  // const isSingleLandscapeMode = false;
   const isSingleLandscapeMode = (() => {
     return (
       import.meta.env.VITE_ONLY_SHOW_TOKEN.length > 0 &&
@@ -328,6 +377,8 @@ export default function Visualization() {
 
   // #region Setup
   const initRenderingAndSetupListeners = async () => {
+    resetVisualizationSessionState({ clearModels: true });
+
     const tokenFromUrl = searchParams.get('landscapeToken');
     if (!useLandscapeTokenStore.getState().token && tokenFromUrl) {
       await useLandscapeTokenStore.getState().setTokenByValue(tokenFromUrl);
@@ -394,30 +445,43 @@ export default function Visualization() {
     // Fetch repositories for evolution mode
     await fetchAndStoreRepositoryCommitTrees();
 
+    const repoNameCommitTreeMap =
+      useEvolutionDataRepositoryStore.getState()._repoNameCommitTreeMap;
+
+    const commitTreeState = useCommitTreeStateStore.getState();
+    if (commitTreeState.getSelectedCommits().size === 0) {
+      if (applyNewestCommitSelectionToState()) {
+        markNewestCommitAutoSelectedForCurrentLandscape();
+      }
+    }
+
     let showEvolutionVisualization = false;
 
-    const selectedRepo = getCurrentSelectedRepositoryName();
-    const selectedCommitsForCurrentSelectedRepo =
-      selectedCommits.get(selectedRepo);
-    setCommit1(
+    const updatedCommitTreeState = useCommitTreeStateStore.getState();
+    const selectedRepo =
+      updatedCommitTreeState.getCurrentSelectedRepositoryName();
+    const selectedCommitsForCurrentSelectedRepo = updatedCommitTreeState
+      .getSelectedCommits()
+      .get(selectedRepo);
+    const initialCommit1 =
       selectedCommitsForCurrentSelectedRepo &&
-        selectedCommitsForCurrentSelectedRepo.length > 0
+      selectedCommitsForCurrentSelectedRepo.length > 0
         ? selectedCommitsForCurrentSelectedRepo[0].commitId
-        : undefined
-    );
-    setCommit2(
+        : undefined;
+    const initialCommit2 =
       selectedCommitsForCurrentSelectedRepo &&
-        selectedCommitsForCurrentSelectedRepo.length > 1
+      selectedCommitsForCurrentSelectedRepo.length > 1
         ? selectedCommitsForCurrentSelectedRepo[1].commitId
-        : undefined
-    );
+        : undefined;
+    setCommit1(initialCommit1);
+    setCommit2(initialCommit2);
 
     // check what kind of rendering we should start
-    if (commit1 && commit1.length > 0) {
+    if (initialCommit1 && initialCommit1.length > 0) {
       showEvolutionVisualization = setDefaultState(
-        repoNameCommitTreeMapEvolutionDataRepository,
-        commit1,
-        commit2
+        repoNameCommitTreeMap,
+        initialCommit1,
+        initialCommit2
       );
 
       // Check which bottom bar should be displayed by default
@@ -431,13 +495,12 @@ export default function Visualization() {
     }
 
     if (showEvolutionVisualization) {
-      renderingServiceTriggerRenderingForSelectedCommits();
+      await renderingServiceTriggerRenderingForSelectedCommits();
     } else {
+      applyRuntimeVisualizationDefaults();
       restartTimestampPollingAndVizUpdate([]);
     }
   };
-
-  // # endregion
 
   // #region Event Handlers
 
@@ -474,8 +537,14 @@ export default function Visualization() {
     // Disable keyboard events for button to prevent space bar
     document.getElementById('bottom-bar-toggle-chart-button')?.blur();
 
+    setIsSocialMetricsSelected(false);
     setIsCommitTreeSelected((prev) => !prev);
     setIsRuntimeTimelineSelected((prev) => !prev);
+  };
+
+  const toggleSocialMetrics = () => {
+    document.getElementById('bottom-bar-toggle-social-button')?.blur();
+    setIsSocialMetricsSelected((prev) => !prev);
   };
 
   const toggleVisibilityBottomBar = () => {
@@ -488,14 +557,15 @@ export default function Visualization() {
 
   const willDestroy = () => {
     useCommitTreeStateStore.getState().resetSelectedCommits();
+    resetVisualizationSessionState({ clearModels: true });
+
     useEvolutionDataRepositoryStore.getState().resetAllEvolutionData();
     useImmersiveViewStore.getState().exitImmersive();
     useLandscapeRestructureStore.getState().resetLandscapeRestructure();
-    useModelStore.getState().clearAll();
     usePopupHandlerStore.getState().cleanup();
     useRenderingServiceStore.getState().resetAllRenderingStates();
     useTimestampPollingStore.getState().resetState();
-    useTimestampRepositoryStore.setState({ commitToTimestampMap: new Map() });
+    useTimestampRepositoryStore.getState().resetState();
 
     setVisualizationMode('browser');
   };
@@ -615,6 +685,17 @@ export default function Visualization() {
                   {isCommitTreeSelected ? 'Show Runtime Chart' : ''}
                 </Button>
                 {isCommitTreeSelected && <EvolutionAnimationButton />}
+                {isCommitTreeSelected && (
+                  <Button
+                    id="bottom-bar-toggle-social-button"
+                    className="bottom-bar-chart-button ms-2"
+                    onClick={toggleSocialMetrics}
+                  >
+                    {isSocialMetricsSelected
+                      ? 'Show Commit Chart'
+                      : 'Show Social Metrics'}
+                  </Button>
+                )}
               </div>
 
               {isRuntimeTimelineSelected && (
@@ -657,33 +738,39 @@ export default function Visualization() {
                       repoNameCommitTreeMapEvolutionDataRepository
                     }
                   />
-                  <div className="row justify-content-center w-100 mx-0">
-                    <div className="col-12">
-                      <CommitTreeRepositorySelection
+                  {!isSocialMetricsSelected && (
+                    <>
+                      <div className="row justify-content-center w-100 mx-0">
+                        <div className="col-12">
+                          <CommitTreeRepositorySelection
+                            repoNameCommitTreeMap={
+                              repoNameCommitTreeMapEvolutionDataRepository
+                            }
+                            selectedRepoName={currentSelectedRepositoryName}
+                          />
+                        </div>
+                      </div>
+                      <PlotlyCommitTree
                         repoNameCommitTreeMap={
                           repoNameCommitTreeMapEvolutionDataRepository
                         }
+                        triggerVizRenderingForSelectedCommits={
+                          renderingServiceTriggerRenderingForSelectedCommits
+                        }
                         selectedRepoName={currentSelectedRepositoryName}
+                        selectedCommits={selectedCommits}
+                        setSelectedCommits={setSelectedCommits}
+                        getCloneOfRepoNameAndBranchNameToColorMap={
+                          getCloneOfRepoNameAndBranchNameToColorMap
+                        }
+                        setRepoNameAndBranchNameToColorMap={
+                          setRepoNameAndBranchNameToColorMap
+                        }
                       />
-                    </div>
-                  </div>
-                  <PlotlyCommitTree
-                    repoNameCommitTreeMap={
-                      repoNameCommitTreeMapEvolutionDataRepository
-                    }
-                    triggerVizRenderingForSelectedCommits={
-                      renderingServiceTriggerRenderingForSelectedCommits
-                    }
-                    selectedRepoName={currentSelectedRepositoryName}
-                    selectedCommits={selectedCommits}
-                    setSelectedCommits={setSelectedCommits}
-                    getCloneOfRepoNameAndBranchNameToColorMap={
-                      getCloneOfRepoNameAndBranchNameToColorMap
-                    }
-                    setRepoNameAndBranchNameToColorMap={
-                      setRepoNameAndBranchNameToColorMap
-                    }
-                  />
+                    </>
+                  )}
+
+                  {isSocialMetricsSelected && <SocialMetricsPanel />}
                 </>
               )}
             </div>

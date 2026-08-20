@@ -9,9 +9,9 @@ import {
   computeBuildingCommunication,
 } from 'explorviz-frontend/src/utils/city-rendering/communication-computer';
 import { areArraysEqual } from 'explorviz-frontend/src/utils/helpers/array-helpers';
-import { DynamicLandscapeData } from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/dynamic-data';
 import { getAllIdsOfFlatLandscape } from 'explorviz-frontend/src/utils/landscape-schemes/flat-landscape';
 import { LandscapeData } from 'explorviz-frontend/src/utils/landscape-schemes/landscape-data';
+import { DynamicLandscapeData } from 'explorviz-frontend/src/utils/landscape-schemes/telemetry/traces';
 import layoutLandscape from 'explorviz-frontend/src/utils/layout/elk-layouter';
 import { tryApplyPendingSerializedRoom } from 'explorviz-frontend/src/utils/snapshot/snapshot-helpers';
 
@@ -31,8 +31,10 @@ export default function useLandscapeDataWatcher(
   const lastProcessedDynamicData = useRef<DynamicLandscapeData | null>(null);
   const lastProcessedFlatLandscapeIds = useRef<string[]>([]);
   const lastProcessedLandscapeData = useRef<LandscapeData | null>(null);
+  const layoutGenerationRef = useRef(0);
 
   const handleLandscapeUpdate = useCallback(async () => {
+    const generation = ++layoutGenerationRef.current;
     log('handleLandscapeUpdate');
     await Promise.resolve();
     if (!dynamicLandscapeData || !flatLandscapeData) {
@@ -46,12 +48,15 @@ export default function useLandscapeDataWatcher(
       flatLandscapeStructure,
       removedDistrictIds
     );
+    if (generation !== layoutGenerationRef.current) {
+      return;
+    }
     log('Layouted landscape: ', boxLayoutMap);
 
     log('Compute building communication');
     const buildingCommunications = computeBuildingCommunication(
       flatLandscapeStructure,
-      aggregatedFileCommunication!
+      aggregatedFileCommunication
     );
 
     // TODO: Add data for IDE extension
@@ -95,9 +100,11 @@ export default function useLandscapeDataWatcher(
       lastProcessedDynamicData.current
     );
 
+    const landscapeChanged =
+      landscapeData !== lastProcessedLandscapeData.current;
+
     if (!flatChanged && !dynamicChanged) {
-      // Same structure – only building metadata may have changed (e.g. evolution animation)
-      if (landscapeData !== lastProcessedLandscapeData.current) {
+      if (landscapeChanged) {
         lastProcessedLandscapeData.current = landscapeData;
         useModelStore
           .getState()
