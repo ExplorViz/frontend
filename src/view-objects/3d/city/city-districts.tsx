@@ -1,11 +1,11 @@
 import { extend, ThreeElement, ThreeEvent } from '@react-three/fiber';
 import { InstancedMesh2 } from '@three.ez/instanced-mesh';
 import useClickPreventionOnDoubleClick from 'explorviz-frontend/src/hooks/useClickPreventionOnDoubleClick';
+import { usePlayroomConnectionStore } from 'explorviz-frontend/src/stores/collaboration/playroom-connection-store';
+import { useRemoteHighlightingStore } from 'explorviz-frontend/src/stores/collaboration/remote-highlighting-store';
 import { useCommitTreeStateStore } from 'explorviz-frontend/src/stores/commit-tree-state';
 import { useHeatmapStore } from 'explorviz-frontend/src/stores/heatmap/heatmap-store';
 import { useLayoutStore } from 'explorviz-frontend/src/stores/layout-store';
-import { usePlayroomConnectionStore } from 'explorviz-frontend/src/stores/collaboration/playroom-connection-store';
-import { useRemoteHighlightingStore } from 'explorviz-frontend/src/stores/collaboration/remote-highlighting-store';
 import { usePopupHandlerStore } from 'explorviz-frontend/src/stores/popup-handler';
 import { useModelStore } from 'explorviz-frontend/src/stores/repos/model-repository';
 import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
@@ -320,7 +320,10 @@ const CityDistricts = forwardRef<InstancedMesh2, Args>(
 
         // target values based on layout / district state
         const layout = layoutMap.get(districtId);
-        if (!layout) return;
+        if (!layout) {
+          currentMeshRef.setVisibilityAt(instanceId, false);
+          return;
+        }
 
         const targetPositionX = layout.center.x;
         const targetPositionY = isOpen
@@ -400,7 +403,11 @@ const CityDistricts = forwardRef<InstancedMesh2, Args>(
         return;
       }
 
+      const allDistrictsHaveLayout = districtIds.every((id) =>
+        layoutMap.has(id)
+      );
       if (
+        allDistrictsHaveLayout &&
         districtIdToInstanceId.size > 0 &&
         districtIdToInstanceId.size === districtIds.length &&
         enableAnimations
@@ -410,7 +417,8 @@ const CityDistricts = forwardRef<InstancedMesh2, Args>(
         computeInstances();
       }
     }, [
-      districtIds.length,
+      districtIds,
+      layoutMap,
       enableAnimations,
       animateDistrictChange,
       computeInstances,

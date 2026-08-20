@@ -21,15 +21,23 @@ export default function CodeCity({ cityId }: { cityId: string }) {
   const districtLayouts = useLayoutStore((state) => state.districtLayouts);
   const cityLayout = useLayoutStore((state) => state.cityLayouts.get(cityId));
 
-  const { animationDuration, enableAnimations, showEmbeddedBrowserIcon } =
-    useUserSettingsStore(
-      useShallow((state) => ({
-        animationDuration: state.visualizationSettings.animationDuration.value,
-        enableAnimations: state.visualizationSettings.enableAnimations.value,
-        showEmbeddedBrowserIcon:
-          state.visualizationSettings.showEmbeddedBrowserIcon.value,
-      }))
-    );
+  const {
+    animationDuration,
+    enableAnimations,
+    showEmbeddedBrowserIcon,
+    buildingLayoutAlgorithm,
+  } = useUserSettingsStore(
+    useShallow((state) => ({
+      animationDuration: state.visualizationSettings.animationDuration.value,
+      enableAnimations: state.visualizationSettings.enableAnimations.value,
+      showEmbeddedBrowserIcon:
+        state.visualizationSettings.showEmbeddedBrowserIcon.value,
+      buildingLayoutAlgorithm:
+        state.visualizationSettings.buildingLayoutAlgorithm.value,
+    }))
+  );
+
+  const showDistricts = buildingLayoutAlgorithm === 'None';
 
   const [cityPosition, setCityPosition] = useState<THREE.Vector3 | undefined>(
     cityLayout?.position
@@ -97,26 +105,29 @@ export default function CodeCity({ cityId }: { cityId: string }) {
           buildingId={buildingId}
         />
       ))}
-      <CityDistricts
-        districtIds={city.allContainedDistrictIds}
-        layoutMap={districtLayouts}
-        ref={componentInstanceMeshRef}
-        city={city}
-      />
-      {city.allContainedDistrictIds.map((districtId) => {
-        const district = useModelStore.getState().getDistrict(districtId);
-        const layout = useLayoutStore.getState().getLayout(districtId);
-        if (district && layout) {
-          return (
-            <CityDistrictLabel
-              key={districtId + '-label'}
-              district={district}
-              layout={layout}
-            />
-          );
-        }
-        return null;
-      })}
+      {showDistricts && (
+        <CityDistricts
+          districtIds={city.allContainedDistrictIds}
+          layoutMap={districtLayouts}
+          ref={componentInstanceMeshRef}
+          city={city}
+        />
+      )}
+      {showDistricts &&
+        city.allContainedDistrictIds.map((districtId) => {
+          const district = useModelStore.getState().getDistrict(districtId);
+          const layout = useLayoutStore.getState().getLayout(districtId);
+          if (district && layout) {
+            return (
+              <CityDistrictLabel
+                key={districtId + '-label'}
+                district={district}
+                layout={layout}
+              />
+            );
+          }
+          return null;
+        })}
     </group>
   );
 }
