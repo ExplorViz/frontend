@@ -301,7 +301,7 @@ function enumerateYearMonths(startKey: string, endKey: string): string[] {
   let year = startYear;
   let month = startMonth - 1;
 
-  while (year < endYear || month < endMonth) {
+  while (year < endYear || (year === endYear && month < endMonth)) {
     yearMonths.push(formatYearMonthKey(year, month));
 
     month++;
