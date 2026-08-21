@@ -212,22 +212,28 @@ function SliderThumb({
   setValue,
   getTooltipText,
 }: SliderThumbProps) {
+  const [isDragging, setIsDragging] = useState<boolean>(false);
+
   const thumbDivRef = useRef<HTMLDivElement | null>(null);
   const popperRef = useRef<PopperRef | null>(null);
 
   useEffect(() => popperRef.current?.scheduleUpdate?.(), [value, min, max]);
 
-  const handlePointerDown: React.PointerEventHandler = (e) =>
-    !disabled && e.currentTarget.setPointerCapture(e.pointerId);
+  useEffect(() => {
+    if (isDragging && !disabled) {
+      const handleMove = (e: PointerEvent) => onMove(e.clientX);
+      const handleUp = () => setIsDragging(false);
+      window.addEventListener('pointermove', handleMove);
+      window.addEventListener('pointerup', handleUp);
+      window.addEventListener('pointercancel', handleUp);
 
-  const handlePointerUp: React.PointerEventHandler = (e) =>
-    !disabled && e.currentTarget.releasePointerCapture(e.pointerId);
-
-  const handlePointerMove: React.PointerEventHandler = (e) => {
-    if (!disabled && e.currentTarget.hasPointerCapture(e.pointerId)) {
-      onMove(e.clientX);
+      return () => {
+        window.removeEventListener('pointermove', handleMove);
+        window.removeEventListener('pointerup', handleUp);
+        window.removeEventListener('pointercancel', handleUp);
+      };
     }
-  };
+  }, [isDragging, disabled, onMove]);
 
   const handleKeyDown: React.KeyboardEventHandler<HTMLDivElement> = (event) => {
     if (disabled) {
@@ -271,11 +277,9 @@ function SliderThumb({
         <div
           className="dual-range-thumb"
           tabIndex={disabled ? undefined : 0}
-          onPointerDown={handlePointerDown}
-          onPointerUp={handlePointerUp}
-          onPointerCancel={handlePointerUp}
-          onPointerMove={handlePointerMove}
+          onPointerDown={() => setIsDragging(true)}
           onKeyDown={handleKeyDown}
+          onBlur={() => setIsDragging(false)}
           draggable="false"
           ref={thumbDivRef}
           style={{
@@ -287,47 +291,45 @@ function SliderThumb({
             height: 16,
             transform: 'translate(-50%, -50%)',
             borderRadius: '50%',
+
+            userSelect: 'none',
+            WebkitTouchCallout: 'none',
+            WebkitUserSelect: 'none',
+            MozUserSelect: 'none',
+            msUserSelect: 'none',
+
+            background: 'var(--bs-primary)',
+            transition: 'background-color 0.15s ease-in-out',
+            cursor: 'grab',
+
+            ...(isDragging && {
+              background: '#99ccff',
+              outline: '1px solid #ffffff',
+              cursor: 'grabbing',
+            }),
+
+            ...(disabled && {
+              background: '#6c757d',
+              outline: 'none',
+              cursor: undefined,
+            }),
           }}
         />
       </OverlayTrigger>
 
-      {!disabled ? (
-        <style>{`
-        .dual-range-thumb {
-            background: var(--bs-primary);
-            transition: background-color 0.15s ease-in-out;
-            cursor: grab;
+      <style>
+        {`
+          .dual-range-thumb:focus {
+              border-color: #0000ff;
+              box-shadow: 0 0 0 5px rgba(0, 112, 243, 0.3);
+          }
 
-            -webkit-touch-callout: none !important;
-            -webkit-user-select: none !important;
-            -webkit-user-drag: none !important;
-            -khtml-user-select: none !important;
-            -moz-user-select: none !important;
-            -ms-user-select: none !important;
-            user-select: none !important;
-        }
-
-        .dual-range-thumb:focus {
-            border-color: #0000ff;
-            box-shadow: 0 0 0 5px rgba(0, 112, 243, 0.3);
-        }
-
-        .dual-range-thumb:focus-visible {
+          .dual-range-thumb:focus-visible {
+            background: '#99ccff';
             outline: 1px solid #ffffff;
-        }
-
-        .dual-range-thumb:active {
-            background: #99ccff;
-            outline: 1px solid #ffffff;
-        }
-    `}</style>
-      ) : (
-        <style>{`
-        .dual-range-thumb {
-          background: var(--bs-gray-600);
-        }
-    `}</style>
-      )}
+          }
+          `}
+      </style>
     </>
   );
 }
