@@ -213,6 +213,7 @@ function SliderThumb({
   getTooltipText,
 }: SliderThumbProps) {
   const [isDragging, setIsDragging] = useState<boolean>(false);
+  const [pointerIds, setPointerIds] = useState<Set<number>>(() => new Set());
 
   const thumbDivRef = useRef<HTMLDivElement | null>(null);
   const popperRef = useRef<PopperRef | null>(null);
@@ -220,27 +221,64 @@ function SliderThumb({
   useEffect(() => popperRef.current?.scheduleUpdate?.(), [value, min, max]);
 
   useEffect(() => {
-    if (isDragging && !disabled) {
-      const handleMove = (e: PointerEvent) => onMove(e.clientX);
-      const handleUp = () => setIsDragging(false);
-      window.addEventListener('pointermove', handleMove);
-      window.addEventListener('pointerup', handleUp);
-      window.addEventListener('pointercancel', handleUp);
-
-      return () => {
-        window.removeEventListener('pointermove', handleMove);
-        window.removeEventListener('pointerup', handleUp);
-        window.removeEventListener('pointercancel', handleUp);
-      };
+    if (!isDragging || disabled) {
+      return;
     }
+
+    const handleMove = (e: PointerEvent) => onMove(e.clientX);
+    const handleUp = () => setIsDragging(false);
+    window.addEventListener('pointermove', handleMove);
+    window.addEventListener('pointerup', handleUp);
+    window.addEventListener('pointercancel', handleUp);
+
+    return () => {
+      window.removeEventListener('pointermove', handleMove);
+      window.removeEventListener('pointerup', handleUp);
+      window.removeEventListener('pointercancel', handleUp);
+    };
   }, [isDragging, disabled, onMove]);
 
-  const handleKeyDown: React.KeyboardEventHandler<HTMLDivElement> = (event) => {
+  useEffect(() => {
+    if (!isDragging || disabled) {
+      return;
+    }
+
+    const thumbDiv = thumbDivRef.current;
+    if (!thumbDiv) {
+      return;
+    }
+
+    pointerIds.forEach((id) => {
+      try {
+        thumbDiv.setPointerCapture(id);
+      } catch (error) {
+        return;
+      }
+    });
+  });
+
+  const handlePointerDown: React.PointerEventHandler<HTMLDivElement> = (e) => {
+    setIsDragging(true);
+    setPointerIds((state) => new Set([...state, e.pointerId]));
+    e.currentTarget.setPointerCapture(e.pointerId);
+  };
+
+  const handlePointerUp: React.PointerEventHandler<HTMLDivElement> = (e) => {
+    setPointerIds(
+      (state) => new Set([...state].filter((v) => v !== e.pointerId))
+    );
+    const thumbDiv = thumbDivRef.current;
+    if (thumbDiv && thumbDiv.hasPointerCapture(e.pointerId)) {
+      thumbDiv.releasePointerCapture(e.pointerId);
+    }
+  };
+
+  const handleKeyDown: React.KeyboardEventHandler<HTMLDivElement> = (e) => {
     if (disabled) {
       return;
     }
 
-    switch (event.key) {
+    switch (e.key) {
       case 'ArrowLeft':
         setValue(value - step);
         break;
@@ -277,7 +315,9 @@ function SliderThumb({
         <div
           className="dual-range-thumb"
           tabIndex={disabled ? undefined : 0}
-          onPointerDown={() => setIsDragging(true)}
+          onPointerDown={handlePointerDown}
+          onPointerUp={handlePointerUp}
+          onPointerCancel={handlePointerUp}
           onKeyDown={handleKeyDown}
           onBlur={() => setIsDragging(false)}
           draggable="false"
