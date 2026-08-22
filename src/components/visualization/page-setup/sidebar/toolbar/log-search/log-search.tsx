@@ -189,12 +189,22 @@ export default function LogSearch() {
       `${logServiceUrl}/v3/landscapes/${landscapeToken}/log-levels`
     );
 
-    const response = await fetch(requestUrl, {
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-        'Access-Control-Allow-Origin': '*',
-      },
-    });
+    let response: Response;
+    try {
+      response = await fetch(requestUrl, {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+          'Access-Control-Allow-Origin': '*',
+        },
+      });
+    } catch (error) {
+      setSeverityTextValues([]);
+      showErrorToastMessage(
+        'Failed to retrieve log severity levels: A network error has occurred'
+      );
+      console.error(error);
+      return;
+    }
     if (!response.ok) {
       setSeverityTextValues([]);
       showErrorToastMessage(
@@ -233,13 +243,45 @@ export default function LogSearch() {
               <Form.Label>
                 Message Body{' '}
                 <HelpTooltip
-                  title="Only match logs where message contains all of the provided tokens."
+                  title="Only match logs where the message text contains all of the provided tokens. Search is case-insensitive."
                   placement="top"
                 />
               </Form.Label>
               <Form.Control
                 name="messageBody"
                 placeholder='e.g. "successful", "network error", &hellip;'
+                className="mb-2"
+              />
+              <Form.Check
+                name="includeAttributeKeys"
+                type="checkbox"
+                value="true"
+                label={
+                  <>
+                    Include attribute keys{' '}
+                    <HelpTooltip
+                      title="Also search the log, scope, and resource attributes' keys for the provided search tokens. This can be useful to ensure a specific attribute is present."
+                      placement="top"
+                    />
+                  </>
+                }
+                inline
+              />
+              <Form.Check
+                name="includeAttributeValues"
+                type="checkbox"
+                value="true"
+                label={
+                  <>
+                    Include attribute values{' '}
+                    <HelpTooltip
+                      title="Also search the log, scope, and resource attributes' values for the provided search tokens."
+                      placement="top"
+                    />
+                  </>
+                }
+                defaultChecked
+                inline
               />
             </Form.Group>
 
@@ -304,7 +346,9 @@ export default function LogSearch() {
                     onFocus={handleSeverityTextSelectFocus}
                   >
                     <option value="">Any</option>
-                    <option disabled>────────</option>
+                    {severityTextValues && severityTextValues.length > 0 && (
+                      <option disabled>────────</option>
+                    )}
                     {severityTextValues ? (
                       severityTextValues.map((severity) => (
                         <option key={severity}>{severity}</option>
@@ -398,7 +442,7 @@ export default function LogSearch() {
 function LogDetailsCard({ log }: { log: Log }) {
   const severityName = severityNumberToName(log.severity);
 
-  const pillBackground: Map<string, string> = new Map([
+  const severityToBsColor: Map<string, string> = new Map([
     ['unspecified', 'secondary'],
     ['trace', 'primary'],
     ['debug', 'success'],
@@ -412,9 +456,14 @@ function LogDetailsCard({ log }: { log: Log }) {
     <Card>
       <Card.Body>
         <dl>
+          <dt>Message Body</dt>
+          <dd>
+            <samp className="small">{log.messageBody}</samp>
+          </dd>
+
           <dt>Severity</dt>
           <dd>
-            <Badge bg={pillBackground.get(severityName) ?? 'secondary'}>
+            <Badge bg={severityToBsColor.get(severityName) ?? 'secondary'}>
               {log.severity}{' '}
               <code className="text-light">({severityName.toUpperCase()})</code>
             </Badge>
