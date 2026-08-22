@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useImperativeHandle, useRef, useState } from 'react';
 import { OverlayTrigger, Tooltip } from 'react-bootstrap';
 import { PopperRef } from 'react-bootstrap/types';
 
@@ -67,7 +67,9 @@ export default function DualRangeSlider({
   getTooltipText,
 }: DualRangeSliderProps) {
   const [range, setRange] = useState<[number, number]>(initialValues);
-  const trackRef = useRef<HTMLDivElement>(null);
+  const trackRef = useRef<HTMLDivElement | null>(null);
+  const firstThumbRef = useRef<SliderThumbHandle | null>(null);
+  const secondThumbRef = useRef<SliderThumbHandle | null>(null);
 
   const pointerPositionToValue = (clientX: number) => {
     const track = trackRef.current;
@@ -92,6 +94,27 @@ export default function DualRangeSlider({
     onChange?.(newRange.toSorted() as [number, number]);
   };
 
+  const handleTrackPointerDown: React.PointerEventHandler<HTMLElement> = (
+    e
+  ) => {
+    e.preventDefault(); // Focus should be given to thumb, not track
+
+    const clickedValue = pointerPositionToValue(e.clientX);
+    if (clickedValue < min || clickedValue > max) {
+      return;
+    }
+    const diffFirst = Math.abs(range[0] - clickedValue);
+    const diffSecond = Math.abs(range[1] - clickedValue);
+
+    if (diffFirst <= diffSecond) {
+      setRange((state) => [clickedValue, state[1]]);
+      firstThumbRef.current?.triggerClick(e);
+    } else {
+      setRange((state) => [state[0], clickedValue]);
+      secondThumbRef.current?.triggerClick(e);
+    }
+  };
+
   const thumbs = [
     <SliderThumb
       key={0}
@@ -100,6 +123,7 @@ export default function DualRangeSlider({
       max={max}
       step={step}
       disabled={disabled}
+      ref={firstThumbRef}
       onMove={(val) => handleMove(0, val)}
       setValue={(val) => setRange([clamp(val, min, max), range[1]])}
       getTooltipText={getTooltipText}
@@ -112,6 +136,7 @@ export default function DualRangeSlider({
       max={max}
       step={step}
       disabled={disabled}
+      ref={secondThumbRef}
       onMove={(val) => handleMove(1, val)}
       setValue={(val) => setRange([range[0], clamp(val, min, max)])}
       getTooltipText={getTooltipText}
@@ -123,6 +148,7 @@ export default function DualRangeSlider({
 
   return (
     <div
+      onPointerDown={handleTrackPointerDown}
       ref={trackRef}
       draggable="false"
       style={{
@@ -191,12 +217,17 @@ export default function DualRangeSlider({
   );
 }
 
+interface SliderThumbHandle {
+  triggerClick: (e: React.PointerEvent<HTMLElement>) => void;
+}
+
 interface SliderThumbProps {
   value: number;
   min: number;
   max: number;
   step: number;
   disabled: boolean;
+  ref: React.RefObject<SliderThumbHandle | null>;
   onMove: (clientX: number) => void;
   setValue: (value: number) => void;
   getTooltipText?: (value: number) => string;
@@ -208,6 +239,7 @@ function SliderThumb({
   max,
   step,
   disabled,
+  ref,
   onMove,
   setValue,
   getTooltipText,
@@ -257,13 +289,14 @@ function SliderThumb({
     });
   });
 
-  const handlePointerDown: React.PointerEventHandler<HTMLDivElement> = (e) => {
+  const handlePointerDown: React.PointerEventHandler<HTMLElement> = (e) => {
     setIsDragging(true);
     setPointerIds((state) => new Set([...state, e.pointerId]));
-    e.currentTarget.setPointerCapture(e.pointerId);
+    thumbDivRef.current?.focus();
+    thumbDivRef.current?.setPointerCapture(e.pointerId);
   };
 
-  const handlePointerUp: React.PointerEventHandler<HTMLDivElement> = (e) => {
+  const handlePointerUp: React.PointerEventHandler<HTMLElement> = (e) => {
     setPointerIds(
       (state) => new Set([...state].filter((v) => v !== e.pointerId))
     );
@@ -273,7 +306,7 @@ function SliderThumb({
     }
   };
 
-  const handleKeyDown: React.KeyboardEventHandler<HTMLDivElement> = (e) => {
+  const handleKeyDown: React.KeyboardEventHandler<HTMLElement> = (e) => {
     if (disabled) {
       return;
     }
@@ -299,6 +332,10 @@ function SliderThumb({
         break;
     }
   };
+
+  useImperativeHandle(ref, () => ({
+    triggerClick: handlePointerDown,
+  }));
 
   return (
     <>
