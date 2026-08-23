@@ -320,7 +320,10 @@ const CityDistricts = forwardRef<InstancedMesh2, Args>(
 
         // target values based on layout / district state
         const layout = layoutMap.get(districtId);
-        if (!layout) return;
+        if (!layout) {
+          currentMeshRef.setVisibilityAt(instanceId, false);
+          return;
+        }
 
         const targetPositionX = layout.center.x;
         const targetPositionY = isOpen

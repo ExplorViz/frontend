@@ -500,13 +500,15 @@ const GeometryGroup: React.FC<GeometryGroupProps> = ({
         return;
       }
       tempMatrix.decompose(pos, quat, scale);
-      if (useEvolutionAnimationStore.getState().stableFrame !== null) {
+      /*if (useEvolutionAnimationStore.getState().stableFrame !== null) {
         scale.set(targetWidth, targetHeight, targetDepth);
         pos.set(targetPositionX, targetPositionY, targetPositionZ);
       } else {
       scale.y = targetHeight;
       pos.y = layout.position.y + targetHeight / 2;
-      }
+      }*/
+      scale.set(targetWidth, targetHeight, targetDepth);
+      pos.set(targetPositionX, targetPositionY, targetPositionZ);
       tempMatrix.compose(pos, quat, scale);
       mesh.setMatrixAt(instanceId, tempMatrix);
     });
