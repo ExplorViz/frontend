@@ -118,7 +118,9 @@ export default function EvolutionAnimationPanel({
   const repositoryName = useCommitTreeStateStore(
     (state) => state._currentSelectedRepositoryName
   );
-
+  const hasFrames = useEvolutionAnimationStore(
+    (state) => state.totalCount > 0
+  );
   const fetchWindow = useEvolutionAnimationFetchServiceStore(
     (state) => state.fetchAnimationWindow
   );
@@ -174,6 +176,7 @@ export default function EvolutionAnimationPanel({
     if (!repositoryName) return;
     setIsLoading(true);
     try {
+      useEvolutionAnimationStore.getState().actions.restart();
       const store = useEvolutionAnimationStore.getState();
       const actions = store.actions;
       if (!store.stableFrame) {
@@ -583,7 +586,7 @@ export default function EvolutionAnimationPanel({
         disabled={isLoading || !repositoryName}
         onClick={handleStart}
       >
-        {isLoading ? 'Loading...' : 'Start Animation'}
+        {isLoading ? 'Loading...' : hasFrames ? 'Restart' : 'Start Animation'}
       </Button>
     </div>,
     document.body

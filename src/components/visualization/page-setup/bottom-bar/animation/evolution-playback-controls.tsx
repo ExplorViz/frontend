@@ -143,8 +143,9 @@ export default function EvolutionPlaybackControls() {
       return;
     }
 
-    applyAnimationFrameLayout();
-    initialLayoutDoneRef.current = true;
+    if (applyAnimationFrameLayout()){
+      initialLayoutDoneRef.current = true;
+    }
   }, [
     stableFrame,
     totalCount,

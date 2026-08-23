@@ -62,6 +62,7 @@ interface EvolutionAnimationState {
     setDeltaMode: (enabled: boolean) => void;
     reapplyCurrentFrameVisuals: () => void;
     reset: () => void;
+    restart: () => void;
   };
 }
 function agingWindowPatch(
@@ -233,9 +234,11 @@ export const useEvolutionAnimationStore = create<EvolutionAnimationState>((set) 
         return updateFrameIndex(s, nextIndex);
       }),
     setLayoutMode: (mode: 'city' | 'spiral') => set({ layoutMode: mode }),
-    setTimeMode: (mode: 'commit' | 'time') => set({ timeMode: mode , ...frameMeaningPatch()}),
+    setTimeMode: (mode: 'commit' | 'time') =>
+      set({ timeMode: mode, ...frameMeaningPatch() }),
     setSpeed: (ms) => set({ speedMs: ms }),
-    setBucketSize: (bucketSize) => set({ bucketSize: Math.max(1, bucketSize), ...frameMeaningPatch() }),
+    setBucketSize: (bucketSize) =>
+      set({ bucketSize: Math.max(1, bucketSize), ...frameMeaningPatch() }),
     setRange: (from, to) =>
       set({
         rangeFrom: Math.max(0, from),
@@ -322,6 +325,7 @@ export const useEvolutionAnimationStore = create<EvolutionAnimationState>((set) 
         changedBuildingIds: new Set(),
       }),
     reapplyCurrentFrameVisuals: () => set((s) => applyFrameVisuals(s)),
+    restart: () => set(frameMeaningPatch()),
     reset: () =>
       set({
         totalCount: 0,
