@@ -87,7 +87,10 @@ export default function LogSearch() {
     );
     const queryParams = new URLSearchParams((newFormData ?? formData) as any);
     queryParams.set('limit', PAGINATION_SIZE.toString());
-    queryParams.set('offset', (logs?.length ?? 0).toString());
+    queryParams.set(
+      'offset',
+      (newFormData || !logs ? 0 : logs.length).toString()
+    );
     requestUrl.search = queryParams.toString();
 
     const response = await fetch(requestUrl, {
