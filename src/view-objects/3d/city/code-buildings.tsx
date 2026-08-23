@@ -377,7 +377,13 @@ const GeometryGroup: React.FC<GeometryGroupProps> = ({
 
   const applyInstanceAppearance = (mesh: InstancedMesh2) => {
     buildingIdToInstanceIdRef.current.forEach((instanceId, buildingId) => {
-      const building = useModelStore.getState().getBuilding(buildingId);
+      const building = resolveBuilding(buildingId);
+      mesh.setColorAt(instanceId, computeColor(buildingId));
+      mesh.setVisibilityAt(instanceId, isVisible(buildingId, building));
+    });
+  };
+
+     /* const building = useModelStore.getState().getBuilding(buildingId);
       mesh.setColorAt(instanceId, computeColor(buildingId));
       mesh.setVisibilityAt(
         instanceId,
@@ -392,7 +398,7 @@ const GeometryGroup: React.FC<GeometryGroupProps> = ({
         })
       );
     });
-  };
+  };*/
 
   const isVisible = (buildingId: string, building: Building | undefined) =>
     isBuildingVisible({
@@ -433,6 +439,9 @@ const GeometryGroup: React.FC<GeometryGroupProps> = ({
       const targetPositionZ = layout.center.z;
       const targetWidth = layout.width;
       const targetDepth = layout.depth;
+      if (instanceId === 0) {
+        console.log('[pos]', buildingId, 'x=', targetPositionX, 'h=', targetHeight);
+      }
 
       if (enableAnimations) {
         try {
@@ -491,8 +500,13 @@ const GeometryGroup: React.FC<GeometryGroupProps> = ({
         return;
       }
       tempMatrix.decompose(pos, quat, scale);
+      if (useEvolutionAnimationStore.getState().stableFrame !== null) {
+        scale.set(targetWidth, targetHeight, targetDepth);
+        pos.set(targetPositionX, targetPositionY, targetPositionZ);
+      } else {
       scale.y = targetHeight;
       pos.y = layout.position.y + targetHeight / 2;
+      }
       tempMatrix.compose(pos, quat, scale);
       mesh.setMatrixAt(instanceId, tempMatrix);
     });

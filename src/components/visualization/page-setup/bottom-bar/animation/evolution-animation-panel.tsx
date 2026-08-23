@@ -225,6 +225,7 @@ export default function EvolutionAnimationPanel({
   const reloadAnimation = async () => {
     if (!repositoryName) return;
     const store = useEvolutionAnimationStore.getState();
+    if (!store.stableFrame) return;
     if (store.deltaMode) {
       const win = await fetchDeltaWindow(
         repositoryName,

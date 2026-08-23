@@ -84,6 +84,20 @@ function agingWindowPatch(
   };
 }
 
+function frameMeaningPatch(): Partial<EvolutionAnimationState> {
+  return {
+    totalCount: 0,
+    currentFrameIndex: 0,
+    isPlaying: false,
+    loadedFrames: new Map(),
+    deltaFrames: new Map(),
+    requestedBlocks: new Set(),
+    buildingVisualStates: new Map(),
+    frameVersion: 0,
+    changedBuildingIds: new Set(),
+  };
+}
+
 function applyFrameVisuals(
   state: EvolutionAnimationState,
   frameIndex: number = state.currentFrameIndex
@@ -197,7 +211,7 @@ export const useEvolutionAnimationStore = create<EvolutionAnimationState>((set) 
         requestedBlocks: new Set(s.requestedBlocks).add(block),
       })),
     setGranularity: (granul: number) =>
-      set({ granularity: Math.max(1, granul) }),
+      set({ granularity: Math.max(1, granul), ...frameMeaningPatch() }),
     play: () => set({ isPlaying: true }),
     pause: () => set({ isPlaying: false }),
     stepForward: () =>
@@ -219,9 +233,9 @@ export const useEvolutionAnimationStore = create<EvolutionAnimationState>((set) 
         return updateFrameIndex(s, nextIndex);
       }),
     setLayoutMode: (mode: 'city' | 'spiral') => set({ layoutMode: mode }),
-    setTimeMode: (mode: 'commit' | 'time') => set({ timeMode: mode }),
+    setTimeMode: (mode: 'commit' | 'time') => set({ timeMode: mode , ...frameMeaningPatch()}),
     setSpeed: (ms) => set({ speedMs: ms }),
-    setBucketSize: (bucketSize) => set({ bucketSize: Math.max(1, bucketSize) }),
+    setBucketSize: (bucketSize) => set({ bucketSize: Math.max(1, bucketSize), ...frameMeaningPatch() }),
     setRange: (from, to) =>
       set({
         rangeFrom: Math.max(0, from),

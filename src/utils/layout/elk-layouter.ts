@@ -118,9 +118,15 @@ export default async function layoutLandscape(
   const animationState = useEvolutionAnimationStore.getState();
   const skeleton = animationState.stableFrame;
   const cacheable = skeleton != null;
-  const signature = cacheable
-    ? layoutInputSignature(removedDistrictIds)
-    : null;
+  const signature = cacheable ? layoutInputSignature(removedDistrictIds) : null;
+  console.log(
+    '[layout] algo=',
+    BUILDING_ALGORITHM,
+    'cacheHit=',
+    cacheable &&
+      cachedSkeletonRef === skeleton &&
+      cachedLayoutSignature === signature
+  );
   if (
     cacheable &&
     cachedLayoutResult !== null &&
