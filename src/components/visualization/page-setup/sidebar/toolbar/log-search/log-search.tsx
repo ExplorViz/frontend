@@ -16,7 +16,7 @@ import { Accordion, Badge, Button, Card, Form, Spinner } from 'react-bootstrap';
 import ComponentOpener from '../../component-opener';
 import { ToolbarOpenerProps } from '../../types';
 
-function severityNumberToName(value: number) {
+function severityNumberToName(severityNumber: number) {
   const labels = [
     'unspecified',
     'trace',
@@ -27,7 +27,21 @@ function severityNumberToName(value: number) {
     'fatal',
   ];
 
-  return labels[Math.ceil(value / 4)] ?? 'invalid';
+  return labels[Math.ceil(severityNumber / 4)] ?? 'invalid';
+}
+
+function severityNameToBsColor(severityName: string): string {
+  const colors: Record<string, string> = {
+    unspecified: 'secondary',
+    trace: 'primary',
+    debug: 'success',
+    info: 'info',
+    warn: 'warning',
+    error: 'danger',
+    fatal: 'danger',
+  };
+
+  return colors[severityName] ?? 'secondary';
 }
 
 function formatUnixNanoseconds(ns: bigint) {
@@ -408,23 +422,33 @@ export default function LogSearch() {
           {logs.length > 0 ? (
             <>
               <Accordion alwaysOpen={true} className="pe-1">
-                {logs.map((log) => (
-                  <Accordion.Item
-                    className="mb-2 border rounded-0"
-                    key={log.id}
-                    eventKey={log.id}
-                  >
-                    <Accordion.Button
-                      className="border-0 rounded-0"
-                      style={{ padding: '8px 12px' }}
+                {logs.map((log) => {
+                  const severityName = severityNumberToName(log.severity);
+                  return (
+                    <Accordion.Item
+                      className="mb-2 border rounded-0"
+                      key={log.id}
+                      eventKey={log.id}
                     >
-                      <code className="text-dark text-truncate">{`${formatUnixNanoseconds(log.timeUnixNano)} ${log.messageBody}`}</code>
-                    </Accordion.Button>
-                    <Accordion.Body>
-                      <LogDetailsCard log={log} />
-                    </Accordion.Body>
-                  </Accordion.Item>
-                ))}
+                      <Accordion.Button
+                        className="border-0 rounded-0"
+                        style={{ padding: '8px 12px' }}
+                      >
+                        <Badge
+                          pill
+                          bg={severityNameToBsColor(severityName)}
+                          className="me-2"
+                        >
+                          <samp>{severityName.at(0)?.toUpperCase()}</samp>
+                        </Badge>
+                        <samp className="text-truncate">{`${formatUnixNanoseconds(log.timeUnixNano)} ${log.messageBody}`}</samp>
+                      </Accordion.Button>
+                      <Accordion.Body>
+                        <LogDetailsCard log={log} />
+                      </Accordion.Body>
+                    </Accordion.Item>
+                  );
+                })}
               </Accordion>
               <div ref={loadMoreRef} />
             </>
@@ -442,28 +466,20 @@ export default function LogSearch() {
 function LogDetailsCard({ log }: { log: Log }) {
   const severityName = severityNumberToName(log.severity);
 
-  const severityToBsColor: Map<string, string> = new Map([
-    ['unspecified', 'secondary'],
-    ['trace', 'primary'],
-    ['debug', 'success'],
-    ['info', 'info'],
-    ['warn', 'warning'],
-    ['error', 'danger'],
-    ['fatal', 'danger'],
-  ]);
-
   return (
     <Card>
       <Card.Body>
         <dl>
           <dt>Message Body</dt>
           <dd>
-            <samp className="small">{log.messageBody}</samp>
+            <pre style={{ whiteSpace: 'pre-wrap' }}>
+              <samp className="small">{log.messageBody}</samp>
+            </pre>
           </dd>
 
           <dt>Severity</dt>
           <dd>
-            <Badge bg={severityToBsColor.get(severityName) ?? 'secondary'}>
+            <Badge bg={severityNameToBsColor(severityName)}>
               {log.severity}{' '}
               <code className="text-light">({severityName.toUpperCase()})</code>
             </Badge>
