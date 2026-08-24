@@ -48,7 +48,14 @@ function severityNameToBsColor(severityName: string): string {
 
 function formatUnixNanoseconds(ns: bigint) {
   const date = new Date(Number(ns / 1_000_000n));
-  return date.toISOString();
+  const year = date.getFullYear().toString();
+  const month = (date.getMonth() + 1).toString().padStart(2, '0');
+  const day = date.getDate().toString().padStart(2, '0');
+  const hours = date.getHours().toString().padStart(2, '0');
+  const minutes = date.getMinutes().toString().padStart(2, '0');
+  const seconds = date.getSeconds().toString().padStart(2, '0');
+  const millis = date.getMilliseconds().toString().padStart(3, '0');
+  return `${year}-${month}-${day}T${hours}:${minutes}:${seconds}.${millis}`;
 }
 
 const PAGINATION_SIZE = 50;
@@ -494,7 +501,12 @@ function LogItem({
           <Badge pill bg={severityNameToBsColor(severityName)} className="me-2">
             <samp>{severityName.at(0)?.toUpperCase()}</samp>
           </Badge>
-          <samp className="text-truncate">{`${formatUnixNanoseconds(log.timeUnixNano)} ${log.messageBody}`}</samp>
+          <samp className="text-truncate">
+            <small>
+              <code>{`${formatUnixNanoseconds(log.timeUnixNano)}`}</code>{' '}
+              {`${log.messageBody}`}
+            </small>
+          </samp>
         </Accordion.Button>
         <Accordion.Body>
           <Card>
