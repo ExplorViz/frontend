@@ -218,7 +218,6 @@ export default function EvolutionAnimationPanel({
       actions.markBlockRequested(0);
       applyEvolutionRenderingConfig();
       useEvolutionAnimationStore.getState().actions.setSpeed(speedMs);
-      useEvolutionAnimationStore.getState().actions.play(); // auto-start
     } catch (e) {
       console.error('Failed to fetch animation frames:', e);
     } finally {

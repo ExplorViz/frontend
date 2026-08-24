@@ -39,6 +39,7 @@ interface EvolutionAnimationState {
   buildingVisualStates: Map<string, EvolutionBuildingVisualState>;
   frameVersion: number;
   changedBuildingIds: Set<string>;
+  pausedForLoading: boolean;
   actions: {
     setSkeleton: (skeleton: AnimationSkeleton) => void;
     setTotalCount: (total: number) => void;
@@ -90,6 +91,7 @@ function frameMeaningPatch(): Partial<EvolutionAnimationState> {
     totalCount: 0,
     currentFrameIndex: 0,
     isPlaying: false,
+    pausedForLoading: false,
     loadedFrames: new Map(),
     deltaFrames: new Map(),
     requestedBlocks: new Set(),
@@ -156,6 +158,7 @@ export const useEvolutionAnimationStore = create<EvolutionAnimationState>((set) 
   fqnToFirstFrame: new Map(),
   currentFrameIndex: 0,
   isPlaying: false,
+  pausedForLoading: false,
   layoutMode: 'spiral',
   timeMode: 'commit',
   speedMs: 1000,
@@ -213,8 +216,8 @@ export const useEvolutionAnimationStore = create<EvolutionAnimationState>((set) 
       })),
     setGranularity: (granul: number) =>
       set({ granularity: Math.max(1, granul), ...frameMeaningPatch() }),
-    play: () => set({ isPlaying: true }),
-    pause: () => set({ isPlaying: false }),
+    play: () => set({ isPlaying: true, pausedForLoading: false }),
+    pause: () => set({ isPlaying: false, pausedForLoading: false }),
     stepForward: () =>
       set((s) => {
         const nextIndex = Math.min(s.currentFrameIndex + 1, s.totalCount - 1);
@@ -231,6 +234,23 @@ export const useEvolutionAnimationStore = create<EvolutionAnimationState>((set) 
       set((s) => {
         const nextIndex = Math.max(0, Math.min(index, s.totalCount - 1));
         if (nextIndex === s.currentFrameIndex) return s;
+        const loaded = s.deltaMode
+          ? s.deltaFrames.has(nextIndex)
+          : s.loadedFrames.has(nextIndex);
+        if (loaded && s.pausedForLoading) {
+          return {
+            ...updateFrameIndex(s, nextIndex),
+            isPlaying: true,
+            pausedForLoading: false,
+          };
+        }
+        if (!loaded && s.isPlaying) {
+          return {
+            ...updateFrameIndex(s, nextIndex),
+            isPlaying: false,
+            pausedForLoading: true,
+          };
+        }
         return updateFrameIndex(s, nextIndex);
       }),
     setLayoutMode: (mode: 'city' | 'spiral') => set({ layoutMode: mode }),
@@ -312,6 +332,9 @@ export const useEvolutionAnimationStore = create<EvolutionAnimationState>((set) 
         return {
           deltaFrames: next,
           ...applyFrameVisuals(nextState),
+          ...(s.pausedForLoading && next.has(s.currentFrameIndex)
+            ? { isPlaying: true, pausedForLoading: false }
+            : {}),
         };
       }),
     setDeltaMode: (enabled) =>
@@ -337,6 +360,7 @@ export const useEvolutionAnimationStore = create<EvolutionAnimationState>((set) 
         currentFrameIndex: 0,
         loadedAgingWindow: 1,
         isPlaying: false,
+        pausedForLoading: false,
         deltaFrames: new Map(),
         buildingVisualStates: new Map(),
         frameVersion: 0,
