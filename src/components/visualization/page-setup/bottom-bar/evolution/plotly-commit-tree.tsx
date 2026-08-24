@@ -1223,6 +1223,7 @@ function buildPlotlyTraces({
     type: 'scattergl',
     marker: { color: colors, size: sizes },
     mode: 'markers',
+    showlegend: false,
     hoverinfo: 'text',
     hoveron: 'points',
     hoverlabel: { align: 'left' },
@@ -1483,6 +1484,7 @@ function buildLayout(
     hoverdistance: COMMIT_HOVER_DISTANCE_PX,
     spikedistance: 0,
     dragmode: 'pan',
+    showlegend: false,
     margin: {
       autoexpand: placement === 'time',
       b: placement === 'time' ? 70 : 50,
