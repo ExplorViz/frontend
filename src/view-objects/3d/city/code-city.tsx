@@ -2,9 +2,15 @@ import { Container, Root } from '@react-three/uikit';
 import { Button } from '@react-three/uikit-default';
 import { AppWindow } from '@react-three/uikit-lucide';
 import { InstancedMesh2 } from '@three.ez/instanced-mesh';
+import { useEvolutionAnimationStore } from 'explorviz-frontend/src/components/visualization/page-setup/bottom-bar/animation/evolution-animation-store';
 import { useLayoutStore } from 'explorviz-frontend/src/stores/layout-store';
 import { useModelStore } from 'explorviz-frontend/src/stores/repos/model-repository';
 import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
+import {
+  filterVisibleBuildingIds,
+  filterVisibleDistrictIds,
+} from 'explorviz-frontend/src/utils/city-rendering/entity-visibility';
+import { useSharedEntityVisibilityContext } from 'explorviz-frontend/src/utils/city-rendering/entity-visibility-provider';
 import CityDistrictLabel from 'explorviz-frontend/src/view-objects/3d/city/city-district-label';
 import CityDistricts from 'explorviz-frontend/src/view-objects/3d/city/city-districts';
 import CityFoundation from 'explorviz-frontend/src/view-objects/3d/city/city-foundation';
@@ -12,7 +18,7 @@ import CodeBuildingLabel from 'explorviz-frontend/src/view-objects/3d/city/code-
 import CodeBuildings from 'explorviz-frontend/src/view-objects/3d/city/code-buildings';
 import EmbeddedBrowser from 'explorviz-frontend/src/view-objects/3d/city/embedded-browser';
 import gsap from 'gsap';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import * as THREE from 'three';
 import { useShallow } from 'zustand/react/shallow';
 
@@ -20,6 +26,13 @@ export default function CodeCity({ cityId }: { cityId: string }) {
   const city = useModelStore((state) => state.getCity(cityId))!;
   const districtLayouts = useLayoutStore((state) => state.districtLayouts);
   const cityLayout = useLayoutStore((state) => state.cityLayouts.get(cityId));
+  const visibilityContext = useSharedEntityVisibilityContext();
+  const evolutionAnimation = useEvolutionAnimationStore(
+    useShallow((state) => ({
+      totalCount: state.totalCount,
+      buildingVisualStates: state.buildingVisualStates,
+    }))
+  );
 
   const {
     animationDuration,
@@ -38,6 +51,25 @@ export default function CodeCity({ cityId }: { cityId: string }) {
   );
 
   const showDistricts = buildingLayoutAlgorithm === 'None';
+  const visibleBuildingLabelIds = useMemo(
+    () =>
+      filterVisibleBuildingIds(
+        city.allContainedBuildingIds,
+        visibilityContext,
+        evolutionAnimation
+      ),
+    [city.allContainedBuildingIds, visibilityContext, evolutionAnimation]
+  );
+  const visibleDistrictLabelIds = useMemo(
+    () =>
+      showDistricts
+        ? filterVisibleDistrictIds(
+            city.allContainedDistrictIds,
+            visibilityContext
+          )
+        : [],
+    [city.allContainedDistrictIds, showDistricts, visibilityContext]
+  );
 
   const [cityPosition, setCityPosition] = useState<THREE.Vector3 | undefined>(
     cityLayout?.position
@@ -99,7 +131,7 @@ export default function CodeCity({ cityId }: { cityId: string }) {
       {isBrowserActive && <EmbeddedBrowser city={city} />}
       {cityLayout && <CityFoundation city={city} layout={cityLayout} />}
       <CodeBuildings buildingIds={city.allContainedBuildingIds} city={city} />
-      {city.allContainedBuildingIds.map((buildingId) => (
+      {visibleBuildingLabelIds.map((buildingId) => (
         <CodeBuildingLabel
           key={buildingId + '-label'}
           buildingId={buildingId}
@@ -113,21 +145,20 @@ export default function CodeCity({ cityId }: { cityId: string }) {
           city={city}
         />
       )}
-      {showDistricts &&
-        city.allContainedDistrictIds.map((districtId) => {
-          const district = useModelStore.getState().getDistrict(districtId);
-          const layout = useLayoutStore.getState().getLayout(districtId);
-          if (district && layout) {
-            return (
-              <CityDistrictLabel
-                key={districtId + '-label'}
-                district={district}
-                layout={layout}
-              />
-            );
-          }
-          return null;
-        })}
+      {visibleDistrictLabelIds.map((districtId) => {
+        const district = useModelStore.getState().getDistrict(districtId);
+        const layout = useLayoutStore.getState().getLayout(districtId);
+        if (district && layout) {
+          return (
+            <CityDistrictLabel
+              key={districtId + '-label'}
+              district={district}
+              layout={layout}
+            />
+          );
+        }
+        return null;
+      })}
     </group>
   );
 }

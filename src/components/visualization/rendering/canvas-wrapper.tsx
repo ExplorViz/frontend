@@ -40,6 +40,7 @@ import { useModelStore } from 'explorviz-frontend/src/stores/repos/model-reposit
 import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
 import { useVisualizationStore } from 'explorviz-frontend/src/stores/visualization-store';
 import { calculateAggregatedCommunications } from 'explorviz-frontend/src/utils/city-rendering/communication-computer';
+import { EntityVisibilityProvider } from 'explorviz-frontend/src/utils/city-rendering/entity-visibility-provider';
 import { emitContextMenuFromWorld } from 'explorviz-frontend/src/utils/context-menu-bridge';
 import { contextMenuPickAt } from 'explorviz-frontend/src/utils/context-menu-world-pick';
 import ControllerMenu from 'explorviz-frontend/src/utils/extended-reality/vr-menus-r3f/controller-menu';
@@ -616,26 +617,28 @@ export default function CanvasWrapper({
                   </Suspense>
                 </TeleportTarget>
               </IfInSessionMode>
-              <LandscapeR3F>
-                {useModelStore
-                  .getState()
-                  .getAllCities()
-                  .map((city) => (
-                    <CodeCity key={city.id} cityId={city.id} />
-                  ))}
-                {isCommRendered &&
-                  layoutMap &&
-                  allAggregatedCommunications.map((communication) => (
-                    <CommunicationR3F
-                      key={communication.id}
-                      communicationModel={communication}
-                      applicationElement={useModelStore
-                        .getState()
-                        .getCityForModel(communication.sourceEntity.id)}
-                      layoutMap={layoutMap}
-                    />
-                  ))}
-              </LandscapeR3F>
+              <EntityVisibilityProvider>
+                <LandscapeR3F>
+                  {useModelStore
+                    .getState()
+                    .getAllCities()
+                    .map((city) => (
+                      <CodeCity key={city.id} cityId={city.id} />
+                    ))}
+                  {isCommRendered &&
+                    layoutMap &&
+                    allAggregatedCommunications.map((communication) => (
+                      <CommunicationR3F
+                        key={communication.id}
+                        communicationModel={communication}
+                        applicationElement={useModelStore
+                          .getState()
+                          .getCityForModel(communication.sourceEntity.id)}
+                        layoutMap={layoutMap}
+                      />
+                    ))}
+                </LandscapeR3F>
+              </EntityVisibilityProvider>
               <RemoteImmersiveIndicators />
               {enableClustering && <ClusterCentroidsR3F />}
               {enableClustering && autoOpenCloseDistricts && (

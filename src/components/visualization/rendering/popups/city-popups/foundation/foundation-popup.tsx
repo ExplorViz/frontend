@@ -3,9 +3,11 @@ import AggregatedBuildingMetricsTable from 'explorviz-frontend/src/components/vi
 import EntityStructureStatsTable from 'explorviz-frontend/src/components/visualization/rendering/popups/city-popups/entity-structure-stats-table';
 import FilesTab from 'explorviz-frontend/src/components/visualization/rendering/popups/city-popups/files-tab';
 import { useLiveCity } from 'explorviz-frontend/src/components/visualization/rendering/popups/city-popups/use-live-flat-entity';
+import { useVisibleEntityCounts } from 'explorviz-frontend/src/components/visualization/rendering/popups/city-popups/use-visible-entity-counts';
 import PopupData from 'explorviz-frontend/src/components/visualization/rendering/popups/popup-data';
 import { useCommitTreeStateStore } from 'explorviz-frontend/src/stores/commit-tree-state';
 import { useEvolutionDataRepositoryStore } from 'explorviz-frontend/src/stores/repos/evolution-data-repository';
+import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
 import { getSourceReferenceCommitHash } from 'explorviz-frontend/src/utils/evolution-data-helpers';
 import generateUuidv4 from 'explorviz-frontend/src/utils/helpers/uuid4-generator';
 import { City } from 'explorviz-frontend/src/utils/landscape-schemes/flat-landscape';
@@ -51,6 +53,22 @@ export default function FoundationPopup({ popupData }: FoundationPopupProps) {
   const sourceLinkTooltip = repositoryTreeUrl
     ? 'Open repository'
     : 'Repository unavailable';
+  const visibleEntityCounts = useVisibleEntityCounts({
+    directDistrictIds: city.districtIds,
+    containedDistrictIds: city.allContainedDistrictIds,
+    directBuildingIds: city.buildingIds,
+    containedBuildingIds: city.allContainedBuildingIds,
+  });
+  const buildingLayoutAlgorithm = useUserSettingsStore(
+    (state) => state.visualizationSettings.buildingLayoutAlgorithm.value
+  );
+  const showDistrictCounts = buildingLayoutAlgorithm === 'None';
+  const directDistrictCount = showDistrictCounts
+    ? visibleEntityCounts.directDistrictCount
+    : 0;
+  const containedDistrictCount = showDistrictCounts
+    ? visibleEntityCounts.containedDistrictCount
+    : 0;
 
   return (
     <>
@@ -74,10 +92,12 @@ export default function FoundationPopup({ popupData }: FoundationPopupProps) {
         >
           <Tab eventKey="general" title="General">
             <EntityStructureStatsTable
-              directDistrictCount={city.districtIds.length}
-              containedDistrictCount={city.allContainedDistrictIds.length}
-              directBuildingCount={city.buildingIds.length}
-              containedBuildingCount={city.allContainedBuildingIds.length}
+              directDistrictCount={directDistrictCount}
+              containedDistrictCount={containedDistrictCount}
+              directBuildingCount={visibleEntityCounts.directBuildingCount}
+              containedBuildingCount={
+                visibleEntityCounts.containedBuildingCount
+              }
             />
           </Tab>
           {city.telemetryKey && (

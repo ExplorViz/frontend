@@ -1,13 +1,10 @@
 import { Text } from '@react-three/drei';
 import { useClusterStore } from 'explorviz-frontend/src/stores/cluster-store';
-import { useCommitTreeStateStore } from 'explorviz-frontend/src/stores/commit-tree-state';
 import { useLayoutStore } from 'explorviz-frontend/src/stores/layout-store';
 import { useModelStore } from 'explorviz-frontend/src/stores/repos/model-repository';
 import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
-import { useVisibilityServiceStore } from 'explorviz-frontend/src/stores/visibility-service';
 import { useVisualizationStore } from 'explorviz-frontend/src/stores/visualization-store';
 import { getTruncatedDisplayName } from 'explorviz-frontend/src/utils/annotation-utils';
-import { isBuildingVisible } from 'explorviz-frontend/src/utils/city-rendering/building-visibility';
 import { Building } from 'explorviz-frontend/src/utils/landscape-schemes/flat-landscape';
 import BoxLayout from 'explorviz-frontend/src/utils/layout/box-layout';
 import {
@@ -46,15 +43,9 @@ export default function CodeBuildingLabel({
     isParentHovered,
     isBuildingHighlighted,
     isParentHighlighted,
-    hiddenBuildingIds,
-    removedDistrictIds,
-    hiddenLanguages,
   } = useVisualizationStore(
     useShallow((state) => ({
       isBuildingHovered: state.hoveredEntityId === buildingId,
-      hiddenBuildingIds: state.hiddenBuildingIds,
-      removedDistrictIds: state.removedDistrictIds,
-      hiddenLanguages: state.hiddenLanguages,
       isParentHovered:
         state.hoveredEntityId === building?.parentDistrictId ||
         (!building?.parentDistrictId &&
@@ -66,30 +57,6 @@ export default function CodeBuildingLabel({
       ),
     }))
   );
-
-  const evoConfig = useVisibilityServiceStore(
-    (state) => state._evolutionModeRenderingConfiguration
-  );
-
-  const _selectedCommits = useCommitTreeStateStore(
-    (state) => state._selectedCommits
-  );
-  const currentSelectedRepo = useCommitTreeStateStore(
-    (state) => state._currentSelectedRepositoryName
-  );
-
-  const isDiffMode =
-    (_selectedCommits.get(currentSelectedRepo)?.length || 0) === 2;
-
-  const isCurrentBuildingVisible = isBuildingVisible({
-    buildingId,
-    building,
-    hiddenBuildingIds,
-    removedDistrictIds,
-    hiddenLanguages,
-    evoConfig,
-    isDiffMode,
-  });
 
   const sceneLayers = useVisualizationStore((state) => state.sceneLayers);
   const {
@@ -257,7 +224,6 @@ export default function CodeBuildingLabel({
       : !enableClustering;
 
   const shouldShowLabel =
-    isCurrentBuildingVisible &&
     (showAllBuildingLabels ||
       isBuildingHovered ||
       isParentHovered ||
@@ -276,7 +242,6 @@ export default function CodeBuildingLabel({
       name={'Code building label of ' + building.name}
       position={labelPosition}
       color={buildingTextColor}
-      visible={isCurrentBuildingVisible}
       rotation={[1.5 * Math.PI, 0, labelRotation]}
       fontSize={
         buildingLabelFontSize * Math.min(layout.width, layout.depth) * 0.5

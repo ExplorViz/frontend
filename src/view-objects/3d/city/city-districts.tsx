@@ -12,6 +12,8 @@ import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-setting
 import { useVisibilityServiceStore } from 'explorviz-frontend/src/stores/visibility-service';
 import { useVisualizationStore } from 'explorviz-frontend/src/stores/visualization-store';
 import * as EntityManipulation from 'explorviz-frontend/src/utils/city-rendering/entity-manipulation';
+import { isDistrictVisible } from 'explorviz-frontend/src/utils/city-rendering/entity-visibility';
+import { useSharedEntityVisibilityContext } from 'explorviz-frontend/src/utils/city-rendering/entity-visibility-provider';
 import { getHighlightingColorForEntity } from 'explorviz-frontend/src/utils/city-rendering/highlighting';
 import { emitContextMenuFromWorld } from 'explorviz-frontend/src/utils/context-menu-bridge';
 import calculateColorBrightness from 'explorviz-frontend/src/utils/helpers/threejs-helpers';
@@ -58,21 +60,20 @@ const CityDistricts = forwardRef<InstancedMesh2, Args>(
 
     const {
       closedDistrictIds,
-      hiddenDistrictIds,
       highlightedEntityIds,
       hoveredEntityId,
-      removedDistrictIds,
       setHoveredEntity,
     } = useVisualizationStore(
       useShallow((state) => ({
         closedDistrictIds: state.closedDistrictIds,
-        hiddenDistrictIds: state.hiddenDistrictIds,
         highlightedEntityIds: state.highlightedEntityIds,
         hoveredEntityId: state.hoveredEntityId,
-        removedDistrictIds: state.removedDistrictIds,
         setHoveredEntity: state.actions.setHoveredEntityId,
       }))
     );
+
+    const visibilityContext = useSharedEntityVisibilityContext();
+    const { hiddenDistrictIds, removedDistrictIds } = visibilityContext;
 
     const {
       castShadows,
@@ -258,9 +259,7 @@ const CityDistricts = forwardRef<InstancedMesh2, Args>(
           districtIdToInstanceId.set(district.id, obj.id);
 
           const isOpen = !closedDistrictIds.has(district.id);
-          const isVisible =
-            !hiddenDistrictIds.has(district.id) &&
-            !removedDistrictIds.has(district.id);
+          const isVisible = isDistrictVisible(district.id, visibilityContext);
 
           const closedPosition = layout.center.clone();
           // Y-Position of layout is center of opened district
@@ -433,8 +432,7 @@ const CityDistricts = forwardRef<InstancedMesh2, Args>(
       districtIdToInstanceId.forEach((instanceId, districtId) => {
         meshRef.current?.setVisibilityAt(
           instanceId,
-          !hiddenDistrictIds.has(districtId) &&
-            !removedDistrictIds.has(districtId)
+          isDistrictVisible(districtId, visibilityContext)
         );
       });
     }, [hiddenDistrictIds, removedDistrictIds, ref, districtIdToInstanceId]);

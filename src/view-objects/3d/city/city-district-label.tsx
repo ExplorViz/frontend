@@ -57,12 +57,9 @@ export default function CityDistrictLabel({
     }))
   );
 
-  const { isOpen, isVisible } = useVisualizationStore(
+  const { isOpen } = useVisualizationStore(
     useShallow((state) => ({
       isOpen: !state.closedDistrictIds.has(district.id),
-      isVisible:
-        !state.hiddenDistrictIds.has(district.id) &&
-        !state.removedDistrictIds.has(district.id),
     }))
   );
 
@@ -193,7 +190,6 @@ export default function CityDistrictLabel({
       layers={sceneLayers.Label}
       color={districtTextColor}
       name={'City district label of ' + district.name}
-      visible={isVisible}
       position={labelPosition}
       rotation={getLabelRotation(districtLabelPlacement)}
       fontSize={getFontSize()}

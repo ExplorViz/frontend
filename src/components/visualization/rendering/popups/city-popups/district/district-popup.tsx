@@ -3,6 +3,7 @@ import AggregatedBuildingMetricsTable from 'explorviz-frontend/src/components/vi
 import EntityStructureStatsTable from 'explorviz-frontend/src/components/visualization/rendering/popups/city-popups/entity-structure-stats-table';
 import FilesTab from 'explorviz-frontend/src/components/visualization/rendering/popups/city-popups/files-tab';
 import { useLiveDistrict } from 'explorviz-frontend/src/components/visualization/rendering/popups/city-popups/use-live-flat-entity';
+import { useVisibleEntityCounts } from 'explorviz-frontend/src/components/visualization/rendering/popups/city-popups/use-visible-entity-counts';
 import PopupData from 'explorviz-frontend/src/components/visualization/rendering/popups/popup-data';
 import { useCommitTreeStateStore } from 'explorviz-frontend/src/stores/commit-tree-state';
 import { useEvolutionDataRepositoryStore } from 'explorviz-frontend/src/stores/repos/evolution-data-repository';
@@ -24,8 +25,14 @@ export default function DistrictPopup({ popupData }: DistrictPopupProps) {
     useLiveDistrict(popupData.entityId) ?? (popupData.entity as District);
   const { districtIds, buildingIds } = useMemo(
     () => collectDistrictSubtreeIds(district.id),
-    [district]
+    [district.id]
   );
+  const visibleEntityCounts = useVisibleEntityCounts({
+    directDistrictIds: district.districtIds,
+    containedDistrictIds: districtIds.slice(1),
+    directBuildingIds: district.buildingIds,
+    containedBuildingIds: buildingIds,
+  });
   const uuid = useMemo(() => generateUuidv4(), []);
   const selectedCommits = useCommitTreeStateStore(
     (state) => state._selectedCommits
@@ -83,10 +90,14 @@ export default function DistrictPopup({ popupData }: DistrictPopupProps) {
         >
           <Tab eventKey="general" title="General">
             <EntityStructureStatsTable
-              directDistrictCount={district.districtIds.length}
-              containedDistrictCount={Math.max(districtIds.length - 1, 0)}
-              directBuildingCount={district.buildingIds.length}
-              containedBuildingCount={buildingIds.length}
+              directDistrictCount={visibleEntityCounts.directDistrictCount}
+              containedDistrictCount={
+                visibleEntityCounts.containedDistrictCount
+              }
+              directBuildingCount={visibleEntityCounts.directBuildingCount}
+              containedBuildingCount={
+                visibleEntityCounts.containedBuildingCount
+              }
             />
           </Tab>
           <Tab eventKey="metrics" title="Metrics">
