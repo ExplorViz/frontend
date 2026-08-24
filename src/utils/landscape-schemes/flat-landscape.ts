@@ -34,6 +34,7 @@ export type BuildingState = {
   fqn: string;
   lastChangeOrdinal: number;
   lastChangeDate: number;
+  lastAction: CommitComparison;
 };
 
 export type BuildingChange = {
@@ -69,6 +70,7 @@ type FlatBaseModel = {
   editingState?: 'added' | 'removed'; // Reflect changes from restructuring
   isPlaceholder?: boolean; // Flag to make it invisible in animation
   agingFactor?: number; // 0 = just changed, 1 = fully aged (unchanged past threshold); animation only
+  lastAction?: CommitComparison;
 };
 
 export type Language =

@@ -33,6 +33,8 @@ interface EvolutionAnimationState {
   agingEnabled: boolean;
   agingCommits: number;
   agingMs: number;
+  agingSteps: number;
+  keepRemovedVisible: boolean;
   loadedAgingWindow: number;
   deltaMode: boolean;
   deltaFrames: Map<number, AnimationDeltaFrame>;
@@ -59,6 +61,8 @@ interface EvolutionAnimationState {
     setAgingEnabled: (enabled: boolean) => void;
     setAgingCommits: (commits: number) => void;
     setAgingMs: (ms: number) => void;
+    setAgingSteps: (steps: number) => void;
+    setKeepRemovedVisible: (keep: boolean) => void;
     addDeltaFrames: (frames: AnimationDeltaFrame[]) => void;
     setDeltaMode: (enabled: boolean) => void;
     reapplyCurrentFrameVisuals: () => void;
@@ -114,6 +118,7 @@ function applyFrameVisuals(
     agingEnabled: state.agingEnabled,
     agingCommits: state.agingCommits,
     agingMs: state.agingMs,
+    keepRemovedVisible: state.keepRemovedVisible,
     timeMode: state.timeMode,
   });
 
@@ -170,6 +175,8 @@ export const useEvolutionAnimationStore = create<EvolutionAnimationState>((set) 
   agingEnabled: false,
   agingCommits: 10,
   agingMs: 2592000000,
+  agingSteps: 5,
+  keepRemovedVisible: false,
   deltaMode: true,
   deltaFrames: new Map(),
   buildingVisualStates: new Map(),
@@ -306,6 +313,7 @@ export const useEvolutionAnimationStore = create<EvolutionAnimationState>((set) 
           agingCommits: value,
           ...invalidation,
           ...applyFrameVisuals(next),
+          agingSteps: Math.min(s.agingSteps, value),
         };
       }),
     setAgingMs: (ms) =>
@@ -324,6 +332,21 @@ export const useEvolutionAnimationStore = create<EvolutionAnimationState>((set) 
           ...applyFrameVisuals(next),
         };
       }),
+    setAgingSteps: (steps) =>
+      set((s) => ({
+        agingSteps: Math.max(
+          1,
+          Math.min(
+            Math.round(steps),
+            s.timeMode === 'commit' ? s.agingCommits : 10
+          )
+        ),
+      })),
+    setKeepRemovedVisible: (keep) =>
+      set((s) => ({
+        keepRemovedVisible: keep,
+        ...applyFrameVisuals({ ...s, keepRemovedVisible: keep }),
+      })),
     addDeltaFrames: (frames) =>
       set((s) => {
         const next = new Map(s.deltaFrames);

@@ -47,6 +47,8 @@ export default function EvolutionAnimationPanel({
     agingEnabled,
     agingCommits,
     agingMs,
+    agingSteps,
+    keepRemovedVisible,
     deltaMode,
     rangeFrom,
     rangeTo
@@ -60,6 +62,8 @@ export default function EvolutionAnimationPanel({
       agingEnabled: state.agingEnabled,
       agingCommits: state.agingCommits,
       agingMs: state.agingMs,
+      agingSteps: state.agingSteps,
+      keepRemovedVisible: state.keepRemovedVisible,
       deltaMode: state.deltaMode,
       rangeFrom: state.rangeFrom,
       rangeTo: state.rangeTo,
@@ -74,6 +78,8 @@ export default function EvolutionAnimationPanel({
     setAgingEnabled,
     setAgingCommits,
     setAgingMs,
+    setAgingSteps,
+    setKeepRemovedVisible,
     setDeltaMode,
     setRange,
   } = useEvolutionAnimationStore.getState().actions;
@@ -516,6 +522,16 @@ export default function EvolutionAnimationPanel({
           <Form.Group className="mb-3">
             <Form.Check
               type="switch"
+              id="keep-removed-switch"
+              label="Keep deleted files visible"
+              checked={keepRemovedVisible}
+              onChange={(e) => setKeepRemovedVisible(e.target.checked)}
+              style={{ fontSize: '12px' }}
+            />
+          </Form.Group>
+          <Form.Group className="mb-3">
+            <Form.Check
+              type="switch"
               id="aging-switch"
               label="Aging (grey out)"
               checked={agingEnabled}
@@ -572,6 +588,23 @@ export default function EvolutionAnimationPanel({
                     ))}
                   </Form.Select>
                 </div>
+              </>
+            )}
+            {agingEnabled && (
+              <>
+                <Form.Label style={{ marginTop: '6px' }}>
+                  Aging steps: {agingSteps}
+                </Form.Label>
+                <Form.Control
+                  type="number"
+                  min={1}
+                  max={timeMode === 'commit' ? agingCommits : 10}
+                  size="sm"
+                  value={agingSteps}
+                  onChange={(e) =>
+                    setAgingSteps(Math.max(1, Number(e.target.value)))
+                  }
+                />
               </>
             )}
           </Form.Group>
