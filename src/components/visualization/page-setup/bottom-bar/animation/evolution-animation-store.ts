@@ -332,6 +332,7 @@ export const useEvolutionAnimationStore = create<EvolutionAnimationState>((set) 
         loadedFrames: new Map(),
         requestedBlocks: new Set(),
         orderedCommitHashes: [],
+        orderedCommitTimestamps: [],
         stableFrame: null,
         currentFrameIndex: 0,
         loadedAgingWindow: 1,

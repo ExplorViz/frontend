@@ -319,6 +319,18 @@ function attachCommitChartListeners(
     const commitId =
       refs.chartCommitsRef.current?.[pointNumber]?.hash ??
       CROSS_COMMIT_IDENTIFIER;
+
+    const animStore = useEvolutionAnimationStore.getState();
+    if (animStore.totalCount > 0 && commitId !== CROSS_COMMIT_IDENTIFIER) {
+      const frameIndex = resolveFrameIndexForCommit(commitId);
+      if (frameIndex !== null) {
+        animStore.actions.seekTo(
+          Math.min(frameIndex, animStore.totalCount - 1)
+        );
+        return;
+      }
+    }
+
     const selectedCommit: Commit = {
       commitId,
       branchName: refs.branchNameRef.current ?? '',
@@ -1364,6 +1376,27 @@ function resolveAnimationPositionX(
 
   return chartSeries.xValues[nearestChartIndex] ?? null;
 }
+
+function resolveFrameIndexForCommit(commitHash: string): number | null {
+  const store = useEvolutionAnimationStore.getState();
+  const ordinal = store.orderedCommitHashes.indexOf(commitHash);
+  if (ordinal < 0) {
+    return null;
+  }
+
+  if (store.timeMode !== 'time') {
+    return Math.floor(ordinal / Math.max(1, store.granularity));
+  }
+
+  const timestamps = store.orderedCommitTimestamps;
+  if (timestamps.length === 0) {
+    return null;
+  }
+  const bucket = Math.max(1, store.bucketSize);
+  const offset = timestamps[ordinal] - timestamps[0];
+  return Math.max(0, Math.ceil(offset / bucket) - 1);
+}
+
 function markTaggedCommits(
   chartCommits: CommitNode[],
   sizes: number[],
