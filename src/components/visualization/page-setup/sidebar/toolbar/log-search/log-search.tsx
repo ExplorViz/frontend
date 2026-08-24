@@ -174,6 +174,13 @@ export default function LogSearch() {
     for (const [key, value] of Array.from(newFormData.entries())) {
       if (value === '' || typeof value !== 'string') {
         newFormData.delete(key);
+        continue;
+      }
+
+      // Convert strings from datetime_local inputs to Unix nanosecond epoch
+      if (key === 'from' || key === 'to') {
+        const unixNano = BigInt(new Date(value).getTime()) * 1_000_000n;
+        newFormData.set(key, unixNano.toString());
       }
     }
 
@@ -374,6 +381,30 @@ export default function LogSearch() {
                 )}
               </div>
             </Form.Group>
+
+            <div className="row">
+              <Form.Group className="mb-3 col-md-6">
+                <Form.Label>
+                  Date start{' '}
+                  <HelpTooltip
+                    title="Only match logs with a timestamp after the given point in time. Should be specified in your local timezone. Leave empty for no lower bound on the timestamp."
+                    placement="top"
+                  />
+                </Form.Label>
+                <Form.Control type="datetime-local" name="from" step={1} />
+              </Form.Group>
+
+              <Form.Group className="mb-3 col-md-6">
+                <Form.Label>
+                  Date end{' '}
+                  <HelpTooltip
+                    title="Only match logs with a timestamp before the given point in time. Should be specified in your local timezone. Leave empty for no upper bound on the timestamp."
+                    placement="top"
+                  />
+                </Form.Label>
+                <Form.Control type="datetime-local" name="to" step={1} />
+              </Form.Group>
+            </div>
 
             <div className="row">
               <Form.Group className="mb-3 col-md-6">
