@@ -47,6 +47,8 @@ export default function EvolutionAnimationPanel({
     agingEnabled,
     agingCommits,
     agingMs,
+    agingSteps,
+    keepRemovedVisible,
     deltaMode,
     rangeFrom,
     rangeTo
@@ -60,6 +62,8 @@ export default function EvolutionAnimationPanel({
       agingEnabled: state.agingEnabled,
       agingCommits: state.agingCommits,
       agingMs: state.agingMs,
+      agingSteps: state.agingSteps,
+      keepRemovedVisible: state.keepRemovedVisible,
       deltaMode: state.deltaMode,
       rangeFrom: state.rangeFrom,
       rangeTo: state.rangeTo,
@@ -74,6 +78,8 @@ export default function EvolutionAnimationPanel({
     setAgingEnabled,
     setAgingCommits,
     setAgingMs,
+    setAgingSteps,
+    setKeepRemovedVisible,
     setDeltaMode,
     setRange,
   } = useEvolutionAnimationStore.getState().actions;
@@ -118,7 +124,9 @@ export default function EvolutionAnimationPanel({
   const repositoryName = useCommitTreeStateStore(
     (state) => state._currentSelectedRepositoryName
   );
-
+  const hasFrames = useEvolutionAnimationStore(
+    (state) => state.totalCount > 0
+  );
   const fetchWindow = useEvolutionAnimationFetchServiceStore(
     (state) => state.fetchAnimationWindow
   );
@@ -174,6 +182,7 @@ export default function EvolutionAnimationPanel({
     if (!repositoryName) return;
     setIsLoading(true);
     try {
+      useEvolutionAnimationStore.getState().actions.restart();
       const store = useEvolutionAnimationStore.getState();
       const actions = store.actions;
       if (!store.stableFrame) {
@@ -215,7 +224,6 @@ export default function EvolutionAnimationPanel({
       actions.markBlockRequested(0);
       applyEvolutionRenderingConfig();
       useEvolutionAnimationStore.getState().actions.setSpeed(speedMs);
-      useEvolutionAnimationStore.getState().actions.play(); // auto-start
     } catch (e) {
       console.error('Failed to fetch animation frames:', e);
     } finally {
@@ -225,6 +233,7 @@ export default function EvolutionAnimationPanel({
   const reloadAnimation = async () => {
     if (!repositoryName) return;
     const store = useEvolutionAnimationStore.getState();
+    if (!store.stableFrame) return;
     if (store.deltaMode) {
       const win = await fetchDeltaWindow(
         repositoryName,
@@ -513,6 +522,16 @@ export default function EvolutionAnimationPanel({
           <Form.Group className="mb-3">
             <Form.Check
               type="switch"
+              id="keep-removed-switch"
+              label="Keep deleted files visible"
+              checked={keepRemovedVisible}
+              onChange={(e) => setKeepRemovedVisible(e.target.checked)}
+              style={{ fontSize: '12px' }}
+            />
+          </Form.Group>
+          <Form.Group className="mb-3">
+            <Form.Check
+              type="switch"
               id="aging-switch"
               label="Aging (grey out)"
               checked={agingEnabled}
@@ -571,6 +590,23 @@ export default function EvolutionAnimationPanel({
                 </div>
               </>
             )}
+            {agingEnabled && (
+              <>
+                <Form.Label style={{ marginTop: '6px' }}>
+                  Aging steps: {agingSteps}
+                </Form.Label>
+                <Form.Control
+                  type="number"
+                  min={1}
+                  max={timeMode === 'commit' ? agingCommits : 10}
+                  size="sm"
+                  value={agingSteps}
+                  onChange={(e) =>
+                    setAgingSteps(Math.max(1, Number(e.target.value)))
+                  }
+                />
+              </>
+            )}
           </Form.Group>
         </Tab>
       </Tabs>
@@ -582,7 +618,7 @@ export default function EvolutionAnimationPanel({
         disabled={isLoading || !repositoryName}
         onClick={handleStart}
       >
-        {isLoading ? 'Loading...' : 'Start Animation'}
+        {isLoading ? 'Loading...' : hasFrames ? 'Restart' : 'Start Animation'}
       </Button>
     </div>,
     document.body

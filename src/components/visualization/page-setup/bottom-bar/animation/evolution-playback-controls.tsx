@@ -28,6 +28,7 @@ export default function EvolutionPlaybackControls() {
     stableFrame,
     currentFrameIndex,
     isPlaying,
+    pausedForLoading,
     speedMs,
     deltaMode,
     deltaFrames,
@@ -39,6 +40,7 @@ export default function EvolutionPlaybackControls() {
       stableFrame: state.stableFrame,
       currentFrameIndex: state.currentFrameIndex,
       isPlaying: state.isPlaying,
+      pausedForLoading: state.pausedForLoading,
       speedMs: state.speedMs,
       deltaMode: state.deltaMode,
       deltaFrames: state.deltaFrames,
@@ -143,8 +145,9 @@ export default function EvolutionPlaybackControls() {
       return;
     }
 
-    applyAnimationFrameLayout();
-    initialLayoutDoneRef.current = true;
+    if (applyAnimationFrameLayout()){
+      initialLayoutDoneRef.current = true;
+    }
   }, [
     stableFrame,
     totalCount,
@@ -272,7 +275,9 @@ export default function EvolutionPlaybackControls() {
       </div>
 
       <div className="evolution-playback-controls__range">
-        {activeDelta
+        {pausedForLoading
+        ? 'Loading ...'
+        :activeDelta
           ? `${
               activeDelta.tsFrom === activeDelta.tsTo
                 ? new Date(activeDelta.tsFrom).toLocaleDateString()

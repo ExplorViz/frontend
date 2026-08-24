@@ -47,12 +47,13 @@ export function applySkeletonLayout(stableFrame?: FlatLandscape | null) {
   triggerEvolutionLandscapeRendering(frame);
 }
 
-export function applyAnimationFrameLayout() {
+export function applyAnimationFrameLayout(): boolean{
   const store = useEvolutionAnimationStore.getState();
   const mergedFrame = buildMergedFlatLandscape(store);
-  if (!mergedFrame) return;
+  if (!mergedFrame) return false;
 
   applyEvolutionRenderingConfig();
   triggerEvolutionLandscapeRendering(mergedFrame);
   store.actions.reapplyCurrentFrameVisuals();
+  return true;
 }

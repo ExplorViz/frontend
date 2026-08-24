@@ -33,12 +33,15 @@ interface EvolutionAnimationState {
   agingEnabled: boolean;
   agingCommits: number;
   agingMs: number;
+  agingSteps: number;
+  keepRemovedVisible: boolean;
   loadedAgingWindow: number;
   deltaMode: boolean;
   deltaFrames: Map<number, AnimationDeltaFrame>;
   buildingVisualStates: Map<string, EvolutionBuildingVisualState>;
   frameVersion: number;
   changedBuildingIds: Set<string>;
+  pausedForLoading: boolean;
   actions: {
     setSkeleton: (skeleton: AnimationSkeleton) => void;
     setTotalCount: (total: number) => void;
@@ -58,10 +61,13 @@ interface EvolutionAnimationState {
     setAgingEnabled: (enabled: boolean) => void;
     setAgingCommits: (commits: number) => void;
     setAgingMs: (ms: number) => void;
+    setAgingSteps: (steps: number) => void;
+    setKeepRemovedVisible: (keep: boolean) => void;
     addDeltaFrames: (frames: AnimationDeltaFrame[]) => void;
     setDeltaMode: (enabled: boolean) => void;
     reapplyCurrentFrameVisuals: () => void;
     reset: () => void;
+    restart: () => void;
   };
 }
 function agingWindowPatch(
@@ -84,6 +90,21 @@ function agingWindowPatch(
   };
 }
 
+function frameMeaningPatch(): Partial<EvolutionAnimationState> {
+  return {
+    totalCount: 0,
+    currentFrameIndex: 0,
+    isPlaying: false,
+    pausedForLoading: false,
+    loadedFrames: new Map(),
+    deltaFrames: new Map(),
+    requestedBlocks: new Set(),
+    buildingVisualStates: new Map(),
+    frameVersion: 0,
+    changedBuildingIds: new Set(),
+  };
+}
+
 function applyFrameVisuals(
   state: EvolutionAnimationState,
   frameIndex: number = state.currentFrameIndex
@@ -97,6 +118,7 @@ function applyFrameVisuals(
     agingEnabled: state.agingEnabled,
     agingCommits: state.agingCommits,
     agingMs: state.agingMs,
+    keepRemovedVisible: state.keepRemovedVisible,
     timeMode: state.timeMode,
   });
 
@@ -141,6 +163,7 @@ export const useEvolutionAnimationStore = create<EvolutionAnimationState>((set) 
   fqnToFirstFrame: new Map(),
   currentFrameIndex: 0,
   isPlaying: false,
+  pausedForLoading: false,
   layoutMode: 'spiral',
   timeMode: 'commit',
   speedMs: 1000,
@@ -152,6 +175,8 @@ export const useEvolutionAnimationStore = create<EvolutionAnimationState>((set) 
   agingEnabled: false,
   agingCommits: 10,
   agingMs: 2592000000,
+  agingSteps: 5,
+  keepRemovedVisible: false,
   deltaMode: true,
   deltaFrames: new Map(),
   buildingVisualStates: new Map(),
@@ -197,9 +222,9 @@ export const useEvolutionAnimationStore = create<EvolutionAnimationState>((set) 
         requestedBlocks: new Set(s.requestedBlocks).add(block),
       })),
     setGranularity: (granul: number) =>
-      set({ granularity: Math.max(1, granul) }),
-    play: () => set({ isPlaying: true }),
-    pause: () => set({ isPlaying: false }),
+      set({ granularity: Math.max(1, granul), ...frameMeaningPatch() }),
+    play: () => set({ isPlaying: true, pausedForLoading: false }),
+    pause: () => set({ isPlaying: false, pausedForLoading: false }),
     stepForward: () =>
       set((s) => {
         const nextIndex = Math.min(s.currentFrameIndex + 1, s.totalCount - 1);
@@ -216,12 +241,31 @@ export const useEvolutionAnimationStore = create<EvolutionAnimationState>((set) 
       set((s) => {
         const nextIndex = Math.max(0, Math.min(index, s.totalCount - 1));
         if (nextIndex === s.currentFrameIndex) return s;
+        const loaded = s.deltaMode
+          ? s.deltaFrames.has(nextIndex)
+          : s.loadedFrames.has(nextIndex);
+        if (loaded && s.pausedForLoading) {
+          return {
+            ...updateFrameIndex(s, nextIndex),
+            isPlaying: true,
+            pausedForLoading: false,
+          };
+        }
+        if (!loaded && s.isPlaying) {
+          return {
+            ...updateFrameIndex(s, nextIndex),
+            isPlaying: false,
+            pausedForLoading: true,
+          };
+        }
         return updateFrameIndex(s, nextIndex);
       }),
     setLayoutMode: (mode: 'city' | 'spiral') => set({ layoutMode: mode }),
-    setTimeMode: (mode: 'commit' | 'time') => set({ timeMode: mode }),
+    setTimeMode: (mode: 'commit' | 'time') =>
+      set({ timeMode: mode, ...frameMeaningPatch() }),
     setSpeed: (ms) => set({ speedMs: ms }),
-    setBucketSize: (bucketSize) => set({ bucketSize: Math.max(1, bucketSize) }),
+    setBucketSize: (bucketSize) =>
+      set({ bucketSize: Math.max(1, bucketSize), ...frameMeaningPatch() }),
     setRange: (from, to) =>
       set({
         rangeFrom: Math.max(0, from),
@@ -269,6 +313,7 @@ export const useEvolutionAnimationStore = create<EvolutionAnimationState>((set) 
           agingCommits: value,
           ...invalidation,
           ...applyFrameVisuals(next),
+          agingSteps: Math.min(s.agingSteps, value),
         };
       }),
     setAgingMs: (ms) =>
@@ -287,6 +332,21 @@ export const useEvolutionAnimationStore = create<EvolutionAnimationState>((set) 
           ...applyFrameVisuals(next),
         };
       }),
+    setAgingSteps: (steps) =>
+      set((s) => ({
+        agingSteps: Math.max(
+          1,
+          Math.min(
+            Math.round(steps),
+            s.timeMode === 'commit' ? s.agingCommits : 10
+          )
+        ),
+      })),
+    setKeepRemovedVisible: (keep) =>
+      set((s) => ({
+        keepRemovedVisible: keep,
+        ...applyFrameVisuals({ ...s, keepRemovedVisible: keep }),
+      })),
     addDeltaFrames: (frames) =>
       set((s) => {
         const next = new Map(s.deltaFrames);
@@ -295,6 +355,9 @@ export const useEvolutionAnimationStore = create<EvolutionAnimationState>((set) 
         return {
           deltaFrames: next,
           ...applyFrameVisuals(nextState),
+          ...(s.pausedForLoading && next.has(s.currentFrameIndex)
+            ? { isPlaying: true, pausedForLoading: false }
+            : {}),
         };
       }),
     setDeltaMode: (enabled) =>
@@ -308,16 +371,19 @@ export const useEvolutionAnimationStore = create<EvolutionAnimationState>((set) 
         changedBuildingIds: new Set(),
       }),
     reapplyCurrentFrameVisuals: () => set((s) => applyFrameVisuals(s)),
+    restart: () => set(frameMeaningPatch()),
     reset: () =>
       set({
         totalCount: 0,
         loadedFrames: new Map(),
         requestedBlocks: new Set(),
         orderedCommitHashes: [],
+        orderedCommitTimestamps: [],
         stableFrame: null,
         currentFrameIndex: 0,
         loadedAgingWindow: 1,
         isPlaying: false,
+        pausedForLoading: false,
         deltaFrames: new Map(),
         buildingVisualStates: new Map(),
         frameVersion: 0,

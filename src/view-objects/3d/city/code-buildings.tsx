@@ -250,6 +250,8 @@ const GeometryGroup: React.FC<GeometryGroupProps> = ({
 
   const sceneLayers = useVisualizationStore((state) => state.sceneLayers);
 
+  const agingSteps = useEvolutionAnimationStore((s) => s.agingSteps);
+
   function getBuildingHeight(building: Building) {
     return computeMappedBuildingHeight(
       building,
@@ -344,12 +346,23 @@ const GeometryGroup: React.FC<GeometryGroupProps> = ({
       } else if (building.commitComparison === 'MODIFIED') {
         return new THREE.Color(modifiedBuildingColor);
       } else {
-        const unchanged = new THREE.Color(unchangedBuildingColor);
-        const factor = building.agingFactor ?? 0;
-        if (factor > 0) {
-          return unchanged.lerp(new THREE.Color(agedBuildingColor), factor);
+        const factor = building.agingFactor;
+        if (factor === undefined) {
+          return new THREE.Color(unchangedBuildingColor);
         }
-        return unchanged;
+        const origin =
+          building.lastAction === 'ADDED'
+            ? addedBuildingColor
+            : building.lastAction === 'MODIFIED'
+              ? modifiedBuildingColor
+              : unchangedBuildingColor;
+        const base = new THREE.Color(origin);
+        const steps = Math.max(1, agingSteps);
+        const stepped = Math.round(factor * steps) / steps;
+        if (stepped > 0) {
+          return base.lerp(new THREE.Color(agedBuildingColor), stepped);
+        }
+        return base;
       }
     }
 
@@ -380,6 +393,12 @@ const GeometryGroup: React.FC<GeometryGroupProps> = ({
       mesh.setVisibilityAt(instanceId, isVisible(buildingId, building));
     });
   };
+
+  /* const building = useModelStore.getState().getBuilding(buildingId);
+      mesh.setColorAt(instanceId, computeColor(buildingId));
+      mesh.setVisibilityAt(instanceId, isVisible(buildingId, building));
+    });
+  };*/
 
   const isVisible = (buildingId: string, building: Building | undefined) =>
     isBuildingVisible({
@@ -420,6 +439,16 @@ const GeometryGroup: React.FC<GeometryGroupProps> = ({
       const targetPositionZ = layout.center.z;
       const targetWidth = layout.width;
       const targetDepth = layout.depth;
+      if (instanceId === 0) {
+        console.log(
+          '[pos]',
+          buildingId,
+          'x=',
+          targetPositionX,
+          'h=',
+          targetHeight
+        );
+      }
 
       if (enableAnimations) {
         try {
@@ -478,8 +507,15 @@ const GeometryGroup: React.FC<GeometryGroupProps> = ({
         return;
       }
       tempMatrix.decompose(pos, quat, scale);
+      /*if (useEvolutionAnimationStore.getState().stableFrame !== null) {
+        scale.set(targetWidth, targetHeight, targetDepth);
+        pos.set(targetPositionX, targetPositionY, targetPositionZ);
+      } else {
       scale.y = targetHeight;
       pos.y = layout.position.y + targetHeight / 2;
+      }*/
+      scale.set(targetWidth, targetHeight, targetDepth);
+      pos.set(targetPositionX, targetPositionY, targetPositionZ);
       tempMatrix.compose(pos, quat, scale);
       mesh.setMatrixAt(instanceId, tempMatrix);
     });
@@ -654,6 +690,9 @@ const GeometryGroup: React.FC<GeometryGroupProps> = ({
     modifiedBuildingColor,
     unchangedBuildingColor,
     agedBuildingColor,
+    agingSteps,
+    hoveredEntityId,
+    highlightedEntityIds,
     visualizationSettings,
     enableHoverEffects,
   ]);

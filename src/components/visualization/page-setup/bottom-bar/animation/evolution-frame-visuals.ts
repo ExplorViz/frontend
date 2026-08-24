@@ -10,6 +10,7 @@ import {
 export type EvolutionBuildingVisualState = {
   isPlaceholder: boolean;
   commitComparison?: CommitComparison;
+  lastAction?: CommitComparison;
   agingFactor?: number;
 };
 
@@ -23,6 +24,7 @@ export type EvolutionFrameVisualInput = {
   agingCommits: number;
   agingMs: number;
   timeMode: 'commit' | 'time';
+  keepRemovedVisible: boolean;
 };
 
 export function computeEvolutionFrameVisuals(
@@ -32,7 +34,10 @@ export function computeEvolutionFrameVisuals(
   if (!stableFrame) return null;
 
   if (input.deltaMode) {
-    const decoded = decodeDeltaFrame(input.deltaFrames, currentFrameIndex);
+    const decoded = decodeDeltaFrame(
+      input.deltaFrames,
+      currentFrameIndex,
+      input.keepRemovedVisible);
     if (!decoded) return null;
 
     const currentDate =
@@ -56,6 +61,7 @@ export function computeEvolutionFrameVisuals(
       visuals.set(id, {
         isPlaceholder: !fileState,
         commitComparison: fileState?.action,
+        lastAction: fileState?.lastAction,
         agingFactor,
       });
     });
@@ -158,6 +164,7 @@ export function mergeEvolutionVisualStates(
       !prev ||
       prev.isPlaceholder !== visual.isPlaceholder ||
       prev.commitComparison !== visual.commitComparison ||
+      prev.lastAction !== visual.lastAction ||
       prev.agingFactor !== visual.agingFactor
     ) {
       changed = true;
