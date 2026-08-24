@@ -11,7 +11,7 @@ import {
   isLog,
   Log,
 } from 'explorviz-frontend/src/utils/landscape-schemes/telemetry/logs';
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { Accordion, Badge, Button, Card, Form, Spinner } from 'react-bootstrap';
 import { List, RowComponentProps, useDynamicRowHeight } from 'react-window';
 import { useInfiniteLoader } from 'react-window-infinite-loader';
@@ -87,20 +87,36 @@ export default function LogSearch() {
     );
     const queryParams = new URLSearchParams((newFormData ?? formData) as any);
     queryParams.set('limit', PAGINATION_SIZE.toString());
-    queryParams.set(
-      'offset',
-      (newFormData || !logs ? 0 : logs.length).toString()
-    );
+    if (!newFormData && logs && logs.length > 0) {
+      const lastSeenLog = logs[logs.length - 1];
+      queryParams.set('cursorId', lastSeenLog.id);
+      queryParams.set('cursorTimestamp', lastSeenLog.timeUnixNano.toString());
+      queryParams.set('cursorSeverity', lastSeenLog.severity.toString());
+    }
+
     requestUrl.search = queryParams.toString();
 
-    const response = await fetch(requestUrl, {
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-        'Access-Control-Allow-Origin': '*',
-      },
-    });
+    let response: Response;
+    try {
+      response = await fetch(requestUrl, {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+          'Access-Control-Allow-Origin': '*',
+        },
+      });
+    } catch (error) {
+      setIsLoading(false);
+      setAllItemsLoaded(true);
+      showErrorToastMessage(
+        'Failed to retrieve logs: A network error has occurred'
+      );
+      console.error(error);
+      return;
+    }
+
     if (!response.ok) {
       setIsLoading(false);
+      setAllItemsLoaded(true);
       showErrorToastMessage(
         `Failed to retrieve logs: Received non-ok response status ${response.status}`
       );
@@ -112,6 +128,7 @@ export default function LogSearch() {
     });
     if (!Array.isArray(receivedLogs) || !receivedLogs.every(isLog)) {
       setIsLoading(false);
+      setAllItemsLoaded(true);
       showErrorToastMessage(
         'Failed to retrieve logs: Received invalid response'
       );
@@ -381,6 +398,40 @@ export default function LogSearch() {
               </Form.Group>
             </div>
 
+            <Form.Group className="mb-3">
+              <Form.Label>
+                Sort by{' '}
+                <HelpTooltip
+                  title="Determines the order in which matching logs are retrieved and displayed."
+                  placement="top"
+                />
+              </Form.Label>
+              <div className="mb-1">
+                <Form.Check
+                  inline
+                  type="radio"
+                  name="sortBy"
+                  value="newest"
+                  label="Newest"
+                  defaultChecked
+                />
+                <Form.Check
+                  inline
+                  type="radio"
+                  name="sortBy"
+                  value="oldest"
+                  label="Oldest"
+                />
+                <Form.Check
+                  inline
+                  type="radio"
+                  name="sortBy"
+                  value="severity"
+                  label="Severity"
+                />
+              </div>
+            </Form.Group>
+
             <Button type="submit" className="d-flex align-items-center gap-2">
               {isLoading ? (
                 <Spinner animation="border" size="sm" />
@@ -403,7 +454,7 @@ export default function LogSearch() {
                   rowCount={logs.length}
                   rowHeight={rowHeight}
                   rowProps={{ logs }}
-                  rowKey={(index, data) => data.logs[index].id}
+                  rowKey={(index, { logs }) => logs[index].id}
                   onRowsRendered={onRowsRendered}
                   style={{
                     minHeight: '80vh',
@@ -423,7 +474,13 @@ export default function LogSearch() {
   );
 }
 
-function LogItem({ index, logs, style }: RowComponentProps<{ logs: Log[] }>) {
+function LogItem({
+  index,
+  logs,
+  style,
+}: RowComponentProps<{
+  logs: Log[];
+}>) {
   const log = logs[index];
   const severityName = severityNumberToName(log.severity);
 
