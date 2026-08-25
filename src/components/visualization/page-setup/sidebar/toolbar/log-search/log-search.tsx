@@ -3,6 +3,7 @@ import AttributesTable from 'explorviz-frontend/src/components/attributes-table'
 import DualRangeSlider from 'explorviz-frontend/src/components/dual-range-slider';
 import HelpTooltip from 'explorviz-frontend/src/components/help-tooltip';
 import { useAuthStore } from 'explorviz-frontend/src/stores/auth';
+import { useCameraControlsStore } from 'explorviz-frontend/src/stores/camera-controls-store';
 import { useLandscapeTokenStore } from 'explorviz-frontend/src/stores/landscape-token';
 import { useModelStore } from 'explorviz-frontend/src/stores/repos/model-repository';
 import { useToastHandlerStore } from 'explorviz-frontend/src/stores/toast-handler';
@@ -11,6 +12,7 @@ import {
   isLog,
   Log,
 } from 'explorviz-frontend/src/utils/landscape-schemes/telemetry/logs';
+import { pingByModelId } from 'explorviz-frontend/src/view-objects/3d/city/animated-ping-r3f';
 import React, { useState } from 'react';
 import { Accordion, Badge, Button, Card, Form, Spinner } from 'react-bootstrap';
 import { List, RowComponentProps, useDynamicRowHeight } from 'react-window';
@@ -519,8 +521,48 @@ function LogItem({
 }: RowComponentProps<{
   logs: Log[];
 }>) {
+  const cities = useModelStore((state) => state.cities);
+  const buildings = useModelStore((state) => state.buildings);
+  const telemetryKeyToEntityId = useModelStore(
+    (state) => state.telemetryKeyToEntityId
+  );
+  const lookAtEntity = useCameraControlsStore((state) => state.lookAtEntity);
+  const showErrorToastMessage = useToastHandlerStore(
+    (state) => state.showErrorToastMessage
+  );
+
   const log = logs[index];
   const severityName = severityNumberToName(log.severity);
+  const entityId = telemetryKeyToEntityId.get(log.telemetryKey);
+  const entity = entityId ? buildings[entityId] : undefined;
+
+  const handleServiceNameClicked = () => {
+    if (!log.serviceName) {
+      console.error('Service name of log is undefined in handler');
+      return;
+    }
+
+    const city = Object.values(cities).find((c) => c.name === log.serviceName);
+    if (!city) {
+      showErrorToastMessage(
+        'The service could not be found in the current visualization'
+      );
+      return;
+    }
+
+    lookAtEntity(city.id);
+    pingByModelId(city.id);
+  };
+
+  const handleEntityClicked = () => {
+    if (!entity) {
+      console.error('Entity related to log is undefined in handler');
+      return;
+    }
+
+    lookAtEntity(entity.id);
+    pingByModelId(entity.id);
+  };
 
   return (
     <div style={style}>
@@ -529,9 +571,15 @@ function LogItem({
           className="border-0 rounded-0"
           style={{ padding: '8px 12px' }}
         >
-          <Badge pill bg={severityNameToBsColor(severityName)} className="me-2">
-            <samp>{severityName.at(0)?.toUpperCase()}</samp>
-          </Badge>
+          <small>
+            <Badge
+              pill
+              bg={severityNameToBsColor(severityName)}
+              className="me-2"
+            >
+              <samp>{severityName.at(0)?.toUpperCase()}</samp>
+            </Badge>
+          </small>
           <samp className="text-truncate">
             <small>
               <code>{`${formatUnixNanoseconds(log.timeUnixNano)}`}</code>{' '}
@@ -545,7 +593,7 @@ function LogItem({
               <dl>
                 <dt>Message Body</dt>
                 <dd>
-                  <pre style={{ whiteSpace: 'pre-wrap' }}>
+                  <pre className="mb-0" style={{ whiteSpace: 'pre-wrap' }}>
                     <samp className="small">{log.messageBody}</samp>
                   </pre>
                 </dd>
@@ -578,12 +626,14 @@ function LogItem({
                   </>
                 )}
 
-                {log.telemetryKey && (
+                {entity && (
                   <>
                     <dt>Entity</dt>
                     <dd>
                       <small>
-                        <a href="#">{log.telemetryKey}</a>
+                        <a href="#" onClick={handleEntityClicked}>
+                          {entity.fqn ?? entity.name}
+                        </a>
                       </small>
                     </dd>
                   </>
@@ -594,7 +644,9 @@ function LogItem({
                     <dt>Service Name</dt>
                     <dd>
                       <small>
-                        <a href="#">{log.serviceName}</a>
+                        <a href="#" onClick={handleServiceNameClicked}>
+                          {log.serviceName}
+                        </a>
                       </small>
                     </dd>
                   </>
