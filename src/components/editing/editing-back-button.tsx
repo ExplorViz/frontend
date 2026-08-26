@@ -1,6 +1,6 @@
 import { ArrowLeftIcon } from '@primer/octicons-react';
-import Button from 'react-bootstrap/Button';
 import { use } from 'react';
+import Button from 'react-bootstrap/Button';
 import { EditingContext } from './editing-context';
 
 export function EditingBackButton() {

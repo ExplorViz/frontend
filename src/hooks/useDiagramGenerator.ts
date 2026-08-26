@@ -22,7 +22,7 @@ export function useDiagramGenerator() {
 
     try {
       const formData = new FormData();
-      formData.append('type', input.type)
+      formData.append('type', input.type);
 
       if (input.path) {
         formData.append('path', input.path);

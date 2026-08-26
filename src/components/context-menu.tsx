@@ -6,7 +6,6 @@ import React, {
   useState,
 } from 'react';
 
-import { Position2D } from 'explorviz-frontend/src/hooks/interaction-modifier';
 import useLongPress, {
   type LongPressPosition,
 } from 'explorviz-frontend/src/hooks/useLongPress';
@@ -17,6 +16,7 @@ import { useConfigurationStore } from 'explorviz-frontend/src/stores/configurati
 import { usePopupHandlerStore } from 'explorviz-frontend/src/stores/popup-handler';
 import { useModelStore } from 'explorviz-frontend/src/stores/repos/model-repository';
 import { useVisualizationStore } from 'explorviz-frontend/src/stores/visualization-store';
+import { Position2D } from 'explorviz-frontend/src/types/pointer-types';
 import * as EntityManipulation from 'explorviz-frontend/src/utils/city-rendering/entity-manipulation';
 import {
   highlightById,

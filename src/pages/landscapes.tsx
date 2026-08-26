@@ -260,13 +260,6 @@ export default function Landscapes() {
               />
             </div>
           </Tab>
-          {/* This tab is disabled because playroomkit in its version without an account is not able to provide a list of all current lobbies.
-          <Tab eventKey="rooms" title="Rooms" id="room-tab">
-            <RoomList
-              tokens={data.landscapeTokens!}
-              selectToken={selectToken}
-            />
-          </Tab> */}
           <Tab eventKey="snapshots" title="Visual Snapshots" id="snapshot-tab">
             <SnapshotSelection
               snapshotInfo={data.snapshotInfo}

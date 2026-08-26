@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef } from 'react';
 
 import { ShareAndroidIcon } from '@primer/octicons-react';
+import { formatMetricValue } from 'explorviz-frontend/src/components/visualization/rendering/popups/city-popups/building-metrics-utils';
 import {
   HeatmapGradient,
   HeatmapValueMapping,
@@ -14,7 +15,6 @@ import {
 import { CloseButton } from 'react-bootstrap';
 import Button from 'react-bootstrap/Button';
 import OverlayTrigger from 'react-bootstrap/OverlayTrigger';
-import { formatMetricValue } from 'explorviz-frontend/src/components/visualization/rendering/popups/city-popups/building-metrics-utils';
 import Tooltip from 'react-bootstrap/Tooltip';
 import { useShallow } from 'zustand/react/shallow';
 
@@ -70,7 +70,6 @@ export default function HeatmapLegend() {
 
       // Keep labels consistent with selected metric boundaries in the UI.
       const boundedValue = Math.min(max, Math.max(min, value));
-      // return formatLegendValue(boundedValue);
       return formatMetricValue(selectedClassMetric.name, boundedValue);
     });
   }, [selectedClassMetric, selectedValueMapping]);
@@ -210,12 +209,4 @@ export default function HeatmapLegend() {
       )}
     </div>
   );
-}
-
-function formatLegendValue(value: number): string {
-  if (!Number.isFinite(value)) {
-    return '0';
-  }
-
-  return Math.round(value).toString();
 }

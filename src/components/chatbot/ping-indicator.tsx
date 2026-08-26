@@ -1,9 +1,6 @@
-interface PingIndicatorProps {
-  x: number;
-  y: number;
-}
+import { Position2D } from 'explorviz-frontend/src/types/pointer-types';
 
-export function PingIndicator({ x, y }: PingIndicatorProps) {
+export function PingIndicator({ x, y }: Position2D) {
   return (
     <div
       className="ping-indicator"

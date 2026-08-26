@@ -66,14 +66,6 @@ export default function VscodeExtensionSettings() {
 
       <br />
       <br />
-
-      {/* <Button
-        title="Monitoring Tool"
-        onClick={monitoring}
-        variant="outline-secondary"
-      >
-        Monitoring Tool
-      </Button> */}
     </>
   );
 }

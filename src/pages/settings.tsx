@@ -1,9 +1,9 @@
-import { useState, useEffect } from 'react';
-import {
-  useUserApiTokenStore,
-  ApiToken,
-} from 'explorviz-frontend/src/stores/user-api-token';
 import ApiTokenSelection from 'explorviz-frontend/src/components/api-token-selection';
+import {
+  ApiToken,
+  useUserApiTokenStore,
+} from 'explorviz-frontend/src/stores/user-api-token';
+import { useEffect, useState } from 'react';
 
 export default function Settings() {
   const [refreshKey, setRefreshKey] = useState<number>(0);

@@ -1,7 +1,7 @@
-import React, { useEffect, useRef } from 'react';
 import HeatmapLegend from 'explorviz-frontend/src/components/heatmap/heatmap-legend.tsx';
 import MetricSelector from 'explorviz-frontend/src/components/heatmap/heatmap-metric-selector';
-import { Position2D } from 'explorviz-frontend/src/hooks/interaction-modifier';
+import { Position2D } from 'explorviz-frontend/src/types/pointer-types';
+import React, { useEffect, useRef } from 'react';
 
 export default function HeatmapInfo() {
   const heatmapRef = useRef(null);

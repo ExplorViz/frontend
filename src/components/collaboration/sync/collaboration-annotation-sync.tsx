@@ -3,107 +3,116 @@ import { useSnapshotTokenStore } from 'explorviz-frontend/src/stores/snapshot-to
 import { getState, myPlayer, setState, useMultiplayerState } from 'playroomkit';
 import { useEffect, useRef } from 'react';
 
-// This component syncs the globally shared annpotations with the local annotations list
+// This component syncs the globally shared annotations with the local annotations list
 export function CollaborationAnnotationSync() {
-    const snapshotSelected = useSnapshotTokenStore(
-        (state) => state.snapshotSelected
-    );
-    const [globalAnnotations] = useMultiplayerState('sharedAnnotations', {});
-    const lastSharedRefs = useRef<number[]>([]);
+  const snapshotSelected = useSnapshotTokenStore(
+    (state) => state.snapshotSelected
+  );
+  const [globalAnnotations] = useMultiplayerState('sharedAnnotations', {});
+  const lastSharedRefs = useRef<number[]>([]);
 
-    useEffect(() => {
-        if (snapshotSelected) {
-            return;
+  useEffect(() => {
+    if (snapshotSelected) {
+      return;
+    }
+
+    const currentGlobal = globalAnnotations || {};
+    const store = useAnnotationHandlerStore.getState();
+    const localAnnotations = store.annotationData;
+
+    // New or changed annotation
+    Object.entries(currentGlobal).forEach(([idStr, anno]: [string, any]) => {
+      const id = Number(idStr);
+      const localAnno = localAnnotations.find((a) => a.annotationId === id);
+
+      if (!localAnno) {
+        store.addAnnotation({
+          annotationId: id,
+          entityId: anno.entityId,
+          annotationTitle: anno.title,
+          annotationText: anno.text,
+          sharedBy: anno.sharedBy,
+          owner: anno.owner,
+          shared: true,
+          inEdit: false,
+          lastEditor: anno.lastEditor,
+          position: undefined,
+          wasMoved: true,
+        });
+      } else if (!localAnno.inEdit) {
+        if (
+          localAnno.annotationText !== anno.text ||
+          localAnno.annotationTitle !== anno.title
+        ) {
+          store._updateExistingAnnotation(localAnno, anno.text, anno.title);
         }
+      }
+    });
 
-        const currentGlobal = globalAnnotations || {};
-        const store = useAnnotationHandlerStore.getState();
-        const localAnnotations = store.annotationData;
+    // Annotation has been closed
+    localAnnotations.forEach((localAnno) => {
+      if (
+        localAnno.shared &&
+        currentGlobal[localAnno.annotationId] === undefined
+      ) {
+        store.removeAnnotation(localAnno.annotationId);
+      }
+    });
+  }, [globalAnnotations, snapshotSelected]);
 
-        // New or changed annotation
-        Object.entries(currentGlobal).forEach(([idStr, anno]: [string, any]) => {
-            const id = Number(idStr);
-            const localAnno = localAnnotations.find(a => a.annotationId === id);
+  useEffect(() => {
+    if (snapshotSelected) {
+      return;
+    }
 
-            if (!localAnno) {
-                store.addAnnotation({
-                    annotationId: id,
-                    entityId: anno.entityId,
-                    annotationTitle: anno.title,
-                    annotationText: anno.text,
-                    sharedBy: anno.sharedBy,
-                    owner: anno.owner,
-                    shared: true,
-                    inEdit: false,
-                    lastEditor: anno.lastEditor,
-                    position: undefined,
-                    wasMoved: true,
-                });
-            } else if (!localAnno.inEdit) {
-                if (localAnno.annotationText !== anno.text || localAnno.annotationTitle !== anno.title) {
-                    store._updateExistingAnnotation(localAnno, anno.text, anno.title);
-                }
-            }
-        });
+    const me = myPlayer();
+    if (!me) return;
 
-        // Anotation has been closed
-        localAnnotations.forEach((localAnno) => {
-            if (localAnno.shared && currentGlobal[localAnno.annotationId] === undefined) {
-                store.removeAnnotation(localAnno.annotationId);
-            }
-        });
-    }, [globalAnnotations, snapshotSelected]);
+    const unsubscribe = useAnnotationHandlerStore.subscribe((state) => {
+      const currentGlobal = { ...(getState('sharedAnnotations') || {}) };
+      const localShared = state.annotationData.filter((a) => a.shared);
+      const currentSharedIds = localShared.map((a) => a.annotationId);
+      let hasChanges = false;
 
-    useEffect(() => {
-        if (snapshotSelected) {
-            return;
+      localShared.forEach((anno) => {
+        // No "live" updates. Only after save button is clicked
+        if (anno.inEdit) return;
+
+        const globalAnno = currentGlobal[anno.annotationId];
+
+        if (
+          !globalAnno ||
+          globalAnno.text !== anno.annotationText ||
+          globalAnno.title !== anno.annotationTitle
+        ) {
+          currentGlobal[anno.annotationId] = {
+            entityId: anno.entityId,
+            title: anno.annotationTitle,
+            text: anno.annotationText,
+            sharedBy: anno.sharedBy || me.getState('name') || me.id,
+            owner: anno.owner,
+            lastEditor: anno.lastEditor,
+          };
+          hasChanges = true;
         }
+      });
 
-        const me = myPlayer();
-        if (!me) return;
+      lastSharedRefs.current.forEach((id) => {
+        if (!currentSharedIds.includes(id) && currentGlobal[id] !== undefined) {
+          delete currentGlobal[id];
+          hasChanges = true;
+        }
+      });
 
-        const unsubscribe = useAnnotationHandlerStore.subscribe((state) => {
-            const currentGlobal = { ...(getState('sharedAnnotations') || {}) };
-            const localShared = state.annotationData.filter(a => a.shared);
-            const currentSharedIds = localShared.map(a => a.annotationId);
-            let hasChanges = false;
+      if (hasChanges) {
+        setState('sharedAnnotations', currentGlobal);
+      }
 
-            // 
-            localShared.forEach((anno) => {
-                // No "live" updates. Only after save button is clicked
-                if (anno.inEdit) return;
+      lastSharedRefs.current = currentSharedIds;
+    });
 
-                const globalAnno = currentGlobal[anno.annotationId];
+    return () => unsubscribe();
+  }, [snapshotSelected]);
 
-                if (!globalAnno || globalAnno.text !== anno.annotationText || globalAnno.title !== anno.annotationTitle) {
-                    currentGlobal[anno.annotationId] = {
-                        entityId: anno.entityId,
-                        title: anno.annotationTitle,
-                        text: anno.annotationText,
-                        sharedBy: anno.sharedBy || me.getState('name') || me.id,
-                        owner: anno.owner,
-                        lastEditor: anno.lastEditor
-                    };
-                    hasChanges = true;
-                }
-            });
-
-            lastSharedRefs.current.forEach(id => {
-                if (!currentSharedIds.includes(id) && currentGlobal[id] !== undefined) {
-                    delete currentGlobal[id];
-                    hasChanges = true;
-                }
-            });
-
-            if (hasChanges) {
-                setState('sharedAnnotations', currentGlobal);
-            }
-
-            lastSharedRefs.current = currentSharedIds;
-        });
-
-        return () => unsubscribe();
-    }, [snapshotSelected]);
-
-    return null;
+  return null;
 }

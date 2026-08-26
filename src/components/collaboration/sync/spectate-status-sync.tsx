@@ -9,7 +9,9 @@ export default function SpectateStatusSync() {
   const me = myPlayer();
   const entries = usePlayersState('spectatingTarget');
   const addSpectator = useSpectateStatusStore((state) => state.addSpectator);
-  const removeSpectator = useSpectateStatusStore((state) => state.removeSpectator);
+  const removeSpectator = useSpectateStatusStore(
+    (state) => state.removeSpectator
+  );
 
   useEffect(() => {
     if (!me) return;

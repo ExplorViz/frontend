@@ -1,4 +1,6 @@
 import { useCopilotReadable } from '@copilotkit/react-core';
+import { ChatbotContext } from 'explorviz-frontend/src/components/chatbot/chatbot-context';
+import { EditingContext } from 'explorviz-frontend/src/components/editing/editing-context';
 import { useModelStore } from 'explorviz-frontend/src/stores/repos/model-repository';
 import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
 import { useVisualizationStore } from 'explorviz-frontend/src/stores/visualization-store';
@@ -6,8 +8,6 @@ import { City } from 'explorviz-frontend/src/utils/landscape-schemes/flat-landsc
 import { defaultVizSettings } from 'explorviz-frontend/src/utils/settings/default-settings';
 import { VisualizationSettings } from 'explorviz-frontend/src/utils/settings/settings-schemas';
 import { use } from 'react';
-import { EditingContext } from '../editing/editing-context';
-import { ChatbotContext } from './chatbot-context';
 
 interface CopilotResourcesProps {
   cities?: City[];

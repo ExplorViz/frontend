@@ -26,7 +26,7 @@ export default function PopupWrapper(args: PopupWrapperArgs) {
 
   const keepPopupOpen = () => {
     if (!args.popupData.isPinned) {
-      args.keepPopupOpen(+args.popupData.entity.id); // original param: args.popupData.id
+      args.keepPopupOpen(+args.popupData.entity.id);
     }
   };
 
@@ -89,7 +89,7 @@ export default function PopupWrapper(args: PopupWrapperArgs) {
       return;
     }
 
-    // Sorrounding div for position calculations
+    // Surrounding div for position calculations
     const containerDiv = popoverDiv.parentElement as HTMLElement;
 
     const popoverHeight = popoverDiv.clientHeight;

@@ -59,8 +59,6 @@ export default function useLandscapeDataWatcher(
       aggregatedFileCommunication
     );
 
-    // TODO: Add data for IDE extension
-
     // Add data to model repository
     useModelStore.getState().setAllModels({
       cities: Object.values(flatLandscapeStructure.cities),

@@ -3,41 +3,41 @@ import { useRemoteHighlightingStore } from 'explorviz-frontend/src/stores/collab
 import { myPlayer } from 'playroomkit';
 import { useEffect } from 'react';
 
-// This component is responsible to synchronizte highlighted entities of other users in the current room
-
+// This component is responsible to synchronize highlighted entities of other users in the current room
 export default function CollaborationHighlightingSync() {
-    const players = usePlayroomPlayers();
-    const me = myPlayer();
-    const setRemoteHighlights = useRemoteHighlightingStore((state) => state.setRemoteHighlights);
+  const players = usePlayroomPlayers();
+  const me = myPlayer();
+  const setRemoteHighlights = useRemoteHighlightingStore(
+    (state) => state.setRemoteHighlights
+  );
 
-    // Whenever a player is changing its state (or a new player joins), recompute the list of remote highlights
-    // By completely recomputing the list, all highlights of a user that disconnects are delted automatically
-    useEffect(() => {
-        const newHighlights = new Map<string, { userId: string, color: string }>();
+  // Whenever a player is changing its state (or a new player joins), recompute the list of remote highlights
+  // By completely recomputing the list, all highlights of a user that disconnects are deleted automatically
+  useEffect(() => {
+    const newHighlights = new Map<string, { userId: string; color: string }>();
 
-        players.forEach((player) => {
-            // Ignore the own highlights. Those are saved in a seperate store
-            if (me && player.id === me.id) return;
+    players.forEach((player) => {
+      // Ignore the own highlights. Those are saved in a separate store
+      if (me && player.id === me.id) return;
 
-            const highlights = player.getState('highlightedEntities');
-            const profile = player.getProfile();
+      const highlights = player.getState('highlightedEntities');
+      const profile = player.getProfile();
 
-            if (Array.isArray(highlights)) {
-                highlights.forEach((entityId) => {
-                    if (typeof entityId === 'string') {
-                        newHighlights.set(entityId, {
-                            userId: player.id,
-                            color: profile.color.hexString
-                        });
-                    }
-                });
-            }
+      if (Array.isArray(highlights)) {
+        highlights.forEach((entityId) => {
+          if (typeof entityId === 'string') {
+            newHighlights.set(entityId, {
+              userId: player.id,
+              color: profile.color.hexString,
+            });
+          }
         });
+      }
+    });
 
-        setRemoteHighlights(newHighlights);
+    setRemoteHighlights(newHighlights);
+  }, [players, me, setRemoteHighlights]);
 
-    }, [players, me, setRemoteHighlights]);
-
-    // this component is only resonsible for synchronization, so ther is no UI for it.
-    return null;
+  // This component is only responsible for synchronization, so there is no UI for it.
+  return null;
 }

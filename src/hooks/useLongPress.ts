@@ -1,4 +1,4 @@
-import { Position2D } from 'explorviz-frontend/src/hooks/interaction-modifier';
+import { Position2D } from 'explorviz-frontend/src/types/pointer-types';
 import { useEffect, useRef } from 'react';
 
 interface UseLongPressOptions {

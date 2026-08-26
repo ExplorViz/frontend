@@ -3,40 +3,48 @@ import {
   PersonFillIcon,
   SignInIcon,
   SignOutIcon,
-  XCircleIcon
+  XCircleIcon,
 } from '@primer/octicons-react';
 import Button from 'react-bootstrap/Button';
 
 import { usePlayroomConnectionStore } from 'explorviz-frontend/src/stores/collaboration/playroom-connection-store';
 import { useSpectateUserStore } from 'explorviz-frontend/src/stores/collaboration/spectate-user';
-import { getRoomCode, isHost, myPlayer, RPC, usePlayersList } from 'playroomkit';
+import {
+  getRoomCode,
+  isHost,
+  myPlayer,
+  RPC,
+  usePlayersList,
+} from 'playroomkit';
 
-import { LandscapeToken, useLandscapeTokenStore } from 'explorviz-frontend/src/stores/landscape-token';
+import {
+  LandscapeToken,
+  useLandscapeTokenStore,
+} from 'explorviz-frontend/src/stores/landscape-token';
 import { useMultiplayerState } from 'playroomkit';
 import { useEffect, useState } from 'react';
 
-// This compnent yields the collaboration controls for the settings
+// This component yields the collaboration controls for the settings
 
 export default function CollaborationControls() {
-
   const { isConnected, openLobby, disconnect } = usePlayroomConnectionStore();
   const players = usePlayersList(true);
   const me = myPlayer();
 
-  // Functions for starting and stopping spectation
+  // Functions for starting and stopping spectating
   const spectatedPlayerId = useSpectateUserStore(
     (state) => state.spectatedPlayerId
   );
-  const activateSpectation = useSpectateUserStore((state) => state.activate);
-  const deactivateSpectation = useSpectateUserStore(
+  const activateSpectateMode = useSpectateUserStore((state) => state.activate);
+  const deactivateSpectateMode = useSpectateUserStore(
     (state) => state.deactivate
   );
 
   const toggleSpectate = (playerId: string) => {
     if (spectatedPlayerId === playerId) {
-      deactivateSpectation();
+      deactivateSpectateMode();
     } else {
-      activateSpectation(playerId);
+      activateSpectateMode(playerId);
     }
   };
 
@@ -47,9 +55,12 @@ export default function CollaborationControls() {
     }
   };
 
-  const [globalMutedUsers, setGlobalMutedUsers] = useMultiplayerState('globalMutedUsers', [] as string[]);
+  const [globalMutedUsers, setGlobalMutedUsers] = useMultiplayerState(
+    'globalMutedUsers',
+    [] as string[]
+  );
 
-  // This function is used to prevent errors while loading a not fully connected user 
+  // This function is used to prevent errors while loading a not fully connected user
   const getSafeProfile = (player: any) => {
     const profile = player.getProfile();
     return {
@@ -58,19 +69,22 @@ export default function CollaborationControls() {
     };
   };
 
-
-  // functionality for the admin to switch between landscapes in the colaboration tab
+  // functionality for the admin to switch between landscapes in the collaboration tab
   const [landscapeTokens, setLandscapeTokens] = useState<LandscapeToken[]>([]);
-  const setTokenByValue = useLandscapeTokenStore((state) => state.setTokenByValue);
+  const setTokenByValue = useLandscapeTokenStore(
+    (state) => state.setTokenByValue
+  );
   const currentToken = useLandscapeTokenStore((state) => state.token);
   useEffect(() => {
     if (isHost()) {
-      useLandscapeTokenStore.getState().retrieveTokens()
+      useLandscapeTokenStore
+        .getState()
+        .retrieveTokens()
         .then((tokens) => {
           setLandscapeTokens(tokens);
         })
         .catch((e) => {
-          console.error("Error while loading landscapes: ", e);
+          console.error('Error while loading landscapes: ', e);
         });
     }
   }, [isHost]);
@@ -151,19 +165,31 @@ export default function CollaborationControls() {
               {isHost() && !isMe && (
                 <Button
                   className="ml-2"
-                  variant={globalMutedUsers.includes(player.id) ? "success" : "outline-warning"}
+                  variant={
+                    globalMutedUsers.includes(player.id)
+                      ? 'success'
+                      : 'outline-warning'
+                  }
                   size="sm"
-                  title={globalMutedUsers.includes(player.id) ? "Unmute in Chat" : "Mute in Chat"}
+                  title={
+                    globalMutedUsers.includes(player.id)
+                      ? 'Unmute in Chat'
+                      : 'Mute in Chat'
+                  }
                   onClick={() => {
                     const isMuted = globalMutedUsers.includes(player.id);
                     if (isMuted) {
-                      setGlobalMutedUsers(globalMutedUsers.filter((id: string) => id !== player.id));
+                      setGlobalMutedUsers(
+                        globalMutedUsers.filter(
+                          (id: string) => id !== player.id
+                        )
+                      );
                     } else {
                       setGlobalMutedUsers([...globalMutedUsers, player.id]);
                     }
                   }}
                 >
-                  {globalMutedUsers.includes(player.id) ? "Unmute" : "Mute"}
+                  {globalMutedUsers.includes(player.id) ? 'Unmute' : 'Mute'}
                 </Button>
               )}
 
@@ -185,25 +211,42 @@ export default function CollaborationControls() {
       {isHost() && (
         <div className="mt-4 border-top pt-3">
           <h6>Switch Landscape</h6>
-          <div className="landscape-list-sync" style={{ maxHeight: '200px', overflowY: 'auto' }}>
-            {landscapeTokens.filter(t => t.value !== currentToken?.value).length === 0 ? (
+          <div
+            className="landscape-list-sync"
+            style={{ maxHeight: '200px', overflowY: 'auto' }}
+          >
+            {landscapeTokens.filter((t) => t.value !== currentToken?.value)
+              .length === 0 ? (
               <p style={{ fontSize: '0.8rem' }}>No more landscapes found...</p>
             ) : (
               landscapeTokens
-                .filter(t => t.value !== currentToken?.value)
+                .filter((t) => t.value !== currentToken?.value)
                 .map((t) => (
                   <div
                     key={t.value}
                     className="d-flex justify-content-between align-items-center mb-2 p-2 border rounded"
-                    style={{ cursor: 'pointer', background: 'var(--bs-tertiary-bg)' }}
+                    style={{
+                      cursor: 'pointer',
+                      background: 'var(--bs-tertiary-bg)',
+                    }}
                     onClick={() => changeLandscape(t)}
                   >
-                    <div style={{ fontSize: '0.85rem', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                    <div
+                      style={{
+                        fontSize: '0.85rem',
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis',
+                      }}
+                    >
                       <strong>{t.alias || t.projectName || 'unnamed'}</strong>
                       <br />
-                      <small className="text-muted">{t.value.substring(0, 8)}...</small>
+                      <small className="text-muted">
+                        {t.value.substring(0, 8)}...
+                      </small>
                     </div>
-                    <Button size="sm" variant="outline-primary">Load</Button>
+                    <Button size="sm" variant="outline-primary">
+                      Load
+                    </Button>
                   </div>
                 ))
             )}

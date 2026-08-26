@@ -3,17 +3,16 @@ import { useEffect } from 'react';
 import { useImmersiveViewStore } from '../../../stores/immersive-view-store';
 
 // This component syncs the current players state with immersive view
-// (Write in the player state if and where the current player is in imersive view)
+// (Write in the player state if and where the current player is in immersive view)
 export default function ImmersiveStateSync() {
-    const activeMeshId = useImmersiveViewStore((state) => state.activeMeshId);
+  const activeMeshId = useImmersiveViewStore((state) => state.activeMeshId);
 
-    // As soon as the activeMeshId changes, update the player state
-    useEffect(() => {
-        const me = myPlayer();
-        if (!me) return;
-        me.setState('immersiveMeshId', activeMeshId || null);
+  // As soon as the activeMeshId changes, update the player state
+  useEffect(() => {
+    const me = myPlayer();
+    if (!me) return;
+    me.setState('immersiveMeshId', activeMeshId || null);
+  }, [activeMeshId]);
 
-    }, [activeMeshId]);
-
-    return null;
+  return null;
 }

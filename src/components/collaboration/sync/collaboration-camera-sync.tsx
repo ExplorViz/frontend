@@ -41,7 +41,7 @@ export default function CollaborationCameraSync() {
     if (animationMixer) animationMixer.update(delta);
 
     // Case 1: The current player is spectating someone else
-    // Here, the current camera positons of this player is searched in its player state
+    // Here, the current camera positions of this player is searched in its player state
     if (spectatedPlayerId) {
       const targetPlayer = players.find((p) => p.id === spectatedPlayerId);
 
@@ -52,7 +52,7 @@ export default function CollaborationCameraSync() {
           camera.quaternion.fromArray(poses.camera.quaternion);
         }
       } else {
-        // Should the spectated palyer leave the room, end spectating
+        // Should the spectated player leave the room, end spectating
         deactivateSpectate();
       }
       return;
@@ -60,7 +60,7 @@ export default function CollaborationCameraSync() {
 
     // Case 2: The current player is not spectating (controlling the own camera by itself)
     const spectatorCount = useSpectateStatusStore.getState().spectators.size;
-    // If no one is spectating the current player, don't waste netwoprk traffic and do nothing
+    // If no one is spectating the current player, do not waste traffic and do nothing
     if (spectatorCount === 0) return;
 
     const poses = getPoses(

@@ -16,11 +16,11 @@ import HtmlPopup from 'explorviz-frontend/src/components/visualization/rendering
 import MethodPopup from 'explorviz-frontend/src/components/visualization/rendering/popups/city-popups/method/method-popup';
 
 import PopupData from 'explorviz-frontend/src/components/visualization/rendering/popups/popup-data';
-import { Position2D } from 'explorviz-frontend/src/hooks/interaction-modifier';
 import { usePlayroomConnectionStore } from 'explorviz-frontend/src/stores/collaboration/playroom-connection-store';
 import { useLandscapeRestructureStore } from 'explorviz-frontend/src/stores/landscape-restructure';
 import { useModelStore } from 'explorviz-frontend/src/stores/repos/model-repository';
 import { useVisualizationStore } from 'explorviz-frontend/src/stores/visualization-store';
+import { Position2D } from 'explorviz-frontend/src/types/pointer-types';
 import { isEntityAnnotated } from 'explorviz-frontend/src/utils/annotation-utils';
 import { toggleHighlightById } from 'explorviz-frontend/src/utils/city-rendering/highlighting';
 import { isAggregatedCommunication } from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/aggregated-communication';

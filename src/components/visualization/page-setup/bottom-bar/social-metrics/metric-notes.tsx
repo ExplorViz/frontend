@@ -1,7 +1,7 @@
-import { BuildingMetricIds, useHeatmapStore } from 'explorviz-frontend/src/stores/heatmap/heatmap-store';
 import HelpTooltip from 'explorviz-frontend/src/components/help-tooltip';
-import { useShallow } from 'zustand/react/shallow';
+import { BuildingMetricIds, useHeatmapStore } from 'explorviz-frontend/src/stores/heatmap/heatmap-store';
 import { useState } from 'react';
+import { useShallow } from 'zustand/react/shallow';
 
 
 export type Applicability = 'yes' | 'auto' | 'no';

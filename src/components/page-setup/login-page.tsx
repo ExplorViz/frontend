@@ -1,7 +1,7 @@
+import { useAuthStore } from 'explorviz-frontend/src/stores/auth';
+import { useLandscapeTokenStore } from 'explorviz-frontend/src/stores/landscape-token';
 import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useAuthStore } from '../../stores/auth';
-import { useLandscapeTokenStore } from '../../stores/landscape-token';
 
 export default function LoginPage() {
   const login = useAuthStore((state) => state.login);

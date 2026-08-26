@@ -6,14 +6,14 @@ import * as THREE from 'three';
 // This component is responsible to listen for pings from others in the current room
 
 export default function CollaborationPingSync() {
-    useEffect(() => {
-        RPC.register('ping', async (data: any) => {
-            if (data && data.pos) {
-                const pos = new THREE.Vector3().fromArray(data.pos);
-                pingPosition(pos, data.color, false);
-            }
-        });
-    }, []);
+  useEffect(() => {
+    RPC.register('ping', async (data: any) => {
+      if (data && data.pos) {
+        const pos = new THREE.Vector3().fromArray(data.pos);
+        pingPosition(pos, data.color, false);
+      }
+    });
+  }, []);
 
-    return null;
+  return null;
 }
