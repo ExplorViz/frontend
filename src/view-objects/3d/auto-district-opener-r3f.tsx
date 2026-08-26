@@ -3,6 +3,10 @@ import { useModelStore } from 'explorviz-frontend/src/stores/repos/model-reposit
 import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
 import { useVisualizationStore } from 'explorviz-frontend/src/stores/visualization-store';
 import {
+  isDistrictClosed,
+  isDistrictOpen,
+} from 'explorviz-frontend/src/utils/city-rendering/district-close-state';
+import {
   closeDistrict,
   openDistrict,
 } from 'explorviz-frontend/src/utils/city-rendering/entity-manipulation';
@@ -63,33 +67,51 @@ export default function AutoDistrictOpenerR3F() {
         return;
       }
 
-      const isCurrentlyOpen = !closedDistrictIds.has(district.id);
+      const isCurrentlyOpen = isDistrictOpen(district.id, closedDistrictIds);
       const isWithinThreshold = distance <= districtOpenCloseDistanceThreshold;
 
       if (isWithinThreshold && !isCurrentlyOpen) {
-        // Open district when close to cluster centroid
-        // But only if parent district is already opened (or district has no parent)
         const parentIsOpen =
           !district.parentDistrictId ||
-          !closedDistrictIds.has(district.parentDistrictId);
+          isDistrictOpen(district.parentDistrictId, closedDistrictIds);
 
         if (parentIsOpen) {
           openDistrict(district.id, false);
         }
       } else if (!isWithinThreshold && isCurrentlyOpen) {
-        // Close district when far from cluster centroid
-        // But only if all contained districts are already closed
-
-        const allInnerDistricts = district.districtIds.every(
-          (containedDistrictId) => closedDistrictIds.has(containedDistrictId)
+        const validatedChildDistrictIds = district.districtIds.filter(
+          (childDistrictId) => {
+            const childDistrict = useModelStore
+              .getState()
+              .getDistrict(childDistrictId);
+            return (
+              childDistrict != null &&
+              childDistrict.parentCityId === district.parentCityId &&
+              childDistrict.parentDistrictId === district.id
+            );
+          }
         );
 
-        if (allInnerDistricts) {
+        const allInnerDistrictsClosed = validatedChildDistrictIds.every(
+          (childDistrictId) =>
+            isDistrictClosed(childDistrictId, closedDistrictIds)
+        );
+
+        if (allInnerDistrictsClosed) {
           closeDistrict(district.id, false, false);
         }
       }
     });
-  }, [centroidDistances, getCentroidDistance]);
+  }, [
+    centroidDistances,
+    getCentroidDistance,
+    closedDistrictIds,
+    enableClustering,
+    autoOpenCloseDistricts,
+    distanceUpdateFrequency,
+    districtOpenCloseDistanceThreshold,
+    getAllDistricts,
+  ]);
 
   return null;
 }

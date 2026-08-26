@@ -11,6 +11,7 @@ import { useModelStore } from 'explorviz-frontend/src/stores/repos/model-reposit
 import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
 import { useVisibilityServiceStore } from 'explorviz-frontend/src/stores/visibility-service';
 import { useVisualizationStore } from 'explorviz-frontend/src/stores/visualization-store';
+import { isDistrictOpen } from 'explorviz-frontend/src/utils/city-rendering/district-close-state';
 import * as EntityManipulation from 'explorviz-frontend/src/utils/city-rendering/entity-manipulation';
 import { isDistrictVisible } from 'explorviz-frontend/src/utils/city-rendering/entity-visibility';
 import { useSharedEntityVisibilityContext } from 'explorviz-frontend/src/utils/city-rendering/entity-visibility-provider';
@@ -73,7 +74,6 @@ const CityDistricts = forwardRef<InstancedMesh2, Args>(
     );
 
     const visibilityContext = useSharedEntityVisibilityContext();
-    const { hiddenDistrictIds, removedDistrictIds } = visibilityContext;
 
     const {
       castShadows,
@@ -241,25 +241,35 @@ const CityDistricts = forwardRef<InstancedMesh2, Args>(
       instanceIdToDistrictId.clear();
       districtIdToInstanceId.clear();
 
+      const configuredDistrictIds = districtIds.filter((districtId) => {
+        const district = useModelStore.getState().getDistrict(districtId);
+        return district != null && layoutMap.has(districtId);
+      });
+
+      if (configuredDistrictIds.length === 0) {
+        return;
+      }
+
       const mesh = meshRef.current.addInstances(
-        districtIds.length,
+        configuredDistrictIds.length,
         (obj, index) => {
-          const districtId = districtIds[index];
+          const districtId = configuredDistrictIds[index];
           const district = useModelStore.getState().getDistrict(districtId);
           if (!district) {
+            obj.visible = false;
             return;
           }
 
           const layout = layoutMap.get(district.id);
           if (!layout) {
+            obj.visible = false;
             return;
           }
 
           instanceIdToDistrictId.set(obj.id, district.id);
           districtIdToInstanceId.set(district.id, obj.id);
 
-          const isOpen = !closedDistrictIds.has(district.id);
-          const isVisible = isDistrictVisible(district.id, visibilityContext);
+          const isOpen = isDistrictOpen(district.id, closedDistrictIds);
 
           const closedPosition = layout.center.clone();
           // Y-Position of layout is center of opened district
@@ -280,7 +290,7 @@ const CityDistricts = forwardRef<InstancedMesh2, Args>(
             isOpen ? openedDistrictHeight : closedDistrictHeight,
             layout.depth
           );
-          obj.visible = isVisible;
+          obj.visible = true;
           obj.color = computeColor(district.id);
           obj.updateMatrix();
         }
@@ -295,14 +305,11 @@ const CityDistricts = forwardRef<InstancedMesh2, Args>(
       districtIds,
       layoutMap,
       closedDistrictIds,
-      hiddenDistrictIds,
-      removedDistrictIds,
       closedDistrictHeight,
       openedDistrictHeight,
       computeColor,
       districtIdToInstanceId,
       instanceIdToDistrictId,
-      districts,
     ]);
 
     const animateDistrictChange = useCallback(() => {
@@ -315,7 +322,7 @@ const CityDistricts = forwardRef<InstancedMesh2, Args>(
         const quat = new Quaternion();
         const scale = new Vector3();
 
-        const isOpen = !closedDistrictIds.has(districtId);
+        const isOpen = isDistrictOpen(districtId, closedDistrictIds);
 
         // target values based on layout / district state
         const layout = layoutMap.get(districtId);
@@ -402,13 +409,17 @@ const CityDistricts = forwardRef<InstancedMesh2, Args>(
         return;
       }
 
-      const allDistrictsHaveLayout = districtIds.every((id) =>
-        layoutMap.has(id)
-      );
+      const configuredDistrictIds = districtIds.filter((districtId) => {
+        const district = useModelStore.getState().getDistrict(districtId);
+        return district != null && layoutMap.has(districtId);
+      });
+
+      const allDistrictsHaveLayout = configuredDistrictIds.length > 0;
       if (
+        configuredDistrictIds.length > 0 &&
         allDistrictsHaveLayout &&
         districtIdToInstanceId.size > 0 &&
-        districtIdToInstanceId.size === districtIds.length &&
+        districtIdToInstanceId.size === configuredDistrictIds.length &&
         enableAnimations
       ) {
         animateDistrictChange();
@@ -418,6 +429,7 @@ const CityDistricts = forwardRef<InstancedMesh2, Args>(
     }, [
       districtIds,
       layoutMap,
+      closedDistrictIds,
       enableAnimations,
       animateDistrictChange,
       computeInstances,
@@ -435,7 +447,13 @@ const CityDistricts = forwardRef<InstancedMesh2, Args>(
           isDistrictVisible(districtId, visibilityContext)
         );
       });
-    }, [hiddenDistrictIds, removedDistrictIds, ref, districtIdToInstanceId]);
+    }, [
+      visibilityContext,
+      ref,
+      districtIds,
+      districtIdToInstanceId,
+      districtIdToInstanceId.size,
+    ]);
 
     useEffect(() => {
       if (ref === null || typeof ref === 'function') {
@@ -516,7 +534,7 @@ const CityDistricts = forwardRef<InstancedMesh2, Args>(
       }
 
       // Toggle open/close state
-      if (closedDistrictIds.has(districtId)) {
+      if (!isDistrictOpen(districtId, closedDistrictIds)) {
         EntityManipulation.openDistrict(districtId);
       } else {
         EntityManipulation.closeDistrict(districtId);
@@ -583,6 +601,7 @@ const CityDistricts = forwardRef<InstancedMesh2, Args>(
         })}
         onDoubleClick={handleDoubleClickWithPrevent}
         frustumCulled={false}
+        perObjectFrustumCulled={false}
       ></instancedMesh2>
     );
   }

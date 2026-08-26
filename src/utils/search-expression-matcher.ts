@@ -75,10 +75,13 @@ export function isIncludedBySearchExpressions(
   text: string,
   inclusionExpressions: readonly string[]
 ): boolean {
-  if (inclusionExpressions.length === 0) {
+  const activeExpressions = inclusionExpressions.filter(
+    (expression) => expression.trim().length > 0
+  );
+  if (activeExpressions.length === 0) {
     return true;
   }
-  return inclusionExpressions.some((expression) =>
+  return activeExpressions.some((expression) =>
     matchesSearchExpression(text, expression)
   );
 }
@@ -87,10 +90,13 @@ export function isExcludedBySearchExpressions(
   text: string,
   exclusionExpressions: readonly string[]
 ): boolean {
-  if (exclusionExpressions.length === 0) {
+  const activeExpressions = exclusionExpressions.filter(
+    (expression) => expression.trim().length > 0
+  );
+  if (activeExpressions.length === 0) {
     return false;
   }
-  return exclusionExpressions.some((expression) =>
+  return activeExpressions.some((expression) =>
     matchesSearchExpression(text, expression)
   );
 }

@@ -17,11 +17,7 @@ import { useModelStore } from 'explorviz-frontend/src/stores/repos/model-reposit
 import { useToastHandlerStore } from 'explorviz-frontend/src/stores/toast-handler';
 import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
 import { useVisualizationStore } from 'explorviz-frontend/src/stores/visualization-store';
-import {
-  getEntityVisibilityContext,
-  isBuildingVisible,
-  resolveBuildingForVisibility,
-} from 'explorviz-frontend/src/utils/city-rendering/entity-visibility';
+import { resolveBuildingForVisibility } from 'explorviz-frontend/src/utils/city-rendering/entity-visibility';
 import { useSharedEntityVisibilityContext } from 'explorviz-frontend/src/utils/city-rendering/entity-visibility-provider';
 import { getHighlightingColorForEntity } from 'explorviz-frontend/src/utils/city-rendering/highlighting';
 import { getImmersiveTargetWorldPosition } from 'explorviz-frontend/src/utils/city-rendering/immersive-target-position';
@@ -164,13 +160,7 @@ const GeometryGroup: React.FC<GeometryGroupProps> = ({
     );
 
   const visibilityContext = useSharedEntityVisibilityContext();
-  const {
-    hiddenBuildingIds,
-    removedDistrictIds,
-    hiddenLanguages,
-    evoConfig,
-    isDiffMode,
-  } = visibilityContext;
+  const { evoConfig, isDiffMode } = visibilityContext;
 
   const _selectedCommits = useCommitTreeStateStore(
     (state) => state._selectedCommits
@@ -272,7 +262,6 @@ const GeometryGroup: React.FC<GeometryGroupProps> = ({
       return;
     }
 
-    const context = getEntityVisibilityContext();
     const { changedBuildingIds } = useEvolutionAnimationStore.getState();
     const buildingIdsToUpdate =
       changedOnly && changedBuildingIds.size > 0
@@ -281,18 +270,11 @@ const GeometryGroup: React.FC<GeometryGroupProps> = ({
 
     for (const buildingId of buildingIdsToUpdate) {
       const instanceId = buildingIdToInstanceIdRef.current.get(buildingId);
-      if (instanceId === undefined) continue;
+      if (instanceId === undefined) {
+        continue;
+      }
 
-      const building = resolveBuildingForVisibility(
-        buildingId,
-        context,
-        buildings[buildingId]
-      );
-      meshRef.current?.setColorAt(instanceId, computeColor(buildingId));
-      meshRef.current?.setVisibilityAt(
-        instanceId,
-        isBuildingVisible(buildingId, context, building)
-      );
+      meshRef.current.setColorAt(instanceId, computeColor(buildingId));
     }
   }
 
@@ -382,20 +364,9 @@ const GeometryGroup: React.FC<GeometryGroupProps> = ({
 
   const applyInstanceAppearance = (mesh: InstancedMesh2) => {
     buildingIdToInstanceIdRef.current.forEach((instanceId, buildingId) => {
-      const building = resolveBuilding(buildingId);
       mesh.setColorAt(instanceId, computeColor(buildingId));
-      mesh.setVisibilityAt(
-        instanceId,
-        isBuildingVisible(buildingId, visibilityContext, building)
-      );
     });
   };
-
-  /* const building = useModelStore.getState().getBuilding(buildingId);
-      mesh.setColorAt(instanceId, computeColor(buildingId));
-      mesh.setVisibilityAt(instanceId, isVisible(buildingId, building));
-    });
-  };*/
 
   useEffect(() => {
     if (buildingIdToInstanceIdRef.current.size === 0) {
@@ -425,16 +396,6 @@ const GeometryGroup: React.FC<GeometryGroupProps> = ({
       const targetPositionZ = layout.center.z;
       const targetWidth = layout.width;
       const targetDepth = layout.depth;
-      if (instanceId === 0) {
-        console.log(
-          '[pos]',
-          buildingId,
-          'x=',
-          targetPositionX,
-          'h=',
-          targetHeight
-        );
-      }
 
       if (enableAnimations) {
         try {
@@ -535,8 +496,8 @@ const GeometryGroup: React.FC<GeometryGroupProps> = ({
     }
 
     const hasMatchingInstances =
-      buildingIdToInstanceIdRef.current.size > 0 &&
-      buildingIds.length === buildingIdToInstanceIdRef.current.size &&
+      instanceIdToBuildingIdRef.current.size > 0 &&
+      buildingIds.length === instanceIdToBuildingIdRef.current.size &&
       buildingIds.every((id) => buildingIdToInstanceIdRef.current.has(id));
 
     if (hasMatchingInstances) {
@@ -620,9 +581,8 @@ const GeometryGroup: React.FC<GeometryGroupProps> = ({
     instanceIdToBuildingIdRef.current.clear();
     buildingIdToInstanceIdRef.current.clear();
 
-    let i = 0;
-    meshRef.current.addInstances(buildingIds.length, (obj) => {
-      const building = useModelStore.getState().getBuilding(buildingIds[i]);
+    meshRef.current.addInstances(buildingIds.length, (obj, index) => {
+      const building = useModelStore.getState().getBuilding(buildingIds[index]);
       if (!building) {
         return;
       }
@@ -640,14 +600,9 @@ const GeometryGroup: React.FC<GeometryGroupProps> = ({
       );
 
       obj.scale.set(layout.width, buildingHeight, layout.depth);
-      obj.visible = isBuildingVisible(
-        building.id,
-        visibilityContext,
-        resolveBuilding(building.id)
-      );
+      obj.visible = true;
       obj.color = computeColor(building.id);
       obj.updateMatrix();
-      i++;
     });
     meshRef.current.computeBVH();
     applyInstanceAppearance(meshRef.current);
@@ -667,31 +622,10 @@ const GeometryGroup: React.FC<GeometryGroupProps> = ({
     animationDuration,
     geometry,
     layoutMap,
-    hiddenBuildingIds,
-    removedDistrictIds,
-    hiddenLanguages,
-    evoConfig,
-    isDiffMode,
-    heatmapActive,
-    selectedBuildingMetric,
-    selectedValueMapping,
-    addedBuildingColor,
-    removedBuildingColor,
-    modifiedBuildingColor,
-    unchangedBuildingColor,
-    agedBuildingColor,
-    agingSteps,
-    hoveredEntityId,
-    highlightedEntityIds,
-    visualizationSettings,
-    enableHoverEffects,
   ]);
 
   // React on changes of color and visibility
   useEffect(() => {
-    if (useEvolutionAnimationStore.getState().totalCount > 0) {
-      return;
-    }
     if (buildingIdToInstanceIdRef.current.size === 0) {
       return;
     }
@@ -713,13 +647,7 @@ const GeometryGroup: React.FC<GeometryGroupProps> = ({
     visualizationSettings,
     enableHoverEffects,
     buildings,
-    hiddenBuildingIds,
-    removedDistrictIds,
-    hiddenLanguages,
-    evoConfig.renderOnlyDifferences,
-    evoConfig.renderStatic,
-    evoConfig.renderDynamic,
-    isDiffMode,
+    buildingIds,
   ]);
 
   useEffect(() => {
@@ -889,6 +817,7 @@ const GeometryGroup: React.FC<GeometryGroupProps> = ({
       })}
       onDoubleClick={handleDoubleClickWithPrevent}
       frustumCulled={false}
+      perObjectFrustumCulled={false}
     ></instancedMesh2>
   );
 };

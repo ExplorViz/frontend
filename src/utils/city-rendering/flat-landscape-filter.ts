@@ -71,6 +71,18 @@ export function pruneFlatLandscapeByRemainingBuildings(
       )
     );
   }
+
+  for (const districtId of Object.keys(flatLandscape.districts)) {
+    if (
+      !districtSubtreeHasRemainingBuildings(
+        districtId,
+        flatLandscape.districts,
+        remainingBuildingIds
+      )
+    ) {
+      delete flatLandscape.districts[districtId];
+    }
+  }
 }
 
 export function filterFlatLandscapeByBuildingComparisonVisibility(

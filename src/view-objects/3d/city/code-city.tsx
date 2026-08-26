@@ -3,9 +3,14 @@ import { Button } from '@react-three/uikit-default';
 import { AppWindow } from '@react-three/uikit-lucide';
 import { InstancedMesh2 } from '@three.ez/instanced-mesh';
 import { useEvolutionAnimationStore } from 'explorviz-frontend/src/components/visualization/page-setup/bottom-bar/animation/evolution-animation-store';
+import { useEntityFilteringStore } from 'explorviz-frontend/src/stores/entity-filtering-store';
 import { useLayoutStore } from 'explorviz-frontend/src/stores/layout-store';
 import { useModelStore } from 'explorviz-frontend/src/stores/repos/model-repository';
 import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
+import {
+  filterBuildingIdsForCity,
+  filterDistrictIdsForCity,
+} from 'explorviz-frontend/src/utils/city-rendering/district-tree';
 import {
   filterVisibleBuildingIds,
   filterVisibleDistrictIds,
@@ -50,25 +55,53 @@ export default function CodeCity({ cityId }: { cityId: string }) {
     }))
   );
 
+  const filterMode = useEntityFilteringStore((state) => state.filterMode);
+
   const showDistricts = buildingLayoutAlgorithm === 'None';
-  const visibleBuildingLabelIds = useMemo(
+  const cityBuildingIds = useMemo(
+    () => filterBuildingIdsForCity(city.id, city.allContainedBuildingIds),
+    [city.id, city.allContainedBuildingIds]
+  );
+  const cityDistrictIds = useMemo(
+    () => filterDistrictIdsForCity(city.id, city.allContainedDistrictIds),
+    [city.id, city.allContainedDistrictIds]
+  );
+  const visibleBuildingIds = useMemo(
     () =>
       filterVisibleBuildingIds(
-        city.allContainedBuildingIds,
+        cityBuildingIds,
         visibilityContext,
         evolutionAnimation
       ),
-    [city.allContainedBuildingIds, visibilityContext, evolutionAnimation]
+    [cityBuildingIds, visibilityContext, evolutionAnimation]
   );
-  const visibleDistrictLabelIds = useMemo(
+  const visibleDistrictIds = useMemo(
     () =>
       showDistricts
         ? filterVisibleDistrictIds(
-            city.allContainedDistrictIds,
-            visibilityContext
+            cityDistrictIds,
+            visibilityContext,
+            evolutionAnimation
           )
         : [],
-    [city.allContainedDistrictIds, showDistricts, visibilityContext]
+    [cityDistrictIds, showDistricts, visibilityContext, evolutionAnimation]
+  );
+  const districtMeshIds = useMemo(
+    () =>
+      cityDistrictIds.filter(
+        (districtId) =>
+          !visibilityContext.hiddenDistrictIds.has(districtId) &&
+          !visibilityContext.removedDistrictIds.has(districtId)
+      ),
+    [
+      cityDistrictIds,
+      visibilityContext.hiddenDistrictIds,
+      visibilityContext.removedDistrictIds,
+    ]
+  );
+  const districtRenderIds = useMemo(
+    () => (filterMode === 'Hide' ? districtMeshIds : visibleDistrictIds),
+    [filterMode, districtMeshIds, visibleDistrictIds]
   );
 
   const [cityPosition, setCityPosition] = useState<THREE.Vector3 | undefined>(
@@ -130,22 +163,22 @@ export default function CodeCity({ cityId }: { cityId: string }) {
       )}
       {isBrowserActive && <EmbeddedBrowser city={city} />}
       {cityLayout && <CityFoundation city={city} layout={cityLayout} />}
-      <CodeBuildings buildingIds={city.allContainedBuildingIds} city={city} />
-      {visibleBuildingLabelIds.map((buildingId) => (
+      <CodeBuildings buildingIds={visibleBuildingIds} city={city} />
+      {visibleBuildingIds.map((buildingId) => (
         <CodeBuildingLabel
           key={buildingId + '-label'}
           buildingId={buildingId}
         />
       ))}
-      {showDistricts && (
+      {showDistricts && districtRenderIds.length > 0 && (
         <CityDistricts
-          districtIds={city.allContainedDistrictIds}
+          districtIds={districtRenderIds}
           layoutMap={districtLayouts}
           ref={componentInstanceMeshRef}
           city={city}
         />
       )}
-      {visibleDistrictLabelIds.map((districtId) => {
+      {visibleDistrictIds.map((districtId) => {
         const district = useModelStore.getState().getDistrict(districtId);
         const layout = useLayoutStore.getState().getLayout(districtId);
         if (district && layout) {

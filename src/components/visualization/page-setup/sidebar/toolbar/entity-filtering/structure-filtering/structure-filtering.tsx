@@ -59,7 +59,7 @@ const getMetricBounds = (
 const StructureFiltering = forwardRef<
   StructureFilteringHandle,
   StructureFilteringProps
->(function StructureFiltering({ flatLandscapeData }, ref) {
+>(function StructureFiltering({ flatLandscapeData: _flatLandscapeData }, ref) {
   const pauseVisualizationUpdating = useRenderingServiceStore(
     (state) => state.pauseVisualizationUpdating
   );
@@ -71,6 +71,7 @@ const StructureFiltering = forwardRef<
     inclusionExpressions,
     exclusionExpressions,
     metricThresholds,
+    baselineFlatLandscape,
     setMetricThreshold,
     setMinMethodCount,
     resetFilters,
@@ -80,18 +81,23 @@ const StructureFiltering = forwardRef<
       inclusionExpressions: state.inclusionExpressions,
       exclusionExpressions: state.exclusionExpressions,
       metricThresholds: state.metricThresholds,
+      baselineFlatLandscape: state.baselineFlatLandscape,
       setMetricThreshold: state.actions.setMetricThreshold,
       setMinMethodCount: state.actions.setMinMethodCount,
       resetFilters: state.actions.resetFilters,
     }))
   );
 
+  const filterSourceFlatLandscape = baselineFlatLandscape ?? _flatLandscapeData;
+
   const buildingMetricRef = useRef<BuildingMetricFilteringHandle>(null);
   const metricBounds = useMemo(
-    () => getMetricBounds(flatLandscapeData),
-    [flatLandscapeData]
+    () => getMetricBounds(filterSourceFlatLandscape),
+    [filterSourceFlatLandscape]
   );
-  const initialBuildingCount = Object.keys(flatLandscapeData.buildings).length;
+  const initialBuildingCount = Object.keys(
+    filterSourceFlatLandscape.buildings
+  ).length;
 
   const inclusionExpressionValues = inclusionExpressions.map(
     (option) => option.value
@@ -101,29 +107,29 @@ const StructureFiltering = forwardRef<
   );
 
   const numRemainingBuildingsAfterFiltering = useMemo(() => {
-    const filteredCount = Object.values(flatLandscapeData.buildings).filter(
-      (building) => {
-        const language = normalizeLanguage(building.language);
-        const isFilteredByLanguage =
-          filterMode === 'Remove' && hiddenLanguages.has(language);
-        const isFilteredByMetric = BUILDING_METRIC_NAMES.some(
-          (metricName) =>
-            getMetricValue(building, metricName) <
-            (metricThresholds[metricName] ?? 0)
-        );
-        const buildingFqn = building.fqn ?? building.name;
-        const isFilteredByFqn =
-          !isIncludedBySearchExpressions(
-            buildingFqn,
-            inclusionExpressionValues
-          ) ||
-          isExcludedBySearchExpressions(buildingFqn, exclusionExpressionValues);
-        return !(isFilteredByLanguage || isFilteredByMetric || isFilteredByFqn);
-      }
-    ).length;
+    const filteredCount = Object.values(
+      filterSourceFlatLandscape.buildings
+    ).filter((building) => {
+      const language = normalizeLanguage(building.language);
+      const isFilteredByLanguage =
+        filterMode === 'Remove' && hiddenLanguages.has(language);
+      const isFilteredByMetric = BUILDING_METRIC_NAMES.some(
+        (metricName) =>
+          getMetricValue(building, metricName) <
+          (metricThresholds[metricName] ?? 0)
+      );
+      const buildingFqn = building.fqn ?? building.name;
+      const isFilteredByFqn =
+        !isIncludedBySearchExpressions(
+          buildingFqn,
+          inclusionExpressionValues
+        ) ||
+        isExcludedBySearchExpressions(buildingFqn, exclusionExpressionValues);
+      return !(isFilteredByLanguage || isFilteredByMetric || isFilteredByFqn);
+    }).length;
     return filteredCount;
   }, [
-    flatLandscapeData,
+    filterSourceFlatLandscape,
     filterMode,
     hiddenLanguages,
     inclusionExpressionValues,

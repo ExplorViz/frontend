@@ -1,5 +1,8 @@
 import { useVisualizationStore } from 'explorviz-frontend/src/stores/visualization-store';
-import { Language } from 'explorviz-frontend/src/utils/landscape-schemes/flat-landscape';
+import {
+  FlatLandscape,
+  Language,
+} from 'explorviz-frontend/src/utils/landscape-schemes/flat-landscape';
 import {
   normalizeLanguage,
   sortLanguages,
@@ -120,6 +123,7 @@ interface EntityFilteringStoreState {
   inclusionExpressions: readonly FqnFilterOption[];
   exclusionExpressions: readonly FqnFilterOption[];
   metricThresholds: Record<string, number>;
+  baselineFlatLandscape: FlatLandscape | null;
   baselineLanguageStats: readonly LanguageCount[];
   baselineLanguageFileExtensionStats: LanguageFileExtensionStats;
   actions: {
@@ -129,6 +133,7 @@ interface EntityFilteringStoreState {
     setMetricThreshold: (metric: string, value: number) => void;
     setMetricThresholds: (thresholds: Record<string, number>) => void;
     setMinMethodCount: (value: number) => void;
+    setBaselineFlatLandscape: (flatLandscape: FlatLandscape) => void;
     setBaselineLanguageStats: (stats: readonly LanguageCount[]) => void;
     setBaselineLanguageFileExtensionStats: (
       stats: LanguageFileExtensionStats
@@ -143,14 +148,15 @@ export const useEntityFilteringStore = create<EntityFilteringStoreState>(
     inclusionExpressions: [],
     exclusionExpressions: [],
     metricThresholds: getDefaultMetricThresholds(),
+    baselineFlatLandscape: null,
     baselineLanguageStats: [],
     baselineLanguageFileExtensionStats: {},
     actions: {
       setFilterMode: (mode) => set({ filterMode: mode }),
       setInclusionExpressions: (expressions) =>
-        set({ inclusionExpressions: expressions }),
+        set({ inclusionExpressions: expressions ?? [] }),
       setExclusionExpressions: (expressions) =>
-        set({ exclusionExpressions: expressions }),
+        set({ exclusionExpressions: expressions ?? [] }),
       setMetricThreshold: (metric, value) =>
         set((state) => ({
           metricThresholds: { ...state.metricThresholds, [metric]: value },
@@ -161,6 +167,8 @@ export const useEntityFilteringStore = create<EntityFilteringStoreState>(
         set((state) => ({
           metricThresholds: { ...state.metricThresholds, functionCount: value },
         })),
+      setBaselineFlatLandscape: (flatLandscape) =>
+        set({ baselineFlatLandscape: flatLandscape }),
       setBaselineLanguageStats: (stats) =>
         set({ baselineLanguageStats: stats }),
       setBaselineLanguageFileExtensionStats: (stats) =>

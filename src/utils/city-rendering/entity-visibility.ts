@@ -5,6 +5,7 @@ import { EvolutionModeRenderingConfiguration } from 'explorviz-frontend/src/stor
 import { useModelStore } from 'explorviz-frontend/src/stores/repos/model-repository';
 import { useVisibilityServiceStore } from 'explorviz-frontend/src/stores/visibility-service';
 import { useVisualizationStore } from 'explorviz-frontend/src/stores/visualization-store';
+import { isBuildingHiddenByClosedDistricts } from 'explorviz-frontend/src/utils/city-rendering/district-tree';
 import {
   Building,
   Language,
@@ -15,6 +16,7 @@ import { useMemo } from 'react';
 import { useShallow } from 'zustand/react/shallow';
 
 export type EntityVisibilityContext = {
+  closedDistrictIds: Set<string>;
   hiddenDistrictIds: Set<string>;
   removedDistrictIds: Set<string>;
   hiddenBuildingIds: Set<string>;
@@ -46,6 +48,7 @@ export function getEvolutionAnimationSnapshot(): EvolutionAnimationSnapshot {
 function buildEntityVisibilityContext(
   visualizationState: Pick<
     EntityVisibilityContext,
+    | 'closedDistrictIds'
     | 'hiddenDistrictIds'
     | 'removedDistrictIds'
     | 'hiddenBuildingIds'
@@ -55,6 +58,7 @@ function buildEntityVisibilityContext(
   isDiffMode: boolean
 ): EntityVisibilityContext {
   return {
+    closedDistrictIds: visualizationState.closedDistrictIds,
     hiddenDistrictIds: visualizationState.hiddenDistrictIds,
     removedDistrictIds: visualizationState.removedDistrictIds,
     hiddenBuildingIds: visualizationState.hiddenBuildingIds,
@@ -104,16 +108,127 @@ export function resolveBuildingForVisibility(
   return { ...baseBuilding, ...visual };
 }
 
+function isBuildingVisibleExceptClosedDistrictCollapse(
+  buildingId: string,
+  context: EntityVisibilityContext,
+  building?: Building,
+  animation: EvolutionAnimationSnapshot = getEvolutionAnimationSnapshot()
+): boolean {
+  const baseBuilding = resolveBuildingForVisibility(
+    buildingId,
+    context,
+    building,
+    animation
+  );
+  if (!baseBuilding) {
+    return false;
+  }
+
+  const visual = getBuildingVisualOverlay(buildingId, animation);
+  if (visual?.isPlaceholder || baseBuilding.isPlaceholder) {
+    return false;
+  }
+
+  const language = normalizeLanguage(baseBuilding.language);
+
+  if (
+    context.hiddenBuildingIds.has(buildingId) ||
+    context.removedDistrictIds.has(buildingId) ||
+    context.hiddenLanguages.has(language)
+  ) {
+    return false;
+  }
+
+  const commitComparison =
+    visual?.commitComparison ?? baseBuilding.commitComparison;
+
+  if (context.isDiffMode || context.evoConfig.renderOnlyDifferences) {
+    return commitComparison != null;
+  }
+
+  if (
+    baseBuilding.originOfData === TypeOfAnalysis.Static ||
+    baseBuilding.originOfData === TypeOfAnalysis.StaticAndRuntime
+  ) {
+    return context.evoConfig.renderStatic;
+  }
+
+  if (baseBuilding.originOfData === TypeOfAnalysis.Runtime) {
+    return context.evoConfig.renderDynamic;
+  }
+
+  return true;
+}
+
+function districtSubtreeHasRelevantBuilding(
+  districtId: string,
+  context: EntityVisibilityContext,
+  animation: EvolutionAnimationSnapshot
+): boolean {
+  const district = useModelStore.getState().getDistrict(districtId);
+  if (!district) {
+    return false;
+  }
+
+  for (const buildingId of district.buildingIds) {
+    if (
+      isBuildingVisibleExceptClosedDistrictCollapse(
+        buildingId,
+        context,
+        undefined,
+        animation
+      )
+    ) {
+      return true;
+    }
+  }
+
+  for (const childDistrictId of district.districtIds) {
+    if (
+      districtSubtreeHasRelevantBuilding(childDistrictId, context, animation)
+    ) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
 export function isDistrictVisible(
   districtId: string,
-  context: Pick<
-    EntityVisibilityContext,
-    'hiddenDistrictIds' | 'removedDistrictIds'
-  >
+  context: EntityVisibilityContext,
+  animation: EvolutionAnimationSnapshot = getEvolutionAnimationSnapshot()
 ): boolean {
-  return (
-    !context.hiddenDistrictIds.has(districtId) &&
-    !context.removedDistrictIds.has(districtId)
+  if (
+    context.hiddenDistrictIds.has(districtId) ||
+    context.removedDistrictIds.has(districtId)
+  ) {
+    return false;
+  }
+
+  if (!useModelStore.getState().getDistrict(districtId)) {
+    return false;
+  }
+
+  return districtSubtreeHasRelevantBuilding(districtId, context, animation);
+}
+
+export function isCityVisible(
+  cityId: string,
+  context: EntityVisibilityContext,
+  animation: EvolutionAnimationSnapshot = getEvolutionAnimationSnapshot()
+): boolean {
+  if (context.removedDistrictIds.has(cityId)) {
+    return false;
+  }
+
+  const city = useModelStore.getState().getCity(cityId);
+  if (!city) {
+    return false;
+  }
+
+  return city.allContainedBuildingIds.some((buildingId) =>
+    isBuildingVisible(buildingId, context, undefined, animation)
   );
 }
 
@@ -126,6 +241,16 @@ export function isBuildingVisible(
   const baseBuilding =
     building ?? useModelStore.getState().getBuilding(buildingId);
   if (!baseBuilding) {
+    return false;
+  }
+
+  if (
+    isBuildingHiddenByClosedDistricts(
+      buildingId,
+      context.closedDistrictIds,
+      baseBuilding
+    )
+  ) {
     return false;
   }
 
@@ -167,14 +292,12 @@ export function isBuildingVisible(
 
 export function countVisibleDistrictIds(
   districtIds: readonly string[],
-  context: Pick<
-    EntityVisibilityContext,
-    'hiddenDistrictIds' | 'removedDistrictIds'
-  >
+  context: EntityVisibilityContext,
+  animation: EvolutionAnimationSnapshot = getEvolutionAnimationSnapshot()
 ): number {
   let count = 0;
   for (const districtId of districtIds) {
-    if (isDistrictVisible(districtId, context)) {
+    if (isDistrictVisible(districtId, context, animation)) {
       count++;
     }
   }
@@ -197,14 +320,12 @@ export function countVisibleBuildingIds(
 
 export function filterVisibleDistrictIds(
   districtIds: readonly string[],
-  context: Pick<
-    EntityVisibilityContext,
-    'hiddenDistrictIds' | 'removedDistrictIds'
-  >
+  context: EntityVisibilityContext,
+  animation: EvolutionAnimationSnapshot = getEvolutionAnimationSnapshot()
 ): string[] {
   const visibleDistrictIds: string[] = [];
   for (const districtId of districtIds) {
-    if (isDistrictVisible(districtId, context)) {
+    if (isDistrictVisible(districtId, context, animation)) {
       visibleDistrictIds.push(districtId);
     }
   }
@@ -227,12 +348,14 @@ export function filterVisibleBuildingIds(
 
 export function useEntityVisibilityContext(): EntityVisibilityContext {
   const {
+    closedDistrictIds,
     hiddenDistrictIds,
     removedDistrictIds,
     hiddenBuildingIds,
     hiddenLanguages,
   } = useVisualizationStore(
     useShallow((state) => ({
+      closedDistrictIds: state.closedDistrictIds,
       hiddenDistrictIds: state.hiddenDistrictIds,
       removedDistrictIds: state.removedDistrictIds,
       hiddenBuildingIds: state.hiddenBuildingIds,
@@ -258,6 +381,7 @@ export function useEntityVisibilityContext(): EntityVisibilityContext {
     () =>
       buildEntityVisibilityContext(
         {
+          closedDistrictIds,
           hiddenDistrictIds,
           removedDistrictIds,
           hiddenBuildingIds,
@@ -267,6 +391,7 @@ export function useEntityVisibilityContext(): EntityVisibilityContext {
         isDiffMode
       ),
     [
+      closedDistrictIds,
       hiddenDistrictIds,
       removedDistrictIds,
       hiddenBuildingIds,

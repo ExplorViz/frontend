@@ -9,7 +9,7 @@ interface VisualizationStoreState {
   closedDistrictIds: Set<string>;
   hiddenDistrictIds: Set<string>; // Usually districts inside closed districts
   // State for buildings
-  hiddenBuildingIds: Set<string>; // Usually buildings inside closed districts
+  hiddenBuildingIds: Set<string>; // Buildings hidden by entity filters (Hide mode)
   removedDistrictIds: Set<string>;
   // State for language filtering
   hiddenLanguages: Set<Language>;
@@ -29,8 +29,7 @@ interface VisualizationStoreState {
     hideDistricts: (ids: string[]) => void;
     resetDistrictState: () => void;
     // Buildings
-    showBuildings: (ids: string[]) => void;
-    hideBuildings: (ids: string[]) => void;
+    setFilterHiddenBuildingIds: (ids: string[]) => void;
     resetBuildingStates: () => void;
     removeDistricts: (ids: Set<string>) => void;
     setRemovedDistricts: (ids: Set<string>) => void;
@@ -160,9 +159,8 @@ export const useVisualizationStore = create<VisualizationStoreState>(
       },
       // Districts
       openDistricts: (ids: string[]) => {
-        const newSet = get().closedDistrictIds.difference(new Set(ids));
         set({
-          closedDistrictIds: newSet,
+          closedDistrictIds: get().closedDistrictIds.difference(new Set(ids)),
         });
       },
       closeDistricts: (ids: string[]) => {
@@ -188,15 +186,9 @@ export const useVisualizationStore = create<VisualizationStoreState>(
         });
       },
       // Buildings
-      showBuildings: (ids: string[]) => {
-        const newSet = get().hiddenBuildingIds.difference(new Set(ids));
+      setFilterHiddenBuildingIds: (ids: string[]) => {
         set({
-          hiddenBuildingIds: newSet,
-        });
-      },
-      hideBuildings: (ids: string[]) => {
-        set({
-          hiddenBuildingIds: get().hiddenBuildingIds.union(new Set(ids)),
+          hiddenBuildingIds: new Set(ids),
         });
       },
       removeDistricts: (ids: Set<string>) => {

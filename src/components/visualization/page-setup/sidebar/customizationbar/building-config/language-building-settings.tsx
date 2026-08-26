@@ -1,16 +1,20 @@
+import ColorPicker from 'explorviz-frontend/src/components/visualization/page-setup/sidebar/customizationbar/settings/color-picker';
 import { useModelStore } from 'explorviz-frontend/src/stores/repos/model-repository';
 import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
 import { Language } from 'explorviz-frontend/src/utils/landscape-schemes/flat-landscape';
-import { defaultVizSettings, GEOMETRY_OPTIONS } from 'explorviz-frontend/src/utils/settings/default-settings';
+import {
+  defaultVizSettings,
+  GEOMETRY_OPTIONS,
+} from 'explorviz-frontend/src/utils/settings/default-settings';
 import {
   BuildingGeometryType,
   getLanguageColor,
   LANGUAGE_SETTING_CONFIG,
+  normalizeLanguage,
 } from 'explorviz-frontend/src/utils/settings/language-settings';
 import { SelectSetting as SelectSettingData } from 'explorviz-frontend/src/utils/settings/settings-schemas';
 import { useMemo } from 'react';
 import { ButtonGroup, ToggleButton } from 'react-bootstrap';
-import ColorPicker from 'explorviz-frontend/src/components/visualization/page-setup/sidebar/customizationbar/settings/color-picker';
 
 type LanguageBuildingSettingsProps = {
   language: Language;
@@ -43,9 +47,7 @@ export default function LanguageBuildingSettings({
           style={{ backgroundColor: color }}
           aria-hidden
         />
-        <span className="building-config-language-preview-label">
-          Preview
-        </span>
+        <span className="building-config-language-preview-label">Preview</span>
       </div>
       <div className="building-config-language-controls">
         <div className="building-config-control-block">
@@ -61,7 +63,9 @@ export default function LanguageBuildingSettings({
                 id={`${language}-geometry-${geometry}`}
                 type="radio"
                 variant={
-                  selectedGeometry === geometry ? 'primary' : 'outline-secondary'
+                  selectedGeometry === geometry
+                    ? 'primary'
+                    : 'outline-secondary'
                 }
                 name={`${language}-geometry`}
                 value={geometry}
@@ -97,7 +101,7 @@ export function useLanguagesInLandscape(): Language[] {
   return useMemo(() => {
     const languages = new Set<Language>();
     for (const building of allBuildings()) {
-      languages.add(building.language ?? 'LANGUAGE_UNSPECIFIED');
+      languages.add(normalizeLanguage(building.language));
     }
     return Array.from(languages);
   }, [allBuildings]);

@@ -3,6 +3,7 @@ import { useClusterStore } from 'explorviz-frontend/src/stores/cluster-store';
 import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
 import { useVisualizationStore } from 'explorviz-frontend/src/stores/visualization-store';
 import { getEntityDisplayName } from 'explorviz-frontend/src/utils/annotation-utils';
+import { isDistrictOpen } from 'explorviz-frontend/src/utils/city-rendering/district-close-state';
 import { District } from 'explorviz-frontend/src/utils/landscape-schemes/flat-landscape';
 import BoxLayout from 'explorviz-frontend/src/utils/layout/box-layout';
 import { getLabelRotation } from 'explorviz-frontend/src/view-objects/utils/label-utils';
@@ -59,7 +60,7 @@ export default function CityDistrictLabel({
 
   const { isOpen } = useVisualizationStore(
     useShallow((state) => ({
-      isOpen: !state.closedDistrictIds.has(district.id),
+      isOpen: isDistrictOpen(district.id, state.closedDistrictIds),
     }))
   );
 

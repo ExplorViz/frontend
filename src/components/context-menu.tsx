@@ -17,6 +17,10 @@ import { usePopupHandlerStore } from 'explorviz-frontend/src/stores/popup-handle
 import { useModelStore } from 'explorviz-frontend/src/stores/repos/model-repository';
 import { useVisualizationStore } from 'explorviz-frontend/src/stores/visualization-store';
 import { Position2D } from 'explorviz-frontend/src/types/pointer-types';
+import {
+  cityHasClosedDistricts,
+  isDistrictClosed,
+} from 'explorviz-frontend/src/utils/city-rendering/district-close-state';
 import * as EntityManipulation from 'explorviz-frontend/src/utils/city-rendering/entity-manipulation';
 import {
   highlightById,
@@ -150,8 +154,9 @@ export default function ContextMenu({ children }: ContextMenuProps) {
     if (!city) {
       return backgroundMenuItems;
     }
-    const cityHasClosedDistrict = city.allContainedDistrictIds.some(
-      (districtId) => closedDistrictIds.has(districtId)
+    const cityHasClosedDistrict = cityHasClosedDistricts(
+      cityId,
+      closedDistrictIds
     );
     const foundationIsHighlighted = useVisualizationStore
       .getState()
@@ -191,7 +196,7 @@ export default function ContextMenu({ children }: ContextMenuProps) {
     if (!district) {
       return backgroundMenuItems;
     }
-    const isClosed = closedDistrictIds.has(districtId);
+    const isClosed = isDistrictClosed(districtId, closedDistrictIds);
     const districtIsHighlighted = useVisualizationStore
       .getState()
       .highlightedEntityIds.has(districtId);
@@ -207,7 +212,7 @@ export default function ContextMenu({ children }: ContextMenuProps) {
           }
         },
       },
-      ...(closedDistrictIds.has(districtId) && district.districtIds.length > 0
+      ...(isClosed && district.districtIds.length > 0
         ? [
             {
               id: `district-open-all-${districtId}`,

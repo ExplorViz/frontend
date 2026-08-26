@@ -2,6 +2,7 @@ import { useLayoutStore } from 'explorviz-frontend/src/stores/layout-store';
 import { useModelStore } from 'explorviz-frontend/src/stores/repos/model-repository';
 import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
 import { useVisualizationStore } from 'explorviz-frontend/src/stores/visualization-store';
+import { isDistrictClosed } from 'explorviz-frontend/src/utils/city-rendering/district-close-state';
 import AggregatedCommunication from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/aggregated-communication';
 import {
   isBuilding,
@@ -55,7 +56,14 @@ export function findFirstEntityWithOpenedParent(entityId: string) {
   }
 
   // Parent is closed, inspect parent entity
-  if (useVisualizationStore.getState().closedDistrictIds.has(parentId)) {
+  const parentDistrict = useModelStore.getState().getDistrict(parentId);
+  if (
+    parentDistrict &&
+    isDistrictClosed(
+      parentId,
+      useVisualizationStore.getState().closedDistrictIds
+    )
+  ) {
     return findFirstEntityWithOpenedParent(parentId);
   } else {
     // Found entity with opened parent

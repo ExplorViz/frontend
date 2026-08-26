@@ -7,7 +7,7 @@ import { useVisibleEntityCounts } from 'explorviz-frontend/src/components/visual
 import PopupData from 'explorviz-frontend/src/components/visualization/rendering/popups/popup-data';
 import { useCommitTreeStateStore } from 'explorviz-frontend/src/stores/commit-tree-state';
 import { useEvolutionDataRepositoryStore } from 'explorviz-frontend/src/stores/repos/evolution-data-repository';
-import { collectDistrictSubtreeIds } from 'explorviz-frontend/src/utils/city-rendering/entity-manipulation';
+import { collectDistrictSubtreeIds } from 'explorviz-frontend/src/utils/city-rendering/district-tree';
 import { getSourceReferenceCommitHash } from 'explorviz-frontend/src/utils/evolution-data-helpers';
 import generateUuidv4 from 'explorviz-frontend/src/utils/helpers/uuid4-generator';
 import { District } from 'explorviz-frontend/src/utils/landscape-schemes/flat-landscape';

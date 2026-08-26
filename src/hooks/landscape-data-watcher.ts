@@ -1,7 +1,9 @@
 import { useCallback, useEffect, useRef } from 'react';
 
 import debug from 'debug';
+import { useEntityFilteringStore } from 'explorviz-frontend/src/stores/entity-filtering-store';
 import { useLayoutStore } from 'explorviz-frontend/src/stores/layout-store';
+import { useRenderingServiceStore } from 'explorviz-frontend/src/stores/rendering-service';
 import { useModelStore } from 'explorviz-frontend/src/stores/repos/model-repository';
 import { useVisualizationStore } from 'explorviz-frontend/src/stores/visualization-store';
 import {
@@ -9,11 +11,28 @@ import {
   computeBuildingCommunication,
 } from 'explorviz-frontend/src/utils/city-rendering/communication-computer';
 import { areArraysEqual } from 'explorviz-frontend/src/utils/helpers/array-helpers';
-import { getAllIdsOfFlatLandscape } from 'explorviz-frontend/src/utils/landscape-schemes/flat-landscape';
+import {
+  FlatLandscape,
+  getAllIdsOfFlatLandscape,
+} from 'explorviz-frontend/src/utils/landscape-schemes/flat-landscape';
 import { LandscapeData } from 'explorviz-frontend/src/utils/landscape-schemes/landscape-data';
 import { DynamicLandscapeData } from 'explorviz-frontend/src/utils/landscape-schemes/telemetry/traces';
 import layoutLandscape from 'explorviz-frontend/src/utils/layout/elk-layouter';
 import { tryApplyPendingSerializedRoom } from 'explorviz-frontend/src/utils/snapshot/snapshot-helpers';
+
+function getFlatLandscapeStructureSignature(
+  flatLandscape: FlatLandscape
+): string {
+  const ids = getAllIdsOfFlatLandscape(flatLandscape).sort().join('\0');
+  const buildingCount = Object.keys(flatLandscape.buildings).length;
+  const districtCount = Object.keys(flatLandscape.districts).length;
+  const containedDistrictCount = Object.values(flatLandscape.cities).reduce(
+    (count, city) => count + city.allContainedDistrictIds.length,
+    0
+  );
+
+  return `${ids}|b:${buildingCount}|d:${districtCount}|cd:${containedDistrictCount}`;
+}
 
 export default function useLandscapeDataWatcher(
   landscapeData: LandscapeData | null
@@ -29,7 +48,7 @@ export default function useLandscapeDataWatcher(
   const flatLandscapeData = landscapeData?.flatLandscapeData;
 
   const lastProcessedDynamicData = useRef<DynamicLandscapeData | null>(null);
-  const lastProcessedFlatLandscapeIds = useRef<string[]>([]);
+  const lastProcessedFlatLandscapeSignature = useRef<string>('');
   const lastProcessedLandscapeData = useRef<LandscapeData | null>(null);
   const layoutGenerationRef = useRef(0);
 
@@ -37,11 +56,20 @@ export default function useLandscapeDataWatcher(
     const generation = ++layoutGenerationRef.current;
     log('handleLandscapeUpdate');
     await Promise.resolve();
-    if (!dynamicLandscapeData || !flatLandscapeData) {
+
+    const landscapeDataFromStore =
+      useRenderingServiceStore.getState()._landscapeData;
+    const flatLandscapeStructure =
+      landscapeDataFromStore?.flatLandscapeData ?? flatLandscapeData;
+    const dynamicData =
+      landscapeDataFromStore?.dynamicLandscapeData ?? dynamicLandscapeData;
+    const aggregatedCommunication =
+      landscapeDataFromStore?.aggregatedFileCommunication ??
+      aggregatedFileCommunication;
+
+    if (!dynamicData || !flatLandscapeStructure) {
       return;
     }
-
-    const flatLandscapeStructure = landscapeData.flatLandscapeData;
 
     log('Layouting landscape ...');
     const boxLayoutMap = await layoutLandscape(
@@ -56,27 +84,34 @@ export default function useLandscapeDataWatcher(
     log('Compute building communication');
     const buildingCommunications = computeBuildingCommunication(
       flatLandscapeStructure,
-      aggregatedFileCommunication
+      aggregatedCommunication
     );
 
-    // Add data to model repository
-    useModelStore.getState().setAllModels({
-      cities: Object.values(flatLandscapeStructure.cities),
-      districts: Object.values(flatLandscapeStructure.districts),
-      buildings: Object.values(flatLandscapeStructure.buildings),
-      buildingCommunications: buildingCommunications,
-    });
+    // In Remove mode the entity filter applier owns cities/districts/buildings.
+    if (useEntityFilteringStore.getState().filterMode === 'Remove') {
+      useModelStore
+        .getState()
+        .setBuildingCommunications(buildingCommunications);
+    } else {
+      useModelStore.getState().setAllModels({
+        cities: Object.values(flatLandscapeStructure.cities),
+        districts: Object.values(flatLandscapeStructure.districts),
+        buildings: Object.values(flatLandscapeStructure.buildings),
+        buildingCommunications: buildingCommunications,
+      });
+    }
 
     calculateAggregatedCommunications(buildingCommunications);
 
-    // Update layout store after model repository is populated
-    useLayoutStore.getState().updateLayouts(boxLayoutMap);
+    useLayoutStore
+      .getState()
+      .updateLayouts(boxLayoutMap, flatLandscapeStructure);
 
     tryApplyPendingSerializedRoom();
   }, [
     dynamicLandscapeData,
     aggregatedFileCommunication,
-    landscapeData,
+    flatLandscapeData,
     removedDistrictIds,
     log,
   ]);
@@ -86,12 +121,12 @@ export default function useLandscapeDataWatcher(
       return;
     }
 
-    const currentFlatLandscapeIds = getAllIdsOfFlatLandscape(flatLandscapeData);
+    const currentFlatLandscapeSignature =
+      getFlatLandscapeStructureSignature(flatLandscapeData);
 
-    const flatChanged = !areArraysEqual(
-      currentFlatLandscapeIds,
-      lastProcessedFlatLandscapeIds.current
-    );
+    const flatChanged =
+      currentFlatLandscapeSignature !==
+      lastProcessedFlatLandscapeSignature.current;
 
     const dynamicChanged = !areArraysEqual(
       dynamicLandscapeData,
@@ -104,16 +139,16 @@ export default function useLandscapeDataWatcher(
     if (!flatChanged && !dynamicChanged) {
       if (landscapeChanged) {
         lastProcessedLandscapeData.current = landscapeData;
-        useModelStore
-          .getState()
-          .setBuildings(Object.values(flatLandscapeData.buildings));
+        lastProcessedFlatLandscapeSignature.current =
+          currentFlatLandscapeSignature;
+        handleLandscapeUpdate();
       }
       return;
     }
 
     lastProcessedLandscapeData.current = landscapeData;
     lastProcessedDynamicData.current = dynamicLandscapeData;
-    lastProcessedFlatLandscapeIds.current = currentFlatLandscapeIds;
+    lastProcessedFlatLandscapeSignature.current = currentFlatLandscapeSignature;
 
     handleLandscapeUpdate();
   }, [

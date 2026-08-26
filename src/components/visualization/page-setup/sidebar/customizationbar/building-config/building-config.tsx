@@ -7,6 +7,7 @@ import {
   getLanguageColor,
   LANGUAGE_DISPLAY_ORDER,
   LANGUAGE_SETTING_CONFIG,
+  normalizeLanguage,
   sortLanguages,
 } from 'explorviz-frontend/src/utils/settings/language-settings';
 import { useMemo, useState } from 'react';
@@ -35,9 +36,9 @@ export default function BuildingConfig() {
     }
 
     return baseLanguages.filter((language) => {
-      const label = LANGUAGE_SETTING_CONFIG[language].label.toLowerCase();
+      const { label } = LANGUAGE_SETTING_CONFIG[normalizeLanguage(language)];
       return (
-        label.includes(normalizedQuery) ||
+        label.toLowerCase().includes(normalizedQuery) ||
         language.toLowerCase().includes(normalizedQuery)
       );
     });
@@ -90,13 +91,17 @@ export default function BuildingConfig() {
             className="building-config-language-accordion"
           >
             {visibleLanguages.map((language) => {
-              const { label } = LANGUAGE_SETTING_CONFIG[language];
-              const color = getLanguageColor(language, visualizationSettings);
+              const normalizedLanguage = normalizeLanguage(language);
+              const { label } = LANGUAGE_SETTING_CONFIG[normalizedLanguage];
+              const color = getLanguageColor(
+                normalizedLanguage,
+                visualizationSettings
+              );
 
               return (
                 <Accordion.Item
-                  eventKey={language}
-                  key={language}
+                  eventKey={normalizedLanguage}
+                  key={normalizedLanguage}
                   className="building-config-language-item"
                 >
                   <Accordion.Header>
@@ -112,7 +117,7 @@ export default function BuildingConfig() {
                     </span>
                   </Accordion.Header>
                   <Accordion.Body>
-                    <LanguageBuildingSettings language={language} />
+                    <LanguageBuildingSettings language={normalizedLanguage} />
                   </Accordion.Body>
                 </Accordion.Item>
               );

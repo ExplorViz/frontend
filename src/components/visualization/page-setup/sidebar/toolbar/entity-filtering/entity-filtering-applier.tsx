@@ -5,7 +5,9 @@ import {
   getLanguageFileExtensionStatsFromBuildings,
   useEntityFilteringStore,
 } from 'explorviz-frontend/src/stores/entity-filtering-store';
+import { useLayoutStore } from 'explorviz-frontend/src/stores/layout-store';
 import { useRenderingServiceStore } from 'explorviz-frontend/src/stores/rendering-service';
+import { useModelStore } from 'explorviz-frontend/src/stores/repos/model-repository';
 import { NEW_SELECTED_TIMESTAMP_EVENT } from 'explorviz-frontend/src/stores/timestamp';
 import { useVisualizationStore } from 'explorviz-frontend/src/stores/visualization-store';
 import { pruneFlatLandscapeByRemainingBuildings } from 'explorviz-frontend/src/utils/city-rendering/flat-landscape-filter';
@@ -13,8 +15,10 @@ import eventEmitter from 'explorviz-frontend/src/utils/event-emitter';
 import {
   Building,
   FlatLandscape,
+  getFlatLandscapeEntityType,
 } from 'explorviz-frontend/src/utils/landscape-schemes/flat-landscape';
 import { LandscapeData } from 'explorviz-frontend/src/utils/landscape-schemes/landscape-data';
+import BoxLayout from 'explorviz-frontend/src/utils/layout/box-layout';
 import {
   isExcludedBySearchExpressions,
   isIncludedBySearchExpressions,
@@ -66,6 +70,44 @@ const getMetricBounds = (
   return metricBounds;
 };
 
+function syncLayoutStoreWithFlatLandscape(flatLandscape: FlatLandscape): void {
+  const layoutState = useLayoutStore.getState();
+  const prunedLayoutMap = new Map<string, BoxLayout>();
+
+  layoutState.fullLayoutMap.forEach((layout, entityId) => {
+    if (entityId === 'landscape') {
+      prunedLayoutMap.set(entityId, layout);
+      return;
+    }
+
+    const entityType = getFlatLandscapeEntityType(entityId, flatLandscape);
+    if (entityType === 'city' && flatLandscape.cities[entityId]) {
+      prunedLayoutMap.set(entityId, layout);
+    } else if (entityType === 'district' && flatLandscape.districts[entityId]) {
+      prunedLayoutMap.set(entityId, layout);
+    } else if (entityType === 'building' && flatLandscape.buildings[entityId]) {
+      prunedLayoutMap.set(entityId, layout);
+    }
+  });
+
+  layoutState.updateLayouts(prunedLayoutMap, flatLandscape);
+}
+
+function getBuildingCount(flatLandscape: FlatLandscape): number {
+  return Object.keys(flatLandscape.buildings).length;
+}
+
+function shouldRefreshFilterBaseline(
+  currentBaseline: FlatLandscape,
+  candidateFlatLandscape: FlatLandscape
+): boolean {
+  return (
+    getBuildingCount(currentBaseline) === 0 ||
+    getBuildingCount(candidateFlatLandscape) >=
+      getBuildingCount(currentBaseline)
+  );
+}
+
 export default function EntityFilteringApplier({
   landscapeData,
 }: EntityFilteringApplierProps) {
@@ -76,11 +118,8 @@ export default function EntityFilteringApplier({
   const hiddenLanguages = useVisualizationStore(
     (state) => state.hiddenLanguages
   );
-  const hideBuildings = useVisualizationStore(
-    (state) => state.actions.hideBuildings
-  );
-  const showBuildings = useVisualizationStore(
-    (state) => state.actions.showBuildings
+  const setFilterHiddenBuildingIds = useVisualizationStore(
+    (state) => state.actions.setFilterHiddenBuildingIds
   );
 
   const {
@@ -104,6 +143,9 @@ export default function EntityFilteringApplier({
   );
   const setBaselineLanguageFileExtensionStats = useEntityFilteringStore(
     (state) => state.actions.setBaselineLanguageFileExtensionStats
+  );
+  const setBaselineFlatLandscape = useEntityFilteringStore(
+    (state) => state.actions.setBaselineFlatLandscape
   );
 
   const latestLandscapeDataRef = useRef<LandscapeData>(landscapeData);
@@ -145,14 +187,12 @@ export default function EntityFilteringApplier({
     });
 
     if (filterMode === 'Hide') {
-      if (hiddenBuildingIdsByFilterRef.current.size > 0) {
-        showBuildings([...hiddenBuildingIdsByFilterRef.current]);
-      }
       const idsToHide = new Set(
         buildingIdsToFilter.map((building) => building.id)
       );
-      hideBuildings([...idsToHide]);
+      setFilterHiddenBuildingIds([...idsToHide]);
       hiddenBuildingIdsByFilterRef.current = idsToHide;
+      syncLayoutStoreWithFlatLandscape(baselineFlatLandscape);
 
       ignoreNextLandscapeUpdateRef.current = true;
       triggerRenderingForGivenLandscapeData(
@@ -164,7 +204,7 @@ export default function EntityFilteringApplier({
     }
 
     if (hiddenBuildingIdsByFilterRef.current.size > 0) {
-      showBuildings([...hiddenBuildingIdsByFilterRef.current]);
+      setFilterHiddenBuildingIds([]);
       hiddenBuildingIdsByFilterRef.current = new Set();
     }
 
@@ -175,6 +215,17 @@ export default function EntityFilteringApplier({
 
     pruneFlatLandscapeByRemainingBuildings(deepCopyFlatLandscape);
 
+    useModelStore
+      .getState()
+      .setCities(Object.values(deepCopyFlatLandscape.cities));
+    useModelStore
+      .getState()
+      .setDistricts(Object.values(deepCopyFlatLandscape.districts));
+    useModelStore
+      .getState()
+      .setBuildings(Object.values(deepCopyFlatLandscape.buildings));
+    syncLayoutStoreWithFlatLandscape(deepCopyFlatLandscape);
+
     ignoreNextLandscapeUpdateRef.current = true;
     triggerRenderingForGivenLandscapeData(
       deepCopyFlatLandscape,
@@ -183,12 +234,29 @@ export default function EntityFilteringApplier({
     );
   };
 
-  const updateBaseline = (nextFlatLandscapeData: FlatLandscape) => {
-    const buildings = Object.values(nextFlatLandscapeData.buildings);
+  const updateBaseline = (baselineFlatLandscape: FlatLandscape) => {
+    const buildings = Object.values(baselineFlatLandscape.buildings);
+    setBaselineFlatLandscape(baselineFlatLandscape);
     setBaselineLanguageStats(getLanguageCountsFromBuildings(buildings));
     setBaselineLanguageFileExtensionStats(
       getLanguageFileExtensionStatsFromBuildings(buildings)
     );
+  };
+
+  const refreshFilterBaseline = (
+    nextLandscapeData: LandscapeData,
+    nextFlatLandscapeData: FlatLandscape
+  ) => {
+    if (
+      shouldRefreshFilterBaseline(
+        initialFlatLandscapeData.current,
+        nextFlatLandscapeData
+      )
+    ) {
+      initialLandscapeData.current = nextLandscapeData;
+      initialFlatLandscapeData.current = nextFlatLandscapeData;
+      updateBaseline(nextFlatLandscapeData);
+    }
   };
 
   const resetStateForData = (
@@ -196,18 +264,18 @@ export default function EntityFilteringApplier({
     nextFlatLandscapeData: FlatLandscape
   ) => {
     if (hiddenBuildingIdsByFilterRef.current.size > 0) {
-      showBuildings([...hiddenBuildingIdsByFilterRef.current]);
+      setFilterHiddenBuildingIds([]);
       hiddenBuildingIdsByFilterRef.current = new Set();
     }
-    initialLandscapeData.current = nextLandscapeData;
-    initialFlatLandscapeData.current = nextFlatLandscapeData;
-    updateBaseline(nextFlatLandscapeData);
+    latestLandscapeDataRef.current = nextLandscapeData;
+    latestFlatLandscapeDataRef.current = nextFlatLandscapeData;
+    refreshFilterBaseline(nextLandscapeData, nextFlatLandscapeData);
     applyFilters();
   };
 
   const resetForNewTimestamp = () => {
     if (hiddenBuildingIdsByFilterRef.current.size > 0) {
-      showBuildings([...hiddenBuildingIdsByFilterRef.current]);
+      setFilterHiddenBuildingIds([]);
       hiddenBuildingIdsByFilterRef.current = new Set();
     }
     initialLandscapeData.current = latestLandscapeDataRef.current;
@@ -219,6 +287,12 @@ export default function EntityFilteringApplier({
     setMetricThresholds(defaultThresholds);
     applyFilters(defaultThresholds);
   };
+
+  useEffect(() => {
+    refreshFilterBaseline(landscapeData, flatLandscapeData);
+    // Seed the filter baseline before filter/landscape effects run.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   useEffect(() => {
     if (ignoreNextLandscapeUpdateRef.current) {
