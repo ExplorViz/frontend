@@ -11,6 +11,32 @@ export interface ClusteringResult {
 }
 
 /**
+ * Hard upper bound on the number of clusters, regardless of landscape size
+ * or the normalized cluster-count setting.
+ *
+ * k-means++ initialization and each Lloyd iteration are both O(n * k), so
+ * letting k grow linearly with n (as the normalized formula implies) makes
+ * clustering intractable for very large landscapes (e.g. tens of thousands
+ * of buildings, such as the Linux kernel). Clustering only exists to group
+ * entities for label-distance LOD, so a few hundred clusters already gives
+ * plenty of visual granularity.
+ */
+export const MAX_CLUSTER_COUNT = 500;
+
+/**
+ * Maps a normalized cluster-count setting (0 = one cluster, 1 = one cluster
+ * per entity) to an absolute cluster count, capped at `MAX_CLUSTER_COUNT`.
+ */
+export function computeClusterCount(
+  n: number,
+  normalizedClusterCount: number
+): number {
+  const normalized = Math.max(0, Math.min(1, normalizedClusterCount));
+  const uncapped = 1 + Math.floor(normalized * (n - 1));
+  return Math.max(1, Math.min(n, MAX_CLUSTER_COUNT, uncapped));
+}
+
+/**
  * Calculates the Euclidean distance between two 3D points
  */
 function euclideanDistance(
@@ -21,7 +47,7 @@ function euclideanDistance(
 }
 
 /**
- * Initializes k centroids using the k-means++ initialization algorithm
+ * Initializes k centroids using the k-means++ initialization algorithm.
  */
 function initializeCentroids(
   points: THREE.Vector3[],
@@ -35,40 +61,41 @@ function initializeCentroids(
 
   // First centroid: choose randomly
   const firstIndex = Math.floor(Math.random() * points.length);
-  centroids.push(points[firstIndex].clone());
+  const first = points[firstIndex].clone();
+  centroids.push(first);
+
+  const minDistSq = new Float64Array(points.length);
+  for (let pi = 0; pi < points.length; pi++) {
+    minDistSq[pi] = points[pi].distanceToSquared(first);
+  }
 
   // Choose remaining centroids using k-means++ algorithm
   for (let i = 1; i < k; i++) {
-    const distances: number[] = [];
-
-    // Calculate distance from each point to nearest centroid
-    for (const point of points) {
-      let minDistance = Infinity;
-      for (const centroid of centroids) {
-        const distance = euclideanDistance(point, centroid);
-        minDistance = Math.min(minDistance, distance);
-      }
-      distances.push(minDistance);
+    let sumSquaredDistances = 0;
+    for (let pi = 0; pi < points.length; pi++) {
+      sumSquaredDistances += minDistSq[pi];
     }
 
-    // Choose next centroid with probability proportional to distance squared
-    const sumSquaredDistances = distances.reduce(
-      (sum, dist) => sum + dist * dist,
-      0
-    );
-
     let random = Math.random() * sumSquaredDistances;
-    let selectedIndex = 0;
+    let selectedIndex = points.length - 1;
 
-    for (let j = 0; j < distances.length; j++) {
-      random -= distances[j] * distances[j];
+    for (let pi = 0; pi < points.length; pi++) {
+      random -= minDistSq[pi];
       if (random <= 0) {
-        selectedIndex = j;
+        selectedIndex = pi;
         break;
       }
     }
 
-    centroids.push(points[selectedIndex].clone());
+    const newCentroid = points[selectedIndex].clone();
+    centroids.push(newCentroid);
+
+    for (let pi = 0; pi < points.length; pi++) {
+      const distSq = points[pi].distanceToSquared(newCentroid);
+      if (distSq < minDistSq[pi]) {
+        minDistSq[pi] = distSq;
+      }
+    }
   }
 
   return centroids;
@@ -213,7 +240,7 @@ export function kMeansClustering(
  * @param entityIds Array of entity IDs (e.g. classes / packages) to cluster
  * @param normalizedClusterCount Normalized value from 0 to 1:
  *   - 0 = 1 cluster (all entities in one cluster)
- *   - 1 = one cluster per entity (each entity is its own cluster)
+ *   - 1 = one cluster per entity, up to `MAX_CLUSTER_COUNT` (see there)
  * @returns Clustering result with entity-to-cluster mapping and centroids
  */
 export function clusterEntities(
@@ -246,14 +273,12 @@ export function clusterEntities(
     };
   }
 
-  // Clamp normalized value to [0, 1]
-  const normalized = Math.max(0, Math.min(1, normalizedClusterCount));
-
-  // Calculate number of clusters from normalized value
+  // Calculate number of clusters from normalized value, capped at
+  // MAX_CLUSTER_COUNT to keep clustering tractable for large landscapes.
   // normalized = 0 -> k = 1 (all entities in one cluster)
-  // normalized = 1 -> k = n (one cluster per entity)
+  // normalized = 1 -> k = min(n, MAX_CLUSTER_COUNT) (as fine-grained as possible)
   const n = points.length;
-  const k = Math.max(1, Math.min(n, 1 + Math.floor(normalized * (n - 1))));
+  const k = computeClusterCount(n, normalizedClusterCount);
 
   // Perform k-means clustering
   const { assignments, centroids } = kMeansClustering(points, k);
@@ -339,7 +364,9 @@ function getWorker(): Worker {
 function kMeansClusteringAsync(
   points: Float32Array,
   k: number,
-  maxIterations = 100,
+  // Kept in sync with the worker's own default (see k-means-worker.ts) since
+  // this default is always sent explicitly and therefore takes precedence.
+  maxIterations = 30,
   convergenceThreshold = 0.01
 ): Promise<{ assignments: Int32Array; centroids: Float32Array }> {
   return new Promise((resolve, reject) => {
@@ -383,8 +410,7 @@ export async function clusterEntitiesAsync(
   }
 
   const n = validEntityIds.length;
-  const normalized = Math.max(0, Math.min(1, normalizedClusterCount));
-  const k = Math.max(1, Math.min(n, 1 + Math.floor(normalized * (n - 1))));
+  const k = computeClusterCount(n, normalizedClusterCount);
 
   // Run k-means off the main thread; `positions` buffer is transferred
   const { assignments, centroids: rawCentroids } = await kMeansClusteringAsync(

@@ -65,38 +65,32 @@ function initializeCentroids(
   k: number
 ): Float32Array {
   const centroids = new Float32Array(k * 3);
-  const distances = new Float32Array(n);
+  const minDistSq = new Float32Array(n);
 
   // First centroid: a random data point
   const fi = Math.floor(Math.random() * n) * 3;
-  centroids[0] = points[fi];
-  centroids[1] = points[fi + 1];
-  centroids[2] = points[fi + 2];
+  const c0x = points[fi];
+  const c0y = points[fi + 1];
+  const c0z = points[fi + 2];
+  centroids[0] = c0x;
+  centroids[1] = c0y;
+  centroids[2] = c0z;
+
+  for (let pi = 0; pi < n; pi++) {
+    minDistSq[pi] = sqDist(points, pi, c0x, c0y, c0z);
+  }
 
   for (let ci = 1; ci < k; ci++) {
-    // Min squared distance from each point to the nearest existing centroid
     let sumSq = 0;
     for (let pi = 0; pi < n; pi++) {
-      let minSq = Infinity;
-      for (let cj = 0; cj < ci; cj++) {
-        const d = sqDist(
-          points,
-          pi,
-          centroids[cj * 3],
-          centroids[cj * 3 + 1],
-          centroids[cj * 3 + 2]
-        );
-        if (d < minSq) minSq = d;
-      }
-      distances[pi] = minSq;
-      sumSq += minSq;
+      sumSq += minDistSq[pi];
     }
 
     // Sample next centroid proportional to squared distance
     let r = Math.random() * sumSq;
     let selectedPi = n - 1;
     for (let pi = 0; pi < n; pi++) {
-      r -= distances[pi];
+      r -= minDistSq[pi];
       if (r <= 0) {
         selectedPi = pi;
         break;
@@ -104,9 +98,17 @@ function initializeCentroids(
     }
 
     const si = selectedPi * 3;
-    centroids[ci * 3] = points[si];
-    centroids[ci * 3 + 1] = points[si + 1];
-    centroids[ci * 3 + 2] = points[si + 2];
+    const cx = points[si];
+    const cy = points[si + 1];
+    const cz = points[si + 2];
+    centroids[ci * 3] = cx;
+    centroids[ci * 3 + 1] = cy;
+    centroids[ci * 3 + 2] = cz;
+
+    for (let pi = 0; pi < n; pi++) {
+      const d = sqDist(points, pi, cx, cy, cz);
+      if (d < minDistSq[pi]) minDistSq[pi] = d;
+    }
   }
 
   return centroids;
@@ -218,7 +220,7 @@ self.onmessage = (event: MessageEvent<KMeansInput>) => {
     id,
     points,
     k,
-    maxIterations = 100,
+    maxIterations = 30,
     convergenceThreshold = 0.01,
   } = event.data;
 

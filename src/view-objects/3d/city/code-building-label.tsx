@@ -34,9 +34,6 @@ export default function CodeBuildingLabel({
   buildingId: string;
 }) {
   const building = useModelStore.getState().getBuilding(buildingId);
-  const layout =
-    useLayoutStore.getState().getBuildingLayouts().get(buildingId) ||
-    new BoxLayout();
 
   const {
     isBuildingHovered,
@@ -58,6 +55,56 @@ export default function CodeBuildingLabel({
     }))
   );
 
+  const { showAllBuildingLabels, labelDistanceThreshold, enableClustering } =
+    useUserSettingsStore(
+      useShallow((state) => ({
+        showAllBuildingLabels:
+          state.visualizationSettings.showAllBuildingLabels.value,
+        labelDistanceThreshold:
+          state.visualizationSettings.labelDistanceThreshold.value,
+        enableClustering: state.visualizationSettings.enableClustering.value,
+      }))
+    );
+
+  const wantsToShowLabel =
+    showAllBuildingLabels ||
+    isBuildingHovered ||
+    isParentHovered ||
+    isBuildingHighlighted ||
+    isParentHighlighted;
+
+  const layout = useLayoutStore.getState().getBuildingLayouts().get(buildingId);
+  const sizeMultiplier = 1.0 + (layout?.area ?? 0) / 10000.0;
+  const threshold = labelDistanceThreshold * sizeMultiplier;
+
+  const isWithinSemanticZoomDistance = useClusterStore((state) => {
+    if (!wantsToShowLabel) {
+      return false;
+    }
+    const distance = state.getCentroidDistance(buildingId);
+    return distance !== undefined ? distance <= threshold : !enableClustering;
+  });
+
+  if (!building || !wantsToShowLabel || !isWithinSemanticZoomDistance) {
+    return null;
+  }
+
+  return (
+    <CodeBuildingLabelContent buildingId={buildingId} building={building} />
+  );
+}
+
+function CodeBuildingLabelContent({
+  buildingId,
+  building,
+}: {
+  buildingId: string;
+  building: Building;
+}) {
+  const layout =
+    useLayoutStore.getState().getBuildingLayouts().get(buildingId) ||
+    new BoxLayout();
+
   const sceneLayers = useVisualizationStore((state) => state.sceneLayers);
   const {
     buildingFootprint,
@@ -70,9 +117,6 @@ export default function CodeBuildingLabel({
     heightMetric,
     labelOffset,
     labelRotation,
-    showAllBuildingLabels,
-    labelDistanceThreshold,
-    enableClustering,
     enableAnimations,
     animationDuration,
   } = useUserSettingsStore(
@@ -90,19 +134,8 @@ export default function CodeBuildingLabel({
       heightMetric: state.visualizationSettings.buildingHeightMetric.value,
       labelOffset: state.visualizationSettings.labelOffset.value,
       labelRotation: state.visualizationSettings.buildingLabelOrientation.value,
-      showAllBuildingLabels:
-        state.visualizationSettings.showAllBuildingLabels.value,
-      labelDistanceThreshold:
-        state.visualizationSettings.labelDistanceThreshold.value,
-      enableClustering: state.visualizationSettings.enableClustering.value,
       enableAnimations: state.visualizationSettings.enableAnimations.value,
       animationDuration: state.visualizationSettings.animationDuration.value,
-    }))
-  );
-
-  const { centroidDistance } = useClusterStore(
-    useShallow((state) => ({
-      centroidDistance: state.getCentroidDistance(buildingId),
     }))
   );
 
@@ -124,79 +157,19 @@ export default function CodeBuildingLabel({
     );
   }
 
-  const [labelPosition, setLabelPosition] = useState<THREE.Vector3>(() => {
-    if (!building) {
-      return new THREE.Vector3(
-        layout.center.x,
-        layout.positionY,
-        layout.center.z
-      );
-    }
+  const [labelPosition, setLabelPosition] = useState<THREE.Vector3>(() =>
+    createLabelPosition(layout, labelOffset, getBuildingHeight(building))
+  );
 
-    return (
-      createLabelPosition(layout, labelOffset, getBuildingHeight(building)) ??
-      new THREE.Vector3(layout.center.x, layout.positionY, layout.center.z)
-    );
-  });
-
+  // Single effect drives position updates for both metric-driven height
+  // changes and offset/layout changes (previously duplicated across two
+  // near-identical effects, which produced two competing GSAP tweens).
   useEffect(() => {
-    if (!building) {
-      return;
-    }
-
     const target = createLabelPosition(
       layout,
       labelOffset,
       getBuildingHeight(building)
     );
-    if (!target) {
-      return;
-    }
-
-    if (enableAnimations) {
-      const values = {
-        x: labelPosition.x,
-        y: labelPosition.y,
-        z: labelPosition.z,
-      };
-      gsap.to(values, {
-        x: target.x,
-        y: target.y,
-        z: target.z,
-        duration: animationDuration,
-        onUpdate: () =>
-          setLabelPosition(new THREE.Vector3(values.x, values.y, values.z)),
-      });
-    } else {
-      setLabelPosition(target);
-    }
-  }, [
-    animationDuration,
-    building,
-    buildingFootprint,
-    buildingHeightMultiplier,
-    buildings,
-    enableAnimations,
-    heightMetric,
-    labelOffset,
-    layout,
-    metricMapping,
-    metricBuckets,
-  ]);
-
-  useEffect(() => {
-    if (!building) {
-      return;
-    }
-
-    const target = createLabelPosition(
-      layout,
-      labelOffset,
-      getBuildingHeight(building)
-    );
-    if (!target) {
-      return;
-    }
 
     if (enableAnimations) {
       const values = {
@@ -213,29 +186,24 @@ export default function CodeBuildingLabel({
           setLabelPosition(new THREE.Vector3(values.x, values.y, values.z)),
       });
     } else if (!labelPosition.equals(target)) {
-      setLabelPosition(target.clone());
+      setLabelPosition(target);
     }
-  }, [animationDuration, building, enableAnimations, labelOffset, layout]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [
+    animationDuration,
+    building,
+    buildingFootprint,
+    buildingHeightMultiplier,
+    buildings,
+    enableAnimations,
+    heightMetric,
+    labelOffset,
+    layout,
+    metricMapping,
+    metricBuckets,
+  ]);
 
-  const sizeMultiplier = 1.0 + layout.area / 10000.0;
-  const isWithinSemanticZoomDistance =
-    centroidDistance !== undefined
-      ? centroidDistance <= labelDistanceThreshold * sizeMultiplier
-      : !enableClustering;
-
-  const shouldShowLabel =
-    (showAllBuildingLabels ||
-      isBuildingHovered ||
-      isParentHovered ||
-      isBuildingHighlighted ||
-      isParentHighlighted) &&
-    isWithinSemanticZoomDistance;
-
-  if (!building) {
-    return null;
-  }
-
-  return shouldShowLabel ? (
+  return (
     <Text
       layers={sceneLayers.Label}
       key={buildingId + '-label'}
@@ -250,5 +218,5 @@ export default function CodeBuildingLabel({
     >
       {getTruncatedDisplayName(building.name, buildingId, buildingLabelLength)}
     </Text>
-  ) : null;
+  );
 }

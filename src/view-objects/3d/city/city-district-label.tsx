@@ -8,9 +8,61 @@ import { District } from 'explorviz-frontend/src/utils/landscape-schemes/flat-la
 import BoxLayout from 'explorviz-frontend/src/utils/layout/box-layout';
 import { getLabelRotation } from 'explorviz-frontend/src/view-objects/utils/label-utils';
 import gsap from 'gsap';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 import * as THREE from 'three';
 import { useShallow } from 'zustand/react/shallow';
+
+function computeDistrictLabelPosition(
+  placement: string,
+  isOpen: boolean,
+  layout: BoxLayout,
+  openedDistrictHeight: number,
+  closedDistrictHeight: number,
+  labelOffset: number,
+  districtLabelMargin: number
+): THREE.Vector3 {
+  const margin = districtLabelMargin / 2;
+  const openedPosY =
+    layout.positionY + openedDistrictHeight + labelOffset + 0.01;
+  const closedPosY =
+    layout.positionY + closedDistrictHeight + labelOffset + 0.01;
+  switch (placement) {
+    case 'top':
+      return isOpen
+        ? new THREE.Vector3(
+            layout.center.x,
+            openedPosY,
+            layout.center.z - layout.depth / 2 + margin
+          )
+        : new THREE.Vector3(layout.center.x, closedPosY, layout.center.z);
+    case 'bottom':
+      return isOpen
+        ? new THREE.Vector3(
+            layout.center.x,
+            openedPosY,
+            layout.center.z + layout.depth / 2 - margin
+          )
+        : new THREE.Vector3(layout.center.x, closedPosY, layout.center.z);
+    case 'left':
+      return isOpen
+        ? new THREE.Vector3(
+            layout.center.x - layout.width / 2 + margin,
+            openedPosY,
+            layout.center.z
+          )
+        : new THREE.Vector3(layout.center.x, closedPosY, layout.center.z);
+    case 'right':
+      return isOpen
+        ? new THREE.Vector3(
+            layout.center.x + layout.width / 2 - margin,
+            openedPosY,
+            layout.center.z
+          )
+        : new THREE.Vector3(layout.center.x, closedPosY, layout.center.z);
+    default:
+      return new THREE.Vector3(0, 0, 0);
+  }
+}
 
 export default function CityDistrictLabel({
   district,
@@ -18,6 +70,61 @@ export default function CityDistrictLabel({
 }: {
   district: District;
   layout: BoxLayout;
+}) {
+  const { districtLabelMargin, labelDistanceThreshold, enableClustering } =
+    useUserSettingsStore(
+      useShallow((state) => ({
+        districtLabelMargin:
+          state.visualizationSettings.districtLabelMargin.value,
+        labelDistanceThreshold:
+          state.visualizationSettings.labelDistanceThreshold.value,
+        enableClustering: state.visualizationSettings.enableClustering.value,
+      }))
+    );
+
+  const isOpen = useVisualizationStore((state) =>
+    isDistrictOpen(district.id, state.closedDistrictIds)
+  );
+
+  const fontSize = isOpen
+    ? districtLabelMargin * 0.5
+    : Math.max(layout.width * 0.1, districtLabelMargin * 0.5);
+
+  // Larger labels of larger districts should be visible from a greater distance
+  const sizeMultiplier = 1.0 + layout.area / 100000.0 + fontSize / 10.0;
+  const adjustedThreshold = labelDistanceThreshold * sizeMultiplier;
+
+  const isWithinDistance = useClusterStore((state) => {
+    const distance = state.getCentroidDistance(district.id);
+    return distance !== undefined
+      ? distance <= adjustedThreshold
+      : !enableClustering;
+  });
+
+  if (!isWithinDistance) {
+    return null;
+  }
+
+  return (
+    <CityDistrictLabelContent
+      district={district}
+      layout={layout}
+      isOpen={isOpen}
+      fontSize={fontSize}
+    />
+  );
+}
+
+function CityDistrictLabelContent({
+  district,
+  layout,
+  isOpen,
+  fontSize,
+}: {
+  district: District;
+  layout: BoxLayout;
+  isOpen: boolean;
+  fontSize: number;
 }) {
   const {
     labelOffset,
@@ -28,8 +135,6 @@ export default function CityDistrictLabel({
     enableAnimations,
     animationDuration,
     districtLabelPlacement,
-    labelDistanceThreshold,
-    enableClustering,
   } = useUserSettingsStore(
     useShallow((state) => ({
       labelOffset: state.visualizationSettings.labelOffset.value,
@@ -44,112 +149,37 @@ export default function CityDistrictLabel({
       animationDuration: state.visualizationSettings.animationDuration.value,
       districtLabelPlacement:
         state.visualizationSettings.districtLabelPlacement.value,
-      labelDistanceThreshold:
-        state.visualizationSettings.labelDistanceThreshold.value,
-      enableClustering: state.visualizationSettings.enableClustering.value,
     }))
   );
 
   const sceneLayers = useVisualizationStore((state) => state.sceneLayers);
 
-  const { centroidDistance } = useClusterStore(
-    useShallow((state) => ({
-      centroidDistance: state.getCentroidDistance(district.id),
-    }))
-  );
-
-  const { isOpen } = useVisualizationStore(
-    useShallow((state) => ({
-      isOpen: isDistrictOpen(district.id, state.closedDistrictIds),
-    }))
-  );
-
-  const [labelPosition, setLabelPosition] = useState<THREE.Vector3>(
-    new THREE.Vector3()
-  );
-
-  const getFontSize = useCallback(() => {
-    return isOpen
-      ? districtLabelMargin * 0.5
-      : Math.max(layout.width * 0.1, districtLabelMargin * 0.5);
-  }, [isOpen, districtLabelMargin, layout.width]);
-
-  // Track distance to cluster centroid for label visibility.
-  // When clustering is enabled but the async computation hasn't finished yet,
-  // centroidDistance is undefined. Hide the label in that case rather than
-  // showing everything at once before the clusters are ready.
-  const isWithinDistance = useMemo(() => {
-    if (centroidDistance !== undefined) {
-      // Larger labels of larger districts should be visible from a greater distance
-      const sizeMultiplier =
-        1.0 + layout.area / 100000.0 + getFontSize() / 10.0;
-      const adjustedThreshold = labelDistanceThreshold * sizeMultiplier;
-      return centroidDistance <= adjustedThreshold;
-    }
-    return !enableClustering;
-  }, [
-    centroidDistance,
-    enableClustering,
-    layout.area,
-    labelDistanceThreshold,
-    getFontSize,
-  ]);
-
-  const getLabelPositionForPlacement = useCallback(
-    (placement: string, isOpen: boolean): THREE.Vector3 => {
-      const margin = districtLabelMargin / 2;
-      const openedPosY =
-        layout.positionY + openedDistrictHeight + labelOffset + 0.01;
-      const closedPosY =
-        layout.positionY + closedDistrictHeight + labelOffset + 0.01;
-      switch (placement) {
-        case 'top':
-          return isOpen
-            ? new THREE.Vector3(
-                layout.center.x,
-                openedPosY,
-                layout.center.z - layout.depth / 2 + margin
-              )
-            : new THREE.Vector3(layout.center.x, closedPosY, layout.center.z);
-        case 'bottom':
-          return isOpen
-            ? new THREE.Vector3(
-                layout.center.x,
-                openedPosY,
-                layout.center.z + layout.depth / 2 - margin
-              )
-            : new THREE.Vector3(layout.center.x, closedPosY, layout.center.z);
-        case 'left':
-          return isOpen
-            ? new THREE.Vector3(
-                layout.center.x - layout.width / 2 + margin,
-                openedPosY,
-                layout.center.z
-              )
-            : new THREE.Vector3(layout.center.x, closedPosY, layout.center.z);
-        case 'right':
-          return isOpen
-            ? new THREE.Vector3(
-                layout.center.x + layout.width / 2 - margin,
-                openedPosY,
-                layout.center.z
-              )
-            : new THREE.Vector3(layout.center.x, closedPosY, layout.center.z);
-        default:
-          return new THREE.Vector3(0, 0, 0);
-      }
-    },
-    [
+  // Computed synchronously (not a zero-vector) because this component can
+  // mount/unmount as the label crosses the semantic zoom distance threshold;
+  // starting from the real target position avoids an animated "pop in from
+  // the origin" every time the label becomes eligible again.
+  const [labelPosition, setLabelPosition] = useState<THREE.Vector3>(() =>
+    computeDistrictLabelPosition(
+      districtLabelPlacement,
+      isOpen,
       layout,
       openedDistrictHeight,
       closedDistrictHeight,
       labelOffset,
-      districtLabelMargin,
-    ]
+      districtLabelMargin
+    )
   );
 
   useEffect(() => {
-    const target = getLabelPositionForPlacement(districtLabelPlacement, isOpen);
+    const target = computeDistrictLabelPosition(
+      districtLabelPlacement,
+      isOpen,
+      layout,
+      openedDistrictHeight,
+      closedDistrictHeight,
+      labelOffset,
+      districtLabelMargin
+    );
 
     if (
       labelPosition.x === target.x &&
@@ -183,20 +213,24 @@ export default function CityDistrictLabel({
     enableAnimations,
     animationDuration,
     districtLabelPlacement,
-    getLabelPositionForPlacement,
+    layout,
+    openedDistrictHeight,
+    closedDistrictHeight,
+    labelOffset,
+    districtLabelMargin,
   ]);
 
-  return isWithinDistance ? (
+  return (
     <Text
       layers={sceneLayers.Label}
       color={districtTextColor}
       name={'City district label of ' + district.name}
       position={labelPosition}
       rotation={getLabelRotation(districtLabelPlacement)}
-      fontSize={getFontSize()}
+      fontSize={fontSize}
       raycast={() => null}
     >
       {getEntityDisplayName(district.name, district.id)}
     </Text>
-  ) : null;
+  );
 }

@@ -1000,7 +1000,7 @@ export const defaultVizSettings: VisualizationSettings = {
     group: 'Semantic Zoom',
     displayName: 'Cluster Count',
     description:
-      'Number of clusters: 0 = 1 cluster (all entities), 1 = one cluster per entity',
+      'Number of clusters: 0 = 1 cluster (all entities), 1 = one cluster per entity (capped at 500 clusters)',
     dependsOn: {
       settingId: 'enableClustering',
       value: true,
