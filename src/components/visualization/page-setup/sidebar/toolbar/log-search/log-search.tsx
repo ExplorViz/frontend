@@ -3,6 +3,7 @@ import AttributesTable from 'explorviz-frontend/src/components/attributes-table'
 import DualRangeSlider from 'explorviz-frontend/src/components/dual-range-slider';
 import HelpTooltip from 'explorviz-frontend/src/components/help-tooltip';
 import { useAuthStore } from 'explorviz-frontend/src/stores/auth';
+import { useCameraControlsStore } from 'explorviz-frontend/src/stores/camera-controls-store';
 import { useLandscapeTokenStore } from 'explorviz-frontend/src/stores/landscape-token';
 import { useModelStore } from 'explorviz-frontend/src/stores/repos/model-repository';
 import { useToastHandlerStore } from 'explorviz-frontend/src/stores/toast-handler';
@@ -11,12 +12,15 @@ import {
   isLog,
   Log,
 } from 'explorviz-frontend/src/utils/landscape-schemes/telemetry/logs';
-import { useEffect, useRef, useState } from 'react';
+import { pingByModelId } from 'explorviz-frontend/src/view-objects/3d/city/animated-ping-r3f';
+import React, { useState } from 'react';
 import { Accordion, Badge, Button, Card, Form, Spinner } from 'react-bootstrap';
+import { List, RowComponentProps, useDynamicRowHeight } from 'react-window';
+import { useInfiniteLoader } from 'react-window-infinite-loader';
 import ComponentOpener from '../../component-opener';
 import { ToolbarOpenerProps } from '../../types';
 
-function severityNumberToName(value: number) {
+function severityNumberToName(severityNumber: number) {
   const labels = [
     'unspecified',
     'trace',
@@ -27,12 +31,33 @@ function severityNumberToName(value: number) {
     'fatal',
   ];
 
-  return labels[Math.ceil(value / 4)] ?? 'invalid';
+  return labels[Math.ceil(severityNumber / 4)] ?? 'invalid';
+}
+
+function severityNameToBsColor(severityName: string): string {
+  const colors: Record<string, string> = {
+    unspecified: 'secondary',
+    trace: 'primary',
+    debug: 'success',
+    info: 'info',
+    warn: 'warning',
+    error: 'danger',
+    fatal: 'danger',
+  };
+
+  return colors[severityName] ?? 'secondary';
 }
 
 function formatUnixNanoseconds(ns: bigint) {
   const date = new Date(Number(ns / 1_000_000n));
-  return date.toISOString();
+  const year = date.getFullYear().toString();
+  const month = (date.getMonth() + 1).toString().padStart(2, '0');
+  const day = date.getDate().toString().padStart(2, '0');
+  const hours = date.getHours().toString().padStart(2, '0');
+  const minutes = date.getMinutes().toString().padStart(2, '0');
+  const seconds = date.getSeconds().toString().padStart(2, '0');
+  const millis = date.getMilliseconds().toString().padStart(3, '0');
+  return `${year}-${month}-${day}T${hours}:${minutes}:${seconds}.${millis}`;
 }
 
 const PAGINATION_SIZE = 50;
@@ -49,19 +74,12 @@ export default function LogSearch() {
   const [formData, setFormData] = useState<FormData | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [allItemsLoaded, setAllItemsLoaded] = useState<boolean>(false);
-  const [paginationOffset, setPaginationOffset] = useState<number>(0);
   const [severityAsNumber, setSeverityAsNumber] = useState<boolean>(true);
   const [severityTextValues, setSeverityTextValues] = useState<string[] | null>(
     null
   );
 
-  const loadMoreRef = useRef<HTMLDivElement | null>(null);
-
-  useEffect(() => {
-    if (allItemsLoaded || !isLoading) {
-      return;
-    }
-
+  const loadMoreLogs = async (newFormData?: FormData) => {
     const logServiceUrl = getLogServiceUrl();
     if (logServiceUrl === '') {
       showErrorToastMessage('Log service URL not configured');
@@ -76,97 +94,103 @@ export default function LogSearch() {
     const requestUrl = new URL(
       `${logServiceUrl}/v3/landscapes/${landscapeToken}/logs`
     );
-    const queryParams = new URLSearchParams(formData as any);
+    const queryParams = new URLSearchParams((newFormData ?? formData) as any);
     queryParams.set('limit', PAGINATION_SIZE.toString());
-    queryParams.set('offset', paginationOffset.toString());
+    if (!newFormData && logs && logs.length > 0) {
+      const lastSeenLog = logs[logs.length - 1];
+      queryParams.set('cursorId', lastSeenLog.id);
+      queryParams.set('cursorTimestamp', lastSeenLog.timeUnixNano.toString());
+      queryParams.set('cursorSeverity', lastSeenLog.severity.toString());
+    }
+
     requestUrl.search = queryParams.toString();
 
-    const fetchLogs = async () => {
-      const response = await fetch(requestUrl, {
+    let response: Response;
+    try {
+      response = await fetch(requestUrl, {
         headers: {
           Authorization: `Bearer ${accessToken}`,
           'Access-Control-Allow-Origin': '*',
         },
       });
-      if (!response.ok) {
-        setIsLoading(false);
-        showErrorToastMessage(
-          `Failed to retrieve logs: Received non-ok response status ${response.status}`
-        );
-        return;
-      }
-
-      const receivedLogs = JSON.parse(await response.text(), (k, v) => {
-        return k === 'timeUnixNano' ? BigInt(v) : v;
-      });
-      if (!Array.isArray(receivedLogs) || !receivedLogs.every(isLog)) {
-        setIsLoading(false);
-        showErrorToastMessage(
-          'Failed to retrieve logs: Received invalid response'
-        );
-        console.error(`JSON fails type guard ${isLog.name}`);
-        return;
-      }
-      setLogs((state) =>
-        state === null ? receivedLogs : [...state, ...receivedLogs]
-      );
+    } catch (error) {
       setIsLoading(false);
-      if (receivedLogs.length < PAGINATION_SIZE) {
-        setAllItemsLoaded(true);
-      }
-    };
-
-    fetchLogs();
-  }, [
-    formData,
-    paginationOffset,
-    isLoading,
-    allItemsLoaded,
-    landscapeToken,
-    accessToken,
-    showErrorToastMessage,
-  ]);
-
-  useEffect(() => {
-    if (isLoading || allItemsLoaded) {
+      setAllItemsLoaded(true);
+      showErrorToastMessage(
+        'Failed to retrieve logs: A network error has occurred'
+      );
+      console.error(error);
       return;
     }
 
-    const intersectionCallback = (entries: IntersectionObserverEntry[]) => {
-      const [entry] = entries;
-      if (entry.isIntersecting) {
-        setPaginationOffset((o) => o + PAGINATION_SIZE);
-        setIsLoading(true);
-      }
-    };
-
-    const observer = new IntersectionObserver(intersectionCallback, {});
-    const elem = loadMoreRef.current;
-    if (elem) {
-      observer.observe(elem);
+    if (!response.ok) {
+      setIsLoading(false);
+      setAllItemsLoaded(true);
+      showErrorToastMessage(
+        `Failed to retrieve logs: Received non-ok response status ${response.status}`
+      );
+      return;
     }
 
-    return () => {
-      if (elem) {
-        observer.unobserve(elem);
+    const receivedLogs = JSON.parse(await response.text(), (k, v) => {
+      return k === 'timeUnixNano' ? BigInt(v) : v;
+    });
+    if (!Array.isArray(receivedLogs) || !receivedLogs.every(isLog)) {
+      setIsLoading(false);
+      setAllItemsLoaded(true);
+      showErrorToastMessage(
+        'Failed to retrieve logs: Received invalid response'
+      );
+      console.error(`JSON fails type guard ${isLog.name}`);
+      return;
+    }
+    setLogs((state) =>
+      state === null ? receivedLogs : [...state, ...receivedLogs]
+    );
+    setIsLoading(false);
+    if (receivedLogs.length < PAGINATION_SIZE) {
+      setAllItemsLoaded(true);
+    }
+  };
+
+  const onRowsRendered = useInfiniteLoader({
+    rowCount: (logs?.length ?? 0) + (allItemsLoaded ? 0 : 1),
+    isRowLoaded: (index) => index < (logs?.length ?? 0),
+    loadMoreRows: async () => {
+      if (isLoading || allItemsLoaded) {
+        return;
       }
-    };
-  }, [loadMoreRef, isLoading, allItemsLoaded]);
+      setIsLoading(true);
+      return loadMoreLogs();
+    },
+  });
+
+  const rowHeight = useDynamicRowHeight({
+    defaultRowHeight: 50,
+  });
 
   const handleSubmit: React.FormEventHandler<HTMLFormElement> = async (e) => {
     e.preventDefault();
 
-    const formData = new FormData(e.currentTarget);
-    for (const [key, value] of Array.from(formData.entries())) {
+    const newFormData = new FormData(e.currentTarget);
+    for (const [key, value] of Array.from(newFormData.entries())) {
       if (value === '' || typeof value !== 'string') {
-        formData.delete(key);
+        newFormData.delete(key);
+        continue;
+      }
+
+      // Convert strings from datetime_local inputs to Unix nanosecond epoch
+      if (key === 'from' || key === 'to') {
+        const unixNano = BigInt(new Date(value).getTime()) * 1_000_000n;
+        newFormData.set(key, unixNano.toString());
       }
     }
-    setIsLoading(true);
+
     setLogs(null);
-    setFormData(formData);
-    setPaginationOffset(0);
+    setIsLoading(true);
     setAllItemsLoaded(false);
+    setFormData(newFormData);
+    loadMoreLogs(newFormData);
   };
 
   const handleSeverityTextSelectFocus: React.FocusEventHandler = async () => {
@@ -189,12 +213,22 @@ export default function LogSearch() {
       `${logServiceUrl}/v3/landscapes/${landscapeToken}/log-levels`
     );
 
-    const response = await fetch(requestUrl, {
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-        'Access-Control-Allow-Origin': '*',
-      },
-    });
+    let response: Response;
+    try {
+      response = await fetch(requestUrl, {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+          'Access-Control-Allow-Origin': '*',
+        },
+      });
+    } catch (error) {
+      setSeverityTextValues([]);
+      showErrorToastMessage(
+        'Failed to retrieve log severity levels: A network error has occurred'
+      );
+      console.error(error);
+      return;
+    }
     if (!response.ok) {
       setSeverityTextValues([]);
       showErrorToastMessage(
@@ -217,7 +251,6 @@ export default function LogSearch() {
     }
 
     setSeverityTextValues(receivedSeverities);
-    setIsLoading(false);
   };
 
   return (
@@ -233,13 +266,45 @@ export default function LogSearch() {
               <Form.Label>
                 Message Body{' '}
                 <HelpTooltip
-                  title="Only match logs where message contains all of the provided tokens."
+                  title="Only match logs where the message text contains all of the provided tokens. Search is case-insensitive."
                   placement="top"
                 />
               </Form.Label>
               <Form.Control
                 name="messageBody"
                 placeholder='e.g. "successful", "network error", &hellip;'
+                className="mb-2"
+              />
+              <Form.Check
+                name="includeAttributeKeys"
+                type="checkbox"
+                value="true"
+                label={
+                  <>
+                    Include attribute keys{' '}
+                    <HelpTooltip
+                      title="Also search the log, scope, and resource attributes' keys for the provided search tokens. This can be useful to ensure a specific attribute is present."
+                      placement="top"
+                    />
+                  </>
+                }
+                inline
+              />
+              <Form.Check
+                name="includeAttributeValues"
+                type="checkbox"
+                value="true"
+                label={
+                  <>
+                    Include attribute values{' '}
+                    <HelpTooltip
+                      title="Also search the log, scope, and resource attributes' values for the provided search tokens."
+                      placement="top"
+                    />
+                  </>
+                }
+                defaultChecked
+                inline
               />
             </Form.Group>
 
@@ -304,7 +369,9 @@ export default function LogSearch() {
                     onFocus={handleSeverityTextSelectFocus}
                   >
                     <option value="">Any</option>
-                    <option disabled>────────</option>
+                    {severityTextValues && severityTextValues.length > 0 && (
+                      <option disabled>────────</option>
+                    )}
                     {severityTextValues ? (
                       severityTextValues.map((severity) => (
                         <option key={severity}>{severity}</option>
@@ -316,6 +383,30 @@ export default function LogSearch() {
                 )}
               </div>
             </Form.Group>
+
+            <div className="row">
+              <Form.Group className="mb-3 col-md-6">
+                <Form.Label>
+                  Date start{' '}
+                  <HelpTooltip
+                    title="Only match logs with a timestamp after the given point in time. Should be specified in your local timezone. Leave empty for no lower bound on the timestamp."
+                    placement="top"
+                  />
+                </Form.Label>
+                <Form.Control type="datetime-local" name="from" step={1} />
+              </Form.Group>
+
+              <Form.Group className="mb-3 col-md-6">
+                <Form.Label>
+                  Date end{' '}
+                  <HelpTooltip
+                    title="Only match logs with a timestamp before the given point in time. Should be specified in your local timezone. Leave empty for no upper bound on the timestamp."
+                    placement="top"
+                  />
+                </Form.Label>
+                <Form.Control type="datetime-local" name="to" step={1} />
+              </Form.Group>
+            </div>
 
             <div className="row">
               <Form.Group className="mb-3 col-md-6">
@@ -347,6 +438,40 @@ export default function LogSearch() {
               </Form.Group>
             </div>
 
+            <Form.Group className="mb-3">
+              <Form.Label>
+                Sort by{' '}
+                <HelpTooltip
+                  title="Determines the order in which matching logs are retrieved and displayed."
+                  placement="top"
+                />
+              </Form.Label>
+              <div className="mb-1">
+                <Form.Check
+                  inline
+                  type="radio"
+                  name="sortBy"
+                  value="newest"
+                  label="Newest"
+                  defaultChecked
+                />
+                <Form.Check
+                  inline
+                  type="radio"
+                  name="sortBy"
+                  value="oldest"
+                  label="Oldest"
+                />
+                <Form.Check
+                  inline
+                  type="radio"
+                  name="sortBy"
+                  value="severity"
+                  label="Severity"
+                />
+              </div>
+            </Form.Group>
+
             <Button type="submit" className="d-flex align-items-center gap-2">
               {isLoading ? (
                 <Spinner animation="border" size="sm" />
@@ -364,132 +489,202 @@ export default function LogSearch() {
           {logs.length > 0 ? (
             <>
               <Accordion alwaysOpen={true} className="pe-1">
-                {logs.map((log) => (
-                  <Accordion.Item
-                    className="mb-2 border rounded-0"
-                    key={log.id}
-                    eventKey={log.id}
-                  >
-                    <Accordion.Button
-                      className="border-0 rounded-0"
-                      style={{ padding: '8px 12px' }}
-                    >
-                      <code className="text-dark text-truncate">{`${formatUnixNanoseconds(log.timeUnixNano)} ${log.messageBody}`}</code>
-                    </Accordion.Button>
-                    <Accordion.Body>
-                      <LogDetailsCard log={log} />
-                    </Accordion.Body>
-                  </Accordion.Item>
-                ))}
+                <List
+                  rowComponent={LogItem}
+                  rowCount={logs.length}
+                  rowHeight={rowHeight}
+                  rowProps={{ logs }}
+                  rowKey={(index, { logs }) => logs[index].id}
+                  onRowsRendered={onRowsRendered}
+                  style={{
+                    minHeight: '80vh',
+                    maxHeight: '80vh',
+                  }}
+                />
               </Accordion>
-              <div ref={loadMoreRef} />
             </>
           ) : (
             <span>No logs found for the current search criteria.</span>
           )}
 
-          {isLoading && <Spinner />}
+          {isLoading && <Spinner variant="primary" />}
         </section>
       )}
     </>
   );
 }
 
-function LogDetailsCard({ log }: { log: Log }) {
-  const severityName = severityNumberToName(log.severity);
+function LogItem({
+  index,
+  logs,
+  style,
+}: RowComponentProps<{
+  logs: Log[];
+}>) {
+  const cities = useModelStore((state) => state.cities);
+  const buildings = useModelStore((state) => state.buildings);
+  const telemetryKeyToEntityId = useModelStore(
+    (state) => state.telemetryKeyToEntityId
+  );
+  const lookAtEntity = useCameraControlsStore((state) => state.lookAtEntity);
+  const showErrorToastMessage = useToastHandlerStore(
+    (state) => state.showErrorToastMessage
+  );
 
-  const pillBackground: Map<string, string> = new Map([
-    ['unspecified', 'secondary'],
-    ['trace', 'primary'],
-    ['debug', 'success'],
-    ['info', 'info'],
-    ['warn', 'warning'],
-    ['error', 'danger'],
-    ['fatal', 'danger'],
-  ]);
+  const log = logs[index];
+  const severityName = severityNumberToName(log.severity);
+  const entityId = telemetryKeyToEntityId.get(log.telemetryKey);
+  const entity = entityId ? buildings[entityId] : undefined;
+
+  const handleServiceNameClicked = () => {
+    if (!log.serviceName) {
+      console.error('Service name of log is undefined in handler');
+      return;
+    }
+
+    const city = Object.values(cities).find((c) => c.name === log.serviceName);
+    if (!city) {
+      showErrorToastMessage(
+        'The service could not be found in the current visualization'
+      );
+      return;
+    }
+
+    lookAtEntity(city.id);
+    pingByModelId(city.id);
+  };
+
+  const handleEntityClicked = () => {
+    if (!entity) {
+      console.error('Entity related to log is undefined in handler');
+      return;
+    }
+
+    lookAtEntity(entity.id);
+    pingByModelId(entity.id);
+  };
 
   return (
-    <Card>
-      <Card.Body>
-        <dl>
-          <dt>Severity</dt>
-          <dd>
-            <Badge bg={pillBackground.get(severityName) ?? 'secondary'}>
-              {log.severity}{' '}
-              <code className="text-light">({severityName.toUpperCase()})</code>
+    <div style={style}>
+      <Accordion.Item className="mb-2 me-2 border rounded-0" eventKey={log.id}>
+        <Accordion.Button
+          className="border-0 rounded-0"
+          style={{ padding: '8px 12px' }}
+        >
+          <small>
+            <Badge
+              pill
+              bg={severityNameToBsColor(severityName)}
+              className="me-2"
+            >
+              <samp>{severityName.at(0)?.toUpperCase()}</samp>
             </Badge>
-          </dd>
+          </small>
+          <samp className="text-truncate">
+            <small>
+              <code>{`${formatUnixNanoseconds(log.timeUnixNano)}`}</code>{' '}
+              {`${log.messageBody}`}
+            </small>
+          </samp>
+        </Accordion.Button>
+        <Accordion.Body>
+          <Card>
+            <Card.Body>
+              <dl>
+                <dt>Message Body</dt>
+                <dd>
+                  <pre className="mb-0" style={{ whiteSpace: 'pre-wrap' }}>
+                    <samp className="small">{log.messageBody}</samp>
+                  </pre>
+                </dd>
 
-          {log.severityText && (
-            <>
-              <dt>Severity Text</dt>
-              <dd>
-                <code>{log.severityText}</code>
-              </dd>
-            </>
-          )}
+                <dt>Severity</dt>
+                <dd>
+                  <Badge bg={severityNameToBsColor(severityName)}>
+                    {log.severity}{' '}
+                    <code className="text-light">
+                      ({severityName.toUpperCase()})
+                    </code>
+                  </Badge>
+                </dd>
 
-          {log.eventName && (
-            <>
-              <dt>Event Name</dt>
-              <dd>
-                <code>{log.eventName}</code>
-              </dd>
-            </>
-          )}
+                {log.severityText && (
+                  <>
+                    <dt>Severity Text</dt>
+                    <dd>
+                      <code>{log.severityText}</code>
+                    </dd>
+                  </>
+                )}
 
-          {log.telemetryKey && (
-            <>
-              <dt>Entity</dt>
-              <dd>
-                <small>
-                  <a href="#">{log.telemetryKey}</a>
-                </small>
-              </dd>
-            </>
-          )}
+                {log.eventName && (
+                  <>
+                    <dt>Event Name</dt>
+                    <dd>
+                      <code>{log.eventName}</code>
+                    </dd>
+                  </>
+                )}
 
-          {log.serviceName && (
-            <>
-              <dt>Service Name</dt>
-              <dd>
-                <small>
-                  <a href="#">{log.serviceName}</a>
-                </small>
-              </dd>
-            </>
-          )}
+                {entity && (
+                  <>
+                    <dt>Entity</dt>
+                    <dd>
+                      <small>
+                        <a href="#" onClick={handleEntityClicked}>
+                          {entity.fqn ?? entity.name}
+                        </a>
+                      </small>
+                    </dd>
+                  </>
+                )}
 
-          {log.traceId && (
-            <>
-              <dt>Trace ID</dt>
-              <dd>
-                <code>{log.traceId}</code>
-              </dd>
-            </>
-          )}
+                {log.serviceName && (
+                  <>
+                    <dt>Service Name</dt>
+                    <dd>
+                      <small>
+                        <a href="#" onClick={handleServiceNameClicked}>
+                          {log.serviceName}
+                        </a>
+                      </small>
+                    </dd>
+                  </>
+                )}
 
-          {log.spanId && (
-            <>
-              <dt>Span ID</dt>
-              <dd>
-                <code>{log.spanId}</code>
-              </dd>
-            </>
-          )}
+                {log.traceId && (
+                  <>
+                    <dt>Trace ID</dt>
+                    <dd>
+                      <code>{log.traceId}</code>
+                    </dd>
+                  </>
+                )}
 
-          <dt>Log Attributes</dt>
-          <dd>
-            <AttributesTable attributes={log.logAttributes} />
-          </dd>
+                {log.spanId && (
+                  <>
+                    <dt>Span ID</dt>
+                    <dd>
+                      <code>{log.spanId}</code>
+                    </dd>
+                  </>
+                )}
 
-          <dt>Resource Attributes</dt>
-          <dd>
-            <AttributesTable attributes={log.resourceAttributes} />
-          </dd>
-        </dl>
-      </Card.Body>
-    </Card>
+                <dt>Log Attributes</dt>
+                <dd>
+                  <AttributesTable attributes={log.logAttributes} />
+                </dd>
+
+                <dt>Resource Attributes</dt>
+                <dd>
+                  <AttributesTable attributes={log.resourceAttributes} />
+                </dd>
+              </dl>
+            </Card.Body>
+          </Card>
+        </Accordion.Body>
+      </Accordion.Item>
+    </div>
   );
 }
 

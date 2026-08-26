@@ -1,6 +1,6 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useImperativeHandle, useRef, useState } from 'react';
 import { OverlayTrigger, Tooltip } from 'react-bootstrap';
-import { PopperRef } from 'react-bootstrap/esm/types';
+import { PopperRef } from 'react-bootstrap/types';
 
 function clamp(value: number, min: number, max: number) {
   return Math.max(min, Math.min(max, value));
@@ -67,7 +67,9 @@ export default function DualRangeSlider({
   getTooltipText,
 }: DualRangeSliderProps) {
   const [range, setRange] = useState<[number, number]>(initialValues);
-  const trackRef = useRef<HTMLDivElement>(null);
+  const trackRef = useRef<HTMLDivElement | null>(null);
+  const firstThumbRef = useRef<SliderThumbHandle | null>(null);
+  const secondThumbRef = useRef<SliderThumbHandle | null>(null);
 
   const pointerPositionToValue = (clientX: number) => {
     const track = trackRef.current;
@@ -92,6 +94,27 @@ export default function DualRangeSlider({
     onChange?.(newRange.toSorted() as [number, number]);
   };
 
+  const handleTrackPointerDown: React.PointerEventHandler<HTMLElement> = (
+    e
+  ) => {
+    e.preventDefault(); // Focus should be given to thumb, not track
+
+    const clickedValue = pointerPositionToValue(e.clientX);
+    if (clickedValue < min || clickedValue > max) {
+      return;
+    }
+    const diffFirst = Math.abs(range[0] - clickedValue);
+    const diffSecond = Math.abs(range[1] - clickedValue);
+
+    if (diffFirst <= diffSecond) {
+      setRange((state) => [clickedValue, state[1]]);
+      firstThumbRef.current?.triggerClick(e);
+    } else {
+      setRange((state) => [state[0], clickedValue]);
+      secondThumbRef.current?.triggerClick(e);
+    }
+  };
+
   const thumbs = [
     <SliderThumb
       key={0}
@@ -100,6 +123,7 @@ export default function DualRangeSlider({
       max={max}
       step={step}
       disabled={disabled}
+      ref={firstThumbRef}
       onMove={(val) => handleMove(0, val)}
       setValue={(val) => setRange([clamp(val, min, max), range[1]])}
       getTooltipText={getTooltipText}
@@ -112,6 +136,7 @@ export default function DualRangeSlider({
       max={max}
       step={step}
       disabled={disabled}
+      ref={secondThumbRef}
       onMove={(val) => handleMove(1, val)}
       setValue={(val) => setRange([range[0], clamp(val, min, max)])}
       getTooltipText={getTooltipText}
@@ -123,6 +148,7 @@ export default function DualRangeSlider({
 
   return (
     <div
+      onPointerDown={handleTrackPointerDown}
       ref={trackRef}
       draggable="false"
       style={{
@@ -191,12 +217,17 @@ export default function DualRangeSlider({
   );
 }
 
+interface SliderThumbHandle {
+  triggerClick: (e: React.PointerEvent<HTMLElement>) => void;
+}
+
 interface SliderThumbProps {
   value: number;
   min: number;
   max: number;
   step: number;
   disabled: boolean;
+  ref: React.RefObject<SliderThumbHandle | null>;
   onMove: (clientX: number) => void;
   setValue: (value: number) => void;
   getTooltipText?: (value: number) => string;
@@ -208,33 +239,79 @@ function SliderThumb({
   max,
   step,
   disabled,
+  ref,
   onMove,
   setValue,
   getTooltipText,
 }: SliderThumbProps) {
+  const [isDragging, setIsDragging] = useState<boolean>(false);
+  const [pointerIds, setPointerIds] = useState<Set<number>>(() => new Set());
+
   const thumbDivRef = useRef<HTMLDivElement | null>(null);
   const popperRef = useRef<PopperRef | null>(null);
 
   useEffect(() => popperRef.current?.scheduleUpdate?.(), [value, min, max]);
 
-  const handlePointerDown: React.PointerEventHandler = (e) =>
-    !disabled && e.currentTarget.setPointerCapture(e.pointerId);
+  useEffect(() => {
+    if (!isDragging || disabled) {
+      return;
+    }
 
-  const handlePointerUp: React.PointerEventHandler = (e) =>
-    !disabled && e.currentTarget.releasePointerCapture(e.pointerId);
+    const handleMove = (e: PointerEvent) => onMove(e.clientX);
+    const handleUp = () => setIsDragging(false);
+    window.addEventListener('pointermove', handleMove);
+    window.addEventListener('pointerup', handleUp);
+    window.addEventListener('pointercancel', handleUp);
 
-  const handlePointerMove: React.PointerEventHandler = (e) => {
-    if (!disabled && e.currentTarget.hasPointerCapture(e.pointerId)) {
-      onMove(e.clientX);
+    return () => {
+      window.removeEventListener('pointermove', handleMove);
+      window.removeEventListener('pointerup', handleUp);
+      window.removeEventListener('pointercancel', handleUp);
+    };
+  }, [isDragging, disabled, onMove]);
+
+  useEffect(() => {
+    if (!isDragging || disabled) {
+      return;
+    }
+
+    const thumbDiv = thumbDivRef.current;
+    if (!thumbDiv) {
+      return;
+    }
+
+    pointerIds.forEach((id) => {
+      try {
+        thumbDiv.setPointerCapture(id);
+      } catch (error) {
+        return;
+      }
+    });
+  });
+
+  const handlePointerDown: React.PointerEventHandler<HTMLElement> = (e) => {
+    setIsDragging(true);
+    setPointerIds((state) => new Set([...state, e.pointerId]));
+    thumbDivRef.current?.focus();
+    thumbDivRef.current?.setPointerCapture(e.pointerId);
+  };
+
+  const handlePointerUp: React.PointerEventHandler<HTMLElement> = (e) => {
+    setPointerIds(
+      (state) => new Set([...state].filter((v) => v !== e.pointerId))
+    );
+    const thumbDiv = thumbDivRef.current;
+    if (thumbDiv && thumbDiv.hasPointerCapture(e.pointerId)) {
+      thumbDiv.releasePointerCapture(e.pointerId);
     }
   };
 
-  const handleKeyDown: React.KeyboardEventHandler<HTMLDivElement> = (event) => {
+  const handleKeyDown: React.KeyboardEventHandler<HTMLElement> = (e) => {
     if (disabled) {
       return;
     }
 
-    switch (event.key) {
+    switch (e.key) {
       case 'ArrowLeft':
         setValue(value - step);
         break;
@@ -256,6 +333,10 @@ function SliderThumb({
     }
   };
 
+  useImperativeHandle(ref, () => ({
+    triggerClick: handlePointerDown,
+  }));
+
   return (
     <>
       <OverlayTrigger
@@ -274,8 +355,8 @@ function SliderThumb({
           onPointerDown={handlePointerDown}
           onPointerUp={handlePointerUp}
           onPointerCancel={handlePointerUp}
-          onPointerMove={handlePointerMove}
           onKeyDown={handleKeyDown}
+          onBlur={() => setIsDragging(false)}
           draggable="false"
           ref={thumbDivRef}
           style={{
@@ -287,47 +368,45 @@ function SliderThumb({
             height: 16,
             transform: 'translate(-50%, -50%)',
             borderRadius: '50%',
+
+            userSelect: 'none',
+            WebkitTouchCallout: 'none',
+            WebkitUserSelect: 'none',
+            MozUserSelect: 'none',
+            msUserSelect: 'none',
+
+            background: 'var(--bs-primary)',
+            transition: 'background-color 0.15s ease-in-out',
+            cursor: 'grab',
+
+            ...(isDragging && {
+              background: '#99ccff',
+              outline: '1px solid #ffffff',
+              cursor: 'grabbing',
+            }),
+
+            ...(disabled && {
+              background: '#6c757d',
+              outline: 'none',
+              cursor: undefined,
+            }),
           }}
         />
       </OverlayTrigger>
 
-      {!disabled ? (
-        <style>{`
-        .dual-range-thumb {
-            background: var(--bs-primary);
-            transition: background-color 0.15s ease-in-out;
-            cursor: grab;
+      <style>
+        {`
+          .dual-range-thumb:focus {
+              border-color: #0000ff;
+              box-shadow: 0 0 0 5px rgba(0, 112, 243, 0.3);
+          }
 
-            -webkit-touch-callout: none !important;
-            -webkit-user-select: none !important;
-            -webkit-user-drag: none !important;
-            -khtml-user-select: none !important;
-            -moz-user-select: none !important;
-            -ms-user-select: none !important;
-            user-select: none !important;
-        }
-
-        .dual-range-thumb:focus {
-            border-color: #0000ff;
-            box-shadow: 0 0 0 5px rgba(0, 112, 243, 0.3);
-        }
-
-        .dual-range-thumb:focus-visible {
+          .dual-range-thumb:focus-visible {
+            background: '#99ccff';
             outline: 1px solid #ffffff;
-        }
-
-        .dual-range-thumb:active {
-            background: #99ccff;
-            outline: 1px solid #ffffff;
-        }
-    `}</style>
-      ) : (
-        <style>{`
-        .dual-range-thumb {
-          background: var(--bs-gray-600);
-        }
-    `}</style>
-      )}
+          }
+          `}
+      </style>
     </>
   );
 }
