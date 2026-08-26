@@ -618,7 +618,7 @@ export default function Visualization() {
             <div className="loading-screen-content">
               {isLandscapeExistentAndEmpty ? (
                 <h2 className="loading-screen-title">
-                  Empty Landscape from Span Service received.
+                  Received empty Landscape from Landscape Service.
                 </h2>
               ) : (
                 <>
