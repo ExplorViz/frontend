@@ -302,41 +302,35 @@ export default function Visualization() {
 
   // # endregion
 
-  // #region Getter
-  const isLandscapeExistentAndEmpty = (() => {
-    return (
-      renderingServiceLandscapeData !== null &&
-      (!renderingServiceLandscapeData.flatLandscapeData ||
-        Object.keys(renderingServiceLandscapeData.flatLandscapeData.cities)
-          .length === 0)
-    );
-  })();
-
-  const allLandscapeDataExistsAndNotEmpty = (() => {
-    return (
-      renderingServiceLandscapeData !== null &&
-      renderingServiceLandscapeData.flatLandscapeData &&
+  // #region Computed values
+  const isLandscapeExistentAndEmpty =
+    renderingServiceLandscapeData !== null &&
+    (!renderingServiceLandscapeData.flatLandscapeData ||
       Object.keys(renderingServiceLandscapeData.flatLandscapeData.cities)
-        .length > 0
-    );
-  })();
+        .length === 0);
 
-  const shouldDisplayBottomBar = () => {
-    return (
-      !showAR &&
-      !showVR &&
-      !isSingleLandscapeMode &&
-      spectateUserSpectateConfigurationId !== 'arena-2'
-    );
-  };
+  const allLandscapeDataExistsAndNotEmpty =
+    renderingServiceLandscapeData !== null &&
+    renderingServiceLandscapeData.flatLandscapeData &&
+    Object.keys(renderingServiceLandscapeData.flatLandscapeData.cities).length >
+      0;
 
-  // const isSingleLandscapeMode = false;
-  const isSingleLandscapeMode = (() => {
-    return (
-      import.meta.env.VITE_ONLY_SHOW_TOKEN.length > 0 &&
-      import.meta.env.VITE_ONLY_SHOW_TOKEN !== 'change-token'
-    );
-  })();
+  const { mode } = useParams();
+
+  const showAR = localUserVisualizationMode === 'ar' || mode === 'ar';
+  const showVR = localUserVisualizationMode === 'vr' || mode === 'vr';
+
+  const isSingleLandscapeMode =
+    import.meta.env.VITE_ONLY_SHOW_TOKEN.length > 0 &&
+    import.meta.env.VITE_ONLY_SHOW_TOKEN !== 'change-token';
+
+  const shouldDisplayBottomBar =
+    !showAR &&
+    !showVR &&
+    !isSingleLandscapeMode &&
+    spectateUserSpectateConfigurationId !== 'arena-2';
+
+  // # endregion
 
   // Countdown timer for loading screen - syncs with actual fetch intervals
   useEffect(() => {
@@ -369,18 +363,6 @@ export default function Visualization() {
       eventEmitter.off(TIMESTAMP_POLLING_START_EVENT, handlePollingStart);
     };
   }, []);
-
-  const { mode } = useParams();
-
-  const showAR = (() => {
-    return localUserVisualizationMode === 'ar' || mode === 'ar';
-  })();
-
-  const showVR = (() => {
-    return localUserVisualizationMode === 'vr' || mode === 'vr';
-  })();
-
-  // # endregion
 
   // #region Setup
   const initRenderingAndSetupListeners = async () => {
@@ -667,7 +649,7 @@ export default function Visualization() {
       </div>
 
       {/* ! Bottom Bar */}
-      {shouldDisplayBottomBar() && (
+      {shouldDisplayBottomBar && (
         <div id="bottom-bar-container">
           <>
             {/* ! Toggle Bottom Bar Button */}
