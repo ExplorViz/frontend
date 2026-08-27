@@ -70,6 +70,9 @@ export default function BrowserRendering({
     (state) => state._landscapeData
   );
   const landscapeToken = useLandscapeTokenStore((state) => state.token);
+  const visualizationSettings = useUserSettingsStore(
+    (state) => state.visualizationSettings
+  );
 
   const configurationActions = useConfigurationStore(
     useShallow((state) => ({
@@ -306,8 +309,7 @@ export default function BrowserRendering({
               </div>
             )}
 
-            {useUserSettingsStore.getState().visualizationSettings
-              .heatmapEnabled.value && <HeatmapInfo />}
+            {visualizationSettings.heatmapEnabled.value && <HeatmapInfo />}
 
             <ContextMenu>
               <CanvasWrapper

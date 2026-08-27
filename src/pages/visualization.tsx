@@ -16,11 +16,8 @@ import { useChatStore } from 'explorviz-frontend/src/stores/chat';
 import { useLocalUserStore } from 'explorviz-frontend/src/stores/collaboration/local-user';
 import { useCommitTreeStateStore } from 'explorviz-frontend/src/stores/commit-tree-state';
 import { useEntityFilteringStore } from 'explorviz-frontend/src/stores/entity-filtering-store';
-import { useImmersiveViewStore } from 'explorviz-frontend/src/stores/immersive-view-store';
-import { useLandscapeRestructureStore } from 'explorviz-frontend/src/stores/landscape-restructure';
 import { useLandscapeTokenStore } from 'explorviz-frontend/src/stores/landscape-token';
 import { useLayoutStore } from 'explorviz-frontend/src/stores/layout-store';
-import { usePopupHandlerStore } from 'explorviz-frontend/src/stores/popup-handler';
 import { useReloadHandlerStore } from 'explorviz-frontend/src/stores/reload-handler';
 import {
   AnalysisMode,
@@ -58,6 +55,9 @@ import globalBundlingService from 'explorviz-frontend/src/view-objects/3d/city/g
 import { HAPSystemManager } from 'explorviz-frontend/src/view-objects/3d/city/hap-system-manager';
 import { Button } from 'react-bootstrap';
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
+import { useImmersiveViewStore } from '../stores/immersive-view-store';
+import { useLandscapeRestructureStore } from '../stores/landscape-restructure';
+import { usePopupHandlerStore } from '../stores/popup-handler';
 import { useDebugSnapshotRepositoryStore } from '../stores/repos/debug-snapshot-repository';
 import { FlatLandscape } from '../utils/landscape-schemes/flat-landscape';
 
@@ -128,83 +128,6 @@ export default function Visualization() {
   const [countdown, setCountdown] = useState<number>(10);
 
   // # endregion
-
-  // #region useEffects
-
-  useEffect(() => {
-    const loadUserAPITokens = async () => {
-      const token = await useUserApiTokenStore.getState().retrieveApiTokens();
-      setUserApiTokens(token);
-    };
-
-    loadUserAPITokens();
-  }, []);
-
-  // Load preset when visualization opens
-  useEffect(() => {
-    const { selectedPreset, loadPreset, listPresets } =
-      useUserSettingsStore.getState();
-    if (selectedPreset) {
-      // Verify preset still exists before loading
-      const presets = listPresets();
-      if (presets.includes(selectedPreset)) {
-        loadPreset(selectedPreset);
-      }
-    }
-  }, []);
-
-  useEffect(() => {
-    if (
-      landscapeTokenServiceToken === null &&
-      !searchParams.get('landscapeToken') &&
-      snapshotToken === null &&
-      !snapshotSelected
-    ) {
-      navigate('/landscapes');
-    }
-
-    return () => {
-      landscapeTokenRemoveToken();
-    };
-  }, []);
-
-  useEffect(() => {
-    const handleRestructureLandscapeData = (
-      flatStructure: FlatLandscape,
-      dynamicData: DynamicLandscapeData
-    ) => {
-      renderingServiceTriggerRenderingForGivenLandscapeData(
-        dynamicData,
-        { metrics: {}, communications: [] },
-        flatStructure
-      );
-    };
-    const handleToggleVisualizationUpdating = () => {
-      renderingServiceToggleVisualizationUpdating();
-    };
-
-    eventEmitter.on('restructureLandscapeData', handleRestructureLandscapeData);
-    eventEmitter.on('toggleVisualization', handleToggleVisualizationUpdating);
-
-    return () => {
-      willDestroy();
-
-      eventEmitter.off(
-        'restructureLandscapeData',
-        handleRestructureLandscapeData
-      );
-      eventEmitter.off(
-        'toggleVisualization',
-        handleToggleVisualizationUpdating
-      );
-    };
-  }, []);
-
-  useEffect(() => {
-    initRenderingAndSetupListeners();
-  }, []);
-
-  // #endregion
 
   // #region Store state declaration
   const renderingServiceToggleVisualizationUpdating = useRenderingServiceStore(
@@ -278,9 +201,6 @@ export default function Visualization() {
     (state) => state.showErrorToastMessage
   );
   const snapshotToken = useSnapshotTokenStore((state) => state.snapshotToken);
-  const visualizationSettings = useUserSettingsStore(
-    (state) => state.visualizationSettings
-  );
   const landscapeTokenServiceToken = useLandscapeTokenStore(
     (state) => state.token
   );
@@ -333,6 +253,228 @@ export default function Visualization() {
 
   // # endregion
 
+  // #region useEffects
+
+  useEffect(() => {
+    const loadUserAPITokens = async () => {
+      const token = await useUserApiTokenStore.getState().retrieveApiTokens();
+      setUserApiTokens(token);
+    };
+
+    loadUserAPITokens();
+  }, []);
+
+  // Load preset when visualization opens
+  useEffect(() => {
+    const { selectedPreset, loadPreset, listPresets } =
+      useUserSettingsStore.getState();
+    if (selectedPreset) {
+      // Verify preset still exists before loading
+      const presets = listPresets();
+      if (presets.includes(selectedPreset)) {
+        loadPreset(selectedPreset);
+      }
+    }
+  }, []);
+
+  useEffect(() => {
+    if (
+      landscapeTokenServiceToken === null &&
+      !searchParams.get('landscapeToken') &&
+      snapshotToken === null &&
+      !snapshotSelected
+    ) {
+      navigate('/landscapes');
+    }
+
+    return () => {
+      landscapeTokenRemoveToken();
+    };
+  }, [
+    landscapeTokenServiceToken,
+    landscapeTokenRemoveToken,
+    navigate,
+    searchParams,
+    snapshotToken,
+    snapshotSelected,
+  ]);
+
+  useEffect(() => {
+    const handleRestructureLandscapeData = (
+      flatStructure: FlatLandscape,
+      dynamicData: DynamicLandscapeData
+    ) => {
+      renderingServiceTriggerRenderingForGivenLandscapeData(
+        flatStructure,
+        dynamicData,
+        { metrics: {}, communications: [], fromUnixNano: 0n, toUnixNano: 0n }
+      );
+    };
+    const handleToggleVisualizationUpdating = () => {
+      renderingServiceToggleVisualizationUpdating();
+    };
+
+    eventEmitter.on('restructureLandscapeData', handleRestructureLandscapeData);
+    eventEmitter.on('toggleVisualization', handleToggleVisualizationUpdating);
+
+    return () => {
+      eventEmitter.off(
+        'restructureLandscapeData',
+        handleRestructureLandscapeData
+      );
+      eventEmitter.off(
+        'toggleVisualization',
+        handleToggleVisualizationUpdating
+      );
+    };
+  }, [
+    renderingServiceToggleVisualizationUpdating,
+    renderingServiceTriggerRenderingForGivenLandscapeData,
+  ]);
+
+  useEffect(() => {
+    const initRenderingAndSetupListeners = async () => {
+      resetVisualizationSessionState({ clearModels: true });
+
+      const tokenFromUrl = searchParams.get('landscapeToken');
+      if (!useLandscapeTokenStore.getState().token && tokenFromUrl) {
+        await useLandscapeTokenStore.getState().setTokenByValue(tokenFromUrl);
+      }
+
+      setLandscapeDataRenderingService(null);
+
+      // set timelineDataObjectHandler where necessary
+      useRenderingServiceStore.setState({
+        _timelineDataObjectHandler: timelineDataObjectHandler,
+      });
+
+      useTimestampRepositoryStore.setState({
+        _timelineDataObjectHandler: timelineDataObjectHandler,
+      });
+
+      setVisualizationPausedRenderingService(false);
+
+      const snapshotOwner = searchParams.get('owner');
+      const snapshotCreatedAt = searchParams.get('createdAt');
+      const isSharedSnapshot = searchParams.get('sharedSnapshot') === 'true';
+      const shouldRestoreSnapshot =
+        snapshotSelected ||
+        (snapshotOwner !== null && snapshotCreatedAt !== null);
+
+      if (shouldRestoreSnapshot) {
+        let loadedSnapshot = useSnapshotTokenStore.getState().snapshotToken;
+
+        if (!loadedSnapshot && snapshotOwner && snapshotCreatedAt) {
+          loadedSnapshot = await useSnapshotTokenStore
+            .getState()
+            .retrieveToken(
+              snapshotOwner,
+              Number(snapshotCreatedAt),
+              isSharedSnapshot
+            );
+        }
+
+        if (loadedSnapshot === null) {
+          useToastHandlerStore
+            .getState()
+            .showErrorToastMessage('Snapshot could not be loaded');
+          navigate('/landscapes');
+          return;
+        }
+
+        useSnapshotTokenStore.setState({
+          snapshotToken: loadedSnapshot,
+          snapshotSelected: true,
+        });
+        useLandscapeTokenStore.setState({
+          token: loadedSnapshot.landscapeToken,
+        });
+
+        await restoreSnapshotFromToken(loadedSnapshot);
+        return;
+      }
+
+      restartTimestampPollingAndVizUpdate([]);
+
+      // Fetch repositories for evolution mode
+      await fetchAndStoreRepositoryCommitTrees();
+
+      const repoNameCommitTreeMap =
+        useEvolutionDataRepositoryStore.getState()._repoNameCommitTreeMap;
+
+      const commitTreeState = useCommitTreeStateStore.getState();
+      if (
+        commitTreeState.getSelectedCommits().size === 0 &&
+        applyNewestCommitSelectionToState()
+      ) {
+        markNewestCommitAutoSelectedForCurrentLandscape();
+      }
+
+      let showEvolutionVisualization = false;
+
+      const updatedCommitTreeState = useCommitTreeStateStore.getState();
+      const selectedRepo =
+        updatedCommitTreeState.getCurrentSelectedRepositoryName();
+      const selectedCommitsForCurrentSelectedRepo = updatedCommitTreeState
+        .getSelectedCommits()
+        .get(selectedRepo);
+      const initialCommit1 =
+        selectedCommitsForCurrentSelectedRepo &&
+        selectedCommitsForCurrentSelectedRepo.length > 0
+          ? selectedCommitsForCurrentSelectedRepo[0].commitId
+          : undefined;
+      const initialCommit2 =
+        selectedCommitsForCurrentSelectedRepo &&
+        selectedCommitsForCurrentSelectedRepo.length > 1
+          ? selectedCommitsForCurrentSelectedRepo[1].commitId
+          : undefined;
+      setCommit1(initialCommit1);
+      setCommit2(initialCommit2);
+
+      // check what kind of rendering we should start
+      if (initialCommit1 && initialCommit1.length > 0) {
+        showEvolutionVisualization = setDefaultState(
+          repoNameCommitTreeMap,
+          initialCommit1,
+          initialCommit2
+        );
+
+        // Check which bottom bar should be displayed by default
+        if (bottomBar.current === 'runtime') {
+          setIsRuntimeTimelineSelected(true);
+          setIsCommitTreeSelected(false);
+        } else {
+          setIsRuntimeTimelineSelected(false);
+          setIsCommitTreeSelected(true);
+        }
+      }
+
+      if (showEvolutionVisualization) {
+        await renderingServiceTriggerRenderingForSelectedCommits();
+      } else {
+        applyRuntimeVisualizationDefaults();
+        restartTimestampPollingAndVizUpdate([]);
+      }
+    };
+
+    initRenderingAndSetupListeners();
+
+    return () => {
+      useCommitTreeStateStore.getState().resetSelectedCommits();
+      resetVisualizationSessionState({ clearModels: true });
+
+      useEvolutionDataRepositoryStore.getState().resetAllEvolutionData();
+      useImmersiveViewStore.getState().exitImmersive();
+      useLandscapeRestructureStore.getState().resetLandscapeRestructure();
+      usePopupHandlerStore.getState().cleanup();
+      useRenderingServiceStore.getState().resetAllRenderingStates();
+      useTimestampPollingStore.getState().resetState();
+      useTimestampRepositoryStore.getState().resetState();
+
+      setVisualizationMode('browser');
+    };
+  }, []);
+
   // Countdown timer for loading screen - syncs with actual fetch intervals
   useEffect(() => {
     if (!allLandscapeDataExistsAndNotEmpty && !isLandscapeExistentAndEmpty) {
@@ -358,130 +500,7 @@ export default function Visualization() {
     };
   }, []);
 
-  // #region Setup
-  const initRenderingAndSetupListeners = async () => {
-    resetVisualizationSessionState({ clearModels: true });
-
-    const tokenFromUrl = searchParams.get('landscapeToken');
-    if (!useLandscapeTokenStore.getState().token && tokenFromUrl) {
-      await useLandscapeTokenStore.getState().setTokenByValue(tokenFromUrl);
-    }
-
-    setLandscapeDataRenderingService(null);
-
-    // set timelineDataObjectHandler where necessary
-    useRenderingServiceStore.setState({
-      _timelineDataObjectHandler: timelineDataObjectHandler,
-    });
-
-    useTimestampRepositoryStore.setState({
-      _timelineDataObjectHandler: timelineDataObjectHandler,
-    });
-
-    setVisualizationPausedRenderingService(false);
-
-    const snapshotOwner = searchParams.get('owner');
-    const snapshotCreatedAt = searchParams.get('createdAt');
-    const isSharedSnapshot = searchParams.get('sharedSnapshot') === 'true';
-    const shouldRestoreSnapshot =
-      snapshotSelected ||
-      (snapshotOwner !== null && snapshotCreatedAt !== null);
-
-    if (shouldRestoreSnapshot) {
-      let loadedSnapshot = useSnapshotTokenStore.getState().snapshotToken;
-
-      if (!loadedSnapshot && snapshotOwner && snapshotCreatedAt) {
-        loadedSnapshot = await useSnapshotTokenStore
-          .getState()
-          .retrieveToken(
-            snapshotOwner,
-            Number(snapshotCreatedAt),
-            isSharedSnapshot
-          );
-      }
-
-      if (loadedSnapshot === null) {
-        useToastHandlerStore
-          .getState()
-          .showErrorToastMessage('Snapshot could not be loaded');
-        navigate('/landscapes');
-        return;
-      }
-
-      useSnapshotTokenStore.setState({
-        snapshotToken: loadedSnapshot,
-        snapshotSelected: true,
-      });
-      useLandscapeTokenStore.setState({
-        token: loadedSnapshot.landscapeToken,
-      });
-
-      await restoreSnapshotFromToken(loadedSnapshot);
-      return;
-    }
-
-    restartTimestampPollingAndVizUpdate([]);
-
-    // Fetch repositories for evolution mode
-    await fetchAndStoreRepositoryCommitTrees();
-
-    const repoNameCommitTreeMap =
-      useEvolutionDataRepositoryStore.getState()._repoNameCommitTreeMap;
-
-    const commitTreeState = useCommitTreeStateStore.getState();
-    if (
-      commitTreeState.getSelectedCommits().size === 0 &&
-      applyNewestCommitSelectionToState()
-    ) {
-      markNewestCommitAutoSelectedForCurrentLandscape();
-    }
-
-    let showEvolutionVisualization = false;
-
-    const updatedCommitTreeState = useCommitTreeStateStore.getState();
-    const selectedRepo =
-      updatedCommitTreeState.getCurrentSelectedRepositoryName();
-    const selectedCommitsForCurrentSelectedRepo = updatedCommitTreeState
-      .getSelectedCommits()
-      .get(selectedRepo);
-    const initialCommit1 =
-      selectedCommitsForCurrentSelectedRepo &&
-      selectedCommitsForCurrentSelectedRepo.length > 0
-        ? selectedCommitsForCurrentSelectedRepo[0].commitId
-        : undefined;
-    const initialCommit2 =
-      selectedCommitsForCurrentSelectedRepo &&
-      selectedCommitsForCurrentSelectedRepo.length > 1
-        ? selectedCommitsForCurrentSelectedRepo[1].commitId
-        : undefined;
-    setCommit1(initialCommit1);
-    setCommit2(initialCommit2);
-
-    // check what kind of rendering we should start
-    if (initialCommit1 && initialCommit1.length > 0) {
-      showEvolutionVisualization = setDefaultState(
-        repoNameCommitTreeMap,
-        initialCommit1,
-        initialCommit2
-      );
-
-      // Check which bottom bar should be displayed by default
-      if (bottomBar.current === 'runtime') {
-        setIsRuntimeTimelineSelected(true);
-        setIsCommitTreeSelected(false);
-      } else {
-        setIsRuntimeTimelineSelected(false);
-        setIsCommitTreeSelected(true);
-      }
-    }
-
-    if (showEvolutionVisualization) {
-      await renderingServiceTriggerRenderingForSelectedCommits();
-    } else {
-      applyRuntimeVisualizationDefaults();
-      restartTimestampPollingAndVizUpdate([]);
-    }
-  };
+  // #endregion
 
   // #region Event Handlers
 
@@ -527,25 +546,6 @@ export default function Visualization() {
         setIsSocialMetricsSelected(false);
         break;
     }
-  };
-
-  // #endregion
-
-  // #region Cleanup
-
-  const willDestroy = () => {
-    useCommitTreeStateStore.getState().resetSelectedCommits();
-    resetVisualizationSessionState({ clearModels: true });
-
-    useEvolutionDataRepositoryStore.getState().resetAllEvolutionData();
-    useImmersiveViewStore.getState().exitImmersive();
-    useLandscapeRestructureStore.getState().resetLandscapeRestructure();
-    usePopupHandlerStore.getState().cleanup();
-    useRenderingServiceStore.getState().resetAllRenderingStates();
-    useTimestampPollingStore.getState().resetState();
-    useTimestampRepositoryStore.getState().resetState();
-
-    setVisualizationMode('browser');
   };
 
   // #endregion
