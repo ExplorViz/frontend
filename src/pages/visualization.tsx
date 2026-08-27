@@ -111,8 +111,9 @@ export default function Visualization() {
     useState<boolean>(false);
   const [vrSupported, setVrSupported] = useState<boolean>(false);
   const [vrButtonText, setVrButtonText] = useState<string>('');
-  const [timelineDataObjectHandler, setTimelineDataObjectHandler] =
-    useState<TimelineDataObjectHandler>(new TimelineDataObjectHandler()); //(null);
+  const [timelineDataObjectHandler] = useState<TimelineDataObjectHandler>(
+    () => new TimelineDataObjectHandler()
+  );
   const timelineUpdateVersion = useRenderingServiceStore(
     (state) => state.timelineUpdateVersion
   );
@@ -154,7 +155,6 @@ export default function Visualization() {
     }
   }, []);
 
-  // beforeModel equivalent
   useEffect(() => {
     if (
       landscapeTokenServiceToken === null &&
@@ -337,15 +337,8 @@ export default function Visualization() {
     if (!allLandscapeDataExistsAndNotEmpty && !isLandscapeExistentAndEmpty) {
       // Start countdown from 10 when loading screen appears
       setCountdown(10);
-
-      const interval = setInterval(() => {
-        setCountdown((prev) => {
-          if (prev <= 0) {
-            return 10; // Reset to 10 when it reaches 0
-          }
-          return prev - 1;
-        });
-      }, 1000);
+      const countdownTick = () => setCountdown((c) => (c <= 0 ? 10 : c - 1));
+      const interval = setInterval(countdownTick, 1000);
 
       return () => clearInterval(interval);
     }
@@ -423,13 +416,10 @@ export default function Visualization() {
       });
 
       await restoreSnapshotFromToken(loadedSnapshot);
-    } else {
-      restartTimestampPollingAndVizUpdate([]);
-    }
-
-    if (shouldRestoreSnapshot) {
       return;
     }
+
+    restartTimestampPollingAndVizUpdate([]);
 
     // Fetch repositories for evolution mode
     await fetchAndStoreRepositoryCommitTrees();
@@ -438,10 +428,11 @@ export default function Visualization() {
       useEvolutionDataRepositoryStore.getState()._repoNameCommitTreeMap;
 
     const commitTreeState = useCommitTreeStateStore.getState();
-    if (commitTreeState.getSelectedCommits().size === 0) {
-      if (applyNewestCommitSelectionToState()) {
-        markNewestCommitAutoSelectedForCurrentLandscape();
-      }
+    if (
+      commitTreeState.getSelectedCommits().size === 0 &&
+      applyNewestCommitSelectionToState()
+    ) {
+      markNewestCommitAutoSelectedForCurrentLandscape();
     }
 
     let showEvolutionVisualization = false;

@@ -162,7 +162,7 @@ export const useUserSettingsStore = create<UserSettingsState>()(
       },
 
       setColorScheme: (schemeId: ColorSchemeId) => {
-        let scheme = defaultColors;
+        let scheme;
 
         switch (schemeId) {
           case 'classic':
