@@ -21,16 +21,13 @@ import { useIdeWebsocketStore } from 'explorviz-frontend/src/ide/ide-websocket';
 import { useAnnotationHandlerStore } from 'explorviz-frontend/src/stores/annotation-handler';
 import { usePlayroomConnectionStore } from 'explorviz-frontend/src/stores/collaboration/playroom-connection-store';
 import { useConfigurationStore } from 'explorviz-frontend/src/stores/configuration';
-import { LandscapeToken } from 'explorviz-frontend/src/stores/landscape-token';
+import { useLandscapeTokenStore } from 'explorviz-frontend/src/stores/landscape-token';
 import { usePopupHandlerStore } from 'explorviz-frontend/src/stores/popup-handler';
-import { SnapshotToken } from 'explorviz-frontend/src/stores/snapshot-token';
+import { useRenderingServiceStore } from 'explorviz-frontend/src/stores/rendering-service';
 import { ApiToken } from 'explorviz-frontend/src/stores/user-api-token';
 import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
 import GamepadControls from 'explorviz-frontend/src/utils/controls/gamepad/gamepad-controls';
 import eventEmitter from 'explorviz-frontend/src/utils/event-emitter';
-import { LandscapeData } from 'explorviz-frontend/src/utils/landscape-schemes/landscape-data';
-import { StructureLandscapeData } from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
-import { DynamicLandscapeData } from 'explorviz-frontend/src/utils/landscape-schemes/telemetry/traces';
 import { useEffect, useRef, useState } from 'react';
 import Button from 'react-bootstrap/Button';
 import { useShallow } from 'zustand/react/shallow';
@@ -60,34 +57,28 @@ import AnnotationCoordinator from './annotations/annotation-coordinator';
 import Popups from './popups/popups';
 
 interface BrowserRenderingProps {
-  readonly id: string;
-  readonly landscapeData: LandscapeData | null;
-  readonly landscapeToken: LandscapeToken;
   readonly userApiTokens: ApiToken[];
   readonly visualizationPaused: boolean;
-  readonly snapshot: boolean | undefined | null;
-  readonly snapshotReload: SnapshotToken | undefined | null;
-  toggleVisualizationUpdating(): void;
-  switchToAR(): void;
-  restructureLandscape(
-    structureData: StructureLandscapeData,
-    dynamicData: DynamicLandscapeData
-  ): void;
 }
 
 export default function BrowserRendering({
-  landscapeData,
-  landscapeToken,
   userApiTokens,
   visualizationPaused,
-  toggleVisualizationUpdating,
-  restructureLandscape,
 }: BrowserRenderingProps) {
   // MARK: Stores
+  const landscapeData = useRenderingServiceStore(
+    (state) => state._landscapeData
+  );
+  const landscapeToken = useLandscapeTokenStore((state) => state.token);
+
   const configurationActions = useConfigurationStore(
     useShallow((state) => ({
       setIsCommRendered: state.setIsCommRendered,
     }))
+  );
+
+  const toggleVisualizationUpdating = useRenderingServiceStore(
+    (state) => state.toggleVisualizationUpdating
   );
 
   const popupHandlerActions = usePopupHandlerStore(
@@ -409,7 +400,7 @@ export default function BrowserRendering({
                             Git Repository Analysis
                           </h5>
                           <CodeAnalysisSection
-                            landscapeToken={landscapeToken.value}
+                            landscapeToken={landscapeToken?.value}
                           />
                         </>
                       )}

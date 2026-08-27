@@ -109,8 +109,6 @@ export default function Visualization() {
   const [userApiTokens, setUserApiTokens] = useState<ApiToken[]>([]);
   const [visualizationPaused, setVisualizationPaused] =
     useState<boolean>(false);
-  const [vrSupported, setVrSupported] = useState<boolean>(false);
-  const [vrButtonText, setVrButtonText] = useState<string>('');
   const [timelineDataObjectHandler] = useState<TimelineDataObjectHandler>(
     () => new TimelineDataObjectHandler()
   );
@@ -225,10 +223,6 @@ export default function Visualization() {
     useRenderingServiceStore(
       (state) => state.triggerRenderingForSelectedCommits
     );
-  const renderingServiceTriggerRenderingForGivenTimestamp =
-    useRenderingServiceStore(
-      (state) => state.triggerRenderingForGivenTimestamps
-    );
   const renderingServiceTriggerRenderingForGivenLandscapeData =
     useRenderingServiceStore(
       (state) => state.triggerRenderingForGivenLandscapeData
@@ -296,6 +290,7 @@ export default function Visualization() {
   const snapshotSelected = useSnapshotTokenStore(
     (state) => state.snapshotSelected
   );
+
   const currentSelectedRepositoryName = useCommitTreeStateStore(
     (state) => state._currentSelectedRepositoryName
   );
@@ -329,6 +324,12 @@ export default function Visualization() {
     !showVR &&
     !isSingleLandscapeMode &&
     spectateUserSpectateConfigurationId !== 'arena-2';
+
+  const bottomChartView: BottomBarChartView = isRuntimeTimelineSelected
+    ? 'runtime-chart'
+    : isSocialMetricsSelected
+      ? 'social-metrics'
+      : 'commit-chart';
 
   // # endregion
 
@@ -484,11 +485,6 @@ export default function Visualization() {
 
   // #region Event Handlers
 
-  // collaboration start
-  // user handling end
-
-  // #endregion
-
   const refreshCommitTreeData = async () => {
     if (isCommitTreeRefreshing) {
       return;
@@ -512,17 +508,6 @@ export default function Visualization() {
     }
   };
 
-  // #region Template Action
-  const getBottomBarChartView = (): BottomBarChartView => {
-    if (isRuntimeTimelineSelected) {
-      return 'runtime-chart';
-    }
-    if (isSocialMetricsSelected) {
-      return 'social-metrics';
-    }
-    return 'commit-chart';
-  };
-
   const selectBottomBarChartView = (view: BottomBarChartView) => {
     switch (view) {
       case 'runtime-chart':
@@ -542,10 +527,6 @@ export default function Visualization() {
         setIsSocialMetricsSelected(false);
         break;
     }
-  };
-
-  const toggleVisibilityBottomBar = () => {
-    setIsBottomBarMaximized(!isBottomBarMaximized);
   };
 
   // #endregion
@@ -568,6 +549,8 @@ export default function Visualization() {
   };
 
   // #endregion
+
+  // #region Rendering
 
   // Use minimal setup for AR/VR
   if (
@@ -623,17 +606,6 @@ export default function Visualization() {
         )}
 
         <BrowserRendering
-          components={[]}
-          componentsToolsSidebar={[]}
-          id="browser-rendering"
-          isDisplayed={true}
-          landscapeData={renderingServiceLandscapeData}
-          landscapeToken={landscapeTokenServiceToken}
-          snapshot={snapshotSelected}
-          snapshotReload={snapshotToken}
-          toggleVisualizationUpdating={
-            renderingServiceToggleVisualizationUpdating
-          }
           userApiTokens={userApiTokens}
           visualizationPaused={visualizationPaused}
         />
@@ -645,7 +617,7 @@ export default function Visualization() {
           <>
             {/* ! Toggle Bottom Bar Button */}
             <Button
-              onClick={toggleVisibilityBottomBar}
+              onClick={() => setIsBottomBarMaximized((state) => !state)}
               variant="secondary"
               className="bottom-bar-toggle-btn"
               title={
@@ -673,7 +645,7 @@ export default function Visualization() {
                 ${!isBottomBarMaximized ? 'bottom-bar-chart-hide' : ''}`}
             >
               <BottomBarChartDropdown
-                selectedView={getBottomBarChartView()}
+                selectedView={bottomChartView}
                 onSelectView={selectBottomBarChartView}
               />
 
@@ -760,4 +732,6 @@ export default function Visualization() {
       <PlayPauseButton />
     </>
   );
+
+  // #endregion
 }
