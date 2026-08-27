@@ -7,15 +7,14 @@ export function isBuildingHiddenByClosedDistrictAncestor(
   closedDistrictIds: Set<string>
 ): boolean {
   let parentDistrictId = building.parentDistrictId;
+  const districts = useModelStore.getState().districts;
 
   while (parentDistrictId) {
     if (isDistrictClosed(parentDistrictId, closedDistrictIds)) {
       return true;
     }
 
-    const parentDistrict = useModelStore
-      .getState()
-      .getDistrict(parentDistrictId);
+    const parentDistrict = districts[parentDistrictId];
     if (!parentDistrict) {
       break;
     }

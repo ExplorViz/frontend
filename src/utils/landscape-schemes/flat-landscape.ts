@@ -246,3 +246,51 @@ export function getFunctionIdToBuildingMap(flatLandscape: FlatLandscape) {
 
   return functionIdToBuildingMap;
 }
+
+/**
+ * Order-independent hash over all entity ids. Sorting the ids and joining them
+ * into one string produced a multi-megabyte allocation on every landscape
+ * update, while only ever being compared against the previous signature.
+ */
+function hashFlatLandscapeEntityIds(flatLandscape: FlatLandscape): string {
+  let sum = 0;
+  let mixed = 0;
+
+  for (const value of Object.values(flatLandscape)) {
+    if (typeof value !== 'object' || value === null || Array.isArray(value)) {
+      continue;
+    }
+
+    for (const entity of Object.values(
+      value as Record<string, { id?: string }>
+    )) {
+      const id = entity?.id;
+      if (id === undefined) {
+        continue;
+      }
+
+      let idHash = 0x811c9dc5;
+      for (let i = 0; i < id.length; i++) {
+        idHash ^= id.charCodeAt(i);
+        idHash = Math.imul(idHash, 0x01000193);
+      }
+      sum = (sum + idHash) | 0;
+      mixed = (mixed + Math.imul(idHash ^ (idHash >>> 15), 0x2545f491)) | 0;
+    }
+  }
+
+  return `${sum >>> 0}.${mixed >>> 0}`;
+}
+
+export function getFlatLandscapeStructureSignature(
+  flatLandscape: FlatLandscape
+): string {
+  const buildingCount = Object.keys(flatLandscape.buildings).length;
+  const districtCount = Object.keys(flatLandscape.districts).length;
+  const containedDistrictCount = Object.values(flatLandscape.cities).reduce(
+    (count, city) => count + city.allContainedDistrictIds.length,
+    0
+  );
+
+  return `${hashFlatLandscapeEntityIds(flatLandscape)}|b:${buildingCount}|d:${districtCount}|cd:${containedDistrictCount}`;
+}

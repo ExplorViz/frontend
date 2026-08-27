@@ -3,7 +3,7 @@ import { useRenderingServiceStore } from 'explorviz-frontend/src/stores/renderin
 import { useVisibilityServiceStore } from 'explorviz-frontend/src/stores/visibility-service';
 import { ALL_BUILDING_COMPARISONS_VISIBLE } from 'explorviz-frontend/src/utils/city-rendering/building-comparison-visibility';
 import { FlatLandscape } from 'explorviz-frontend/src/utils/landscape-schemes/flat-landscape';
-import { buildMergedFlatLandscape } from './evolution-frame-visuals';
+import { invalidateLayoutCache } from 'explorviz-frontend/src/utils/layout/elk-layouter';
 
 export const EVOLUTION_ANIMATION_RENDER_CONFIG = {
   renderDynamic: false,
@@ -43,17 +43,17 @@ export function applySkeletonLayout(stableFrame?: FlatLandscape | null) {
     stableFrame ?? useEvolutionAnimationStore.getState().stableFrame;
   if (!frame) return;
 
+  invalidateLayoutCache();
   applyEvolutionRenderingConfig();
   triggerEvolutionLandscapeRendering(frame);
 }
 
-export function applyAnimationFrameLayout(): boolean{
+export function applyAnimationFrameLayout(): boolean {
   const store = useEvolutionAnimationStore.getState();
-  const mergedFrame = buildMergedFlatLandscape(store);
-  if (!mergedFrame) return false;
+  if (!store.stableFrame || store.totalCount === 0) {
+    return false;
+  }
 
-  applyEvolutionRenderingConfig();
-  triggerEvolutionLandscapeRendering(mergedFrame);
   store.actions.reapplyCurrentFrameVisuals();
   return true;
 }

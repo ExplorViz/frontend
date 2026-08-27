@@ -114,6 +114,7 @@ export default function CanvasWrapper({
 
   const hapSystemManager = HAPSystemManager.getInstance();
   const lastFlatLandscapeIdsRef = useRef<string[]>([]);
+  const layoutGenerationRef = useRef(0);
 
   const directionalLightRef = useRef(null);
 
@@ -427,11 +428,20 @@ export default function CanvasWrapper({
   const updateLayout = useCallback(async () => {
     if (!landscapeData) return;
 
+    const generation = ++layoutGenerationRef.current;
     const layoutMap = await layoutLandscape(
       landscapeData.flatLandscapeData,
       removedDistrictIds
     );
-    useLayoutStore.getState().updateLayouts(layoutMap);
+    if (generation !== layoutGenerationRef.current) {
+      return;
+    }
+    // Pass the structure along: on first load the model store is not populated
+    // yet, and without it every entity type resolves to null and the layouts
+    // are dropped.
+    useLayoutStore
+      .getState()
+      .updateLayouts(layoutMap, landscapeData.flatLandscapeData);
   }, [landscapeData, removedDistrictIds]);
 
   useEffect(() => {

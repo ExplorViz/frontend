@@ -13,26 +13,12 @@ import {
 import { areArraysEqual } from 'explorviz-frontend/src/utils/helpers/array-helpers';
 import {
   FlatLandscape,
-  getAllIdsOfFlatLandscape,
+  getFlatLandscapeStructureSignature,
 } from 'explorviz-frontend/src/utils/landscape-schemes/flat-landscape';
 import { LandscapeData } from 'explorviz-frontend/src/utils/landscape-schemes/landscape-data';
 import { DynamicLandscapeData } from 'explorviz-frontend/src/utils/landscape-schemes/telemetry/traces';
 import layoutLandscape from 'explorviz-frontend/src/utils/layout/elk-layouter';
 import { tryApplyPendingSerializedRoom } from 'explorviz-frontend/src/utils/snapshot/snapshot-helpers';
-
-function getFlatLandscapeStructureSignature(
-  flatLandscape: FlatLandscape
-): string {
-  const ids = getAllIdsOfFlatLandscape(flatLandscape).sort().join('\0');
-  const buildingCount = Object.keys(flatLandscape.buildings).length;
-  const districtCount = Object.keys(flatLandscape.districts).length;
-  const containedDistrictCount = Object.values(flatLandscape.cities).reduce(
-    (count, city) => count + city.allContainedDistrictIds.length,
-    0
-  );
-
-  return `${ids}|b:${buildingCount}|d:${districtCount}|cd:${containedDistrictCount}`;
-}
 
 export default function useLandscapeDataWatcher(
   landscapeData: LandscapeData | null
@@ -50,7 +36,17 @@ export default function useLandscapeDataWatcher(
   const lastProcessedDynamicData = useRef<DynamicLandscapeData | null>(null);
   const lastProcessedFlatLandscapeSignature = useRef<string>('');
   const lastProcessedLandscapeData = useRef<LandscapeData | null>(null);
+  const lastSignedFlatLandscape = useRef<FlatLandscape | null>(null);
+  const lastSignature = useRef<string>('');
   const layoutGenerationRef = useRef(0);
+
+  const getCachedStructureSignature = (flatLandscape: FlatLandscape) => {
+    if (lastSignedFlatLandscape.current !== flatLandscape) {
+      lastSignedFlatLandscape.current = flatLandscape;
+      lastSignature.current = getFlatLandscapeStructureSignature(flatLandscape);
+    }
+    return lastSignature.current;
+  };
 
   const handleLandscapeUpdate = useCallback(async () => {
     const generation = ++layoutGenerationRef.current;
@@ -122,27 +118,23 @@ export default function useLandscapeDataWatcher(
     }
 
     const currentFlatLandscapeSignature =
-      getFlatLandscapeStructureSignature(flatLandscapeData);
+      getCachedStructureSignature(flatLandscapeData);
 
     const flatChanged =
       currentFlatLandscapeSignature !==
       lastProcessedFlatLandscapeSignature.current;
 
-    const dynamicChanged = !areArraysEqual(
-      dynamicLandscapeData,
-      lastProcessedDynamicData.current
-    );
-
     const landscapeChanged =
       landscapeData !== lastProcessedLandscapeData.current;
 
-    if (!flatChanged && !dynamicChanged) {
-      if (landscapeChanged) {
-        lastProcessedLandscapeData.current = landscapeData;
-        lastProcessedFlatLandscapeSignature.current =
-          currentFlatLandscapeSignature;
-        handleLandscapeUpdate();
-      }
+    // Deep-comparing the traces is expensive, so only fall back to it when the
+    // cheap checks did not already tell us that an update is due.
+    const dynamicChanged =
+      !landscapeChanged &&
+      !flatChanged &&
+      !areArraysEqual(dynamicLandscapeData, lastProcessedDynamicData.current);
+
+    if (!landscapeChanged && !flatChanged && !dynamicChanged) {
       return;
     }
 

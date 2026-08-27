@@ -32,7 +32,7 @@ export default function LandscapeR3F({
   const raycastNear = settings.raycastNear.value;
   const raycastFar = settings.raycastFar.value;
 
-  const layout = useLayoutStore().getLandscapeLayout();
+  const layout = useLayoutStore((state) => state.landscapeLayout);
 
   useEffect(() => {
     if (layout) {

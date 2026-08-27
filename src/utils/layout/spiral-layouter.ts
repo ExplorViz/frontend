@@ -1,12 +1,11 @@
+import { useEvolutionAnimationStore } from 'explorviz-frontend/src/components/visualization/page-setup/bottom-bar/animation/evolution-animation-store.ts';
 import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
 import {
+  Building,
   City,
   FlatLandscape,
 } from 'explorviz-frontend/src/utils/landscape-schemes/flat-landscape';
 import BoxLayout from 'explorviz-frontend/src/utils/layout/box-layout';
-import {
-  useEvolutionAnimationStore
-} from 'explorviz-frontend/src/components/visualization/page-setup/bottom-bar/animation/evolution-animation-store.ts';
 
 type SpiralState = {
   x: number;
@@ -21,6 +20,51 @@ type SpiralState = {
 type SpiralConfig = {
   segmentAddition: number;
 };
+
+function collectCityBuildings(
+  flatLandscape: FlatLandscape,
+  city: City
+): Building[] {
+  const buildingsById = new Map<string, Building>();
+
+  for (const buildingId of city.allContainedBuildingIds) {
+    const building = flatLandscape.buildings[buildingId];
+    if (building) {
+      buildingsById.set(buildingId, building);
+    }
+  }
+
+  // Skeleton cities can lag behind flatLandscape.buildings during evolution
+  // animation, so also pick up buildings linked by parentCityId.
+  for (const building of Object.values(flatLandscape.buildings)) {
+    if (building.parentCityId === city.id) {
+      buildingsById.set(building.id, building);
+    }
+  }
+
+  const { fqnToFirstFrame } = useEvolutionAnimationStore.getState();
+
+  return [...buildingsById.values()]
+    .map((building) => ({
+      building,
+      first: fqnToFirstFrame.get(building.fqn ?? '') ?? Infinity,
+      name: building.fqn ?? building.name,
+    }))
+    .sort((a, b) => {
+      if (a.first !== b.first) {
+        return a.first - b.first;
+      }
+      return a.name < b.name ? -1 : a.name > b.name ? 1 : 0;
+    })
+    .map((entry) => entry.building);
+}
+
+export function countCityBuildings(
+  flatLandscape: FlatLandscape,
+  city: City
+): number {
+  return collectCityBuildings(flatLandscape, city).length;
+}
 
 function advanceInSpiral(
   spiralState: SpiralState,
@@ -118,23 +162,7 @@ export function applySpiralLayoutToClasses(
     }
 
     // Get all buildings in this city
-    const { fqnToFirstFrame } = useEvolutionAnimationStore.getState();
-    const buildings = city.allContainedBuildingIds
-      .map((id) => flatLandscape.buildings[id])
-      .filter((building) => building !== undefined)
-      .map((building) => ({
-        building,
-        first: fqnToFirstFrame.get(building.fqn ?? '') ?? Infinity,
-        name: building.fqn ?? building.name,
-      }))
-      .sort((a, b) => {
-        if (a.first !== b.first) {
-          return a.first - b.first;
-        }
-        return a.name < b.name ? -1 : a.name > b.name ? 1 : 0;
-      })
-      .map((entry) => entry.building);
-
+    const buildings = collectCityBuildings(flatLandscape, city);
 
     if (buildings.length === 0) {
       return;

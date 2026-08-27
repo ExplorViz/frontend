@@ -28,6 +28,28 @@ interface LayoutStoreState {
   clearLayouts: () => void;
 }
 
+/**
+ * Layouts are never mutated in place once stored, so comparing entries by
+ * identity is enough to tell whether a rebuilt map carries new information.
+ */
+function hasSameEntries(
+  a: Map<string, BoxLayout>,
+  b: Map<string, BoxLayout>
+): boolean {
+  if (a === b) {
+    return true;
+  }
+  if (a.size !== b.size) {
+    return false;
+  }
+  for (const [entityId, layout] of a) {
+    if (b.get(entityId) !== layout) {
+      return false;
+    }
+  }
+  return true;
+}
+
 export const useLayoutStore = create<LayoutStoreState>((set, get) => ({
   landscapeLayout: null,
   cityLayouts: new Map<string, BoxLayout>(),
@@ -41,6 +63,7 @@ export const useLayoutStore = create<LayoutStoreState>((set, get) => ({
     flatLandscape?: FlatLandscape
   ) => {
     const modelStore = useModelStore.getState();
+    const previous = get();
     const landscapeLayout = boxLayoutMap.get('landscape') || null;
 
     const cityLayouts = new Map<string, BoxLayout>();
@@ -86,12 +109,49 @@ export const useLayoutStore = create<LayoutStoreState>((set, get) => ({
       maxDistrictDepth = maxLevel !== -Infinity ? maxLevel : null;
     }
 
+    // Keep the previous map objects whenever the contents are unchanged.
+    // Consumers such as the instanced district/building meshes and the cluster
+    // centroids key off map identity, so handing them a fresh map makes them
+    // discard and rebuild GPU instances on a no-op layout refresh.
+    const nextCityLayouts = hasSameEntries(cityLayouts, previous.cityLayouts)
+      ? previous.cityLayouts
+      : cityLayouts;
+    const nextDistrictLayouts = hasSameEntries(
+      districtLayouts,
+      previous.districtLayouts
+    )
+      ? previous.districtLayouts
+      : districtLayouts;
+    const nextBuildingLayouts = hasSameEntries(
+      buildingLayouts,
+      previous.buildingLayouts
+    )
+      ? previous.buildingLayouts
+      : buildingLayouts;
+    const nextFullLayoutMap = hasSameEntries(
+      boxLayoutMap,
+      previous.fullLayoutMap
+    )
+      ? previous.fullLayoutMap
+      : boxLayoutMap;
+
+    if (
+      nextCityLayouts === previous.cityLayouts &&
+      nextDistrictLayouts === previous.districtLayouts &&
+      nextBuildingLayouts === previous.buildingLayouts &&
+      nextFullLayoutMap === previous.fullLayoutMap &&
+      landscapeLayout === previous.landscapeLayout &&
+      maxDistrictDepth === previous.maxDistrictDepth
+    ) {
+      return;
+    }
+
     set({
       landscapeLayout: landscapeLayout,
-      cityLayouts: cityLayouts,
-      districtLayouts: districtLayouts,
-      buildingLayouts: buildingLayouts,
-      fullLayoutMap: boxLayoutMap,
+      cityLayouts: nextCityLayouts,
+      districtLayouts: nextDistrictLayouts,
+      buildingLayouts: nextBuildingLayouts,
+      fullLayoutMap: nextFullLayoutMap,
       maxDistrictDepth: maxDistrictDepth,
     });
   },

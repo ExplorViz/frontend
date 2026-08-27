@@ -7,14 +7,13 @@ import { useEntityFilteringStore } from 'explorviz-frontend/src/stores/entity-fi
 import { useRenderingServiceStore } from 'explorviz-frontend/src/stores/rendering-service';
 import { useVisualizationStore } from 'explorviz-frontend/src/stores/visualization-store';
 import {
+  compileBuildingFilter,
+  countRemainingBuildings,
+} from 'explorviz-frontend/src/utils/city-rendering/building-filter';
+import {
   Building,
   FlatLandscape,
 } from 'explorviz-frontend/src/utils/landscape-schemes/flat-landscape';
-import {
-  isExcludedBySearchExpressions,
-  isIncludedBySearchExpressions,
-} from 'explorviz-frontend/src/utils/search-expression-matcher';
-import { normalizeLanguage } from 'explorviz-frontend/src/utils/settings/language-settings';
 import { BUILDING_METRIC_NAMES } from 'explorviz-frontend/src/utils/settings/settings-schemas';
 import { useShallow } from 'zustand/react/shallow';
 
@@ -99,43 +98,38 @@ const StructureFiltering = forwardRef<
     filterSourceFlatLandscape.buildings
   ).length;
 
-  const inclusionExpressionValues = inclusionExpressions.map(
-    (option) => option.value
+  // Deriving these inline made them new arrays on every render, which defeated
+  // the memo below and re-scanned every building whenever this panel rendered.
+  const inclusionExpressionValues = useMemo(
+    () => inclusionExpressions.map((option) => option.value),
+    [inclusionExpressions]
   );
-  const exclusionExpressionValues = exclusionExpressions.map(
-    (option) => option.value
+  const exclusionExpressionValues = useMemo(
+    () => exclusionExpressions.map((option) => option.value),
+    [exclusionExpressions]
   );
 
-  const numRemainingBuildingsAfterFiltering = useMemo(() => {
-    const filteredCount = Object.values(
-      filterSourceFlatLandscape.buildings
-    ).filter((building) => {
-      const language = normalizeLanguage(building.language);
-      const isFilteredByLanguage =
-        filterMode === 'Remove' && hiddenLanguages.has(language);
-      const isFilteredByMetric = BUILDING_METRIC_NAMES.some(
-        (metricName) =>
-          getMetricValue(building, metricName) <
-          (metricThresholds[metricName] ?? 0)
-      );
-      const buildingFqn = building.fqn ?? building.name;
-      const isFilteredByFqn =
-        !isIncludedBySearchExpressions(
-          buildingFqn,
-          inclusionExpressionValues
-        ) ||
-        isExcludedBySearchExpressions(buildingFqn, exclusionExpressionValues);
-      return !(isFilteredByLanguage || isFilteredByMetric || isFilteredByFqn);
-    }).length;
-    return filteredCount;
-  }, [
-    filterSourceFlatLandscape,
-    filterMode,
-    hiddenLanguages,
-    inclusionExpressionValues,
-    exclusionExpressionValues,
-    metricThresholds,
-  ]);
+  const numRemainingBuildingsAfterFiltering = useMemo(
+    () =>
+      countRemainingBuildings(
+        filterSourceFlatLandscape.buildings,
+        compileBuildingFilter({
+          filterMode,
+          hiddenLanguages,
+          inclusionExpressions: inclusionExpressionValues,
+          exclusionExpressions: exclusionExpressionValues,
+          metricThresholds,
+        })
+      ),
+    [
+      filterSourceFlatLandscape,
+      filterMode,
+      hiddenLanguages,
+      inclusionExpressionValues,
+      exclusionExpressionValues,
+      metricThresholds,
+    ]
+  );
 
   const updateMetricThreshold = (metric: string, value: number) => {
     pauseVisualizationUpdating();

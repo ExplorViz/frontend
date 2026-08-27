@@ -39,10 +39,25 @@ function computeIsDiffMode(): boolean {
   );
 }
 
+let cachedAnimationSnapshot: EvolutionAnimationSnapshot | null = null;
+
+/**
+ * Used as a default argument throughout the per-building visibility checks, so
+ * the snapshot object is reused as long as the underlying store is unchanged.
+ */
 export function getEvolutionAnimationSnapshot(): EvolutionAnimationSnapshot {
   const { totalCount, buildingVisualStates } =
     useEvolutionAnimationStore.getState();
-  return { totalCount, buildingVisualStates };
+
+  if (
+    cachedAnimationSnapshot === null ||
+    cachedAnimationSnapshot.totalCount !== totalCount ||
+    cachedAnimationSnapshot.buildingVisualStates !== buildingVisualStates
+  ) {
+    cachedAnimationSnapshot = { totalCount, buildingVisualStates };
+  }
+
+  return cachedAnimationSnapshot;
 }
 
 function buildEntityVisibilityContext(
@@ -125,7 +140,9 @@ function isBuildingVisibleExceptClosedDistrictCollapse(
   }
 
   const visual = getBuildingVisualOverlay(buildingId, animation);
-  if (visual?.isPlaceholder || baseBuilding.isPlaceholder) {
+  if (
+    visual !== undefined ? visual.isPlaceholder : baseBuilding.isPlaceholder
+  ) {
     return false;
   }
 
@@ -255,7 +272,11 @@ export function isBuildingVisible(
   }
 
   const visual = getBuildingVisualOverlay(buildingId, animation);
-  if (visual?.isPlaceholder || baseBuilding.isPlaceholder) {
+  const isPlaceholder =
+    visual !== undefined
+      ? visual.isPlaceholder
+      : baseBuilding.isPlaceholder === true;
+  if (isPlaceholder) {
     return false;
   }
 

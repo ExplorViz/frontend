@@ -10,6 +10,10 @@ import { useRenderingServiceStore } from 'explorviz-frontend/src/stores/renderin
 import { useModelStore } from 'explorviz-frontend/src/stores/repos/model-repository';
 import { NEW_SELECTED_TIMESTAMP_EVENT } from 'explorviz-frontend/src/stores/timestamp';
 import { useVisualizationStore } from 'explorviz-frontend/src/stores/visualization-store';
+import {
+  collectFilteredBuildings,
+  compileBuildingFilter,
+} from 'explorviz-frontend/src/utils/city-rendering/building-filter';
 import { pruneFlatLandscapeByRemainingBuildings } from 'explorviz-frontend/src/utils/city-rendering/flat-landscape-filter';
 import eventEmitter from 'explorviz-frontend/src/utils/event-emitter';
 import {
@@ -19,11 +23,6 @@ import {
 } from 'explorviz-frontend/src/utils/landscape-schemes/flat-landscape';
 import { LandscapeData } from 'explorviz-frontend/src/utils/landscape-schemes/landscape-data';
 import BoxLayout from 'explorviz-frontend/src/utils/layout/box-layout';
-import {
-  isExcludedBySearchExpressions,
-  isIncludedBySearchExpressions,
-} from 'explorviz-frontend/src/utils/search-expression-matcher';
-import { normalizeLanguage } from 'explorviz-frontend/src/utils/settings/language-settings';
 import { BUILDING_METRIC_NAMES } from 'explorviz-frontend/src/utils/settings/settings-schemas';
 import { useShallow } from 'zustand/react/shallow';
 
@@ -108,6 +107,13 @@ function shouldRefreshFilterBaseline(
   );
 }
 
+function syncModelStoreToFlatLandscape(flatLandscape: FlatLandscape): void {
+  useModelStore.getState().setCities(Object.values(flatLandscape.cities));
+  useModelStore.getState().setDistricts(Object.values(flatLandscape.districts));
+  useModelStore.getState().setBuildings(Object.values(flatLandscape.buildings));
+  syncLayoutStoreWithFlatLandscape(flatLandscape);
+}
+
 export default function EntityFilteringApplier({
   landscapeData,
 }: EntityFilteringApplierProps) {
@@ -152,6 +158,7 @@ export default function EntityFilteringApplier({
   const latestFlatLandscapeDataRef = useRef<FlatLandscape>(flatLandscapeData);
   const ignoreNextLandscapeUpdateRef = useRef<boolean>(false);
   const hiddenBuildingIdsByFilterRef = useRef<Set<string>>(new Set());
+  const removeModePrunedRenderedRef = useRef<boolean>(false);
   const initialLandscapeData = useRef<LandscapeData>(landscapeData);
   const initialFlatLandscapeData = useRef<FlatLandscape>(flatLandscapeData);
 
@@ -166,25 +173,72 @@ export default function EntityFilteringApplier({
     thresholds: Record<string, number> = metricThresholds
   ) => {
     const baselineFlatLandscape = initialFlatLandscapeData.current;
-    const buildingIdsToFilter = Object.values(
-      baselineFlatLandscape.buildings
-    ).filter((building) => {
-      const language = normalizeLanguage(building.language);
-      const isFilteredByLanguage =
-        filterMode === 'Remove' && hiddenLanguages.has(language);
-      const isFilteredByMetric = BUILDING_METRIC_NAMES.some(
-        (metricName) =>
-          getMetricValue(building, metricName) < (thresholds[metricName] ?? 0)
-      );
-      const buildingFqn = building.fqn ?? building.name;
-      const isFilteredByFqn =
-        !isIncludedBySearchExpressions(
-          buildingFqn,
-          inclusionExpressionValues
-        ) ||
-        isExcludedBySearchExpressions(buildingFqn, exclusionExpressionValues);
-      return isFilteredByLanguage || isFilteredByMetric || isFilteredByFqn;
+    const compiledFilter = compileBuildingFilter({
+      filterMode,
+      hiddenLanguages,
+      inclusionExpressions: inclusionExpressionValues,
+      exclusionExpressions: exclusionExpressionValues,
+      metricThresholds: thresholds,
     });
+    const buildingIdsToFilter = collectFilteredBuildings(
+      baselineFlatLandscape.buildings,
+      compiledFilter
+    );
+    const renderedFlatLandscape =
+      useRenderingServiceStore.getState()._landscapeData?.flatLandscapeData;
+
+    const restoreBaselineLandscape = () => {
+      syncLayoutStoreWithFlatLandscape(baselineFlatLandscape);
+      ignoreNextLandscapeUpdateRef.current = true;
+      triggerRenderingForGivenLandscapeData(
+        baselineFlatLandscape,
+        initialLandscapeData.current.dynamicLandscapeData,
+        initialLandscapeData.current.aggregatedFileCommunication
+      );
+      removeModePrunedRenderedRef.current = false;
+    };
+
+    if (!compiledFilter.isActive) {
+      if (hiddenBuildingIdsByFilterRef.current.size > 0) {
+        setFilterHiddenBuildingIds([]);
+        hiddenBuildingIdsByFilterRef.current = new Set();
+      }
+
+      if (filterMode === 'Hide') {
+        // With no entity filters active, leave externally filtered landscapes
+        // (e.g. commit-chart building comparison categories) untouched.
+        if (
+          removeModePrunedRenderedRef.current &&
+          renderedFlatLandscape !== baselineFlatLandscape
+        ) {
+          restoreBaselineLandscape();
+        }
+        return;
+      }
+
+      // Remove mode: the landscape watcher only updates communications here,
+      // so we must keep the model store in sync ourselves.
+      if (
+        removeModePrunedRenderedRef.current &&
+        renderedFlatLandscape !== baselineFlatLandscape
+      ) {
+        syncModelStoreToFlatLandscape(baselineFlatLandscape);
+
+        ignoreNextLandscapeUpdateRef.current = true;
+        triggerRenderingForGivenLandscapeData(
+          baselineFlatLandscape,
+          initialLandscapeData.current.dynamicLandscapeData,
+          initialLandscapeData.current.aggregatedFileCommunication
+        );
+        removeModePrunedRenderedRef.current = false;
+        return;
+      }
+
+      syncModelStoreToFlatLandscape(
+        renderedFlatLandscape ?? baselineFlatLandscape
+      );
+      return;
+    }
 
     if (filterMode === 'Hide') {
       const idsToHide = new Set(
@@ -192,14 +246,18 @@ export default function EntityFilteringApplier({
       );
       setFilterHiddenBuildingIds([...idsToHide]);
       hiddenBuildingIdsByFilterRef.current = idsToHide;
-      syncLayoutStoreWithFlatLandscape(baselineFlatLandscape);
 
-      ignoreNextLandscapeUpdateRef.current = true;
-      triggerRenderingForGivenLandscapeData(
-        baselineFlatLandscape,
-        initialLandscapeData.current.dynamicLandscapeData,
-        initialLandscapeData.current.aggregatedFileCommunication
-      );
+      if (renderedFlatLandscape === baselineFlatLandscape) {
+        return;
+      }
+
+      // Only restore the full baseline when a previous Remove-mode pass pruned
+      // the rendered landscape. Otherwise keep external subset filters intact.
+      if (!removeModePrunedRenderedRef.current) {
+        return;
+      }
+
+      restoreBaselineLandscape();
       return;
     }
 
@@ -215,16 +273,7 @@ export default function EntityFilteringApplier({
 
     pruneFlatLandscapeByRemainingBuildings(deepCopyFlatLandscape);
 
-    useModelStore
-      .getState()
-      .setCities(Object.values(deepCopyFlatLandscape.cities));
-    useModelStore
-      .getState()
-      .setDistricts(Object.values(deepCopyFlatLandscape.districts));
-    useModelStore
-      .getState()
-      .setBuildings(Object.values(deepCopyFlatLandscape.buildings));
-    syncLayoutStoreWithFlatLandscape(deepCopyFlatLandscape);
+    syncModelStoreToFlatLandscape(deepCopyFlatLandscape);
 
     ignoreNextLandscapeUpdateRef.current = true;
     triggerRenderingForGivenLandscapeData(
@@ -232,6 +281,7 @@ export default function EntityFilteringApplier({
       initialLandscapeData.current.dynamicLandscapeData,
       initialLandscapeData.current.aggregatedFileCommunication
     );
+    removeModePrunedRenderedRef.current = true;
   };
 
   const updateBaseline = (baselineFlatLandscape: FlatLandscape) => {
@@ -269,8 +319,26 @@ export default function EntityFilteringApplier({
     }
     latestLandscapeDataRef.current = nextLandscapeData;
     latestFlatLandscapeDataRef.current = nextFlatLandscapeData;
+
+    const baselineRefreshed = shouldRefreshFilterBaseline(
+      initialFlatLandscapeData.current,
+      nextFlatLandscapeData
+    );
     refreshFilterBaseline(nextLandscapeData, nextFlatLandscapeData);
-    applyFilters();
+
+    // Only re-apply entity filters when the baseline grew (e.g. new commits
+    // selected). External subset updates — such as the commit-chart "Filter
+    // Buildings" comparison categories — must not be overwritten by restoring
+    // the full baseline landscape.
+    if (baselineRefreshed) {
+      removeModePrunedRenderedRef.current = false;
+      applyFilters();
+    } else if (filterMode === 'Remove') {
+      // The landscape watcher skips model updates in Remove mode, so sync when
+      // an external filter (e.g. commit-chart building comparison) shrinks the
+      // rendered landscape without refreshing the entity-filter baseline.
+      syncModelStoreToFlatLandscape(nextFlatLandscapeData);
+    }
   };
 
   const resetForNewTimestamp = () => {
@@ -280,6 +348,7 @@ export default function EntityFilteringApplier({
     }
     initialLandscapeData.current = latestLandscapeDataRef.current;
     initialFlatLandscapeData.current = latestFlatLandscapeDataRef.current;
+    removeModePrunedRenderedRef.current = false;
     updateBaseline(latestFlatLandscapeDataRef.current);
     const defaultThresholds = getDefaultThresholds(
       getMetricBounds(latestFlatLandscapeDataRef.current)

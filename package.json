@@ -9,6 +9,8 @@
   "private": false,
   "type": "module",
   "scripts": {
+    "sync-elk-worker": "node -e \"const fs=require('fs');fs.copyFileSync(require.resolve('elkjs/lib/elk-worker.min.js'),'public/elk-worker.min.js')\"",
+    "postinstall": "npm run sync-elk-worker",
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",

@@ -39,7 +39,7 @@ function globToRegExp(pattern: string, separator = '/'): RegExp {
   return new RegExp(regex);
 }
 
-function compileExpression(expression: string): RegExp | null {
+function compileExpressionUncached(expression: string): RegExp | null {
   const trimmed = expression.trim();
   if (!trimmed) {
     return null;
@@ -60,6 +60,69 @@ function compileExpression(expression: string): RegExp | null {
   }
 }
 
+// Matching runs once per building, so recompiling the same handful of user
+// expressions for every candidate dominated the filter cost on large
+// landscapes. Compiled patterns are stateless (no /g flag is ever set), so they
+// are safe to share across calls.
+const compiledExpressions = new Map<string, RegExp | null>();
+const COMPILED_EXPRESSION_CACHE_LIMIT = 512;
+
+function compileExpression(expression: string): RegExp | null {
+  const cached = compiledExpressions.get(expression);
+  if (cached !== undefined) {
+    return cached;
+  }
+
+  const compiled = compileExpressionUncached(expression);
+
+  // Expressions come from user input, so bound the cache rather than letting it
+  // grow with every intermediate value typed into the filter field.
+  if (compiledExpressions.size >= COMPILED_EXPRESSION_CACHE_LIMIT) {
+    compiledExpressions.clear();
+  }
+  compiledExpressions.set(expression, compiled);
+
+  return compiled;
+}
+
+/** Matches nothing, standing in for an expression that failed to compile. */
+const NEVER_MATCHING = /(?!)/;
+
+/**
+ * Compiles every non-blank expression once, so callers testing many texts
+ * against the same expression list pay the compilation cost a single time.
+ *
+ * Expressions that fail to compile are kept as never-matching patterns: they
+ * still count as "an expression is set", which is what decides whether an
+ * inclusion list restricts the result.
+ */
+export function compileSearchExpressions(
+  expressions: readonly string[]
+): RegExp[] {
+  const compiled: RegExp[] = [];
+
+  for (const expression of expressions) {
+    if (expression.trim().length === 0) {
+      continue;
+    }
+    compiled.push(compileExpression(expression) ?? NEVER_MATCHING);
+  }
+
+  return compiled;
+}
+
+export function matchesAnyCompiledExpression(
+  text: string,
+  compiledExpressionList: readonly RegExp[]
+): boolean {
+  for (const regex of compiledExpressionList) {
+    if (regex.test(text)) {
+      return true;
+    }
+  }
+  return false;
+}
+
 export function matchesSearchExpression(
   text: string,
   expression: string
@@ -75,28 +138,19 @@ export function isIncludedBySearchExpressions(
   text: string,
   inclusionExpressions: readonly string[]
 ): boolean {
-  const activeExpressions = inclusionExpressions.filter(
-    (expression) => expression.trim().length > 0
-  );
-  if (activeExpressions.length === 0) {
+  const compiled = compileSearchExpressions(inclusionExpressions);
+  if (compiled.length === 0) {
     return true;
   }
-  return activeExpressions.some((expression) =>
-    matchesSearchExpression(text, expression)
-  );
+  return matchesAnyCompiledExpression(text, compiled);
 }
 
 export function isExcludedBySearchExpressions(
   text: string,
   exclusionExpressions: readonly string[]
 ): boolean {
-  const activeExpressions = exclusionExpressions.filter(
-    (expression) => expression.trim().length > 0
-  );
-  if (activeExpressions.length === 0) {
-    return false;
-  }
-  return activeExpressions.some((expression) =>
-    matchesSearchExpression(text, expression)
+  return matchesAnyCompiledExpression(
+    text,
+    compileSearchExpressions(exclusionExpressions)
   );
 }

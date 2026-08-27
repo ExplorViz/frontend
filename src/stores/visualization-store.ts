@@ -187,8 +187,24 @@ export const useVisualizationStore = create<VisualizationStoreState>(
       },
       // Buildings
       setFilterHiddenBuildingIds: (ids: string[]) => {
+        // A new Set invalidates the shared visibility context and rebuilds every
+        // instanced mesh, so keep the current one when the selection is equal.
+        const current = get().hiddenBuildingIds;
+        const next = new Set(ids);
+        if (current.size === next.size) {
+          let isEqual = true;
+          for (const id of next) {
+            if (!current.has(id)) {
+              isEqual = false;
+              break;
+            }
+          }
+          if (isEqual) {
+            return;
+          }
+        }
         set({
-          hiddenBuildingIds: new Set(ids),
+          hiddenBuildingIds: next,
         });
       },
       removeDistricts: (ids: Set<string>) => {

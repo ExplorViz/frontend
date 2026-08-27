@@ -1,3 +1,4 @@
+import { ChevronUpIcon, XIcon } from '@primer/octicons-react';
 import { useEvolutionAnimationFetchServiceStore } from 'explorviz-frontend/src/components/visualization/page-setup/bottom-bar/animation/evolution-animation-fetch-service';
 import {
   useEvolutionAnimationStore,
@@ -7,24 +8,23 @@ import {
   applyEvolutionRenderingConfig,
   applySkeletonLayout,
 } from 'explorviz-frontend/src/components/visualization/page-setup/bottom-bar/animation/evolution-rendering-setup';
+import {
+  FloatingPanelPosition,
+  useFloatingPanel,
+} from 'explorviz-frontend/src/components/visualization/page-setup/bottom-bar/animation/floating-panel.ts';
 import { useCommitTreeStateStore } from 'explorviz-frontend/src/stores/commit-tree-state';
+import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
 import {
   BuildingMetricMapping,
   SELECTED_BUILDING_METRIC_OPTIONS,
 } from 'explorviz-frontend/src/utils/settings/settings-schemas';
-import { useEffect, useCallback, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import Button from 'react-bootstrap/Button';
 import Form from 'react-bootstrap/Form';
-import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
-import { createPortal } from 'react-dom';
-import { useShallow } from 'zustand/react/shallow';
 import Tab from 'react-bootstrap/Tab';
 import Tabs from 'react-bootstrap/Tabs';
-import { ChevronUpIcon, XIcon } from '@primer/octicons-react';
-import {
-  useFloatingPanel,
-  FloatingPanelPosition,
-} from 'explorviz-frontend/src/components/visualization/page-setup/bottom-bar/animation/floating-panel.ts';
+import { createPortal } from 'react-dom';
+import { useShallow } from 'zustand/react/shallow';
 
 const UNITS = [
   { label: 'Hour', ms: 3600000 },
@@ -51,7 +51,7 @@ export default function EvolutionAnimationPanel({
     keepRemovedVisible,
     deltaMode,
     rangeFrom,
-    rangeTo
+    rangeTo,
   } = useEvolutionAnimationStore(
     useShallow((state) => ({
       layoutMode: state.layoutMode,
@@ -103,7 +103,6 @@ export default function EvolutionAnimationPanel({
     8
   );
 
-
   const [timeCount, setTimeCount] = useState(1);
   const [timeUnit, setTimeUnit] = useState(86400000);
   const [agingTimeCount, setAgingTimeCount] = useState(
@@ -124,9 +123,7 @@ export default function EvolutionAnimationPanel({
   const repositoryName = useCommitTreeStateStore(
     (state) => state._currentSelectedRepositoryName
   );
-  const hasFrames = useEvolutionAnimationStore(
-    (state) => state.totalCount > 0
-  );
+  const hasFrames = useEvolutionAnimationStore((state) => state.totalCount > 0);
   const fetchWindow = useEvolutionAnimationFetchServiceStore(
     (state) => state.fetchAnimationWindow
   );
@@ -183,8 +180,16 @@ export default function EvolutionAnimationPanel({
     setIsLoading(true);
     try {
       useEvolutionAnimationStore.getState().actions.restart();
-      const store = useEvolutionAnimationStore.getState();
+      let store = useEvolutionAnimationStore.getState();
       const actions = store.actions;
+
+      useUserSettingsStore
+        .getState()
+        .updateSetting(
+          'buildingLayoutAlgorithm',
+          store.layoutMode === 'spiral' ? 'spiral' : 'None'
+        );
+
       if (!store.stableFrame) {
         const skeleton = await fetchSkeleton(
           repositoryName,
@@ -192,7 +197,7 @@ export default function EvolutionAnimationPanel({
           store.rangeTo
         );
         actions.setSkeleton(skeleton);
-        applySkeletonLayout(skeleton.landscape);
+        store = useEvolutionAnimationStore.getState();
       }
 
       if (store.deltaMode) {
@@ -223,6 +228,10 @@ export default function EvolutionAnimationPanel({
       }
       actions.markBlockRequested(0);
       applyEvolutionRenderingConfig();
+      applySkeletonLayout(useEvolutionAnimationStore.getState().stableFrame);
+      useEvolutionAnimationStore
+        .getState()
+        .actions.reapplyCurrentFrameVisuals();
       useEvolutionAnimationStore.getState().actions.setSpeed(speedMs);
     } catch (e) {
       console.error('Failed to fetch animation frames:', e);

@@ -22,9 +22,9 @@ export function computeBuildingCommunication(
   )
     return [];
 
-  return aggregatedFileCommunication.communications.filter((comm) => {
-    const telemetryKeyMap = useModelStore.getState().telemetryKeyToEntityId;
+  const telemetryKeyMap = useModelStore.getState().telemetryKeyToEntityId;
 
+  return aggregatedFileCommunication.communications.filter((comm) => {
     const sourceEntityId = telemetryKeyMap.get(comm.sourceEntityKey);
     const targetEntityId = telemetryKeyMap.get(comm.targetEntityKey);
 
@@ -44,7 +44,22 @@ export function computeBuildingCommunication(
 
 export function computeAggregatedCommunication(allCommunications: Comm[]) {
   const groupedComms = new Map<string, AggregatedCommunication>();
-  const telemetryKeyMap = useModelStore.getState().telemetryKeyToEntityId;
+  // Tracks which communication ids an aggregate already contains, so merging
+  // does not have to rebuild a Set from the full id list on every hit.
+  const seenCommIds = new Map<string, Set<string>>();
+  const modelStore = useModelStore.getState();
+  const telemetryKeyMap = modelStore.telemetryKeyToEntityId;
+  const openedParentCache = new Map<string, string>();
+
+  const resolveOpenedParent = (entityId: string) => {
+    const cached = openedParentCache.get(entityId);
+    if (cached !== undefined) {
+      return cached;
+    }
+    const resolved = findFirstEntityWithOpenedParent(entityId);
+    openedParentCache.set(entityId, resolved);
+    return resolved;
+  };
 
   allCommunications.forEach((comm) => {
     const sourceEntityId = telemetryKeyMap.get(comm.sourceEntityKey);
@@ -57,8 +72,8 @@ export function computeAggregatedCommunication(allCommunications: Comm[]) {
       return;
     }
 
-    const effSourceId = findFirstEntityWithOpenedParent(sourceEntityId);
-    const effTargetId = findFirstEntityWithOpenedParent(targetEntityId);
+    const effSourceId = resolveOpenedParent(sourceEntityId);
+    const effTargetId = resolveOpenedParent(targetEntityId);
     if (!effSourceId || !effTargetId) {
       console.error(
         'Could not find source or target for communication.',
@@ -80,12 +95,12 @@ export function computeAggregatedCommunication(allCommunications: Comm[]) {
         existing.metrics[metricName] =
           (existing.metrics[metricName] || 0) + value;
       });
-      existing.buildingCommunicationIds = [
-        ...new Set([...existing.buildingCommunicationIds, comm.id]),
-      ];
-      existing.originalCommIds = [
-        ...new Set([...existing.originalCommIds, comm.id]),
-      ];
+      const knownCommIds = seenCommIds.get(key)!;
+      if (!knownCommIds.has(comm.id)) {
+        knownCommIds.add(comm.id);
+        existing.buildingCommunicationIds.push(comm.id);
+        existing.originalCommIds.push(comm.id);
+      }
       existing.isBidirectional =
         existing.isBidirectional ||
         comm.isBidirectional ||
@@ -102,8 +117,8 @@ export function computeAggregatedCommunication(allCommunications: Comm[]) {
           ? comm.toUnixNano
           : existing.toUnixNano;
     } else {
-      const sourceEntity = useModelStore.getState().getModel(effSourceId);
-      const targetEntity = useModelStore.getState().getModel(effTargetId);
+      const sourceEntity = modelStore.getModel(effSourceId);
+      const targetEntity = modelStore.getModel(effTargetId);
       if (!isDistrict(sourceEntity) && !isBuilding(sourceEntity)) {
         console.error('No source entity for communication found.');
         return;
@@ -126,6 +141,7 @@ export function computeAggregatedCommunication(allCommunications: Comm[]) {
       newComm.isBidirectional = comm.isBidirectional;
       newComm.isRecursive = effSourceId === effTargetId;
       groupedComms.set(key, newComm);
+      seenCommIds.set(key, new Set([comm.id]));
     }
   });
 
@@ -158,10 +174,14 @@ export function calculateAggregatedCommunications(
 function computeCommunicationMetrics(
   classCommunications: AggregatedCommunication[]
 ) {
-  const maxRequests = Math.max(
-    0,
-    ...classCommunications.map((x) => x.metrics.requestCount || 0)
-  );
+  // Spreading into Math.max overflows the call stack for large landscapes.
+  let maxRequests = 0;
+  for (const communication of classCommunications) {
+    const requestCount = communication.metrics.requestCount || 0;
+    if (requestCount > maxRequests) {
+      maxRequests = requestCount;
+    }
+  }
 
   classCommunications.forEach((communication) => {
     const totalRequests = communication.metrics.requestCount || 0;

@@ -75,6 +75,9 @@ const CityDistricts = forwardRef<InstancedMesh2, Args>(
 
     const visibilityContext = useSharedEntityVisibilityContext();
 
+    const visibilityContextRef = useRef(visibilityContext);
+    visibilityContextRef.current = visibilityContext;
+
     const {
       castShadows,
       closedDistrictHeight,
@@ -290,7 +293,10 @@ const CityDistricts = forwardRef<InstancedMesh2, Args>(
             isOpen ? openedDistrictHeight : closedDistrictHeight,
             layout.depth
           );
-          obj.visible = true;
+          obj.visible = isDistrictVisible(
+            district.id,
+            visibilityContextRef.current
+          );
           obj.color = computeColor(district.id);
           obj.updateMatrix();
         }

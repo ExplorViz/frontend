@@ -1,4 +1,3 @@
-import ELK from 'elkjs/lib/elk.bundled.js';
 import { useEvolutionAnimationStore } from 'explorviz-frontend/src/components/visualization/page-setup/bottom-bar/animation/evolution-animation-store.ts';
 import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
 import {
@@ -6,12 +5,15 @@ import {
   City,
   District,
   FlatLandscape,
+  getFlatLandscapeStructureSignature,
 } from 'explorviz-frontend/src/utils/landscape-schemes/flat-landscape';
 import BoxLayout from 'explorviz-frontend/src/utils/layout/box-layout';
 import { applyCircleLayoutToClasses as applyCircleLayoutToBuildings } from 'explorviz-frontend/src/utils/layout/circle-layouter';
+import getElk from 'explorviz-frontend/src/utils/layout/elk-instance';
 import {
   applySpiralLayoutToClasses as applySpiralLayoutToBuildings,
   calculateSpiralSideLength,
+  countCityBuildings,
 } from 'explorviz-frontend/src/utils/layout/spiral-layouter';
 import {
   applyMetricMapping,
@@ -60,10 +62,41 @@ let METRIC_BUCKETS: number;
 //Caching for performance reasons
 let cachedLayoutResult: Map<string, BoxLayout> | null = null;
 let cachedLayoutSignature: string | null = null;
+let cachedLandscapeSignature: string | null = null;
 let cachedSkeletonRef: FlatLandscape | null = null;
 let pendingLayout: Promise<Map<string, BoxLayout>> | null = null;
+let pendingLandscapeRef: FlatLandscape | null = null;
+let pendingLandscapeSignature: string | null = null;
 let pendingSkeletonRef: FlatLandscape | null = null;
 let pendingSignature: string | null = null;
+let layoutGeneration = 0;
+let latestCacheableGeneration = 0;
+
+export function invalidateLayoutCache(): void {
+  cachedLayoutResult = null;
+  cachedLayoutSignature = null;
+  cachedLandscapeSignature = null;
+  cachedSkeletonRef = null;
+  pendingLayout = null;
+  pendingLandscapeRef = null;
+  pendingLandscapeSignature = null;
+  pendingSkeletonRef = null;
+  pendingSignature = null;
+  layoutGeneration = 0;
+  latestCacheableGeneration = 0;
+}
+
+function layoutCoversLandscape(
+  layoutMap: Map<string, BoxLayout>,
+  landscape: FlatLandscape
+): boolean {
+  for (const buildingId of Object.keys(landscape.buildings)) {
+    if (!layoutMap.has(buildingId)) {
+      return false;
+    }
+  }
+  return true;
+}
 
 function layoutInputSignature(removedDistrictIds: Set<string>): string {
   const { visualizationSettings: vs } = useUserSettingsStore.getState();
@@ -115,29 +148,36 @@ export default async function layoutLandscape(
   removedDistrictIds: Set<string>
 ) {
   setVisualizationSettings();
+  const generation = ++layoutGeneration;
   const animationState = useEvolutionAnimationStore.getState();
   const skeleton = animationState.stableFrame;
   const cacheable = skeleton != null;
-  const signature = cacheable ? layoutInputSignature(removedDistrictIds) : null;
-  console.log(
-    '[layout] algo=',
-    BUILDING_ALGORITHM,
-    'cacheHit=',
-    cacheable &&
-      cachedSkeletonRef === skeleton &&
-      cachedLayoutSignature === signature
-  );
+  if (cacheable) {
+    latestCacheableGeneration = generation;
+  }
+  const signature = layoutInputSignature(removedDistrictIds);
+  const landscapeSignature = getFlatLandscapeStructureSignature(landscape);
+
   if (
     cacheable &&
     cachedLayoutResult !== null &&
     cachedSkeletonRef === skeleton &&
-    cachedLayoutSignature === signature
+    cachedLayoutSignature === signature &&
+    cachedLandscapeSignature === landscapeSignature &&
+    layoutCoversLandscape(cachedLayoutResult, landscape)
   ) {
     return cachedLayoutResult;
   }
+
+  // The landscape watcher and the canvas both request a layout when new
+  // landscape data arrives. Since the result is fully determined by the
+  // landscape, the removed districts and the visualization settings, an
+  // in-flight run with identical inputs can always be shared instead of paying
+  // for a second ELK pass.
   if (
-    cacheable &&
     pendingLayout !== null &&
+    pendingLandscapeRef === landscape &&
+    pendingLandscapeSignature === landscapeSignature &&
     pendingSkeletonRef === skeleton &&
     pendingSignature === signature
   ) {
@@ -146,16 +186,17 @@ export default async function layoutLandscape(
 
   const run = computeLayout(landscape, removedDistrictIds);
 
-  if (cacheable) {
-    pendingLayout = run;
-    pendingSkeletonRef = skeleton;
-    pendingSignature = signature;
-  }
+  pendingLayout = run;
+  pendingLandscapeRef = landscape;
+  pendingLandscapeSignature = landscapeSignature;
+  pendingSkeletonRef = skeleton;
+  pendingSignature = signature;
 
   try {
     const boxLayoutMap = await run;
-    if (cacheable) {
+    if (cacheable && generation === latestCacheableGeneration) {
       cachedLayoutSignature = signature;
+      cachedLandscapeSignature = landscapeSignature;
       cachedSkeletonRef = skeleton;
       cachedLayoutResult = boxLayoutMap;
     }
@@ -163,18 +204,18 @@ export default async function layoutLandscape(
   } finally {
     if (pendingLayout === run) {
       pendingLayout = null;
+      pendingLandscapeRef = null;
+      pendingLandscapeSignature = null;
       pendingSkeletonRef = null;
       pendingSignature = null;
     }
   }
 }
 
- async function computeLayout(
+async function computeLayout(
   landscape: FlatLandscape,
   removedDistrictIds: Set<string>
 ) {
-  const elk = new ELK();
-
   WIDTH_METRIC_BOUNDS = getCachedBuildingMetricBounds(
     landscape.buildings,
     WIDTH_METRIC
@@ -207,7 +248,9 @@ export default async function layoutLandscape(
   // Add buildings
   const cities = Object.values(landscape.cities);
   cities.forEach((city) => {
-    const buildingCount = city.allContainedBuildingIds.length;
+    const buildingCount = useCustomBuildingLayout
+      ? countCityBuildings(landscape, city)
+      : city.allContainedBuildingIds.length;
     if (useCustomBuildingLayout) {
       let citySideLength: number;
       if (useCircleLayout) {
@@ -246,6 +289,7 @@ export default async function layoutLandscape(
   // Add edges for force layout between buildings
   addEdges(landscapeGraph, cities);
 
+  const elk = await getElk();
   const layoutedGraph = await elk.layout(landscapeGraph);
 
   const boxLayoutMap = convertElkToBoxLayout(layoutedGraph);
@@ -474,7 +518,21 @@ function createBuildingNode(building: Building) {
   };
 }
 
+// These algorithms position cities purely by size, so the complete city graph
+// below would be built (O(cities²) edges) and shipped to ELK for nothing.
+// Verified to yield identical layouts with and without the edges; `random`,
+// `force`, `stress` and `layered` do react to them and are therefore excluded.
+const EDGE_AGNOSTIC_CITY_ALGORITHMS = new Set([
+  'box',
+  'rectpacking',
+  'sporeOverlap',
+]);
+
 function addEdges(landscapeGraph: any, cities: City[]) {
+  if (EDGE_AGNOSTIC_CITY_ALGORITHMS.has(CITY_ALGORITHM)) {
+    return;
+  }
+
   cities.forEach((sourceCity) => {
     cities.forEach((targetCity) => {
       if (sourceCity.id !== targetCity.id) {

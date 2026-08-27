@@ -16,8 +16,58 @@ export default class BoxLayout {
   // Level in the component hierarchy
   level: number = 0;
 
+  private cachedPosition: THREE.Vector3 | null = null;
+
+  private cachedCenter: THREE.Vector3 | null = null;
+
+  private cachedForX = NaN;
+
+  private cachedForY = NaN;
+
+  private cachedForZ = NaN;
+
+  private cachedForWidth = NaN;
+
+  private cachedForHeight = NaN;
+
+  private cachedForDepth = NaN;
+
+  private isCacheStale(): boolean {
+    return (
+      this.cachedForX !== this.positionX ||
+      this.cachedForY !== this.positionY ||
+      this.cachedForZ !== this.positionZ ||
+      this.cachedForWidth !== this.width ||
+      this.cachedForHeight !== this.height ||
+      this.cachedForDepth !== this.depth
+    );
+  }
+
+  private refreshCache() {
+    this.cachedForX = this.positionX;
+    this.cachedForY = this.positionY;
+    this.cachedForZ = this.positionZ;
+    this.cachedForWidth = this.width;
+    this.cachedForHeight = this.height;
+    this.cachedForDepth = this.depth;
+    this.cachedPosition = new THREE.Vector3(
+      this.positionX,
+      this.positionY,
+      this.positionZ
+    );
+    // Calculate middle for each dimension => center point
+    this.cachedCenter = new THREE.Vector3(
+      this.positionX + this.width / 2.0,
+      this.positionY + this.height / 2.0,
+      this.positionZ + this.depth / 2.0
+    );
+  }
+
   get position() {
-    return new THREE.Vector3(this.positionX, this.positionY, this.positionZ);
+    if (!this.cachedPosition || this.isCacheStale()) {
+      this.refreshCache();
+    }
+    return this.cachedPosition!;
   }
 
   get aspectRatio() {
@@ -47,14 +97,10 @@ export default class BoxLayout {
   }
 
   get center() {
-    // Calculate middle for each dimension => center point
-    const centerPoint = new THREE.Vector3(
-      this.positionX + this.width / 2.0,
-      this.positionY + this.height / 2.0,
-      this.positionZ + this.depth / 2.0
-    );
-
-    return centerPoint;
+    if (!this.cachedCenter || this.isCacheStale()) {
+      this.refreshCache();
+    }
+    return this.cachedCenter!;
   }
 
   /**
