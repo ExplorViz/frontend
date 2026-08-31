@@ -5,7 +5,7 @@ import { useToastHandlerStore } from '../stores/toast-handler';
 const codeAnalyzerUrl = getCodeAnalyzerUrl();
 
 export type ProgressState = {
-  status: 'pending' | 'running' | 'finished' | 'failed';
+  status: 'pending' | 'running' | 'finished' | 'failed' | 'cancelled';
   totalCommits: number;
   analyzedCommits: number;
   totalFiles: number;
@@ -18,6 +18,7 @@ type UseWatchAnalysisStateArgs = {
   onUpdate?: (state: ProgressState) => void;
   onFinished?: (state: ProgressState) => void;
   onFailed?: (state: ProgressState) => void;
+  onCancelled?: (state: ProgressState) => void;
   onError?: (message: string) => void;
 };
 
@@ -26,6 +27,7 @@ export const useWatchAnalysisState = ({
   onUpdate,
   onFinished,
   onFailed,
+  onCancelled,
   onError,
 }: UseWatchAnalysisStateArgs) => {
   const [state, setState] = useState<ProgressState | null>(null);
@@ -82,6 +84,9 @@ export const useWatchAnalysisState = ({
           } else if (state.status === 'failed') {
             onFailed?.(state);
             clearStatusStream();
+          } else if (state.status === 'cancelled') {
+            onCancelled?.(state);
+            clearStatusStream();
           }
         } catch {
           showError('Received invalid progress update.');
@@ -103,6 +108,7 @@ export const useWatchAnalysisState = ({
       landscapeToken,
       onFailed,
       onFinished,
+      onCancelled,
       onUpdate,
       showError,
     ]

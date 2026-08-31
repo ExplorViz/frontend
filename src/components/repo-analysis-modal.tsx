@@ -1,8 +1,9 @@
-import { Modal } from 'react-bootstrap';
 import CodeAnalysisTriggerForm from 'explorviz-frontend/src/components/visualization/page-setup/sidebar/toolbar/code-analysis-trigger/code-analysis-trigger-form';
-import { createSearchParams, useNavigate } from 'react-router-dom';
-import { useRef, useState } from 'react';
 import { useWatchAnalysisState } from 'explorviz-frontend/src/hooks/useWatchAnalysisState';
+import { cancelAnalysisJob } from 'explorviz-frontend/src/utils/cancel-analysis-job';
+import { useRef, useState } from 'react';
+import { Modal } from 'react-bootstrap';
+import { createSearchParams, useNavigate } from 'react-router-dom';
 import { useToastHandlerStore } from '../stores/toast-handler';
 import { RepoAnalysisProgress } from './repo-analysis-progress';
 
@@ -14,6 +15,7 @@ type Props = {
 
 export const RepoAnalysisModal = ({ show, landscapeToken, onClose }: Props) => {
   const [mode, setMode] = useState<'form' | 'running'>('form');
+  const [isCancelling, setIsCancelling] = useState(false);
   const activeLandscapeTokenRef = useRef<string | null>(null);
   const navigate = useNavigate();
 
@@ -25,28 +27,39 @@ export const RepoAnalysisModal = ({ show, landscapeToken, onClose }: Props) => {
     });
   };
 
-  const { state: progress, start, clearStatusStream, reset } =
-    useWatchAnalysisState({
-      onFinished: () => {
-        const token = activeLandscapeTokenRef.current;
-        if (token) {
-          redirectToLandscapePage(token);
-        }
-      },
-      onFailed: () => {
-        useToastHandlerStore
-          .getState()
-          .showErrorToastMessage('Analysis failed. Try again.');
-        closeModal();
-      },
-      onError: (message: string) => {
-        useToastHandlerStore.getState().showErrorToastMessage(message);
-        closeModal();
-      },
-    });
+  const {
+    state: progress,
+    start,
+    clearStatusStream,
+    reset,
+  } = useWatchAnalysisState({
+    onFinished: () => {
+      const token = activeLandscapeTokenRef.current;
+      if (token) {
+        redirectToLandscapePage(token);
+      }
+    },
+    onFailed: () => {
+      useToastHandlerStore
+        .getState()
+        .showErrorToastMessage('Analysis failed. Try again.');
+      closeModal();
+    },
+    onCancelled: () => {
+      useToastHandlerStore
+        .getState()
+        .showSuccessToastMessage('Analysis cancelled.');
+      closeModal();
+    },
+    onError: (message: string) => {
+      useToastHandlerStore.getState().showErrorToastMessage(message);
+      closeModal();
+    },
+  });
 
   const closeModal = () => {
     setMode('form');
+    setIsCancelling(false);
     activeLandscapeTokenRef.current = null;
     reset();
     clearStatusStream();
@@ -59,15 +72,44 @@ export const RepoAnalysisModal = ({ show, landscapeToken, onClose }: Props) => {
     start(landscapeToken);
   };
 
-  const onHide = () => {
-    if(mode === 'running') {
+  const handleCancel = async () => {
+    const token = activeLandscapeTokenRef.current;
+    if (!token || isCancelling) {
+      return;
+    }
+
+    setIsCancelling(true);
+    try {
+      const result = await cancelAnalysisJob(token);
+      if (!result.ok) {
+        useToastHandlerStore
+          .getState()
+          .showErrorToastMessage(
+            result.message || 'Failed to cancel analysis.'
+          );
+      }
+    } catch (error: any) {
       useToastHandlerStore
         .getState()
-        .showErrorToastMessage('Please wait until the analysis is done...');
+        .showErrorToastMessage(
+          `Failed to cancel analysis: ${error.message || 'Network error'}`
+        );
+    } finally {
+      setIsCancelling(false);
+    }
+  };
+
+  const onHide = () => {
+    if (mode === 'running' && progress?.status !== 'cancelled') {
+      useToastHandlerStore
+        .getState()
+        .showErrorToastMessage(
+          'Please wait until the analysis is done or cancel it.'
+        );
       return;
     }
     closeModal();
-  }
+  };
 
   return (
     <Modal show={show} onHide={onHide} size="lg" centered>
@@ -75,12 +117,19 @@ export const RepoAnalysisModal = ({ show, landscapeToken, onClose }: Props) => {
         <Modal.Title>Repo analysis</Modal.Title>
       </Modal.Header>
       <Modal.Body>
-        {
-          mode === 'running' 
-            ? (<RepoAnalysisProgress state={progress} />) 
-            : <CodeAnalysisTriggerForm landscapeToken={landscapeToken} onSubmitSuccess={onSuccess} />
-        }
+        {mode === 'running' ? (
+          <RepoAnalysisProgress
+            state={progress}
+            onCancel={handleCancel}
+            isCancelling={isCancelling}
+          />
+        ) : (
+          <CodeAnalysisTriggerForm
+            landscapeToken={landscapeToken}
+            onSubmitSuccess={onSuccess}
+          />
+        )}
       </Modal.Body>
     </Modal>
   );
-}
+};
