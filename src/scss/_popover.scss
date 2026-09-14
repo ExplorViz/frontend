@@ -34,7 +34,7 @@
     color: var(--bs-white);
     margin: 0.3rem 0;
     border: none;
-    border-radius: var(--ev-radius-md) var(--ev-radius-md) 0 0;
+    border-radius: var(--ev-radius-md);
     font-weight: 600;
     padding: 0.5rem 0.5rem;
     font-size: 1rem;
@@ -89,7 +89,6 @@
   min-height: var(--ev-button-min-height);
   padding: 0;
   border: 1px solid rgba(0, 0, 0, 0.1);
-  border-radius: var(--ev-radius-md);
   background: var(--bs-body-bg, #f8f9fa);
   color: var(--bs-dark, #212529);
   transition: background-color var(--ev-transition-fast);
@@ -146,8 +145,6 @@
 .popover button {
   margin-right: 0.25rem !important;
   border: 1px solid rgba(0, 0, 0, 0.1);
-  border-radius: var(--ev-radius-md);
-  background: var(--bs-body-bg, #f8f9fa);
   color: var(--bs-dark, #212529);
   transition: background-color var(--ev-transition-fast);
   font-weight: 500;

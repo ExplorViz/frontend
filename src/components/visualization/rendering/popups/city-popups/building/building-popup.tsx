@@ -9,7 +9,11 @@ import { useCommitTreeStateStore } from 'explorviz-frontend/src/stores/commit-tr
 import { usePopupHandlerStore } from 'explorviz-frontend/src/stores/popup-handler';
 import { getSourceReferenceCommitHash } from 'explorviz-frontend/src/utils/evolution-data-helpers';
 import generateUuidv4 from 'explorviz-frontend/src/utils/helpers/uuid4-generator';
-import { requestFileDetailedData } from 'explorviz-frontend/src/utils/landscape-http-request-util';
+import {
+  FileHistory,
+  requestFileDetailedData,
+  requestFileHistory,
+} from 'explorviz-frontend/src/utils/landscape-http-request-util';
 import {
   ClazzDto,
   FileDetailedDto,
@@ -20,11 +24,7 @@ import { TypeOfAnalysis } from 'explorviz-frontend/src/utils/landscape-schemes/s
 import { applyCommitHashToRepositoryFileUrl } from 'explorviz-frontend/src/utils/repository-file-url';
 import { getOrderedBuildingMetricEntries } from 'explorviz-frontend/src/utils/settings/settings-schemas';
 import { useEffect, useMemo, useState } from 'react';
-import { Accordion, Tab, Tabs } from 'react-bootstrap';
-import {
-  requestFileHistory,
-  FileHistory,
-} from 'explorviz-frontend/src/utils/landscape-http-request-util';
+import { Accordion, Badge, Tab, Tabs } from 'react-bootstrap';
 
 interface BuildingPopupProps {
   popupData: PopupData;
@@ -227,12 +227,8 @@ function FileTabContent({
 export default function BuildingPopup({ popupData }: BuildingPopupProps) {
   const building = popupData.entity as Building;
 
-  const languageName = building.language ?? 'LANGUAGE_UNSPECIFIED';
-
   const uuid = useMemo(() => generateUuidv4(), []);
-  const [history, setHistory] = useState<FileHistory[] | undefined>(
-    undefined
-  );
+  const [history, setHistory] = useState<FileHistory[] | undefined>(undefined);
   const updatePopup = usePopupHandlerStore((state) => state.updatePopup);
   const selectedCommits = useCommitTreeStateStore(
     (state) => state._selectedCommits
@@ -335,7 +331,7 @@ export default function BuildingPopup({ popupData }: BuildingPopupProps) {
           )}
         </div>
       </h3>
-      <div className="popover-body">
+      <div className="popover-body p-2">
         <Tabs
           defaultActiveKey="general"
           id={`building-popup-tabs-${uuid}`}
@@ -349,17 +345,29 @@ export default function BuildingPopup({ popupData }: BuildingPopupProps) {
               <table className="table table-sm mb-0">
                 <tbody>
                   <tr>
+                    <td className="fw-bold">Type:</td>
+                    <td className="text-right text-break pl-1">
+                      <Badge pill>
+                        <samp>
+                          {(building.type ?? 'unknown').toUpperCase()}
+                        </samp>
+                      </Badge>
+                    </td>
+                  </tr>
+                  <tr>
                     <td className="fw-bold">FQN:</td>
                     <td className="text-right text-break pl-1">
                       {building.fqn}
                     </td>
                   </tr>
-                  <tr>
-                    <td className="fw-bold">Language:</td>
-                    <td className="text-right text-break pl-1">
-                      {languageName}
-                    </td>
-                  </tr>
+                  {building.language && (
+                    <tr>
+                      <td className="fw-bold">Language:</td>
+                      <td className="text-right text-break pl-1">
+                        {building.language}
+                      </td>
+                    </tr>
+                  )}
                   <tr>
                     <td className="fw-bold">Origin:</td>
                     <td className="text-right text-break pl-1">
@@ -417,53 +425,57 @@ export default function BuildingPopup({ popupData }: BuildingPopupProps) {
               </table>
             </div>
           </Tab>
-          <Tab eventKey="history" title="History">
-            <div
-              className="mt-3"
-              style={{ maxHeight: '300px', overflowY: 'auto' }}
-            >
-              {history === undefined ? (
-                <div className="text-center text-muted py-3">
-                  Loading history…
-                </div>
-              ) : history.length === 0 ? (
-                <div className="text-center text-muted py-3">
-                  No changes recorded
-                </div>
-              ) : (
-                <table className="table table-sm mb-0">
-                  <tbody>
-                    {history.map((e) => (
-                      <tr key={e.commitHash + e.action}>
-                        <td>
-                          <code>{e.commitHash.slice(0, 7)}</code>
-                        </td>
-                        <td className="text-muted small">
-                          {e.date ? new Date(e.date).toLocaleDateString() : '-'}
-                        </td>
-                        <td className="text-right">
-                          <span
-                            className={
-                              e.action === 'ADDED'
-                                ? 'text-success'
-                                : e.action === 'DELETED'
-                                  ? 'text-danger'
-                                  : 'text-warning'
-                            }
-                          >
-                            {e.action}
-                          </span>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              )}
-            </div>
-          </Tab>
-          <Tab eventKey="file" title="File">
-            <FileTabContent detailedData={detailedData} uuid={uuid} />
-          </Tab>
+          {building.type === 'code' && (
+            <Tab eventKey="history" title="History">
+              <div
+                className="mt-3"
+                style={{ maxHeight: '300px', overflowY: 'auto' }}
+              >
+                {history === undefined ? (
+                  <div className="text-center text-muted py-3">
+                    Loading history…
+                  </div>
+                ) : history.length === 0 ? (
+                  <div className="text-center text-muted py-3">
+                    No changes recorded
+                  </div>
+                ) : (
+                  <table className="table table-sm mb-0">
+                    <tbody>
+                      {history.map((e) => (
+                        <tr key={e.commitHash + e.action}>
+                          <td>
+                            <code>{e.commitHash.slice(0, 7)}</code>
+                          </td>
+                          <td className="text-muted small">
+                            {e.date
+                              ? new Date(e.date).toLocaleDateString()
+                              : '-'}
+                          </td>
+                          <td className="text-right">
+                            <span
+                              className={
+                                e.action === 'ADDED'
+                                  ? 'text-success'
+                                  : e.action === 'DELETED'
+                                    ? 'text-danger'
+                                    : 'text-warning'
+                              }
+                            >
+                              {e.action}
+                            </span>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                )}
+              </div>
+            </Tab>
+          )}
+          {building.type === 'code' && (
+            <Tab eventKey="file" title="File">
+              <FileTabContent detailedData={detailedData} uuid={uuid} />
             </Tab>
           )}
         </Tabs>

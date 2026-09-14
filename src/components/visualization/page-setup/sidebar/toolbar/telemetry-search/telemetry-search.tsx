@@ -38,14 +38,6 @@ export default function TelemetrySearch() {
           <LogSearch />
         </Tab>
       </Tabs>
-
-      <style>
-        {`
-          .tab-content {
-            padding: 0;
-          }
-        `}
-      </style>
     </>
   );
 }

@@ -1,6 +1,5 @@
 import LinkButton from 'explorviz-frontend/src/components/link-button.tsx';
 import AggregatedBuildingMetricsTable from 'explorviz-frontend/src/components/visualization/rendering/popups/city-popups/aggregated-building-metrics-table';
-import EntityStructureStatsTable from 'explorviz-frontend/src/components/visualization/rendering/popups/city-popups/entity-structure-stats-table';
 import FilesTab from 'explorviz-frontend/src/components/visualization/rendering/popups/city-popups/files-tab';
 import { useLiveCity } from 'explorviz-frontend/src/components/visualization/rendering/popups/city-popups/use-live-flat-entity';
 import { useVisibleEntityCounts } from 'explorviz-frontend/src/components/visualization/rendering/popups/city-popups/use-visible-entity-counts';
@@ -14,7 +13,7 @@ import { City } from 'explorviz-frontend/src/utils/landscape-schemes/flat-landsc
 import { TypeOfAnalysis } from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
 import { buildRepositoryTreeUrl } from 'explorviz-frontend/src/utils/repository-file-url';
 import { useMemo } from 'react';
-import { Tab, Tabs } from 'react-bootstrap';
+import { Badge, Tab, Table, Tabs } from 'react-bootstrap';
 
 interface FoundationPopupProps {
   popupData: PopupData;
@@ -83,21 +82,62 @@ export default function FoundationPopup({ popupData }: FoundationPopupProps) {
           )}
         </div>
       </h3>
-      <div className="popover-body">
+      <div className="popover-body p-2">
         <Tabs
           defaultActiveKey="general"
           id={`foundation-popup-tabs-${uuid}`}
           className="nav-tabs justify-content-center"
         >
           <Tab eventKey="general" title="General">
-            <EntityStructureStatsTable
-              directDistrictCount={directDistrictCount}
-              containedDistrictCount={containedDistrictCount}
-              directBuildingCount={visibleEntityCounts.directBuildingCount}
-              containedBuildingCount={
-                visibleEntityCounts.containedBuildingCount
-              }
-            />
+            <Table hover className="table table-sm mt-2">
+              <tbody>
+                <tr>
+                  <td className="fw-bold">Type</td>
+                  <td className="text-right text-break pl-1">
+                    <Badge pill>
+                      <samp>
+                        {(city.type ?? 'unknown')
+                          .toUpperCase()
+                          .replaceAll('_', ' ')}
+                      </samp>
+                    </Badge>
+                  </td>
+                </tr>
+                {city.originOfData && (
+                  <tr>
+                    <td className="fw-bold">Origin</td>
+                    <td className="text-right text-break pl-1">
+                      {city.originOfData}
+                    </td>
+                  </tr>
+                )}
+
+                <tr>
+                  <td className="fw-bold">Direct Districts</td>
+                  <td className="text-right text-break pl-1">
+                    {directDistrictCount}
+                  </td>
+                </tr>
+                <tr>
+                  <td className="fw-bold">Contained Districts</td>
+                  <td className="text-right text-break pl-1">
+                    {containedDistrictCount}
+                  </td>
+                </tr>
+                <tr>
+                  <td className="fw-bold">Direct Buildings</td>
+                  <td className="text-right text-break pl-1">
+                    {visibleEntityCounts.directBuildingCount}
+                  </td>
+                </tr>
+                <tr>
+                  <td className="fw-bold">Contained Buildings</td>
+                  <td className="text-right text-break pl-1">
+                    {visibleEntityCounts.containedBuildingCount}
+                  </td>
+                </tr>
+              </tbody>
+            </Table>
           </Tab>
           <Tab eventKey="metrics" title="Metrics">
             <AggregatedBuildingMetricsTable
