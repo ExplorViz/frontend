@@ -1,5 +1,4 @@
 import ColorPicker from 'explorviz-frontend/src/components/visualization/page-setup/sidebar/customizationbar/settings/color-picker';
-import { useModelStore } from 'explorviz-frontend/src/stores/repos/model-repository';
 import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
 import { Language } from 'explorviz-frontend/src/utils/landscape-schemes/flat-landscape';
 import {
@@ -10,10 +9,8 @@ import {
   BuildingGeometryType,
   getLanguageColor,
   LANGUAGE_SETTING_CONFIG,
-  normalizeLanguage,
 } from 'explorviz-frontend/src/utils/settings/language-settings';
 import { SelectSetting as SelectSettingData } from 'explorviz-frontend/src/utils/settings/settings-schemas';
-import { useMemo } from 'react';
 import { ButtonGroup, ToggleButton } from 'react-bootstrap';
 
 type LanguageBuildingSettingsProps = {
@@ -93,16 +90,4 @@ export default function LanguageBuildingSettings({
       </div>
     </div>
   );
-}
-
-export function useLanguagesInLandscape(): Language[] {
-  const allBuildings = useModelStore((state) => state.getAllBuildings);
-
-  return useMemo(() => {
-    const languages = new Set<Language>();
-    for (const building of allBuildings()) {
-      languages.add(normalizeLanguage(building.language));
-    }
-    return Array.from(languages);
-  }, [allBuildings]);
 }

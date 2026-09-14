@@ -1,7 +1,6 @@
 import BuildingMetricSettings from 'explorviz-frontend/src/components/visualization/page-setup/sidebar/customizationbar/building-config/building-metric-settings';
-import LanguageBuildingSettings, {
-  useLanguagesInLandscape,
-} from 'explorviz-frontend/src/components/visualization/page-setup/sidebar/customizationbar/building-config/language-building-settings';
+import LanguageBuildingSettings from 'explorviz-frontend/src/components/visualization/page-setup/sidebar/customizationbar/building-config/language-building-settings';
+import { useLanguagesInLandscape } from 'explorviz-frontend/src/hooks/useLanguagesInLandscape';
 import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
 import {
   getLanguageColor,
