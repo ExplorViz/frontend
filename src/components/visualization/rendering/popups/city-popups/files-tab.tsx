@@ -1,5 +1,5 @@
 import {
-  DeviceCameraIcon,
+  DeviceCameraVideoIcon,
   LocationIcon,
   PaintbrushIcon,
 } from '@primer/octicons-react';
@@ -105,7 +105,7 @@ function FileExtensionListItem({
                 focusBuilding(buildingIds[0]!);
               }}
             >
-              <DeviceCameraIcon className="align-middle" size="small" />
+              <DeviceCameraVideoIcon className="align-middle" size="small" />
             </Button>
           </OverlayTrigger>
         )}
