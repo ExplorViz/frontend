@@ -63,15 +63,56 @@ export type AnimationDeltaWindow = {
 type FlatBaseModel = {
   id: string;
   name: string;
+
+  /** Fully-qualified name of the model */
   fqn?: string;
-  telemetryKey?: string; // Lookup key to request telemetry data for this entity
+
+  /**
+   * Classification of this model's role or origin. Can be used for distinguishing models
+   * that come from different analysis sources, e.g. code analysis or HTTP endpoint analysis.
+   */
+  type: ModelType;
+
+  /**
+   * Lookup key to use when requesting telemetry data for this model.
+   * While it is not a globally unique identifier, it should be unique
+   * in combination with a particular commit.
+   */
+  telemetryKey?: string;
+
+  /** Indicates the mode of analysis from which this model was obtained */
   originOfData?: TypeOfAnalysis;
-  commitComparison?: CommitComparison; // For two selected commits
-  editingState?: 'added' | 'removed'; // Reflect changes from restructuring
-  isPlaceholder?: boolean; // Flag to make it invisible in animation
-  agingFactor?: number; // 0 = just changed, 1 = fully aged (unchanged past threshold); animation only
+
+  /**
+   * When comparing two commits, this value indicates if and how
+   * this model changed from the first to the second commit
+   */
+  commitComparison?: CommitComparison;
+
+  /** Indicates changes made to this model when using restructuring mode */
+  editingState?: 'added' | 'removed';
+
+  /** For use with evolution animation. If true, the model is made invisible in animation */
+  isPlaceholder?: boolean;
+
+  /**
+   * For use with evolution animation. Indicates the time since the model was last changed.
+   * A value of 0 indicates that the model was just changed. A value of 1 means that the model
+   * is fully aged (unchanged past threshold).
+   */
+  agingFactor?: number;
+
   lastAction?: CommitComparison;
 };
+
+/** Classification of the analysis subject from which a model originates */
+export type ModelType =
+  | 'unknown'
+  | 'service'
+  | 'instrumentation_scope'
+  | 'code'
+  | 'rpc'
+  | 'http';
 
 export type Language =
   | 'LANGUAGE_UNSPECIFIED'
