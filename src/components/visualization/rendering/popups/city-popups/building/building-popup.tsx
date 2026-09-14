@@ -21,7 +21,6 @@ import { applyCommitHashToRepositoryFileUrl } from 'explorviz-frontend/src/utils
 import { getOrderedBuildingMetricEntries } from 'explorviz-frontend/src/utils/settings/settings-schemas';
 import { useEffect, useMemo, useState } from 'react';
 import { Accordion, Tab, Tabs } from 'react-bootstrap';
-import SpansTab from '../spans-tab';
 import {
   requestFileHistory,
   FileHistory,
@@ -465,12 +464,6 @@ export default function BuildingPopup({ popupData }: BuildingPopupProps) {
           <Tab eventKey="file" title="File">
             <FileTabContent detailedData={detailedData} uuid={uuid} />
           </Tab>
-          {building.telemetryKey && (
-            <Tab eventKey="spans" title="Spans" mountOnEnter={true}>
-              <SpansTab
-                key={building.telemetryKey}
-                telemetryKey={building.telemetryKey}
-              />
             </Tab>
           )}
         </Tabs>

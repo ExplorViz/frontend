@@ -15,7 +15,6 @@ import { TypeOfAnalysis } from 'explorviz-frontend/src/utils/landscape-schemes/s
 import { buildRepositoryTreeUrl } from 'explorviz-frontend/src/utils/repository-file-url';
 import { useMemo } from 'react';
 import { Tab, Tabs } from 'react-bootstrap';
-import SpansTab from '../spans-tab';
 
 interface FoundationPopupProps {
   popupData: PopupData;
@@ -100,14 +99,6 @@ export default function FoundationPopup({ popupData }: FoundationPopupProps) {
               }
             />
           </Tab>
-          {city.telemetryKey && (
-            <Tab eventKey="spans" title="Spans" mountOnEnter={true}>
-              <SpansTab
-                key={city.telemetryKey}
-                telemetryKey={city.telemetryKey}
-              />
-            </Tab>
-          )}
           <Tab eventKey="metrics" title="Metrics">
             <AggregatedBuildingMetricsTable
               buildingIds={city.allContainedBuildingIds}
