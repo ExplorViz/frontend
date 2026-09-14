@@ -17,8 +17,6 @@ import React, { useState } from 'react';
 import { Accordion, Badge, Button, Card, Form, Spinner } from 'react-bootstrap';
 import { List, RowComponentProps, useDynamicRowHeight } from 'react-window';
 import { useInfiniteLoader } from 'react-window-infinite-loader';
-import ComponentOpener from '../../component-opener';
-import { ToolbarOpenerProps } from '../../types';
 
 function severityNumberToName(severityNumber: number) {
   const labels = [
@@ -255,234 +253,233 @@ export default function LogSearch() {
 
   return (
     <>
-      <h5 className="text-center">Log Search</h5>
-      <p className="text-center text-muted">
-        Find log telemetry data related to landscape entities.
-      </p>
-      <section className="border rounded p-3 mb-3">
-        <fieldset disabled={isLoading}>
-          <Form onSubmit={handleSubmit}>
-            <Form.Group className="mb-3">
+      <fieldset disabled={isLoading}>
+        <Form className="mb-3" onSubmit={handleSubmit}>
+          <Form.Group className="mb-3">
+            <Form.Label>
+              Message Body{' '}
+              <HelpTooltip
+                title="Only match logs where the message text contains all of the provided tokens. Search is case-insensitive."
+                placement="top"
+              />
+            </Form.Label>
+            <Form.Control
+              name="messageBody"
+              placeholder='e.g. "successful", "network error", &hellip;'
+              className="mb-2"
+            />
+            <Form.Check
+              name="includeAttributeKeys"
+              type="checkbox"
+              value="true"
+              label={
+                <>
+                  Include attribute keys{' '}
+                  <HelpTooltip
+                    title="Also search the log, scope, and resource attributes' keys for the provided search tokens. This can be useful to ensure a specific attribute is present."
+                    placement="top"
+                  />
+                </>
+              }
+              inline
+            />
+            <Form.Check
+              name="includeAttributeValues"
+              type="checkbox"
+              value="true"
+              label={
+                <>
+                  Include attribute values{' '}
+                  <HelpTooltip
+                    title="Also search the log, scope, and resource attributes' values for the provided search tokens."
+                    placement="top"
+                  />
+                </>
+              }
+              defaultChecked
+              inline
+            />
+          </Form.Group>
+
+          <Form.Group className="mb-3">
+            <Form.Label>
+              Service{' '}
+              <HelpTooltip
+                title="Only match logs originating from a specific application or service."
+                placement="top"
+              />
+            </Form.Label>
+            <Form.Select name="serviceName">
+              <option value="">Any</option>
+              {Object.keys(cities).length > 0 && (
+                <>
+                  <option disabled>────────</option>
+                  {Object.values(cities).map((city) => (
+                    <option key={city.id} value={city.name}>
+                      {city.name}
+                    </option>
+                  ))}
+                </>
+              )}
+            </Form.Select>
+          </Form.Group>
+
+          <Form.Group className="mb-3">
+            <Form.Label>
+              Severity{' '}
+              <HelpTooltip
+                title="Only match logs with a certain severity level. The severity can be specified as either a numeric value range in accordance with the OpenTelemetry Logs data model (0-24), or as a text string from the list of available severity strings."
+                placement="top"
+              />
+            </Form.Label>
+            <div className="mb-1">
+              <Form.Check
+                inline
+                type="radio"
+                label="Number Range"
+                checked={severityAsNumber}
+                onChange={() => setSeverityAsNumber(true)}
+              />
+              <Form.Check
+                inline
+                type="radio"
+                label="Text"
+                checked={!severityAsNumber}
+                onChange={() => setSeverityAsNumber(false)}
+              />
+            </div>
+
+            <div style={{ minHeight: '2.4em' }}>
+              {severityAsNumber ? (
+                <DualRangeSlider
+                  min={0}
+                  max={24}
+                  lowerFormName="minSeverity"
+                  upperFormName="maxSeverity"
+                  disabled={isLoading}
+                  getTooltipText={(val) =>
+                    `${val} (${severityNumberToName(val)})`
+                  }
+                />
+              ) : (
+                <Form.Select
+                  name="severityText"
+                  onFocus={handleSeverityTextSelectFocus}
+                >
+                  <option value="">Any</option>
+                  {severityTextValues && severityTextValues.length > 0 && (
+                    <option disabled>────────</option>
+                  )}
+                  {severityTextValues ? (
+                    severityTextValues.map((severity) => (
+                      <option key={severity}>{severity}</option>
+                    ))
+                  ) : (
+                    <option disabled>Loading &hellip;</option>
+                  )}
+                </Form.Select>
+              )}
+            </div>
+          </Form.Group>
+
+          <div className="row">
+            <Form.Group className="mb-3 col-md-6">
               <Form.Label>
-                Message Body{' '}
+                Date start{' '}
                 <HelpTooltip
-                  title="Only match logs where the message text contains all of the provided tokens. Search is case-insensitive."
+                  title="Only match logs with a timestamp after the given point in time. Should be specified in your local timezone. Leave empty for no lower bound on the timestamp."
+                  placement="top"
+                />
+              </Form.Label>
+              <Form.Control type="datetime-local" name="from" step={1} />
+            </Form.Group>
+
+            <Form.Group className="mb-3 col-md-6">
+              <Form.Label>
+                Date end{' '}
+                <HelpTooltip
+                  title="Only match logs with a timestamp before the given point in time. Should be specified in your local timezone. Leave empty for no upper bound on the timestamp."
+                  placement="top"
+                />
+              </Form.Label>
+              <Form.Control type="datetime-local" name="to" step={1} />
+            </Form.Group>
+          </div>
+
+          <div className="row">
+            <Form.Group className="mb-3 col-md-6">
+              <Form.Label>
+                Trace ID{' '}
+                <HelpTooltip
+                  title="Only match logs that are associated with a specific trace."
                   placement="top"
                 />
               </Form.Label>
               <Form.Control
-                name="messageBody"
-                placeholder='e.g. "successful", "network error", &hellip;'
-                className="mb-2"
+                name="traceId"
+                placeholder="e.g. 5b8aa5a2d2c872e8321cf37308d69df2"
+              ></Form.Control>
+            </Form.Group>
+
+            <Form.Group className="mb-3 col-md-6">
+              <Form.Label>
+                Span ID{' '}
+                <HelpTooltip
+                  title="Only match logs that are associated with a specific span."
+                  placement="top"
+                />
+              </Form.Label>
+              <Form.Control
+                name="spanId"
+                placeholder="e.g. 051581bf3cb55c13"
+              ></Form.Control>
+            </Form.Group>
+          </div>
+
+          <Form.Group className="mb-3">
+            <Form.Label>
+              Sort by{' '}
+              <HelpTooltip
+                title="Determines the order in which matching logs are retrieved and displayed."
+                placement="top"
               />
+            </Form.Label>
+            <div className="mb-1">
               <Form.Check
-                name="includeAttributeKeys"
-                type="checkbox"
-                value="true"
-                label={
-                  <>
-                    Include attribute keys{' '}
-                    <HelpTooltip
-                      title="Also search the log, scope, and resource attributes' keys for the provided search tokens. This can be useful to ensure a specific attribute is present."
-                      placement="top"
-                    />
-                  </>
-                }
                 inline
-              />
-              <Form.Check
-                name="includeAttributeValues"
-                type="checkbox"
-                value="true"
-                label={
-                  <>
-                    Include attribute values{' '}
-                    <HelpTooltip
-                      title="Also search the log, scope, and resource attributes' values for the provided search tokens."
-                      placement="top"
-                    />
-                  </>
-                }
+                type="radio"
+                name="sortBy"
+                value="newest"
+                label="Newest"
                 defaultChecked
-                inline
               />
-            </Form.Group>
-
-            <Form.Group className="mb-3">
-              <Form.Label>
-                Service{' '}
-                <HelpTooltip
-                  title="Only match logs originating from a specific application or service."
-                  placement="top"
-                />
-              </Form.Label>
-              <Form.Select name="serviceName">
-                <option value="">All</option>
-                {Object.values(cities).map((city) => (
-                  <option key={city.id} value={city.name}>
-                    {city.name}
-                  </option>
-                ))}
-              </Form.Select>
-            </Form.Group>
-
-            <Form.Group className="mb-3">
-              <Form.Label>
-                Severity{' '}
-                <HelpTooltip
-                  title="Only match logs with a certain severity level. The severity can be specified as either a numeric value range in accordance with the OpenTelemetry Logs data model (0-24), or as a text string from the list of available severity strings."
-                  placement="top"
-                />
-              </Form.Label>
-              <div className="mb-1">
-                <Form.Check
-                  inline
-                  type="radio"
-                  label="Number Range"
-                  checked={severityAsNumber}
-                  onChange={() => setSeverityAsNumber(true)}
-                />
-                <Form.Check
-                  inline
-                  type="radio"
-                  label="Text"
-                  checked={!severityAsNumber}
-                  onChange={() => setSeverityAsNumber(false)}
-                />
-              </div>
-
-              <div style={{ minHeight: '2.4em' }}>
-                {severityAsNumber ? (
-                  <DualRangeSlider
-                    min={0}
-                    max={24}
-                    lowerFormName="minSeverity"
-                    upperFormName="maxSeverity"
-                    disabled={isLoading}
-                    getTooltipText={(val) =>
-                      `${val} (${severityNumberToName(val)})`
-                    }
-                  />
-                ) : (
-                  <Form.Select
-                    name="severityText"
-                    onFocus={handleSeverityTextSelectFocus}
-                  >
-                    <option value="">Any</option>
-                    {severityTextValues && severityTextValues.length > 0 && (
-                      <option disabled>────────</option>
-                    )}
-                    {severityTextValues ? (
-                      severityTextValues.map((severity) => (
-                        <option key={severity}>{severity}</option>
-                      ))
-                    ) : (
-                      <option disabled>Loading &hellip;</option>
-                    )}
-                  </Form.Select>
-                )}
-              </div>
-            </Form.Group>
-
-            <div className="row">
-              <Form.Group className="mb-3 col-md-6">
-                <Form.Label>
-                  Date start{' '}
-                  <HelpTooltip
-                    title="Only match logs with a timestamp after the given point in time. Should be specified in your local timezone. Leave empty for no lower bound on the timestamp."
-                    placement="top"
-                  />
-                </Form.Label>
-                <Form.Control type="datetime-local" name="from" step={1} />
-              </Form.Group>
-
-              <Form.Group className="mb-3 col-md-6">
-                <Form.Label>
-                  Date end{' '}
-                  <HelpTooltip
-                    title="Only match logs with a timestamp before the given point in time. Should be specified in your local timezone. Leave empty for no upper bound on the timestamp."
-                    placement="top"
-                  />
-                </Form.Label>
-                <Form.Control type="datetime-local" name="to" step={1} />
-              </Form.Group>
+              <Form.Check
+                inline
+                type="radio"
+                name="sortBy"
+                value="oldest"
+                label="Oldest"
+              />
+              <Form.Check
+                inline
+                type="radio"
+                name="sortBy"
+                value="severity"
+                label="Severity"
+              />
             </div>
+          </Form.Group>
 
-            <div className="row">
-              <Form.Group className="mb-3 col-md-6">
-                <Form.Label>
-                  Trace ID{' '}
-                  <HelpTooltip
-                    title="Only match logs that are associated with a specific trace."
-                    placement="top"
-                  />
-                </Form.Label>
-                <Form.Control
-                  name="traceId"
-                  placeholder="e.g. 5b8aa5a2d2c872e8321cf37308d69df2"
-                ></Form.Control>
-              </Form.Group>
-
-              <Form.Group className="mb-3 col-md-6">
-                <Form.Label>
-                  Span ID{' '}
-                  <HelpTooltip
-                    title="Only match logs that are associated with a specific span."
-                    placement="top"
-                  />
-                </Form.Label>
-                <Form.Control
-                  name="spanId"
-                  placeholder="e.g. 051581bf3cb55c13"
-                ></Form.Control>
-              </Form.Group>
-            </div>
-
-            <Form.Group className="mb-3">
-              <Form.Label>
-                Sort by{' '}
-                <HelpTooltip
-                  title="Determines the order in which matching logs are retrieved and displayed."
-                  placement="top"
-                />
-              </Form.Label>
-              <div className="mb-1">
-                <Form.Check
-                  inline
-                  type="radio"
-                  name="sortBy"
-                  value="newest"
-                  label="Newest"
-                  defaultChecked
-                />
-                <Form.Check
-                  inline
-                  type="radio"
-                  name="sortBy"
-                  value="oldest"
-                  label="Oldest"
-                />
-                <Form.Check
-                  inline
-                  type="radio"
-                  name="sortBy"
-                  value="severity"
-                  label="Severity"
-                />
-              </div>
-            </Form.Group>
-
-            <Button type="submit" className="d-flex align-items-center gap-2">
-              {isLoading ? (
-                <Spinner animation="border" size="sm" />
-              ) : (
-                <SearchIcon />
-              )}
-              <div>Search Logs</div>
-            </Button>
-          </Form>
-        </fieldset>
-      </section>
+          <Button type="submit" className="d-flex align-items-center gap-2">
+            {isLoading ? (
+              <Spinner animation="border" size="sm" />
+            ) : (
+              <SearchIcon />
+            )}
+            <div>Search Logs</div>
+          </Button>
+        </Form>
+      </fieldset>
 
       {logs && (
         <section className="border rounded p-3 mb-3">
@@ -685,19 +682,5 @@ function LogItem({
         </Accordion.Body>
       </Accordion.Item>
     </div>
-  );
-}
-
-export function LogSearchOpener({
-  openedComponent,
-  toggleToolsSidebarComponent,
-}: ToolbarOpenerProps) {
-  return (
-    <ComponentOpener
-      openedComponent={openedComponent}
-      componentTitle="Log Search"
-      componentId="log-search"
-      toggleComponent={toggleToolsSidebarComponent}
-    />
   );
 }
