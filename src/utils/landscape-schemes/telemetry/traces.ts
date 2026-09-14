@@ -24,7 +24,23 @@ export interface Span {
   parentSpanId?: string;
 
   name: string;
+
+  /**
+   * Role of a span in a request according to the OpenTelemetry trace data model.
+   * @see {@link https://opentelemetry.io/docs/specs/otel/trace/api/#spankind|OTel documentation}
+   */
   kind: string;
+
+  /** Lookup key for telemetry of the entity from which this log originates. */
+  telemetryKey?: string;
+
+  /** Name of the service / application from which this log originates. */
+  serviceName: string;
+
+  /**
+   * Name of the OpenTelemetry instrumentation scope that the span belongs to.
+   * @see {@link https://opentelemetry.io/docs/concepts/instrumentation-scope/|OTel documentation} */
+  instrumentationScope: string;
 
   /** Start time of the span in nanoseconds since Unix epoch */
   startUnixNano: bigint;
