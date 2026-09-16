@@ -1,11 +1,11 @@
-import { EyeIcon, SearchIcon } from '@primer/octicons-react';
-import AttributesTable from 'explorviz-frontend/src/components/attributes-table';
+import { SearchIcon } from '@primer/octicons-react';
+import SpanKindBadge from 'explorviz-frontend/src/components/badges/span-kind-badge';
 import EntitySelect from 'explorviz-frontend/src/components/entity-select';
 import HelpTooltip from 'explorviz-frontend/src/components/help-tooltip';
+import SpanDetailsCard from 'explorviz-frontend/src/components/visualization/rendering/popups/city-popups/span-details-card';
 import useSpanFetch, {
   SpanSearchParams,
 } from 'explorviz-frontend/src/hooks/fetch/useSpanFetch';
-import { useCameraControlsStore } from 'explorviz-frontend/src/stores/camera-controls-store';
 import { useModelStore } from 'explorviz-frontend/src/stores/repos/model-repository';
 import { useToastHandlerStore } from 'explorviz-frontend/src/stores/toast-handler';
 import {
@@ -14,33 +14,11 @@ import {
   District,
 } from 'explorviz-frontend/src/utils/landscape-schemes/flat-landscape';
 import { Span } from 'explorviz-frontend/src/utils/landscape-schemes/telemetry/traces';
-import { pingByModelId } from 'explorviz-frontend/src/view-objects/3d/city/animated-ping-r3f';
 import React, { useRef, useState } from 'react';
-import {
-  Accordion,
-  Badge,
-  Button,
-  Card,
-  Form,
-  OverlayTrigger,
-  Spinner,
-  Tooltip,
-} from 'react-bootstrap';
+import { Accordion, Button, Form, Spinner } from 'react-bootstrap';
 import { SelectInstance } from 'react-select';
 import { List, RowComponentProps, useDynamicRowHeight } from 'react-window';
 import { useInfiniteLoader } from 'react-window-infinite-loader';
-
-function spanKindToBsColor(spanKind: string): string {
-  const colors: Record<string, string> = {
-    client: 'primary',
-    server: 'danger',
-    internal: 'secondary',
-    producer: 'warning',
-    consumer: 'success',
-  };
-
-  return colors[spanKind.toLowerCase()] ?? 'secondary';
-}
 
 function formatUnixNanoseconds(ns: bigint) {
   const date = new Date(Number(ns / 1_000_000n));
@@ -460,51 +438,7 @@ function SpanItem({
   onTraceIdClick?(traceId: string): void;
   onSearchEntityClick?(entity: Building): void;
 }>) {
-  const cities = useModelStore((state) => state.cities);
-  const buildings = useModelStore((state) => state.buildings);
-  const telemetryKeyToEntityId = useModelStore(
-    (state) => state.telemetryKeyToEntityId
-  );
-  const lookAtEntity = useCameraControlsStore((state) => state.lookAtEntity);
-  const showErrorToastMessage = useToastHandlerStore(
-    (state) => state.showErrorToastMessage
-  );
-
   const span = spans[index];
-  const entityId = telemetryKeyToEntityId.get(span.telemetryKey);
-  const entity = entityId ? buildings[entityId] : undefined;
-
-  const duration = span.endUnixNano - span.startUnixNano;
-  const durationMs = duration / BigInt(1_000_000);
-  const durationString = durationMs > 0n ? `${durationMs}ms` : `${duration}ns`;
-
-  const handleServiceNameClicked = () => {
-    if (!span.serviceName) {
-      console.error('Service name of span is undefined in handler');
-      return;
-    }
-
-    const city = Object.values(cities).find((c) => c.name === span.serviceName);
-    if (!city) {
-      showErrorToastMessage(
-        'The service could not be found in the current visualization'
-      );
-      return;
-    }
-
-    lookAtEntity(city.id);
-    pingByModelId(city.id);
-  };
-
-  const handleShowEntityClick = () => {
-    if (!entity) {
-      console.error('Entity related to span is undefined in handler');
-      return;
-    }
-
-    lookAtEntity(entity.id);
-    pingByModelId(entity.id);
-  };
 
   return (
     <div style={style}>
@@ -517,9 +451,7 @@ function SpanItem({
           style={{ padding: '8px 12px' }}
         >
           <small>
-            <Badge bg={spanKindToBsColor(span.kind)} className="me-2">
-              <samp>{span.kind.toUpperCase()}</samp>
-            </Badge>
+            <SpanKindBadge kind={span.kind} className="me-2" />
           </small>
           <samp className="text-truncate">
             <small>
@@ -529,134 +461,7 @@ function SpanItem({
           </samp>
         </Accordion.Button>
         <Accordion.Body>
-          <Card>
-            <Card.Body>
-              <dl>
-                <dt>Name</dt>
-                <dd>
-                  <pre className="mb-0" style={{ whiteSpace: 'pre-wrap' }}>
-                    <samp className="small">{span.name}</samp>
-                  </pre>
-                </dd>
-
-                <dt>Kind</dt>
-                <dd>
-                  <Badge bg={spanKindToBsColor(span.kind)}>
-                    <code className="text-light">
-                      {span.kind.toUpperCase()}
-                    </code>
-                  </Badge>
-                </dd>
-
-                <dt>Duration</dt>
-                <dd>
-                  <small>{durationString}</small>
-                </dd>
-
-                <dt>Span ID</dt>
-                <dd>
-                  <small>
-                    <samp>{span.spanId}</samp>
-                  </small>
-                </dd>
-
-                <dt>Parent Span ID</dt>
-                <dd>
-                  {span.parentSpanId ? (
-                    <small>
-                      <samp className="text-dark">{span.parentSpanId}</samp>
-                    </small>
-                  ) : (
-                    'None (root span)'
-                  )}
-                </dd>
-
-                <dt>Trace ID</dt>
-                <dd>
-                  <small>
-                    <OverlayTrigger
-                      placement={'top'}
-                      trigger={['hover', 'focus']}
-                      overlay={
-                        <Tooltip>Search for all spans in this trace</Tooltip>
-                      }
-                    >
-                      <a
-                        href="#"
-                        onClick={() => onTraceIdClick?.(span.traceId)}
-                      >
-                        {span.traceId} <SearchIcon />
-                      </a>
-                    </OverlayTrigger>
-                  </small>
-                </dd>
-
-                {entity && (
-                  <>
-                    <dt>Entity</dt>
-                    <dd>
-                      <small className="d-flex gap-2 align-items-center">
-                        <samp>{entity.fqn ?? entity.name}</samp>
-
-                        <OverlayTrigger
-                          placement={'top'}
-                          trigger={['hover', 'focus']}
-                          overlay={
-                            <Tooltip>Highlight entity in visualization</Tooltip>
-                          }
-                        >
-                          <Button size="sm" onClick={handleShowEntityClick}>
-                            <EyeIcon />
-                          </Button>
-                        </OverlayTrigger>
-
-                        <OverlayTrigger
-                          placement={'top'}
-                          trigger={['hover', 'focus']}
-                          overlay={
-                            <Tooltip>Search all spans for this entity</Tooltip>
-                          }
-                        >
-                          <Button
-                            size="sm"
-                            onClick={() => onSearchEntityClick?.(entity)}
-                          >
-                            <SearchIcon />
-                          </Button>
-                        </OverlayTrigger>
-                      </small>
-                    </dd>
-                  </>
-                )}
-
-                {span.serviceName && (
-                  <>
-                    <dt>Service Name</dt>
-                    <dd>
-                      <small>
-                        <a href="#" onClick={handleServiceNameClicked}>
-                          {span.serviceName}
-                        </a>
-                      </small>
-                    </dd>
-                  </>
-                )}
-
-                <dt>Instrumentation Scope</dt>
-                <dd>{span.instrumentationScope}</dd>
-
-                <dt>Span Attributes</dt>
-                <dd>
-                  <AttributesTable attributes={span.spanAttributes} />
-                </dd>
-
-                <dt>Resource Attributes</dt>
-                <dd>
-                  <AttributesTable attributes={span.resourceAttributes} />
-                </dd>
-              </dl>
-            </Card.Body>
-          </Card>
+          <SpanDetailsCard span={span} />
         </Accordion.Body>
       </Accordion.Item>
     </div>
