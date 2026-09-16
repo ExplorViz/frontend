@@ -6,7 +6,7 @@ import {
 import {
   normalizeLanguage,
   sortLanguages,
-} from 'explorviz-frontend/src/utils/settings/language-settings';
+} from 'explorviz-frontend/src/utils/language-utils';
 import { BUILDING_METRIC_NAMES } from 'explorviz-frontend/src/utils/settings/settings-schemas';
 import { create } from 'zustand';
 

@@ -1,3 +1,5 @@
+import { Language, ModelType } from '../landscape-schemes/flat-landscape';
+
 export type SettingGroup =
   | 'Building Config'
   | 'Camera'
@@ -30,20 +32,7 @@ export type CameraSettingId = keyof CameraSettings;
 
 export type ColorSettingId =
   | 'backgroundColor'
-  | 'javaBuildingColor'
-  | 'cBuildingColor'
-  | 'cppBuildingColor'
-  | 'csharpBuildingColor'
-  | 'goBuildingColor'
-  | 'javascriptBuildingColor'
-  | 'kotlinBuildingColor'
-  | 'phpBuildingColor'
-  | 'pythonBuildingColor'
-  | 'rustBuildingColor'
-  | 'swiftBuildingColor'
-  | 'typescriptBuildingColor'
-  | 'plaintextBuildingColor'
-  | 'otherBuildingColor'
+  | 'buildingColor'
   | 'buildingTextColor'
   | 'communicationArrowColor'
   | 'communicationColor'
@@ -66,6 +55,25 @@ export type ColorSettingId =
   | 'k8sDiagramColor';
 
 export type ColorSettings = Record<ColorSettingId, ColorSetting>;
+
+export type ColorOverrideSettings = {
+  modelTypeColorOverrides: Setting<Partial<Record<ModelType, string>>>;
+  languageColorOverrides: Setting<Partial<Record<Language, string>>>;
+};
+export type ColorOverrideSettingId = keyof ColorOverrideSettings;
+
+export const GEOMETRY_OPTIONS = ['Box', 'Cone', 'Sphere', 'Cylinder'] as const;
+export type BuildingGeometryType = (typeof GEOMETRY_OPTIONS)[number];
+
+export type GeometryOverrideSettings = {
+  languageGeometryOverrides: Setting<
+    Partial<Record<Language, BuildingGeometryType>>
+  >;
+  modelTypeGeometryOverrides: Setting<
+    Partial<Record<ModelType, BuildingGeometryType>>
+  >;
+};
+export type GeometryOverrideSettingId = keyof GeometryOverrideSettings;
 
 export type ControlSettings = {
   leftMouseButtonAction: SelectSetting<string>;
@@ -235,24 +243,6 @@ export type MagnifierSettingId = keyof MagnifierSettings;
 export type XrSettingId = 'autoEnterVr';
 export type XrSettings = Record<XrSettingId, FlagSetting>;
 
-export type GeometrySettings = {
-  languageGeometryJava: SelectSetting<string>;
-  languageGeometryC: SelectSetting<string>;
-  languageGeometryCpp: SelectSetting<string>;
-  languageGeometryCsharp: SelectSetting<string>;
-  languageGeometryGo: SelectSetting<string>;
-  languageGeometryJavaScript: SelectSetting<string>;
-  languageGeometryKotlin: SelectSetting<string>;
-  languageGeometryPhp: SelectSetting<string>;
-  languageGeometryPython: SelectSetting<string>;
-  languageGeometryRust: SelectSetting<string>;
-  languageGeometrySwift: SelectSetting<string>;
-  languageGeometryTypeScript: SelectSetting<string>;
-  languageGeometryPlaintext: SelectSetting<string>;
-  languageGeometryOther: SelectSetting<string>;
-};
-export type GeometrySettingId = keyof GeometrySettings;
-
 export type VisualizationSettingId =
   | CameraSettingId
   | ColorSettingId
@@ -268,7 +258,8 @@ export type VisualizationSettingId =
   | MiscSettingId
   | SemanticZoomSettingId
   | 'autoEnterVr'
-  | GeometrySettingId
+  | ColorOverrideSettingId
+  | GeometryOverrideSettingId
   | ImmersiveSettingId;
 
 export type VisualizationSettings = CameraSettings &
@@ -277,7 +268,8 @@ export type VisualizationSettings = CameraSettings &
   DebugSettings &
   HeatmapSettings &
   EffectSettings &
-  GeometrySettings &
+  ColorOverrideSettings &
+  GeometryOverrideSettings &
   LayoutSettings &
   LabelSettings &
   MagnifierSettings &

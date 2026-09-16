@@ -3,11 +3,11 @@ import {
   type Building,
   type Language,
 } from 'explorviz-frontend/src/utils/landscape-schemes/flat-landscape';
+import { normalizeLanguage } from 'explorviz-frontend/src/utils/language-utils';
 import {
   compileSearchExpressions,
   matchesAnyCompiledExpression,
 } from 'explorviz-frontend/src/utils/search-expression-matcher';
-import { normalizeLanguage } from 'explorviz-frontend/src/utils/settings/language-settings';
 import { BUILDING_METRIC_NAMES } from 'explorviz-frontend/src/utils/settings/settings-schemas';
 
 export type BuildingFilterCriteria = {

@@ -1,56 +1,51 @@
 import ColorPicker from 'explorviz-frontend/src/components/visualization/page-setup/sidebar/customizationbar/settings/color-picker';
 import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
-import { Language } from 'explorviz-frontend/src/utils/landscape-schemes/flat-landscape';
+import { ModelType } from 'explorviz-frontend/src/utils/landscape-schemes/flat-landscape';
 import {
   BuildingGeometryType,
   GEOMETRY_OPTIONS,
 } from 'explorviz-frontend/src/utils/settings/settings-schemas';
 import { ButtonGroup, ToggleButton } from 'react-bootstrap';
 
-interface LanguageBuildingSettingsProps {
-  language: Language;
+interface ModelTypeBuildingSettingsProps {
+  type: ModelType;
 }
 
-export default function LanguageBuildingSettings({
-  language,
-}: LanguageBuildingSettingsProps) {
+export default function ModelTypeBuildingSettings({
+  type,
+}: ModelTypeBuildingSettingsProps) {
   const buildingColor = useUserSettingsStore(
     (state) => state.visualizationSettings.buildingColor
-  );
-  const languageColorOverrides = useUserSettingsStore(
-    (state) => state.visualizationSettings.languageColorOverrides
-  );
-  const languageGeometryOverrides = useUserSettingsStore(
-    (state) => state.visualizationSettings.languageGeometryOverrides
   );
   const modelTypeColorOverrides = useUserSettingsStore(
     (state) => state.visualizationSettings.modelTypeColorOverrides
   );
+  const modelTypeGeometryOverrides = useUserSettingsStore(
+    (state) => state.visualizationSettings.modelTypeGeometryOverrides
+  );
   const updateSetting = useUserSettingsStore((state) => state.updateSetting);
 
   const selectedColor =
-    languageColorOverrides.value[language] ??
-    modelTypeColorOverrides.value['code'] ??
-    buildingColor.value;
-  const selectedGeometry = languageGeometryOverrides.value[language];
+    modelTypeColorOverrides.value[type] ?? buildingColor.value;
+  const selectedGeometry = modelTypeGeometryOverrides.value[type];
 
   const handleColorChange = (newColor: string) => {
-    updateSetting('languageColorOverrides', {
-      ...languageColorOverrides.value,
-      [language]: newColor,
+    updateSetting('modelTypeColorOverrides', {
+      ...modelTypeColorOverrides.value,
+      [type]: newColor,
     });
   };
 
   const handleGeometryChange = (newGeometry: BuildingGeometryType) => {
-    updateSetting('languageGeometryOverrides', {
-      ...languageGeometryOverrides.value,
-      [language]: newGeometry,
+    updateSetting('modelTypeGeometryOverrides', {
+      ...modelTypeGeometryOverrides.value,
+      [type]: newGeometry,
     });
   };
 
   const handleResetGeometry = () => {
-    const { [language]: _, ...withoutLang } = languageGeometryOverrides.value;
-    updateSetting('languageGeometryOverrides', withoutLang);
+    const { [type]: _, ...without } = modelTypeGeometryOverrides.value;
+    updateSetting('modelTypeGeometryOverrides', without);
   };
 
   return (
@@ -78,14 +73,14 @@ export default function LanguageBuildingSettings({
             {GEOMETRY_OPTIONS.map((geometry) => (
               <ToggleButton
                 key={geometry}
-                id={`${language}-geometry-${geometry}`}
+                id={`${type}-geometry-${geometry}`}
                 type="radio"
                 variant={
                   selectedGeometry === geometry
                     ? 'primary'
                     : 'outline-secondary'
                 }
-                name={`${language}-geometry`}
+                name={`${type}-geometry`}
                 value={geometry}
                 checked={selectedGeometry === geometry}
                 onChange={() => handleGeometryChange(geometry)}

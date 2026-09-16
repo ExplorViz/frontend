@@ -11,9 +11,6 @@ import {
   ColorSettingId,
   ColorSettings,
   isColorSetting,
-  isFlagSetting,
-  isRangeSetting,
-  isSelectSetting,
   VisualizationSettingId,
   VisualizationSettings,
 } from 'explorviz-frontend/src/utils/settings/settings-schemas';
@@ -117,48 +114,15 @@ export const useUserSettingsStore = create<UserSettingsState>()(
 
         const newValue = value ?? defaultVizSettings[name].value;
 
-        if (isRangeSetting(setting) && typeof newValue === 'number') {
-          set({
-            visualizationSettings: {
-              ...get().visualizationSettings,
-              [name]: {
-                ...JSON.parse(JSON.stringify(setting)),
-                value: newValue,
-              },
+        set({
+          visualizationSettings: {
+            ...get().visualizationSettings,
+            [name]: {
+              ...JSON.parse(JSON.stringify(setting)),
+              value: newValue,
             },
-          });
-        } else if (isFlagSetting(setting) && typeof newValue === 'boolean') {
-          set({
-            visualizationSettings: {
-              ...get().visualizationSettings,
-              [name]: {
-                ...JSON.parse(JSON.stringify(setting)),
-                value: newValue,
-              },
-            },
-          });
-        } else if (isColorSetting(setting) && typeof newValue === 'string') {
-          set({
-            visualizationSettings: {
-              ...get().visualizationSettings,
-              [name]: {
-                ...JSON.parse(JSON.stringify(setting)),
-                value: newValue,
-              },
-            },
-          });
-          get().setColorsFromSettings();
-        } else if (isSelectSetting(setting) && typeof newValue === 'string') {
-          set({
-            visualizationSettings: {
-              ...get().visualizationSettings,
-              [name]: {
-                ...JSON.parse(JSON.stringify(setting)),
-                value: newValue,
-              },
-            },
-          });
-        }
+          },
+        });
       },
 
       setColorScheme: (schemeId: ColorSchemeId) => {

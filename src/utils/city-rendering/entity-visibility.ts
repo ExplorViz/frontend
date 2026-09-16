@@ -11,7 +11,7 @@ import {
   Language,
 } from 'explorviz-frontend/src/utils/landscape-schemes/flat-landscape';
 import { TypeOfAnalysis } from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
-import { normalizeLanguage } from 'explorviz-frontend/src/utils/settings/language-settings';
+import { normalizeLanguage } from 'explorviz-frontend/src/utils/language-utils';
 import { useMemo } from 'react';
 import { useShallow } from 'zustand/react/shallow';
 

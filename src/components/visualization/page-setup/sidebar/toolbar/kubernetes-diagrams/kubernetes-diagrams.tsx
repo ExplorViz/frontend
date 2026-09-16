@@ -1,5 +1,9 @@
-import { type DiagramType, useDiagramGenerator } from 'explorviz-frontend/src/hooks/useDiagramGenerator';
+import {
+  type DiagramType,
+  useDiagramGenerator,
+} from 'explorviz-frontend/src/hooks/useDiagramGenerator';
 import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
+import { defaultColors } from 'explorviz-frontend/src/utils/settings/color-schemes';
 import React, {
   useCallback,
   useEffect,
@@ -8,7 +12,7 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import { ColorPickerSection } from './color-picker-section';
+import ColorPicker from '../../customizationbar/settings/color-picker';
 import { KubeDiagramContextMenu } from './context-menu';
 import { DiagramGeneratorMenu } from './diagram-generator-menu';
 import { KubeDiagramHoverPopup } from './hover-popup';
@@ -22,7 +26,10 @@ type DiagramPageProps = React.SVGProps<SVGSVGElement> & {
   onNodeClick?: (nodeName: string) => void;
 };
 
-export default function DiagramPage({ onNodeClick, ...props }: DiagramPageProps) {
+export default function DiagramPage({
+  onNodeClick,
+  ...props
+}: DiagramPageProps) {
   const { generate, svg, isRunning, error } = useDiagramGenerator();
   const [persistedSvg] = useState<string | null>(() =>
     localStorage.getItem('generated-diagram-svg')
@@ -31,7 +38,10 @@ export default function DiagramPage({ onNodeClick, ...props }: DiagramPageProps)
     () => new Map()
   );
   const [optionsOpen, setOptionsOpen] = useState(false);
-  const [contextMenu, setContextMenu] = useState<{ x: number; y: number } | null>(null);
+  const [contextMenu, setContextMenu] = useState<{
+    x: number;
+    y: number;
+  } | null>(null);
 
   // Measure available vertical space from the diagram top to the viewport bottom.
   // Re-measures on resize and when the options panel is toggled (changes the top offset).
@@ -73,11 +83,16 @@ export default function DiagramPage({ onNodeClick, ...props }: DiagramPageProps)
   } = useHoverPopup();
 
   const diagramColor = useUserSettingsStore(
-    (state) => state.visualizationSettings.k8sDiagramColor?.value ?? '#326ce5'
+    (state) =>
+      state.visualizationSettings.k8sDiagramColor?.value ??
+      defaultColors.k8sDiagramColor
   );
   const highlightedEntityColor = useUserSettingsStore(
-    (state) => state.visualizationSettings.highlightedEntityColor?.value ?? '#ff5151'
+    (state) =>
+      state.visualizationSettings.highlightedEntityColor?.value ??
+      defaultColors.highlightedEntityColor
   );
+  const updateSetting = useUserSettingsStore((state) => state.updateSetting);
 
   // Persist the latest generated SVG so it survives page reloads
   useEffect(() => {
@@ -99,7 +114,7 @@ export default function DiagramPage({ onNodeClick, ...props }: DiagramPageProps)
       svgElement,
       diagramColor,
       highlightedEntityColor,
-      svgToReactNode,
+      svgToReactNode
     )
       .then(setLoadedSvgs)
       .catch((err) => console.error('Error preloading SVGs:', err));
@@ -108,7 +123,10 @@ export default function DiagramPage({ onNodeClick, ...props }: DiagramPageProps)
   const svgElement = useMemo<React.ReactNode>(() => {
     if (!effectiveSvg) return null;
 
-    const highlightedPositions = buildHighlightedPositions(effectiveSvg, highlightedNodeNames);
+    const highlightedPositions = buildHighlightedPositions(
+      effectiveSvg,
+      highlightedNodeNames
+    );
     const ctx: DiagramRenderContext = {
       loadedSvgs,
       highlightedPositions,
@@ -168,7 +186,18 @@ export default function DiagramPage({ onNodeClick, ...props }: DiagramPageProps)
       {optionsOpen && (
         <>
           <DiagramGeneratorMenu onGenerate={onGenerate} isRunning={isRunning} />
-          <ColorPickerSection />
+          <div className="kube-color-picker-section">
+            <ColorPicker
+              label="K8s Diagram Color"
+              value={diagramColor}
+              onChange={(v) => updateSetting('k8sDiagramColor', v)}
+            />
+            <ColorPicker
+              label="Highlighted Entity Color"
+              value={highlightedEntityColor}
+              onChange={(v) => updateSetting('highlightedEntityColor', v)}
+            />
+          </div>
         </>
       )}
 

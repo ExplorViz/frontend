@@ -56,29 +56,35 @@ type FlatBaseModel = {
 };
 
 /** Classification of the analysis subject from which a model originates */
-export type ModelType =
-  | 'unknown'
-  | 'service'
-  | 'instrumentation_scope'
-  | 'code'
-  | 'rpc'
-  | 'http';
+export const MODEL_TYPES = [
+  'unknown',
+  'service',
+  'instrumentation_scope',
+  'code',
+  'rpc',
+  'http',
+] as const;
 
-export type Language =
-  | 'LANGUAGE_UNSPECIFIED'
-  | 'C'
-  | 'CPP'
-  | 'CSHARP'
-  | 'GO'
-  | 'JAVA'
-  | 'JAVASCRIPT'
-  | 'KOTLIN'
-  | 'PHP'
-  | 'PLAINTEXT'
-  | 'PYTHON'
-  | 'RUST'
-  | 'SWIFT'
-  | 'TYPESCRIPT';
+export type ModelType = (typeof MODEL_TYPES)[number];
+
+export const SUPPORTED_LANGUAGES = [
+  'C',
+  'CPP',
+  'CSHARP',
+  'GO',
+  'JAVA',
+  'JAVASCRIPT',
+  'KOTLIN',
+  'PHP',
+  'PYTHON',
+  'RUST',
+  'SWIFT',
+  'TYPESCRIPT',
+  'PLAINTEXT',
+  'LANGUAGE_UNSPECIFIED',
+] as const;
+
+export type Language = (typeof SUPPORTED_LANGUAGES)[number];
 
 export type City = FlatBaseModel & {
   buildingIds: string[];
