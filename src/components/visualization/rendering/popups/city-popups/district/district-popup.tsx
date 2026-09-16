@@ -86,7 +86,7 @@ export default function DistrictPopup({ popupData }: DistrictPopupProps) {
           className="nav-tabs justify-content-center"
         >
           <Tab eventKey="general" title="General">
-            <Table hover className="table table-sm mt-2">
+            <Table hover className="table table-sm mt-2 mb-0">
               <tbody>
                 <tr>
                   <td className="fw-bold">Type</td>

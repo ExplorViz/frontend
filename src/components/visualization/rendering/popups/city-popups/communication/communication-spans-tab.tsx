@@ -12,6 +12,7 @@ interface CommunicationSpansTabProps {
   communication: AggregatedCommunication;
 }
 
+/** Displays the spans underlying a communication in a scrollable list */
 export default function CommunicationSpansTab({
   communication,
 }: CommunicationSpansTabProps) {
@@ -44,17 +45,17 @@ export default function CommunicationSpansTab({
   };
 
   return (
-    <div className="mt-2 w-auto">
+    <div className="mt-3 w-auto">
       {!commSpans ? (
         <div className="text-center p-3">
           <Spinner animation="border" size="sm" />
-          <span className="ml-2">Loading spans...</span>
+          <span className="ms-2">Loading spans...</span>
         </div>
       ) : commSpans.pairs.length > 0 ? (
         <Accordion
           alwaysOpen={true}
           className="pe-1"
-          style={{ width: '520px', minWidth: '520px' }}
+          style={{ width: '500px', minWidth: '500px' }}
         >
           {commSpans.pairs.map((pair) => {
             const parentSpan = commSpans.spans[pair.parentSpanId];
@@ -103,7 +104,7 @@ export default function CommunicationSpansTab({
                   </h6>
                   <SpanDetailsCard
                     span={childSpan}
-                    onParentIdClick={() => scrollToSpanPair(pair)}
+                    onParentSpanIdClick={() => scrollToSpanPair(pair)}
                   />
                 </Accordion.Body>
               </Accordion.Item>

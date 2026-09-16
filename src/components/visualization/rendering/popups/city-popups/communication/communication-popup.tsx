@@ -24,12 +24,12 @@ export default function CommunicationPopup({
           Communication Information
         </div>
       </h3>
-      <div className="popover-body">
+      <div className="popover-body p-2">
         <Tabs
           id="communication-popup-tabs"
           activeKey={activeTab}
           onSelect={(k) => setActiveTab(k || 'general')}
-          className="mb-3 custom-tabs"
+          className="nav-tabs justify-content-center"
         >
           <Tab eventKey="general" title="General">
             <GeneralTab communication={communication} />

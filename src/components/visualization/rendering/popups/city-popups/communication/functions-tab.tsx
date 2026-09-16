@@ -24,7 +24,7 @@ export default function FunctionsTab({ communication }: FunctionsTabProps) {
   }, [communication]);
 
   return (
-    <div className="mt-2">
+    <div className="mt-3">
       {!functions ? (
         <div className="text-center p-3">
           <Spinner animation="border" size="sm" />

@@ -53,7 +53,6 @@ export default function PopupCoordinator({
   addAnnotationForPopup,
 }: PopupCoordinatorProps) {
   const isConnected = usePlayroomConnectionStore((state) => state.isConnected);
-  const isOnline = () => isConnected;
   const restructureMode = useLandscapeRestructureStore(
     (state) => state.restructureMode
   );
@@ -289,7 +288,7 @@ export default function PopupCoordinator({
               </Button>
             </OverlayTrigger>
           ) : (
-            isOnline() &&
+            isConnected &&
             popupData.isPinned && (
               <OverlayTrigger
                 placement="top"
