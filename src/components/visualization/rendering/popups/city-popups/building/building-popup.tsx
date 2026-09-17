@@ -1,3 +1,4 @@
+import LanguageBadge from 'explorviz-frontend/src/components/badges/language-badge';
 import ModelTypeBadge from 'explorviz-frontend/src/components/badges/model-type-badge';
 import LinkButton from 'explorviz-frontend/src/components/link-button.tsx';
 import {
@@ -361,7 +362,7 @@ export default function BuildingPopup({ popupData }: BuildingPopupProps) {
                     <tr>
                       <td className="fw-bold">Language:</td>
                       <td className="text-right text-break pl-1">
-                        {building.language}
+                        <LanguageBadge language={building.language} />
                       </td>
                     </tr>
                   )}
