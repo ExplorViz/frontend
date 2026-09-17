@@ -1,3 +1,4 @@
+import ModelTypeBadge from 'explorviz-frontend/src/components/badges/model-type-badge';
 import LinkButton from 'explorviz-frontend/src/components/link-button.tsx';
 import {
   coerceMetricNumber,
@@ -24,7 +25,7 @@ import { TypeOfAnalysis } from 'explorviz-frontend/src/utils/landscape-schemes/s
 import { applyCommitHashToRepositoryFileUrl } from 'explorviz-frontend/src/utils/repository-file-url';
 import { getOrderedBuildingMetricEntries } from 'explorviz-frontend/src/utils/settings/settings-schemas';
 import { useEffect, useMemo, useState } from 'react';
-import { Accordion, Badge, Tab, Tabs } from 'react-bootstrap';
+import { Accordion, Tab, Tabs } from 'react-bootstrap';
 
 interface BuildingPopupProps {
   popupData: PopupData;
@@ -347,11 +348,7 @@ export default function BuildingPopup({ popupData }: BuildingPopupProps) {
                   <tr>
                     <td className="fw-bold">Type:</td>
                     <td className="text-right text-break pl-1">
-                      <Badge pill>
-                        <samp>
-                          {(building.type ?? 'unknown').toUpperCase()}
-                        </samp>
-                      </Badge>
+                      <ModelTypeBadge type={building.type} />
                     </td>
                   </tr>
                   <tr>

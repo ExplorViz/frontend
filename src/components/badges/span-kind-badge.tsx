@@ -35,7 +35,7 @@ export default function SpanKindBadge({
       className={className}
       style={style}
     >
-      <code className="text-light">{kind.toUpperCase()}</code>
+      <samp>{kind.toUpperCase()}</samp>
     </Badge>
   );
 }
