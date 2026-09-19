@@ -1,5 +1,6 @@
 import { Tab, Tabs } from 'react-bootstrap';
 import BuildingConfig from './buildings/building-config';
+import DistrictConfig from './districts/district-config';
 
 export default function EntityConfig() {
   return (
@@ -18,7 +19,7 @@ export default function EntityConfig() {
         className="border border-top-0 p-3"
         tabClassName="text-dark"
       >
-        <p className="text-muted">No configuration options available</p>
+        <DistrictConfig />
       </Tab>
       <Tab
         eventKey="cities"

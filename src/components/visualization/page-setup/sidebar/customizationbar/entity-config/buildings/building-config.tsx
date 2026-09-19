@@ -67,8 +67,8 @@ export default function BuildingConfig() {
           <h6 className="fw-bold">Model types</h6>
           <p className="small mb-2">
             Set the color and geometry for buildings from different analysis
-            types. Model types found in the current landscape are shown by
-            default.
+            types. Model types of buildings found in the current landscape are
+            shown by default.
           </p>
 
           <BuildingModelConfig
