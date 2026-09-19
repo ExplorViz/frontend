@@ -65,11 +65,8 @@ export default function LanguageFiltering() {
     }))
   );
 
-  const languageColorOverrides = useUserSettingsStore(
-    (state) => state.visualizationSettings.languageColorOverrides
-  );
-  const modelTypeColorOverrides = useUserSettingsStore(
-    (state) => state.visualizationSettings.modelTypeColorOverrides
+  const buildingColorOverrides = useUserSettingsStore(
+    (state) => state.visualizationSettings.buildingColorOverrides
   );
   const buildingColor = useUserSettingsStore(
     (state) => state.visualizationSettings.buildingColor
@@ -87,8 +84,8 @@ export default function LanguageFiltering() {
     <div className="language-filter-list">
       {baselineLanguageStats.map(([language, count]) => {
         const color =
-          languageColorOverrides.value[language] ??
-          modelTypeColorOverrides.value['code'] ??
+          buildingColorOverrides.value.language[language] ??
+          buildingColorOverrides.value.modelType['code'] ??
           buildingColor.value;
         const isVisible = !hiddenLanguages.has(language);
 

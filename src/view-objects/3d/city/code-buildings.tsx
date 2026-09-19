@@ -28,8 +28,6 @@ import { getSimpleHeatmapColor } from 'explorviz-frontend/src/utils/heatmap/simp
 import calculateColorBrightness from 'explorviz-frontend/src/utils/helpers/threejs-helpers';
 import { requestFileDetailedData } from 'explorviz-frontend/src/utils/landscape-http-request-util';
 import {
-  Language,
-  ModelType,
   type Building,
   type City,
 } from 'explorviz-frontend/src/utils/landscape-schemes/flat-landscape';
@@ -39,7 +37,10 @@ import {
   computeMappedBuildingHeight,
   getCachedBuildingMetricBounds,
 } from 'explorviz-frontend/src/utils/settings/building-metrics';
-import { BuildingGeometryType } from 'explorviz-frontend/src/utils/settings/settings-schemas';
+import {
+  AppearanceOverride,
+  BuildingGeometryType,
+} from 'explorviz-frontend/src/utils/settings/settings-schemas';
 import gsap from 'gsap';
 import { useEffect, useRef } from 'react';
 import * as THREE from 'three';
@@ -70,8 +71,8 @@ declare module '@react-three/fiber' {
 function groupBuildingsByGeometry(
   buildingIds: string[],
   getBuilding: (id: string) => Building | undefined,
-  modelTypeGeometryOverrides: Partial<Record<ModelType, BuildingGeometryType>>,
-  languageGeometryOverrides: Partial<Record<Language, BuildingGeometryType>>
+  globalBuildingGeometry: BuildingGeometryType,
+  buildingGeometryOverrides: AppearanceOverride<BuildingGeometryType>
 ): Map<BuildingGeometryType, string[]> {
   const groups = new Map<BuildingGeometryType, string[]>();
   buildingIds.forEach((buildingId) => {
@@ -80,9 +81,9 @@ function groupBuildingsByGeometry(
 
     const lang = normalizeLanguage(building.language);
     const geometryType =
-      languageGeometryOverrides[lang] ??
-      modelTypeGeometryOverrides[building.type] ??
-      'Box';
+      buildingGeometryOverrides.language[lang] ??
+      buildingGeometryOverrides.modelType[building.type] ??
+      globalBuildingGeometry;
 
     if (!groups.has(geometryType)) {
       groups.set(geometryType, []);
@@ -183,9 +184,7 @@ const GeometryGroup: React.FC<GeometryGroupProps> = ({
     removedBuildingColor,
     unchangedBuildingColor,
     agedBuildingColor,
-    visualizationSettings,
-    modelTypeColorOverrides,
-    languageColorOverrides,
+    buildingColorOverrides,
   } = useUserSettingsStore(
     useShallow((state) => ({
       buildingColor: state.visualizationSettings.buildingColor,
@@ -207,11 +206,8 @@ const GeometryGroup: React.FC<GeometryGroupProps> = ({
       unchangedBuildingColor:
         state.visualizationSettings.unchangedBuildingColor.value,
       agedBuildingColor: state.visualizationSettings.agedBuildingColor.value,
-      visualizationSettings: state.visualizationSettings,
-      modelTypeColorOverrides:
-        state.visualizationSettings.modelTypeColorOverrides,
-      languageColorOverrides:
-        state.visualizationSettings.languageColorOverrides,
+      buildingColorOverrides:
+        state.visualizationSettings.buildingColorOverrides,
     }))
   );
 
@@ -360,8 +356,8 @@ const GeometryGroup: React.FC<GeometryGroupProps> = ({
     let baseColor = isHighlighted
       ? getHighlightingColorForEntity(building.id)
       : new THREE.Color(
-          languageColorOverrides.value[lang] ??
-            modelTypeColorOverrides.value[building.type] ??
+          buildingColorOverrides.value.language[lang] ??
+            buildingColorOverrides.value.modelType[building.type] ??
             buildingColor.value
         );
 
@@ -654,7 +650,6 @@ const GeometryGroup: React.FC<GeometryGroupProps> = ({
     modifiedBuildingColor,
     unchangedBuildingColor,
     agedBuildingColor,
-    visualizationSettings,
     enableHoverEffects,
     buildings,
     buildingIds,
@@ -842,18 +837,18 @@ interface CodeBuildingsArgs {
  */
 const CodeBuildings: React.FC<CodeBuildingsArgs> = ({ buildingIds, city }) => {
   const getBuilding = useModelStore((state) => state.getBuilding);
-  const modelTypeGeometryOverrides = useUserSettingsStore(
-    (state) => state.visualizationSettings.modelTypeGeometryOverrides
+  const buildingGeometry = useUserSettingsStore(
+    (state) => state.visualizationSettings.buildingGeometry
   );
-  const languageGeometryOverrides = useUserSettingsStore(
-    (state) => state.visualizationSettings.languageGeometryOverrides
+  const buildingGeometryOverrides = useUserSettingsStore(
+    (state) => state.visualizationSettings.buildingGeometryOverrides
   );
 
   const buildingsByGeometry = groupBuildingsByGeometry(
     buildingIds,
     getBuilding,
-    modelTypeGeometryOverrides.value,
-    languageGeometryOverrides.value
+    buildingGeometry.value,
+    buildingGeometryOverrides.value
   );
 
   if (buildingIds.length === 0) {

@@ -1,8 +1,8 @@
 import { BUILDING_CONFIG_METRIC_OPTIONS } from 'explorviz-frontend/src/utils/settings/building-config-settings';
 import { defaultColors } from 'explorviz-frontend/src/utils/settings/color-schemes';
 import {
+  BUILDING_GEOMETRY_OPTIONS,
   BuildingMetricMapping,
-  GEOMETRY_OPTIONS,
   SelectedBuildingMetric,
   SettingLevel,
   VisualizationSettings,
@@ -200,19 +200,35 @@ export const defaultVizSettings: VisualizationSettings = {
     description: 'Color for Kubernetes diagram inline SVGs',
     isColorSetting: true,
   },
-  modelTypeColorOverrides: {
+  buildingColorOverrides: {
     level: SettingLevel.EXTENDED,
-    value: {},
+    value: {
+      modelType: {},
+      language: {},
+    },
     group: 'Colors',
-    displayName: 'Type-specific colors',
-    description: 'Color overrides for specific model types',
+    displayName: 'Building Color Overrides',
+    description: 'Color overrides for specific building groups',
   },
-  languageColorOverrides: {
+  districtColorOverrides: {
     level: SettingLevel.EXTENDED,
-    value: {},
+    value: {
+      modelType: {},
+      language: {},
+    },
     group: 'Colors',
-    displayName: 'Language-specific colors',
-    description: 'Color overrides for specific languages',
+    displayName: 'District Color Overrides',
+    description: 'Color overrides for specific district groups',
+  },
+  cityColorOverrides: {
+    level: SettingLevel.EXTENDED,
+    value: {
+      modelType: {},
+      language: {},
+    },
+    group: 'Colors',
+    displayName: 'City Color Overrides',
+    description: 'Color overrides for specific city groups',
   },
   // Control Settings
   leftMouseButtonAction: {
@@ -1062,25 +1078,21 @@ export const defaultVizSettings: VisualizationSettings = {
   buildingGeometry: {
     level: SettingLevel.DEFAULT,
     value: 'Box',
-    options: [...GEOMETRY_OPTIONS],
+    options: [...BUILDING_GEOMETRY_OPTIONS],
     group: 'Geometries',
     displayName: 'Building Geometry',
     description: 'Geometry used for Buildings (unless overridden)',
     isSelectSetting: true,
   },
-  modelTypeGeometryOverrides: {
+  buildingGeometryOverrides: {
     level: SettingLevel.EXTENDED,
-    value: {},
-    group: 'Geometries',
-    displayName: 'Type-specific Geometries',
-    description: 'Geometry overrides for specific model types',
-  },
-  languageGeometryOverrides: {
-    level: SettingLevel.EXTENDED,
-    value: {},
-    group: 'Geometries',
-    displayName: 'Language-specific Geometries',
-    description: 'Geometry overrides for specific languages',
+    value: {
+      modelType: {},
+      language: {},
+    },
+    group: 'Colors',
+    displayName: 'Building Geometry Overrides',
+    description: 'Geometry overrides for specific building groups',
   },
 
   // VR Settings

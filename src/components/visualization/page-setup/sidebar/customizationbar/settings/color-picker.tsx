@@ -3,7 +3,9 @@ import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { ColorResult, SketchPicker } from 'react-color';
 import { createPortal } from 'react-dom';
 import { Color } from 'three';
+import ResetButton from './setting-type/reset-button';
 
+const COLOR_WHEN_NULL = '#ffffff';
 const SKETCH_PICKER_WIDTH = 220;
 const SKETCH_PICKER_HEIGHT = 320;
 const POPUP_MARGIN = 8;
@@ -37,8 +39,8 @@ function computePopupPosition(trigger: HTMLElement): PopupPosition {
 interface ColorPickerProps {
   label: string;
   value?: string;
-  initialValue?: string;
-  onChange?(hexColor: string): void;
+  initialValue?: string | null;
+  onChange?(hexColor: string | null): void;
 }
 
 export default function ColorPicker({
@@ -47,8 +49,8 @@ export default function ColorPicker({
   initialValue,
   onChange,
 }: ColorPickerProps) {
-  const [selectedValue, setSelectedValue] = useState<string>(
-    initialValue ?? '#000000'
+  const [selectedValue, setSelectedValue] = useState<string | null>(
+    initialValue ?? null
   );
   const [displayColorPicker, setDisplayColorPicker] = useState(false);
   const [popupPosition, setPopupPosition] = useState<PopupPosition | null>(
@@ -120,7 +122,7 @@ export default function ColorPicker({
     onChange?.(color.hex);
   };
 
-  const colorObject = new Color(value ?? selectedValue);
+  const colorObject = new Color(value ?? selectedValue ?? COLOR_WHEN_NULL);
 
   const popup =
     displayColorPicker && popupPosition
@@ -134,7 +136,7 @@ export default function ColorPicker({
             }}
           >
             <SketchPicker
-              color={value ?? selectedValue}
+              color={value ?? selectedValue ?? COLOR_WHEN_NULL}
               onChange={handleColorChange}
               disableAlpha
             />
@@ -143,6 +145,14 @@ export default function ColorPicker({
         )
       : null;
 
+  const handleResetClick = () => {
+    setSelectedValue(initialValue!);
+    onChange?.(initialValue!);
+  };
+
+  const isNoColorSelected =
+    value === null || (value === undefined && selectedValue === null);
+
   return (
     <>
       <div
@@ -150,20 +160,42 @@ export default function ColorPicker({
         ref={colorPickerRef}
       >
         <span className="colorpicker-label">{label}</span>
-        <span className="input-group-append colorpicker-input">
-          <div className="colorpicker-wrapper">
-            <span
-              ref={triggerRef}
-              className="input-group-text colorpicker-input-addon"
-              onClick={() => setDisplayColorPicker(!displayColorPicker)}
-              style={{
-                ['--colorpicker-color' as string]: colorObject.getStyle(),
-              }}
-            >
-              <i></i>
-            </span>
-          </div>
-        </span>
+        <div className="d-flex align-items-center gap-2">
+          <span className="input-group-append colorpicker-input">
+            <div className="colorpicker-wrapper">
+              <span
+                ref={triggerRef}
+                className={`input-group-text colorpicker-input-addon overflow-hidden ${isNoColorSelected ? 'crossed' : ''}`}
+                onClick={() => setDisplayColorPicker(!displayColorPicker)}
+                style={{
+                  ['--colorpicker-color' as string]: colorObject.getStyle(),
+                }}
+              >
+                <i></i>
+              </span>
+
+              {/* Show red diagonal across box if no value is selected */}
+              <style>
+                {`
+                  .crossed::after {
+                    content: "";
+                    position: absolute;
+                    left: 50%;
+                    top: 50%;
+                    width: 100%;
+                    height: 2px;
+                    background: red;
+                    transform: translate(-50%, -50%) rotate(-45deg);
+                    overflow: hidden;
+                  }
+                `}
+              </style>
+            </div>
+          </span>
+          {initialValue !== undefined && (
+            <ResetButton onClick={handleResetClick} />
+          )}
+        </div>
       </div>
       {popup}
     </>

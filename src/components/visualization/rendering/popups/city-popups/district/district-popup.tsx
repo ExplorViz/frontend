@@ -1,3 +1,4 @@
+import ModelTypeBadge from 'explorviz-frontend/src/components/badges/model-type-badge';
 import LinkButton from 'explorviz-frontend/src/components/link-button.tsx';
 import AggregatedBuildingMetricsTable from 'explorviz-frontend/src/components/visualization/rendering/popups/city-popups/aggregated-building-metrics-table';
 import FilesTab from 'explorviz-frontend/src/components/visualization/rendering/popups/city-popups/files-tab';
@@ -13,7 +14,7 @@ import { District } from 'explorviz-frontend/src/utils/landscape-schemes/flat-la
 import { TypeOfAnalysis } from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
 import { buildDirectoryTreeUrl } from 'explorviz-frontend/src/utils/repository-file-url';
 import { useMemo } from 'react';
-import { Badge, Tab, Table, Tabs } from 'react-bootstrap';
+import { Tab, Table, Tabs } from 'react-bootstrap';
 
 interface DistrictPopupProps {
   popupData: PopupData;
@@ -91,13 +92,10 @@ export default function DistrictPopup({ popupData }: DistrictPopupProps) {
                 <tr>
                   <td className="fw-bold">Type</td>
                   <td className="text-right text-break pl-1">
-                    <Badge pill>
-                      <samp>
-                        {(district.type ?? 'unknown')
-                          .toUpperCase()
-                          .replaceAll('_', ' ')}
-                      </samp>
-                    </Badge>
+                    <ModelTypeBadge
+                      type={district.type}
+                      flatEntityType="district"
+                    />
                   </td>
                 </tr>
                 {district.fqn && (

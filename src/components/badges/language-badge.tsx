@@ -11,6 +11,10 @@ interface LanguageBadgeProps {
   style?: CSSProperties;
 }
 
+/**
+ * Displays a badge indicating a {@link Language} value. The badge's color
+ * is set to match the color of buildings with that particular language value.
+ */
 export default function LanguageBadge({
   language,
   pill,
@@ -20,16 +24,13 @@ export default function LanguageBadge({
   const buildingColor = useUserSettingsStore(
     (state) => state.visualizationSettings.buildingColor
   );
-  const modelTypeColorOverrides = useUserSettingsStore(
-    (state) => state.visualizationSettings.modelTypeColorOverrides
-  );
-  const languageColorOverrides = useUserSettingsStore(
-    (state) => state.visualizationSettings.languageColorOverrides
+  const buildingColorOverrides = useUserSettingsStore(
+    (state) => state.visualizationSettings.buildingColorOverrides
   );
 
   const badgeColor =
-    languageColorOverrides.value[language ?? 'LANGUAGE_UNSPECIFIED'] ??
-    modelTypeColorOverrides.value['code'] ??
+    buildingColorOverrides.value.language[language ?? 'LANGUAGE_UNSPECIFIED'] ??
+    buildingColorOverrides.value.modelType['code'] ??
     buildingColor.value;
 
   return (

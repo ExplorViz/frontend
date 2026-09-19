@@ -349,7 +349,10 @@ export default function BuildingPopup({ popupData }: BuildingPopupProps) {
                   <tr>
                     <td className="fw-bold">Type:</td>
                     <td className="text-right text-break pl-1">
-                      <ModelTypeBadge type={building.type} />
+                      <ModelTypeBadge
+                        type={building.type}
+                        flatEntityType="building"
+                      />
                     </td>
                   </tr>
                   <tr>

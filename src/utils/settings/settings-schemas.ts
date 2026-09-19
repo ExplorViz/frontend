@@ -1,5 +1,3 @@
-import { Language, ModelType } from '../landscape-schemes/flat-landscape';
-
 export type SettingGroup =
   | 'Building Config'
   | 'Camera'
@@ -56,24 +54,36 @@ export type ColorSettingId =
 
 export type ColorSettings = Record<ColorSettingId, ColorSetting>;
 
-export type ColorOverrideSettings = {
-  modelTypeColorOverrides: Setting<Partial<Record<ModelType, string>>>;
-  languageColorOverrides: Setting<Partial<Record<Language, string>>>;
-};
-export type ColorOverrideSettingId = keyof ColorOverrideSettings;
+export const BUILDING_GEOMETRY_OPTIONS = [
+  'Box',
+  'Cone',
+  'Sphere',
+  'Cylinder',
+] as const;
+export type BuildingGeometryType = (typeof BUILDING_GEOMETRY_OPTIONS)[number];
 
-export const GEOMETRY_OPTIONS = ['Box', 'Cone', 'Sphere', 'Cylinder'] as const;
-export type BuildingGeometryType = (typeof GEOMETRY_OPTIONS)[number];
+export type GeometrySettings = {
+  buildingGeometry: SelectSetting<BuildingGeometryType>;
+};
+export type GeometrySettingId = keyof GeometrySettings;
+
+export type AppearanceOverride<T> = {
+  modelType: Partial<Record<string, T>>;
+  language: Partial<Record<string, T>>;
+};
+export type AppearanceOverrideGroupKey = keyof AppearanceOverride<unknown>;
+
+export type ColorOverrideSettings = {
+  cityColorOverrides: Setting<AppearanceOverride<string>>;
+  districtColorOverrides: Setting<AppearanceOverride<string>>;
+  buildingColorOverrides: Setting<AppearanceOverride<string>>;
+};
+export type ColorOverrideSettingsId = keyof ColorOverrideSettings;
 
 export type GeometryOverrideSettings = {
-  languageGeometryOverrides: Setting<
-    Partial<Record<Language, BuildingGeometryType>>
-  >;
-  modelTypeGeometryOverrides: Setting<
-    Partial<Record<ModelType, BuildingGeometryType>>
-  >;
+  buildingGeometryOverrides: Setting<AppearanceOverride<BuildingGeometryType>>;
 };
-export type GeometryOverrideSettingId = keyof GeometryOverrideSettings;
+export type GeometryOverrideSettingsId = keyof GeometryOverrideSettings;
 
 export type ControlSettings = {
   leftMouseButtonAction: SelectSetting<string>;
@@ -246,6 +256,7 @@ export type XrSettings = Record<XrSettingId, FlagSetting>;
 export type VisualizationSettingId =
   | CameraSettingId
   | ColorSettingId
+  | GeometrySettingId
   | CommunicationSettingId
   | ControlSettingId
   | DebugSettingId
@@ -258,8 +269,8 @@ export type VisualizationSettingId =
   | MiscSettingId
   | SemanticZoomSettingId
   | 'autoEnterVr'
-  | ColorOverrideSettingId
-  | GeometryOverrideSettingId
+  | ColorOverrideSettingsId
+  | GeometryOverrideSettingsId
   | ImmersiveSettingId;
 
 export type VisualizationSettings = CameraSettings &
@@ -278,6 +289,7 @@ export type VisualizationSettings = CameraSettings &
   SemanticZoomSettings &
   XrSettings &
   ColorSettings &
+  GeometrySettings &
   ImmersiveSettings;
 
 export type ImmersiveSettings = {
