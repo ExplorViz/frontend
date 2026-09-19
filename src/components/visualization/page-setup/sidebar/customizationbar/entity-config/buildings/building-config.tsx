@@ -1,4 +1,4 @@
-import BuildingMetricSettings from 'explorviz-frontend/src/components/visualization/page-setup/sidebar/customizationbar/building-config/building-metric-settings';
+import BuildingMetricSettings from 'explorviz-frontend/src/components/visualization/page-setup/sidebar/customizationbar/entity-config/buildings/building-metric-settings';
 import useLanguagesInLandscape from 'explorviz-frontend/src/hooks/useLanguagesInLandscape';
 import { useModelStore } from 'explorviz-frontend/src/stores/repos/model-repository';
 import { SUPPORTED_LANGUAGES } from 'explorviz-frontend/src/utils/landscape-schemes/flat-landscape';

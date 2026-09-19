@@ -3,8 +3,7 @@ import CollaborationOpener from 'explorviz-frontend/src/components/collaboration
 import VscodeExtensionSettings from 'explorviz-frontend/src/components/collaboration/visualization/page-setup/sidebar/customizationbar/vscode/vscode-extension-settings';
 import VscodeExtensionOpener from 'explorviz-frontend/src/components/collaboration/visualization/page-setup/sidebar/customizationbar/vscode/vscode-extension-settings-opener';
 import HeatmapInfo from 'explorviz-frontend/src/components/heatmap/heatmap-info';
-import BuildingConfig from 'explorviz-frontend/src/components/visualization/page-setup/sidebar/customizationbar/building-config/building-config';
-import BuildingConfigOpener from 'explorviz-frontend/src/components/visualization/page-setup/sidebar/customizationbar/building-config/building-config-opener';
+import EntityConfigOpener from 'explorviz-frontend/src/components/visualization/page-setup/sidebar/customizationbar/entity-config/entity-config-opener';
 import RestructureOpener from 'explorviz-frontend/src/components/visualization/page-setup/sidebar/customizationbar/restructure/restructure-opener';
 import Settings from 'explorviz-frontend/src/components/visualization/page-setup/sidebar/customizationbar/settings/settings';
 import SettingsOpener from 'explorviz-frontend/src/components/visualization/page-setup/sidebar/customizationbar/settings/settings-opener';
@@ -41,6 +40,7 @@ import { EditingProvider } from '../../editing/editing-context';
 import ChatBox from '../page-setup/sidebar/customizationbar/chat/chat-box';
 import ChatbotBox from '../page-setup/sidebar/customizationbar/chatbot/chatbot-box';
 import ChatbotOpener from '../page-setup/sidebar/customizationbar/chatbot/chatbot-opener';
+import EntityConfig from '../page-setup/sidebar/customizationbar/entity-config/entity-config';
 import Restructure from '../page-setup/sidebar/customizationbar/restructure/restructure';
 import SettingsSidebar from '../page-setup/sidebar/customizationbar/settings-sidebar';
 import Snapshot from '../page-setup/sidebar/customizationbar/snapshot/snapshot';
@@ -429,7 +429,7 @@ export default function BrowserRendering({
               >
                 <div className="explorviz-visualization-navbar">
                   <ul className="nav justify-content-center">
-                    <BuildingConfigOpener
+                    <EntityConfigOpener
                       openedComponent={openedSettingComponent}
                       toggleSettingsSidebarComponent={
                         toggleSettingsSidebarComponent
@@ -515,8 +515,8 @@ export default function BrowserRendering({
                         landscapeToken={landscapeToken}
                       />
                     )}
-                    {openedSettingComponent === 'Building-Config' && (
-                      <BuildingConfig />
+                    {openedSettingComponent === 'Entity-Config' && (
+                      <EntityConfig />
                     )}
                     {openedSettingComponent === 'Settings' && (
                       <Settings

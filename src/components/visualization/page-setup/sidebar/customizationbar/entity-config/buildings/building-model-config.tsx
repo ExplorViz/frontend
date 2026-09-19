@@ -5,7 +5,7 @@ import {
   BuildingGeometryType,
 } from 'explorviz-frontend/src/utils/settings/settings-schemas';
 import { Accordion, ToggleButton, ToggleButtonGroup } from 'react-bootstrap';
-import ColorPicker from '../settings/color-picker';
+import ColorPicker from '../../settings/color-picker';
 
 interface BuildingModelConfigProps {
   overrideGroupKey: AppearanceOverrideGroupKey;
