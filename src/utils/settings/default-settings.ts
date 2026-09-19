@@ -203,7 +203,11 @@ export const defaultVizSettings: VisualizationSettings = {
   buildingColorOverrides: {
     level: SettingLevel.EXTENDED,
     value: {
-      modelType: {},
+      modelType: {
+        unknown: '#808080',
+        rpc: '#ff80ff',
+        http: '#ffc040',
+      },
       language: {},
     },
     group: 'Colors',
@@ -213,7 +217,10 @@ export const defaultVizSettings: VisualizationSettings = {
   districtColorOverrides: {
     level: SettingLevel.EXTENDED,
     value: {
-      modelType: {},
+      modelType: {
+        instrumentation_scope: '#bababa',
+        rpc: '#804880',
+      },
       language: {},
     },
     group: 'Colors',
@@ -1087,7 +1094,10 @@ export const defaultVizSettings: VisualizationSettings = {
   buildingGeometryOverrides: {
     level: SettingLevel.EXTENDED,
     value: {
-      modelType: {},
+      modelType: {
+        unknown: 'Sphere',
+        http: 'Cylinder',
+      },
       language: {},
     },
     group: 'Colors',
