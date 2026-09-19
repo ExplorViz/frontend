@@ -86,6 +86,7 @@ export default function CityFoundation({
     enableAnimations,
     enableHoverEffects,
     foundationColor,
+    cityColorOverrides,
     foundationTextColor,
     districtLabelPlacement,
     entityOpacity,
@@ -96,6 +97,7 @@ export default function CityFoundation({
       castShadows: state.visualizationSettings.castShadows.value,
       enableAnimations: state.visualizationSettings.enableAnimations.value,
       foundationColor: state.visualizationSettings.foundationColor.value,
+      cityColorOverrides: state.visualizationSettings.cityColorOverrides,
       enableHoverEffects: state.visualizationSettings.enableHoverEffects.value,
       foundationTextColor:
         state.visualizationSettings.foundationTextColor.value,
@@ -148,9 +150,13 @@ export default function CityFoundation({
   });
 
   const computeColor = () => {
+    const colorOverride = cityColorOverrides.value.modelType[city.type];
+
     const baseColor = isHighlighted
       ? getHighlightingColorForEntity(city.id)
-      : new THREE.Color(foundationColor);
+      : colorOverride
+        ? new THREE.Color(colorOverride)
+        : new THREE.Color(foundationColor);
 
     if (enableHoverEffects && isHovered) {
       return calculateColorBrightness(baseColor, 1.1);
