@@ -8,6 +8,7 @@ import Form from 'react-bootstrap/Form';
 import OverlayTrigger from 'react-bootstrap/OverlayTrigger';
 import Tooltip from 'react-bootstrap/Tooltip';
 import { useShallow } from 'zustand/react/shallow';
+import ColorSwatch from '../color-swatch';
 
 function LanguageFileExtensionInfo({
   language,
@@ -94,11 +95,7 @@ export default function LanguageFiltering() {
             key={language}
             className="language-filter-item d-flex align-items-center gap-2 mb-2"
           >
-            <span
-              className="language-filter-color-swatch"
-              style={{ backgroundColor: color }}
-              aria-hidden
-            />
+            <ColorSwatch color={color} />
             <Form.Check
               type="checkbox"
               id={`lang-filter-${language}`}

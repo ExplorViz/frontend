@@ -13,6 +13,7 @@ import eventEmitter from 'explorviz-frontend/src/utils/event-emitter';
 import { LandscapeData } from 'explorviz-frontend/src/utils/landscape-schemes/landscape-data';
 import Button from 'react-bootstrap/Button';
 import { useShallow } from 'zustand/react/shallow';
+import ModelTypeFiltering from './model-type-filtering/model-type-filtering';
 import { StructureFilteringHandle } from './structure-filtering/structure-filtering';
 
 interface EntityFilteringProps {
@@ -96,6 +97,13 @@ const EntityFiltering = forwardRef<
           </select>
         </div>
       </div>
+
+      <hr className="dropdown-divider mb-3" />
+      <h6 className="text-center">
+        <u>Model Type Filtering</u>
+      </h6>
+      <ModelTypeFiltering />
+
       <hr className="dropdown-divider mb-3" />
       <h6 className="text-center">
         <u>Language Filtering</u>

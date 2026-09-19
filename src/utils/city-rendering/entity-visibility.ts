@@ -9,6 +9,7 @@ import { isBuildingHiddenByClosedDistricts } from 'explorviz-frontend/src/utils/
 import {
   Building,
   Language,
+  ModelType,
 } from 'explorviz-frontend/src/utils/landscape-schemes/flat-landscape';
 import { TypeOfAnalysis } from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
 import { normalizeLanguage } from 'explorviz-frontend/src/utils/language-utils';
@@ -20,6 +21,7 @@ export type EntityVisibilityContext = {
   hiddenDistrictIds: Set<string>;
   removedDistrictIds: Set<string>;
   hiddenBuildingIds: Set<string>;
+  hiddenModelTypes: Set<ModelType>;
   hiddenLanguages: Set<Language>;
   evoConfig: EvolutionModeRenderingConfiguration;
   isDiffMode: boolean;
@@ -67,6 +69,7 @@ function buildEntityVisibilityContext(
     | 'hiddenDistrictIds'
     | 'removedDistrictIds'
     | 'hiddenBuildingIds'
+    | 'hiddenModelTypes'
     | 'hiddenLanguages'
   >,
   evoConfig: EvolutionModeRenderingConfiguration,
@@ -77,6 +80,7 @@ function buildEntityVisibilityContext(
     hiddenDistrictIds: visualizationState.hiddenDistrictIds,
     removedDistrictIds: visualizationState.removedDistrictIds,
     hiddenBuildingIds: visualizationState.hiddenBuildingIds,
+    hiddenModelTypes: visualizationState.hiddenModelTypes,
     hiddenLanguages: visualizationState.hiddenLanguages,
     evoConfig,
     isDiffMode,
@@ -151,6 +155,7 @@ function isBuildingVisibleExceptClosedDistrictCollapse(
   if (
     context.hiddenBuildingIds.has(buildingId) ||
     context.removedDistrictIds.has(buildingId) ||
+    context.hiddenModelTypes.has(baseBuilding.type) ||
     context.hiddenLanguages.has(language)
   ) {
     return false;
@@ -285,6 +290,7 @@ export function isBuildingVisible(
   if (
     context.hiddenBuildingIds.has(buildingId) ||
     context.removedDistrictIds.has(buildingId) ||
+    context.hiddenModelTypes.has(baseBuilding.type) ||
     context.hiddenLanguages.has(language)
   ) {
     return false;
@@ -373,6 +379,7 @@ export function useEntityVisibilityContext(): EntityVisibilityContext {
     hiddenDistrictIds,
     removedDistrictIds,
     hiddenBuildingIds,
+    hiddenModelTypes,
     hiddenLanguages,
   } = useVisualizationStore(
     useShallow((state) => ({
@@ -380,6 +387,7 @@ export function useEntityVisibilityContext(): EntityVisibilityContext {
       hiddenDistrictIds: state.hiddenDistrictIds,
       removedDistrictIds: state.removedDistrictIds,
       hiddenBuildingIds: state.hiddenBuildingIds,
+      hiddenModelTypes: state.hiddenModelTypes,
       hiddenLanguages: state.hiddenLanguages,
     }))
   );
@@ -406,6 +414,7 @@ export function useEntityVisibilityContext(): EntityVisibilityContext {
           hiddenDistrictIds,
           removedDistrictIds,
           hiddenBuildingIds,
+          hiddenModelTypes,
           hiddenLanguages,
         },
         evoConfig,
@@ -416,6 +425,7 @@ export function useEntityVisibilityContext(): EntityVisibilityContext {
       hiddenDistrictIds,
       removedDistrictIds,
       hiddenBuildingIds,
+      hiddenModelTypes,
       hiddenLanguages,
       evoConfig,
       isDiffMode,

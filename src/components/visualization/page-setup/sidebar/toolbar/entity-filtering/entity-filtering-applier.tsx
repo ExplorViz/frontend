@@ -121,6 +121,9 @@ export default function EntityFilteringApplier({
   const triggerRenderingForGivenLandscapeData = useRenderingServiceStore(
     (state) => state.triggerRenderingForGivenLandscapeData
   );
+  const hiddenModelTypes = useVisualizationStore(
+    (state) => state.hiddenModelTypes
+  );
   const hiddenLanguages = useVisualizationStore(
     (state) => state.hiddenLanguages
   );
@@ -175,6 +178,7 @@ export default function EntityFilteringApplier({
     const baselineFlatLandscape = initialFlatLandscapeData.current;
     const compiledFilter = compileBuildingFilter({
       filterMode,
+      hiddenModelTypes,
       hiddenLanguages,
       inclusionExpressions: inclusionExpressionValues,
       exclusionExpressions: exclusionExpressionValues,
@@ -377,6 +381,7 @@ export default function EntityFilteringApplier({
     applyFilters();
   }, [
     filterMode,
+    hiddenModelTypes,
     hiddenLanguages,
     inclusionExpressions,
     exclusionExpressions,
