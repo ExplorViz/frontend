@@ -1,6 +1,7 @@
 import { SearchIcon } from '@primer/octicons-react';
 import AttributesTable from 'explorviz-frontend/src/components/attributes-table';
 import DualRangeSlider from 'explorviz-frontend/src/components/dual-range-slider';
+import EntitySelect from 'explorviz-frontend/src/components/entity-select';
 import HelpTooltip from 'explorviz-frontend/src/components/help-tooltip';
 import { useAuthStore } from 'explorviz-frontend/src/stores/auth';
 import { useCameraControlsStore } from 'explorviz-frontend/src/stores/camera-controls-store';
@@ -9,12 +10,18 @@ import { useModelStore } from 'explorviz-frontend/src/stores/repos/model-reposit
 import { useToastHandlerStore } from 'explorviz-frontend/src/stores/toast-handler';
 import { getLogServiceUrl } from 'explorviz-frontend/src/utils/landscape-http-request-util';
 import {
+  Building,
+  City,
+  District,
+} from 'explorviz-frontend/src/utils/landscape-schemes/flat-landscape';
+import {
   isLog,
   Log,
 } from 'explorviz-frontend/src/utils/landscape-schemes/telemetry/logs';
 import { pingByModelId } from 'explorviz-frontend/src/view-objects/3d/city/animated-ping-r3f';
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
 import { Accordion, Badge, Button, Card, Form, Spinner } from 'react-bootstrap';
+import { SelectInstance } from 'react-select';
 import { List, RowComponentProps, useDynamicRowHeight } from 'react-window';
 import { useInfiniteLoader } from 'react-window-infinite-loader';
 
@@ -76,6 +83,10 @@ export default function LogSearch() {
   const [severityTextValues, setSeverityTextValues] = useState<string[] | null>(
     null
   );
+
+  const entitySelectRef = useRef<SelectInstance<
+    City | District | Building
+  > | null>(null);
 
   const loadMoreLogs = async (newFormData?: FormData) => {
     const logServiceUrl = getLogServiceUrl();
@@ -322,6 +333,23 @@ export default function LogSearch() {
                 </>
               )}
             </Form.Select>
+          </Form.Group>
+
+          <Form.Group className="mb-3">
+            <Form.Label>
+              Entity{' '}
+              <HelpTooltip
+                title="Only match logs produced by a particular visualization entity. Note that entities which are known to have no associated telemetry data are hidden."
+                placement="top"
+              />
+            </Form.Label>
+            <EntitySelect
+              name={'telemetryKey'}
+              excludeCities
+              excludeDistricts
+              getFormValue={(e) => e.telemetryKey}
+              ref={entitySelectRef}
+            />
           </Form.Group>
 
           <Form.Group className="mb-3">

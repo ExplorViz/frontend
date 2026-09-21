@@ -311,7 +311,7 @@ export default function SpanSearch() {
             <Form.Label>
               Entity{' '}
               <HelpTooltip
-                title="Only match spans belonging to a particular visualization entity. Note that only those entities are shown for which any telemetry data exists."
+                title="Only match spans belonging to a particular visualization entity. Note that entities which are known to have no associated telemetry data are hidden."
                 placement="top"
               />
             </Form.Label>
