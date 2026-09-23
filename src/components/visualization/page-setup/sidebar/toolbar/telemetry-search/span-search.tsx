@@ -8,19 +8,18 @@ import useSpanFetch, {
 } from 'explorviz-frontend/src/hooks/fetch/useSpanFetch';
 import { useModelStore } from 'explorviz-frontend/src/stores/repos/model-repository';
 import { useToastHandlerStore } from 'explorviz-frontend/src/stores/toast-handler';
-import {
-  Building,
-  City,
-  District,
-} from 'explorviz-frontend/src/utils/landscape-schemes/flat-landscape';
 import { Span } from 'explorviz-frontend/src/utils/landscape-schemes/telemetry/traces';
-import React, { useRef, useState } from 'react';
+import React, { use, useCallback, useEffect, useState } from 'react';
 import { Accordion, Button, Form, Spinner } from 'react-bootstrap';
-import { SelectInstance } from 'react-select';
 import { List, RowComponentProps, useDynamicRowHeight } from 'react-window';
 import { useInfiniteLoader } from 'react-window-infinite-loader';
+import { ToolbarContext } from '../toolbar-context';
 
-function formatUnixNanoseconds(ns: bigint) {
+function unixNanosecondsToDatetimeLocal(ns: bigint | undefined) {
+  if (ns === undefined) {
+    return '';
+  }
+
   const date = new Date(Number(ns / 1_000_000n));
   const year = date.getFullYear().toString();
   const month = (date.getMonth() + 1).toString().padStart(2, '0');
@@ -32,6 +31,14 @@ function formatUnixNanoseconds(ns: bigint) {
   return `${year}-${month}-${day}T${hours}:${minutes}:${seconds}.${millis}`;
 }
 
+function datetimeLocalToUnixNano(value: string): bigint {
+  return BigInt(new Date(value.toString()).getTime()) * 1_000_000n;
+}
+
+const defaultSearchParams: SpanSearchParams = {
+  includeAttributeValues: true,
+};
+
 const PAGINATION_SIZE = 50;
 
 export default function SpanSearch() {
@@ -40,99 +47,68 @@ export default function SpanSearch() {
     (state) => state.showErrorToastMessage
   );
 
+  const toolbarContext = use(ToolbarContext);
+  const searchRequest = toolbarContext.telemetrySearchState.spanSearchRequest;
+
   const [spans, setSpans] = useState<Span[] | null>(null);
+  const [searchParams, setSearchParams] =
+    useState<SpanSearchParams>(defaultSearchParams);
+  const [lastSubmittedParams, setLastSubmittedParams] =
+    useState<SpanSearchParams | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [allItemsLoaded, setAllItemsLoaded] = useState<boolean>(false);
-  const [lastSubmittedFormData, setLastSubmittedFormData] =
-    useState<FormData | null>(null);
-
-  const formRef = useRef<HTMLFormElement | null>(null);
-  const traceIdRef = useRef<HTMLInputElement | null>(null);
-  const entitySelectRef = useRef<SelectInstance<
-    City | District | Building
-  > | null>(null);
+  const [prevSearchRequest, setPrevSearchRequest] =
+    useState<SpanSearchParams | null>(null);
 
   const fetchSpans = useSpanFetch();
 
-  const getSearchParamsFromFormData = (
-    formData: FormData,
-    isNewSearch: boolean
-  ) => {
-    const searchParams: SpanSearchParams = {
-      searchString: formData.get('name')?.toString() || undefined,
-      includeAttributeKeys: formData.has('includeAttributeKeys'),
-      includeAttributeValues: formData.has('includeAttributeValues'),
-      kind: formData.get('kind')?.toString() || undefined,
-      traceId: formData.get('traceId')?.toString() || undefined,
-      serviceName: formData.get('serviceName')?.toString() || undefined,
-      telemetryKey: formData.get('telemetryKey')?.toString() || undefined,
-      limit: PAGINATION_SIZE,
-    };
+  const updateSearchParams = (newParams: Partial<SpanSearchParams>) =>
+    setSearchParams((state) => ({ ...state, ...newParams }));
 
-    const sortBy = formData.get('sortBy')?.toString();
-    if (sortBy === 'newest' || sortBy === 'oldest' || sortBy === 'duration') {
-      searchParams.sortBy = sortBy;
-    }
+  const loadSpans = useCallback(
+    async (params: SpanSearchParams) => {
+      try {
+        const receivedSpans = await fetchSpans({
+          ...params,
+          limit: PAGINATION_SIZE,
+        });
 
-    const from = formData.get('from');
-    if (from) {
-      // Convert string from datetime_local inputs to Unix nanosecond epoch
-      searchParams.from =
-        BigInt(new Date(from.toString()).getTime()) * 1_000_000n;
-    }
-
-    const to = formData.get('to');
-    if (to) {
-      // Convert string from datetime_local inputs to Unix nanosecond epoch
-      searchParams.to = BigInt(new Date(to.toString()).getTime()) * 1_000_000n;
-    }
-
-    // If this is a successive fetch for a previous search, specify a cursor
-    if (!isNewSearch && spans && spans.length > 0) {
-      const lastSeenSpan = spans[spans.length - 1];
-      searchParams.cursor = {
-        cursorId: lastSeenSpan.spanId,
-        cursorTimestamp: lastSeenSpan.startUnixNano,
-        cursorDuration: lastSeenSpan.endUnixNano - lastSeenSpan.startUnixNano,
-      };
-    }
-
-    return searchParams;
-  };
-
-  const loadSpans = async (searchParams: SpanSearchParams) => {
-    try {
-      const receivedSpans = await fetchSpans(searchParams);
-
-      setSpans((state) =>
-        state === null ? receivedSpans : [...state, ...receivedSpans]
-      );
-      setIsLoading(false);
-      if (receivedSpans.length < PAGINATION_SIZE) {
+        setSpans((state) =>
+          state === null ? receivedSpans : [...state, ...receivedSpans]
+        );
+        setIsLoading(false);
+        if (receivedSpans.length < PAGINATION_SIZE) {
+          setAllItemsLoaded(true);
+        }
+      } catch (error) {
+        setIsLoading(false);
         setAllItemsLoaded(true);
+        showErrorToastMessage(
+          `Failed to retrieve spans: ${error instanceof Error ? error.message : error}`
+        );
       }
-    } catch (error) {
-      setIsLoading(false);
-      setAllItemsLoaded(true);
-      showErrorToastMessage(
-        `Failed to retrieve spans: ${error instanceof Error ? error.message : error}`
-      );
-    }
-  };
+    },
+    [fetchSpans, showErrorToastMessage]
+  );
 
   const onRowsRendered = useInfiniteLoader({
     rowCount: (spans?.length ?? 0) + (allItemsLoaded ? 0 : 1),
     isRowLoaded: (index) => index < (spans?.length ?? 0),
     loadMoreRows: async () => {
-      if (isLoading || allItemsLoaded || !lastSubmittedFormData) {
+      if (isLoading || allItemsLoaded || !lastSubmittedParams || !spans) {
         return;
       }
+
       setIsLoading(true);
-      const searchParams = getSearchParamsFromFormData(
-        lastSubmittedFormData,
-        false
-      );
-      return loadSpans(searchParams);
+
+      const lastSeenSpan = spans[spans.length - 1];
+      const params = { ...lastSubmittedParams };
+      params.cursor = {
+        cursorId: lastSeenSpan.spanId,
+        cursorTimestamp: lastSeenSpan.startUnixNano,
+        cursorDuration: lastSeenSpan.endUnixNano - lastSeenSpan.startUnixNano,
+      };
+      return loadSpans(params);
     },
   });
 
@@ -140,69 +116,47 @@ export default function SpanSearch() {
     defaultRowHeight: 50,
   });
 
-  const startNewSearch = (formData: FormData) => {
-    const searchParams = getSearchParamsFromFormData(formData, true);
-    setLastSubmittedFormData(formData);
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
     setSpans(null);
     setIsLoading(true);
     setAllItemsLoaded(false);
     loadSpans(searchParams);
+    setSearchParams(searchParams);
+    setLastSubmittedParams(searchParams);
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-
-    if (!formRef.current) {
-      showErrorToastMessage('Failed to access form element');
-      return;
+  if (searchRequest !== prevSearchRequest) {
+    if (searchRequest) {
+      const params = { ...defaultSearchParams, ...searchRequest };
+      setSearchParams(params);
+      setLastSubmittedParams(params);
+      setSpans(null);
+      setIsLoading(true);
+      setAllItemsLoaded(false);
     }
+    setPrevSearchRequest(searchRequest);
+  }
 
-    startNewSearch(new FormData(formRef.current));
-  };
+  useEffect(
+    function handleExternalSearchRequest() {
+      if (!searchRequest) {
+        return;
+      }
 
-  const handleTraceIdClick = (traceId: string) => {
-    if (!formRef.current) {
-      showErrorToastMessage('Failed to access form element');
-      return;
-    }
+      const load = async () => {
+        loadSpans({ ...defaultSearchParams, ...searchRequest });
+      };
 
-    if (!traceIdRef.current) {
-      showErrorToastMessage('Failed to access trace ID form input');
-      return;
-    }
-
-    formRef.current.reset();
-    traceIdRef.current.value = traceId;
-    entitySelectRef.current?.clearValue();
-
-    const formData = new FormData(formRef.current);
-    formData.set('traceId', traceId);
-    startNewSearch(formData);
-  };
-
-  const handleSearchEntityClick = (entity: Building) => {
-    if (!formRef.current) {
-      showErrorToastMessage('Failed to access form element');
-      return;
-    }
-
-    if (!entitySelectRef.current) {
-      showErrorToastMessage('Failed to access entity select form element');
-      return;
-    }
-
-    formRef.current.reset();
-    entitySelectRef.current.selectOption(entity);
-
-    const formData = new FormData(formRef.current);
-    formData.set('telemetryKey', entity.telemetryKey!);
-    startNewSearch(formData);
-  };
+      load();
+    },
+    [loadSpans, searchRequest]
+  );
 
   return (
     <>
       <fieldset disabled={isLoading}>
-        <Form className="mb-3" onSubmit={handleSubmit} ref={formRef}>
+        <Form className="mb-3" onSubmit={handleSubmit}>
           <Form.Group className="mb-3">
             <Form.Label>
               Text Search{' '}
@@ -213,6 +167,10 @@ export default function SpanSearch() {
             </Form.Label>
             <Form.Control
               name="name"
+              value={searchParams.searchString ?? ''}
+              onChange={(e) =>
+                updateSearchParams({ searchString: e.target.value })
+              }
               placeholder='e.g. "GET", "resolveBoolean", &hellip;'
               className="mb-2"
             />
@@ -228,6 +186,10 @@ export default function SpanSearch() {
                   />
                 </>
               }
+              checked={searchParams.includeAttributeKeys ?? false}
+              onChange={(e) =>
+                updateSearchParams({ includeAttributeKeys: e.target.checked })
+              }
               inline
             />
             <Form.Check
@@ -242,8 +204,11 @@ export default function SpanSearch() {
                   />
                 </>
               }
+              checked={searchParams.includeAttributeValues ?? false}
+              onChange={(e) =>
+                updateSearchParams({ includeAttributeValues: e.target.checked })
+              }
               inline
-              defaultChecked
             />
           </Form.Group>
 
@@ -257,7 +222,11 @@ export default function SpanSearch() {
             </Form.Label>
 
             <div style={{ minHeight: '2.4em' }}>
-              <Form.Select name="kind">
+              <Form.Select
+                name="kind"
+                value={searchParams.kind ?? ''}
+                onChange={(e) => updateSearchParams({ kind: e.target.value })}
+              >
                 <option value="">Any</option>
                 <option disabled>────────</option>
                 <option>Client</option>
@@ -279,8 +248,9 @@ export default function SpanSearch() {
             </Form.Label>
             <Form.Control
               name="traceId"
+              value={searchParams.traceId ?? ''}
+              onChange={(e) => updateSearchParams({ traceId: e.target.value })}
               placeholder="e.g. 5b8aa5a2d2c872e8321cf37308d69df2"
-              ref={traceIdRef}
             />
           </Form.Group>
 
@@ -292,7 +262,16 @@ export default function SpanSearch() {
                 placement="top"
               />
             </Form.Label>
-            <Form.Select name="serviceName">
+            <Form.Select
+              name="serviceName"
+              value={searchParams.serviceName ?? ''}
+              onChange={(e) =>
+                updateSearchParams({
+                  serviceName:
+                    e.target.value != '' ? e.target.value : undefined,
+                })
+              }
+            >
               <option value="">Any</option>
               {Object.keys(cities).length > 0 && (
                 <>
@@ -319,8 +298,13 @@ export default function SpanSearch() {
               name={'telemetryKey'}
               excludeCities
               excludeDistricts
+              value={searchParams.telemetryKey ?? null}
               getFormValue={(e) => e.telemetryKey}
-              ref={entitySelectRef}
+              onChange={(e) =>
+                updateSearchParams({
+                  telemetryKey: e?.telemetryKey ?? undefined,
+                })
+              }
             />
           </Form.Group>
 
@@ -333,7 +317,20 @@ export default function SpanSearch() {
                   placement="top"
                 />
               </Form.Label>
-              <Form.Control type="datetime-local" name="from" step={1} />
+              <Form.Control
+                type="datetime-local"
+                name="from"
+                step={1}
+                value={unixNanosecondsToDatetimeLocal(searchParams.from)}
+                onChange={(e) =>
+                  updateSearchParams({
+                    from:
+                      e.target.value !== ''
+                        ? datetimeLocalToUnixNano(e.target.value)
+                        : undefined,
+                  })
+                }
+              />
             </Form.Group>
 
             <Form.Group className="mb-3 col-md-6">
@@ -344,7 +341,20 @@ export default function SpanSearch() {
                   placement="top"
                 />
               </Form.Label>
-              <Form.Control type="datetime-local" name="to" step={1} />
+              <Form.Control
+                type="datetime-local"
+                name="to"
+                step={1}
+                value={unixNanosecondsToDatetimeLocal(searchParams.to)}
+                onChange={(e) =>
+                  updateSearchParams({
+                    to:
+                      e.target.value !== ''
+                        ? datetimeLocalToUnixNano(e.target.value)
+                        : undefined,
+                  })
+                }
+              />
             </Form.Group>
           </div>
 
@@ -363,7 +373,11 @@ export default function SpanSearch() {
                 name="sortBy"
                 value="newest"
                 label="Newest"
-                defaultChecked
+                checked={searchParams.sortBy === 'newest'}
+                onChange={(e) => {
+                  if (e.target.checked)
+                    updateSearchParams({ sortBy: 'newest' });
+                }}
               />
               <Form.Check
                 inline
@@ -371,6 +385,11 @@ export default function SpanSearch() {
                 name="sortBy"
                 value="oldest"
                 label="Oldest"
+                checked={searchParams.sortBy === 'oldest'}
+                onChange={(e) => {
+                  if (e.target.checked)
+                    updateSearchParams({ sortBy: 'oldest' });
+                }}
               />
               <Form.Check
                 inline
@@ -378,6 +397,11 @@ export default function SpanSearch() {
                 name="sortBy"
                 value="duration"
                 label="Duration"
+                checked={searchParams.sortBy === 'duration'}
+                onChange={(e) => {
+                  if (e.target.checked)
+                    updateSearchParams({ sortBy: 'duration' });
+                }}
               />
             </div>
           </Form.Group>
@@ -402,11 +426,7 @@ export default function SpanSearch() {
                   rowComponent={SpanItem}
                   rowCount={spans.length}
                   rowHeight={rowHeight}
-                  rowProps={{
-                    spans: spans,
-                    onTraceIdClick: handleTraceIdClick,
-                    onSearchEntityClick: handleSearchEntityClick,
-                  }}
+                  rowProps={{ spans: spans }}
                   rowKey={(index, { spans }) => spans[index].spanId}
                   onRowsRendered={onRowsRendered}
                   style={{
@@ -431,12 +451,8 @@ function SpanItem({
   index,
   spans,
   style,
-  onTraceIdClick,
-  onSearchEntityClick,
 }: RowComponentProps<{
   spans: Span[];
-  onTraceIdClick?(traceId: string): void;
-  onSearchEntityClick?(entity: Building): void;
 }>) {
   const span = spans[index];
 
@@ -455,7 +471,7 @@ function SpanItem({
           </small>
           <samp className="text-truncate">
             <small>
-              <code>{`${formatUnixNanoseconds(span.startUnixNano)}`}</code>{' '}
+              <code>{`${unixNanosecondsToDatetimeLocal(span.startUnixNano)}`}</code>{' '}
               {`${span.name}`}
             </small>
           </samp>

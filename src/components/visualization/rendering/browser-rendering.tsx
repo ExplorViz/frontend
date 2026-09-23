@@ -206,6 +206,7 @@ export default function BrowserRendering({
         selectedTool: ToolbarTool.TelemetrySearch,
         telemetrySearchState: {
           ...state.telemetrySearchState,
+          selectedTab: 'spans',
           spanSearchRequest: searchParams,
         },
       })),

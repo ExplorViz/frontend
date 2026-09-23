@@ -6,7 +6,9 @@ import { useModelStore } from 'explorviz-frontend/src/stores/repos/model-reposit
 import { useToastHandlerStore } from 'explorviz-frontend/src/stores/toast-handler';
 import { Span } from 'explorviz-frontend/src/utils/landscape-schemes/telemetry/traces';
 import { pingByModelId } from 'explorviz-frontend/src/view-objects/3d/city/animated-ping-r3f';
+import { use } from 'react';
 import { Button, Card, OverlayTrigger, Tooltip } from 'react-bootstrap';
+import { ToolbarContext } from '../../../page-setup/sidebar/toolbar/toolbar-context';
 
 interface SpanDetailsCardProps {
   span: Span;
@@ -31,6 +33,8 @@ export default function SpanDetailsCard({
   const showErrorToastMessage = useToastHandlerStore(
     (state) => state.showErrorToastMessage
   );
+
+  const toolbarContext = use(ToolbarContext);
 
   const parentSpanId = span.parentSpanId;
 
@@ -59,15 +63,15 @@ export default function SpanDetailsCard({
   };
 
   const handleSearchServiceClick = () => {
-    useToastHandlerStore.getState().showInfoToastMessage('TODO');
+    toolbarContext.searchSpans({ serviceName: span.serviceName });
   };
 
   const handleSearchEntityClick = () => {
-    useToastHandlerStore.getState().showInfoToastMessage('TODO');
+    toolbarContext.searchSpans({ telemetryKey: span.telemetryKey });
   };
 
   const handleTraceIdClick = () => {
-    useToastHandlerStore.getState().showInfoToastMessage('TODO');
+    toolbarContext.searchSpans({ traceId: span.traceId });
   };
 
   return (

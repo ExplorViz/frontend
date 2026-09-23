@@ -19,8 +19,12 @@ interface EntitySelectProps {
   /**
    * Value of the select; setting this prop makes the select a controlled component.
    * Set to null if no entity should be selected.
+   *
+   * If a string value is provided, the first entity whose value reported by
+   * {@link getFormValue} matches this value is considered to be selected.
+   * If no such entity is found, the behavior is the same as when providing null.
    */
-  value?: Entity | null;
+  value?: Entity | string | null;
 
   /** Whether to exclude cities from the selectable options */
   excludeCities?: boolean;
@@ -51,7 +55,7 @@ interface EntitySelectProps {
  */
 export default function EntitySelect({
   name,
-  value = null,
+  value,
   excludeCities = false,
   excludeDistricts = false,
   excludeBuildings = false,
@@ -73,6 +77,17 @@ export default function EntitySelect({
 
   // Only display entities where the reported value is actually present
   options = options.filter((e) => getFormValue(e) !== undefined);
+
+  let selectedOption: Entity | null;
+  if (value !== undefined) {
+    if (typeof value === 'string') {
+      selectedOption = options.find((e) => getFormValue(e) === value) ?? null;
+    } else {
+      selectedOption = value;
+    }
+  } else {
+    selectedOption = selectedEntity;
+  }
 
   const formatOptionLabel = (
     entity: Entity | null,
@@ -119,7 +134,7 @@ export default function EntitySelect({
   return (
     <Select
       name={name}
-      value={value ?? selectedEntity}
+      value={selectedOption}
       options={options}
       placeholder={'Select or type to search'}
       ref={ref}

@@ -5,6 +5,7 @@ import {
   isSpan,
   Span,
 } from 'explorviz-frontend/src/utils/landscape-schemes/telemetry/traces';
+import { useCallback } from 'react';
 
 export interface SpanSearchParams {
   /**
@@ -83,63 +84,66 @@ export default function useSpanFetch() {
   const landscapeToken = useLandscapeTokenStore((state) => state.token);
   const accessToken = useAuthStore((state) => state.accessToken);
 
-  const fetchSpans = async (params: SpanSearchParams) => {
-    const traceServiceUrl = getTraceServiceUrl();
-    if (traceServiceUrl === '') {
-      throw new Error('Trace service URL not configured');
-    }
-
-    if (!landscapeToken) {
-      throw new Error('No landscape token selected');
-    }
-
-    const requestUrl = new URL(
-      `${traceServiceUrl}/v3/landscapes/${landscapeToken.value}/spans`
-    );
-
-    const queryParams = new URLSearchParams();
-    for (const [key, value] of Object.entries(params)) {
-      if (value !== undefined && key !== 'cursor') {
-        queryParams.set(key, String(value));
+  const fetchSpans = useCallback(
+    async (params: SpanSearchParams) => {
+      const traceServiceUrl = getTraceServiceUrl();
+      if (traceServiceUrl === '') {
+        throw new Error('Trace service URL not configured');
       }
-    }
 
-    if (params.cursor) {
-      for (const [key, value] of Object.entries(params.cursor)) {
-        if (value !== undefined) {
+      if (!landscapeToken) {
+        throw new Error('No landscape token selected');
+      }
+
+      const requestUrl = new URL(
+        `${traceServiceUrl}/v3/landscapes/${landscapeToken.value}/spans`
+      );
+
+      const queryParams = new URLSearchParams();
+      for (const [key, value] of Object.entries(params)) {
+        if (value !== undefined && key !== 'cursor') {
           queryParams.set(key, String(value));
         }
       }
-    }
 
-    requestUrl.search = queryParams.toString();
+      if (params.cursor) {
+        for (const [key, value] of Object.entries(params.cursor)) {
+          if (value !== undefined) {
+            queryParams.set(key, String(value));
+          }
+        }
+      }
 
-    let response: Response;
-    try {
-      response = await fetch(requestUrl, {
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-          'Access-Control-Allow-Origin': '*',
-        },
+      requestUrl.search = queryParams.toString();
+
+      let response: Response;
+      try {
+        response = await fetch(requestUrl, {
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+            'Access-Control-Allow-Origin': '*',
+          },
+        });
+      } catch (error) {
+        throw new Error('A network error has occurred', { cause: error });
+      }
+
+      if (!response.ok) {
+        throw new Error(`Received non-ok response status ${response.status}`);
+      }
+
+      const receivedSpans = JSON.parse(await response.text(), (k, v) => {
+        return k === 'startUnixNano' || k === 'endUnixNano' ? BigInt(v) : v;
       });
-    } catch (error) {
-      throw new Error('A network error has occurred', { cause: error });
-    }
+      if (!Array.isArray(receivedSpans) || !receivedSpans.every(isSpan)) {
+        console.error(`JSON fails type guard ${isSpan.name}`);
+        throw new Error('Received invalid response');
+      }
 
-    if (!response.ok) {
-      throw new Error(`Received non-ok response status ${response.status}`);
-    }
-
-    const receivedSpans = JSON.parse(await response.text(), (k, v) => {
-      return k === 'startUnixNano' || k === 'endUnixNano' ? BigInt(v) : v;
-    });
-    if (!Array.isArray(receivedSpans) || !receivedSpans.every(isSpan)) {
-      console.error(`JSON fails type guard ${isSpan.name}`);
-      throw new Error('Received invalid response');
-    }
-
-    return receivedSpans;
-  };
+      return receivedSpans;
+    },
+    [accessToken, landscapeToken]
+  );
 
   return fetchSpans;
 }
