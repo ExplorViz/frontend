@@ -1,10 +1,27 @@
+import { useToastHandlerStore } from 'explorviz-frontend/src/stores/toast-handler';
+import { use } from 'react';
 import { Tab, Tabs } from 'react-bootstrap';
-import ComponentOpener from '../../component-opener';
-import { ToolbarOpenerProps } from '../../types';
+import { ToolbarContext } from '../toolbar-context';
 import LogSearch from './log-search';
 import SpanSearch from './span-search';
 
 export default function TelemetrySearch() {
+  const showErrorToastMessage = useToastHandlerStore(
+    (state) => state.showErrorToastMessage
+  );
+
+  const toolbarContext = use(ToolbarContext);
+
+  const selectedTab = toolbarContext.telemetrySearchState.selectedTab;
+
+  const handleSelect = (tab: string | null) => {
+    if (tab !== 'spans' && tab !== 'metrics' && tab !== 'logs') {
+      showErrorToastMessage('Invalid tab selected');
+      return;
+    }
+    toolbarContext.setTelemetrySearchTab(tab);
+  };
+
   return (
     <>
       <h5 className="text-center">Telemetry Search</h5>
@@ -12,7 +29,12 @@ export default function TelemetrySearch() {
         Find telemetry data related to landscape entities.
       </p>
 
-      <Tabs defaultActiveKey="spans" className="ml-2">
+      <Tabs
+        activeKey={selectedTab}
+        defaultActiveKey="spans"
+        onSelect={handleSelect}
+        className="ml-2"
+      >
         <Tab
           eventKey="spans"
           title="Spans"
@@ -39,19 +61,5 @@ export default function TelemetrySearch() {
         </Tab>
       </Tabs>
     </>
-  );
-}
-
-export function TelemetrySearchOpener({
-  openedComponent,
-  toggleToolsSidebarComponent,
-}: ToolbarOpenerProps) {
-  return (
-    <ComponentOpener
-      openedComponent={openedComponent}
-      componentTitle="Telemetry Search"
-      componentId="telemetry-search"
-      toggleComponent={toggleToolsSidebarComponent}
-    />
   );
 }

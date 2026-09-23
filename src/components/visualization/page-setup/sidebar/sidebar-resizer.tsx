@@ -1,5 +1,5 @@
 import { ArrowBothIcon } from '@primer/octicons-react';
-import { useEffect } from 'react';
+import { useCallback, useEffect } from 'react';
 
 interface SidebarArgs {
   readonly buttonName: string;
@@ -14,78 +14,84 @@ export default function SidebarResizer({
   sidebarName,
   expandToRight,
 }: SidebarArgs) {
-  const setSidebarWidth = (widthInPercent: number) => {
-    const sidebar = document.getElementById(sidebarName);
+  const setSidebarWidth = useCallback(
+    (widthInPercent: number) => {
+      const sidebar = document.getElementById(sidebarName);
 
-    if (sidebar && widthInPercent > 20) {
-      sidebar.style.maxWidth = `${widthInPercent}%`;
-      localStorage.setItem(
-        sidebarName + 'WithInPercent',
-        widthInPercent.toString()
-      );
-    }
-  };
-
-  const dragElement = (resizeButton: HTMLElement) => {
-    const handleDragInput = (targetX: number) => {
-      let widthInPercent: number;
-
-      if (expandToRight) {
-        const buttonOffset = 30;
-        widthInPercent = ((targetX + buttonOffset) / window.innerWidth) * 100;
-      } else {
-        const buttonOffset = 30;
-        widthInPercent =
-          100 - ((targetX - buttonOffset) / window.innerWidth) * 100;
+      if (sidebar && widthInPercent > 20) {
+        sidebar.style.maxWidth = `${widthInPercent}%`;
+        localStorage.setItem(
+          sidebarName + 'WithInPercent',
+          widthInPercent.toString()
+        );
       }
+    },
+    [sidebarName]
+  );
 
-      setSidebarWidth(widthInPercent);
-    };
+  const dragElement = useCallback(
+    (resizeButton: HTMLElement) => {
+      const handleDragInput = (targetX: number) => {
+        let widthInPercent: number;
 
-    const cancelDragElement = () => {
-      document.onmouseup = null;
-      document.onmousemove = null;
-      document.ontouchcancel = null;
-      document.ontouchend = null;
-      document.ontouchmove = null;
-    };
+        if (expandToRight) {
+          const buttonOffset = 30;
+          widthInPercent = ((targetX + buttonOffset) / window.innerWidth) * 100;
+        } else {
+          const buttonOffset = 30;
+          widthInPercent =
+            100 - ((targetX - buttonOffset) / window.innerWidth) * 100;
+        }
 
-    const elementMouseDrag = (e: MouseEvent) => {
-      e.preventDefault();
-      handleDragInput(e.clientX);
-    };
+        setSidebarWidth(widthInPercent);
+      };
 
-    const elementTouchDrag = (e: TouchEvent) => {
-      e.preventDefault();
+      const cancelDragElement = () => {
+        document.onmouseup = null;
+        document.onmousemove = null;
+        document.ontouchcancel = null;
+        document.ontouchend = null;
+        document.ontouchmove = null;
+      };
 
-      if (e.targetTouches.length < 1) {
-        cancelDragElement();
-      } else {
-        const { clientX } = e.targetTouches[0];
-        handleDragInput(clientX);
-      }
-    };
+      const elementMouseDrag = (e: MouseEvent) => {
+        e.preventDefault();
+        handleDragInput(e.clientX);
+      };
 
-    const dragMouseDown = (e: MouseEvent) => {
-      e.preventDefault();
+      const elementTouchDrag = (e: TouchEvent) => {
+        e.preventDefault();
 
-      document.onmouseup = cancelDragElement;
-      document.onmousemove = elementMouseDrag;
-    };
+        if (e.targetTouches.length < 1) {
+          cancelDragElement();
+        } else {
+          const { clientX } = e.targetTouches[0];
+          handleDragInput(clientX);
+        }
+      };
 
-    const dragTouchDown = (e: TouchEvent) => {
-      e.preventDefault();
+      const dragMouseDown = (e: MouseEvent) => {
+        e.preventDefault();
 
-      if (e.targetTouches.length > 0) {
-        document.ontouchcancel = cancelDragElement;
-        document.ontouchend = cancelDragElement;
-        document.ontouchmove = elementTouchDrag;
-      }
-    };
+        document.onmouseup = cancelDragElement;
+        document.onmousemove = elementMouseDrag;
+      };
 
-    resizeButton.onmousedown = dragMouseDown;
-    resizeButton.ontouchstart = dragTouchDown;
-  };
+      const dragTouchDown = (e: TouchEvent) => {
+        e.preventDefault();
+
+        if (e.targetTouches.length > 0) {
+          document.ontouchcancel = cancelDragElement;
+          document.ontouchend = cancelDragElement;
+          document.ontouchmove = elementTouchDrag;
+        }
+      };
+
+      resizeButton.onmousedown = dragMouseDown;
+      resizeButton.ontouchstart = dragTouchDown;
+    },
+    [expandToRight, setSidebarWidth]
+  );
 
   useEffect(() => {
     const dragButton = document.getElementById(buttonName);

@@ -519,8 +519,6 @@ export const useLandscapeRestructureStore = create<LandscapeRestructureState>(
 
     toggleRestructureModeLocally: async () => {
       set({ restructureMode: !get().restructureMode });
-      eventEmitter.emit('openSettingsSidebar');
-      eventEmitter.emit('restructureComponent', 'Restructure-Landscape');
       await new Promise((f) => setTimeout(f, 500));
       eventEmitter.emit('restructureMode');
     },
