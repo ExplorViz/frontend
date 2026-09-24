@@ -20,6 +20,7 @@ import React, { use, useCallback, useEffect, useState } from 'react';
 import { Accordion, Badge, Button, Card, Form, Spinner } from 'react-bootstrap';
 import { List, RowComponentProps, useDynamicRowHeight } from 'react-window';
 import { useInfiniteLoader } from 'react-window-infinite-loader';
+import { ToolbarContext } from '../toolbar-context';
 
 function severityNumberToName(severityNumber: number) {
   const labels = [
@@ -62,6 +63,9 @@ export default function LogSearch() {
     (state) => state.showErrorToastMessage
   );
 
+  const toolbarContext = use(ToolbarContext);
+  const searchRequest = toolbarContext.telemetrySearchState.logSearchRequest;
+
   const [logs, setLogs] = useState<Log[] | null>(null);
   const [searchParams, setSearchParams] =
     useState<LogSearchParams>(defaultSearchParams);
@@ -69,6 +73,8 @@ export default function LogSearch() {
     useState<LogSearchParams | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [allItemsLoaded, setAllItemsLoaded] = useState<boolean>(false);
+  const [prevSearchRequest, setPrevSearchRequest] =
+    useState<LogSearchParams | null>(null);
   const [isSeverityAsNumber, setIsSeverityAsNumber] = useState<boolean>(true);
   const [severityTextValues, setSeverityTextValues] = useState<string[] | null>(
     null
@@ -157,8 +163,32 @@ export default function LogSearch() {
     }
   };
 
+  if (searchRequest !== prevSearchRequest) {
+    if (searchRequest) {
+      const params = { ...defaultSearchParams, ...searchRequest };
+      setSearchParams(params);
+      setLastSubmittedParams(params);
+      setLogs(null);
+      setIsLoading(true);
+      setAllItemsLoaded(false);
     }
+    setPrevSearchRequest(searchRequest);
+  }
 
+  useEffect(
+    function handleExternalSearchRequest() {
+      if (!searchRequest) {
+        return;
+      }
+
+      const load = async () => {
+        loadLogs({ ...defaultSearchParams, ...searchRequest });
+      };
+
+      load();
+    },
+    [loadLogs, searchRequest]
+  );
 
   return (
     <>

@@ -210,6 +210,31 @@ export default function BrowserRendering({
           spanSearchRequest: searchParams,
         },
       })),
+
+    searchMetrics: (searchParams) => {
+      setToolbarState((state) => ({
+        ...state,
+        showSidebar: true,
+        selectedTool: ToolbarTool.TelemetrySearch,
+        telemetrySearchState: {
+          ...state.telemetrySearchState,
+          selectedTab: 'metrics',
+          metricsSearchRequest: searchParams,
+        },
+      }));
+    },
+
+    searchLogs: (searchParams) =>
+      setToolbarState((state) => ({
+        ...state,
+        showSidebar: true,
+        selectedTool: ToolbarTool.TelemetrySearch,
+        telemetrySearchState: {
+          ...state.telemetrySearchState,
+          selectedTab: 'logs',
+          logSearchRequest: searchParams,
+        },
+      })),
   };
 
   const showToolsSidebar = toolbarState.showSidebar;

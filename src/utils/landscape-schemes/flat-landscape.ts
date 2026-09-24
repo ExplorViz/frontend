@@ -10,7 +10,7 @@ export type FlatLandscape = {
   buildings: Record<string, Building>;
 };
 
-type FlatBaseModel = {
+export type FlatBaseModel = {
   id: string;
   name: string;
 
@@ -126,7 +126,7 @@ export function isFlatLandscape(x: any): x is FlatLandscape {
   );
 }
 
-function isFlatBaseModel(x: any): x is FlatBaseModel {
+export function isFlatBaseModel(x: any): x is FlatBaseModel {
   return (
     x !== null &&
     typeof x === 'object' &&

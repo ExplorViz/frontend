@@ -1,11 +1,15 @@
-import React, { useEffect, useRef } from 'react';
+import React, { use, useEffect, useRef } from 'react';
 
 import {
   CommentIcon,
+  FlowchartIcon,
+  GraphIcon,
   LocationIcon,
+  LogIcon,
   PaintbrushIcon,
   PinIcon,
   ShareAndroidIcon,
+  TelescopeIcon,
   XIcon,
 } from '@primer/octicons-react';
 import BuildingPopup from 'explorviz-frontend/src/components/visualization/rendering/popups/city-popups/building/building-popup';
@@ -16,9 +20,13 @@ import HtmlPopup from 'explorviz-frontend/src/components/visualization/rendering
 import MethodPopup from 'explorviz-frontend/src/components/visualization/rendering/popups/city-popups/method/method-popup';
 
 import PopupData from 'explorviz-frontend/src/components/visualization/rendering/popups/popup-data';
+import { LogSearchParams } from 'explorviz-frontend/src/hooks/fetch/useLogFetch';
+import { MetricsSearchParams } from 'explorviz-frontend/src/hooks/fetch/useMetricsFetch';
+import { SpanSearchParams } from 'explorviz-frontend/src/hooks/fetch/useSpanFetch';
 import { usePlayroomConnectionStore } from 'explorviz-frontend/src/stores/collaboration/playroom-connection-store';
 import { useLandscapeRestructureStore } from 'explorviz-frontend/src/stores/landscape-restructure';
 import { useModelStore } from 'explorviz-frontend/src/stores/repos/model-repository';
+import { useToastHandlerStore } from 'explorviz-frontend/src/stores/toast-handler';
 import { useVisualizationStore } from 'explorviz-frontend/src/stores/visualization-store';
 import { Position2D } from 'explorviz-frontend/src/types/pointer-types';
 import { isEntityAnnotated } from 'explorviz-frontend/src/utils/annotation-utils';
@@ -28,12 +36,15 @@ import {
   isBuilding,
   isCity,
   isDistrict,
+  isFlatBaseModel,
 } from 'explorviz-frontend/src/utils/landscape-schemes/flat-landscape';
 import { isMethod } from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
 import { pingByModelId } from 'explorviz-frontend/src/view-objects/3d/city/animated-ping-r3f';
+import { Dropdown, DropdownButton } from 'react-bootstrap';
 import Button from 'react-bootstrap/Button';
 import OverlayTrigger from 'react-bootstrap/OverlayTrigger';
 import Tooltip from 'react-bootstrap/Tooltip';
+import { ToolbarContext } from '../../page-setup/sidebar/toolbar/toolbar-context';
 
 interface PopupCoordinatorProps {
   readonly popupData: PopupData;
@@ -56,13 +67,20 @@ export default function PopupCoordinator({
   const restructureMode = useLandscapeRestructureStore(
     (state) => state.restructureMode
   );
+  const showErrorToastMessage = useToastHandlerStore(
+    (state) => state.showErrorToastMessage
+  );
 
   const element = useRef<HTMLDivElement | null>(null);
   const lastMousePosition = useRef<Position2D>({ x: 0, y: 0 });
 
   const entityType = getEntityType(popupData);
+  const telemetryKey: string | undefined = (popupData.entity as any)
+    .telemetryKey;
 
   const vizStore = useVisualizationStore();
+
+  const toolbarContext = use(ToolbarContext);
 
   const onPointerOver = () => {
     updatePopup({ ...popupData, hovered: true });
@@ -230,6 +248,60 @@ export default function PopupCoordinator({
     popoverDiv.style.left = `${popupLeftPosition}px`;
   }, []);
 
+  const handleSearchSpansClick = () => {
+    let params: SpanSearchParams;
+
+    if (isCity(popupData.entity)) {
+      params = { serviceName: popupData.entity.name };
+    } else if (
+      isFlatBaseModel(popupData.entity) &&
+      popupData.entity.telemetryKey
+    ) {
+      params = { telemetryKey: popupData.entity.telemetryKey };
+    } else {
+      showErrorToastMessage('Cannot search spans for entity');
+      return;
+    }
+
+    toolbarContext.searchSpans(params);
+  };
+
+  const handleSearchMetricsClick = () => {
+    let params: MetricsSearchParams;
+
+    if (isCity(popupData.entity)) {
+      params = { serviceName: popupData.entity.name };
+    } else if (
+      isFlatBaseModel(popupData.entity) &&
+      popupData.entity.telemetryKey
+    ) {
+      params = { telemetryKey: popupData.entity.telemetryKey };
+    } else {
+      showErrorToastMessage('Cannot search metrics for entity');
+      return;
+    }
+
+    toolbarContext.searchMetrics(params);
+  };
+
+  const handleSearchLogsClick = () => {
+    let params: LogSearchParams;
+
+    if (isCity(popupData.entity)) {
+      params = { serviceName: popupData.entity.name };
+    } else if (
+      isFlatBaseModel(popupData.entity) &&
+      popupData.entity.telemetryKey
+    ) {
+      params = { telemetryKey: popupData.entity.telemetryKey };
+    } else {
+      showErrorToastMessage('Cannot search logs for entity');
+      return;
+    }
+
+    toolbarContext.searchLogs(params);
+  };
+
   return (
     <div
       className={`popover${popupData.wasMoved ? '' : ' no-user-select'}${popupData.hovered ? ' hovered' : ''}`}
@@ -332,6 +404,29 @@ export default function PopupCoordinator({
             </Button>
           </OverlayTrigger>
 
+          {(telemetryKey || entityType === 'city') && (
+            <OverlayTrigger
+              placement="top"
+              trigger={['hover', 'focus']}
+              overlay={<Tooltip>Search Related Telemetry</Tooltip>}
+            >
+              <DropdownButton title={<TelescopeIcon />} className="inline">
+                <Dropdown.Item onClick={handleSearchSpansClick}>
+                  <FlowchartIcon className="me-2" />
+                  Spans
+                </Dropdown.Item>
+                <Dropdown.Item onClick={handleSearchMetricsClick}>
+                  <GraphIcon className="me-2" />
+                  Metrics
+                </Dropdown.Item>
+                <Dropdown.Item onClick={handleSearchLogsClick}>
+                  <LogIcon className="me-2" />
+                  Logs
+                </Dropdown.Item>
+              </DropdownButton>
+            </OverlayTrigger>
+          )}
+
           <OverlayTrigger
             placement="top"
             trigger={['hover', 'focus']}
@@ -363,7 +458,7 @@ export default function PopupCoordinator({
   );
 }
 
-function getEntityType(popupData?: PopupData): string {
+function getEntityType(popupData?: PopupData) {
   if (!popupData) {
     return '';
   }
