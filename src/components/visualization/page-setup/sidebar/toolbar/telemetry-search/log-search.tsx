@@ -3,25 +3,21 @@ import AttributesTable from 'explorviz-frontend/src/components/attributes-table'
 import DualRangeSlider from 'explorviz-frontend/src/components/dual-range-slider';
 import EntitySelect from 'explorviz-frontend/src/components/entity-select';
 import HelpTooltip from 'explorviz-frontend/src/components/help-tooltip';
-import { useAuthStore } from 'explorviz-frontend/src/stores/auth';
+import useLogFetch, {
+  LogSearchParams,
+} from 'explorviz-frontend/src/hooks/fetch/useLogFetch';
+import useLogSeverityFetch from 'explorviz-frontend/src/hooks/fetch/useLogSeverityFetch';
 import { useCameraControlsStore } from 'explorviz-frontend/src/stores/camera-controls-store';
-import { useLandscapeTokenStore } from 'explorviz-frontend/src/stores/landscape-token';
 import { useModelStore } from 'explorviz-frontend/src/stores/repos/model-repository';
 import { useToastHandlerStore } from 'explorviz-frontend/src/stores/toast-handler';
-import { getLogServiceUrl } from 'explorviz-frontend/src/utils/landscape-http-request-util';
 import {
-  Building,
-  City,
-  District,
-} from 'explorviz-frontend/src/utils/landscape-schemes/flat-landscape';
-import {
-  isLog,
-  Log,
-} from 'explorviz-frontend/src/utils/landscape-schemes/telemetry/logs';
+  datetimeLocalToUnixNano,
+  unixNanosecondsToDatetimeLocal,
+} from 'explorviz-frontend/src/utils/datetime/datetime-local-convert';
+import { Log } from 'explorviz-frontend/src/utils/landscape-schemes/telemetry/logs';
 import { pingByModelId } from 'explorviz-frontend/src/view-objects/3d/city/animated-ping-r3f';
-import React, { useRef, useState } from 'react';
+import React, { use, useCallback, useEffect, useState } from 'react';
 import { Accordion, Badge, Button, Card, Form, Spinner } from 'react-bootstrap';
-import { SelectInstance } from 'react-select';
 import { List, RowComponentProps, useDynamicRowHeight } from 'react-window';
 import { useInfiniteLoader } from 'react-window-infinite-loader';
 
@@ -53,124 +49,82 @@ function severityNameToBsColor(severityName: string): string {
   return colors[severityName] ?? 'secondary';
 }
 
-function formatUnixNanoseconds(ns: bigint) {
-  const date = new Date(Number(ns / 1_000_000n));
-  const year = date.getFullYear().toString();
-  const month = (date.getMonth() + 1).toString().padStart(2, '0');
-  const day = date.getDate().toString().padStart(2, '0');
-  const hours = date.getHours().toString().padStart(2, '0');
-  const minutes = date.getMinutes().toString().padStart(2, '0');
-  const seconds = date.getSeconds().toString().padStart(2, '0');
-  const millis = date.getMilliseconds().toString().padStart(3, '0');
-  return `${year}-${month}-${day}T${hours}:${minutes}:${seconds}.${millis}`;
-}
+const defaultSearchParams: LogSearchParams = {
+  includeAttributeValues: true,
+  sortBy: 'newest',
+};
 
 const PAGINATION_SIZE = 50;
 
 export default function LogSearch() {
   const cities = useModelStore((state) => state.cities);
-  const landscapeToken = useLandscapeTokenStore((state) => state.token)?.value;
-  const accessToken = useAuthStore((state) => state.accessToken);
   const showErrorToastMessage = useToastHandlerStore(
     (state) => state.showErrorToastMessage
   );
 
   const [logs, setLogs] = useState<Log[] | null>(null);
-  const [formData, setFormData] = useState<FormData | null>(null);
+  const [searchParams, setSearchParams] =
+    useState<LogSearchParams>(defaultSearchParams);
+  const [lastSubmittedParams, setLastSubmittedParams] =
+    useState<LogSearchParams | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [allItemsLoaded, setAllItemsLoaded] = useState<boolean>(false);
-  const [severityAsNumber, setSeverityAsNumber] = useState<boolean>(true);
+  const [isSeverityAsNumber, setIsSeverityAsNumber] = useState<boolean>(true);
   const [severityTextValues, setSeverityTextValues] = useState<string[] | null>(
     null
   );
 
-  const entitySelectRef = useRef<SelectInstance<
-    City | District | Building
-  > | null>(null);
+  const fetchLogs = useLogFetch();
+  const fetchLogSeverities = useLogSeverityFetch();
 
-  const loadMoreLogs = async (newFormData?: FormData) => {
-    const logServiceUrl = getLogServiceUrl();
-    if (logServiceUrl === '') {
-      showErrorToastMessage('Log service URL not configured');
-      return;
-    }
+  const updateSearchParams = (newParams: Partial<LogSearchParams>) =>
+    setSearchParams((state) => ({ ...state, ...newParams }));
 
-    if (!landscapeToken) {
-      showErrorToastMessage('No landscape token selected');
-      return;
-    }
+  const loadLogs = useCallback(
+    async (params: LogSearchParams) => {
+      try {
+        const receivedLogs = await fetchLogs({
+          ...params,
+          limit: PAGINATION_SIZE,
+        });
 
-    const requestUrl = new URL(
-      `${logServiceUrl}/v3/landscapes/${landscapeToken}/logs`
-    );
-    const queryParams = new URLSearchParams((newFormData ?? formData) as any);
-    queryParams.set('limit', PAGINATION_SIZE.toString());
-    if (!newFormData && logs && logs.length > 0) {
-      const lastSeenLog = logs[logs.length - 1];
-      queryParams.set('cursorId', lastSeenLog.id);
-      queryParams.set('cursorTimestamp', lastSeenLog.timeUnixNano.toString());
-      queryParams.set('cursorSeverity', lastSeenLog.severity.toString());
-    }
+        setLogs((state) =>
+          state === null ? receivedLogs : [...state, ...receivedLogs]
+        );
 
-    requestUrl.search = queryParams.toString();
-
-    let response: Response;
-    try {
-      response = await fetch(requestUrl, {
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-          'Access-Control-Allow-Origin': '*',
-        },
-      });
-    } catch (error) {
-      setIsLoading(false);
-      setAllItemsLoaded(true);
-      showErrorToastMessage(
-        'Failed to retrieve logs: A network error has occurred'
-      );
-      console.error(error);
-      return;
-    }
-
-    if (!response.ok) {
-      setIsLoading(false);
-      setAllItemsLoaded(true);
-      showErrorToastMessage(
-        `Failed to retrieve logs: Received non-ok response status ${response.status}`
-      );
-      return;
-    }
-
-    const receivedLogs = JSON.parse(await response.text(), (k, v) => {
-      return k === 'timeUnixNano' ? BigInt(v) : v;
-    });
-    if (!Array.isArray(receivedLogs) || !receivedLogs.every(isLog)) {
-      setIsLoading(false);
-      setAllItemsLoaded(true);
-      showErrorToastMessage(
-        'Failed to retrieve logs: Received invalid response'
-      );
-      console.error(`JSON fails type guard ${isLog.name}`);
-      return;
-    }
-    setLogs((state) =>
-      state === null ? receivedLogs : [...state, ...receivedLogs]
-    );
-    setIsLoading(false);
-    if (receivedLogs.length < PAGINATION_SIZE) {
-      setAllItemsLoaded(true);
-    }
-  };
+        setIsLoading(false);
+        if (receivedLogs.length < PAGINATION_SIZE) {
+          setAllItemsLoaded(true);
+        }
+      } catch (error) {
+        setIsLoading(false);
+        setAllItemsLoaded(true);
+        showErrorToastMessage(
+          `Failed to retrieve logs: ${error instanceof Error ? error.message : error}`
+        );
+      }
+    },
+    [fetchLogs, showErrorToastMessage]
+  );
 
   const onRowsRendered = useInfiniteLoader({
     rowCount: (logs?.length ?? 0) + (allItemsLoaded ? 0 : 1),
     isRowLoaded: (index) => index < (logs?.length ?? 0),
     loadMoreRows: async () => {
-      if (isLoading || allItemsLoaded) {
+      if (isLoading || allItemsLoaded || !lastSubmittedParams || !logs) {
         return;
       }
+
       setIsLoading(true);
-      return loadMoreLogs();
+
+      const lastSeenLog = logs[logs.length - 1];
+      const params = { ...lastSubmittedParams };
+      params.cursor = {
+        cursorId: lastSeenLog.id,
+        cursorTimestamp: lastSeenLog.timeUnixNano,
+        cursorSeverity: lastSeenLog.severity,
+      };
+      return loadLogs(params);
     },
   });
 
@@ -180,26 +134,11 @@ export default function LogSearch() {
 
   const handleSubmit: React.FormEventHandler<HTMLFormElement> = async (e) => {
     e.preventDefault();
-
-    const newFormData = new FormData(e.currentTarget);
-    for (const [key, value] of Array.from(newFormData.entries())) {
-      if (value === '' || typeof value !== 'string') {
-        newFormData.delete(key);
-        continue;
-      }
-
-      // Convert strings from datetime_local inputs to Unix nanosecond epoch
-      if (key === 'from' || key === 'to') {
-        const unixNano = BigInt(new Date(value).getTime()) * 1_000_000n;
-        newFormData.set(key, unixNano.toString());
-      }
-    }
-
     setLogs(null);
     setIsLoading(true);
     setAllItemsLoaded(false);
-    setFormData(newFormData);
-    loadMoreLogs(newFormData);
+    loadLogs(searchParams);
+    setLastSubmittedParams(searchParams);
   };
 
   const handleSeverityTextSelectFocus: React.FocusEventHandler = async () => {
@@ -207,60 +146,19 @@ export default function LogSearch() {
       return;
     }
 
-    const logServiceUrl = getLogServiceUrl();
-    if (logServiceUrl === '') {
-      showErrorToastMessage('Log service URL not configured');
-      return;
-    }
-
-    if (!landscapeToken) {
-      showErrorToastMessage('No landscape token selected');
-      return;
-    }
-
-    const requestUrl = new URL(
-      `${logServiceUrl}/v3/landscapes/${landscapeToken}/log-levels`
-    );
-
-    let response: Response;
     try {
-      response = await fetch(requestUrl, {
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-          'Access-Control-Allow-Origin': '*',
-        },
-      });
+      const receivedSeverities = await fetchLogSeverities();
+      setSeverityTextValues(receivedSeverities);
     } catch (error) {
       setSeverityTextValues([]);
       showErrorToastMessage(
-        'Failed to retrieve log severity levels: A network error has occurred'
+        `Failed to retrieve log severity levels: ${error instanceof Error ? error.message : error}`
       );
-      console.error(error);
-      return;
     }
-    if (!response.ok) {
-      setSeverityTextValues([]);
-      showErrorToastMessage(
-        `Failed to retrieve log severity levels: Received non-ok response status ${response.status}`
-      );
-      return;
-    }
-
-    const receivedSeverities = await response.json();
-    if (
-      !Array.isArray(receivedSeverities) ||
-      !receivedSeverities.every((v) => typeof v === 'string')
-    ) {
-      setSeverityTextValues([]);
-      showErrorToastMessage(
-        'Failed to retrieve log severity levels: Received invalid response'
-      );
-      console.error(`JSON is not string array`);
-      return;
-    }
-
-    setSeverityTextValues(receivedSeverities);
   };
+
+    }
+
 
   return (
     <>
@@ -276,13 +174,16 @@ export default function LogSearch() {
             </Form.Label>
             <Form.Control
               name="messageBody"
+              value={searchParams.messageBody ?? ''}
+              onChange={(e) =>
+                updateSearchParams({ messageBody: e.target.value })
+              }
               placeholder='e.g. "successful", "network error", &hellip;'
               className="mb-2"
             />
             <Form.Check
               name="includeAttributeKeys"
               type="checkbox"
-              value="true"
               label={
                 <>
                   Include attribute keys{' '}
@@ -292,12 +193,15 @@ export default function LogSearch() {
                   />
                 </>
               }
+              checked={searchParams.includeAttributeKeys ?? false}
+              onChange={(e) =>
+                updateSearchParams({ includeAttributeKeys: e.target.checked })
+              }
               inline
             />
             <Form.Check
               name="includeAttributeValues"
               type="checkbox"
-              value="true"
               label={
                 <>
                   Include attribute values{' '}
@@ -307,7 +211,10 @@ export default function LogSearch() {
                   />
                 </>
               }
-              defaultChecked
+              checked={searchParams.includeAttributeValues ?? false}
+              onChange={(e) =>
+                updateSearchParams({ includeAttributeValues: e.target.checked })
+              }
               inline
             />
           </Form.Group>
@@ -320,7 +227,13 @@ export default function LogSearch() {
                 placement="top"
               />
             </Form.Label>
-            <Form.Select name="serviceName">
+            <Form.Select
+              name="serviceName"
+              value={searchParams.serviceName ?? ''}
+              onChange={(e) =>
+                updateSearchParams({ serviceName: e.target.value })
+              }
+            >
               <option value="">Any</option>
               {Object.keys(cities).length > 0 && (
                 <>
@@ -347,8 +260,13 @@ export default function LogSearch() {
               name={'telemetryKey'}
               excludeCities
               excludeDistricts
+              value={searchParams.telemetryKey ?? null}
               getFormValue={(e) => e.telemetryKey}
-              ref={entitySelectRef}
+              onChange={(e) =>
+                updateSearchParams({
+                  telemetryKey: e?.telemetryKey ?? undefined,
+                })
+              }
             />
           </Form.Group>
 
@@ -365,25 +283,38 @@ export default function LogSearch() {
                 inline
                 type="radio"
                 label="Number Range"
-                checked={severityAsNumber}
-                onChange={() => setSeverityAsNumber(true)}
+                checked={isSeverityAsNumber}
+                onChange={() => {
+                  setIsSeverityAsNumber(true);
+                  updateSearchParams({ severityText: undefined });
+                }}
               />
               <Form.Check
                 inline
                 type="radio"
                 label="Text"
-                checked={!severityAsNumber}
-                onChange={() => setSeverityAsNumber(false)}
+                checked={!isSeverityAsNumber}
+                onChange={() => {
+                  setIsSeverityAsNumber(false);
+                  updateSearchParams({
+                    minSeverity: undefined,
+                    maxSeverity: undefined,
+                  });
+                }}
               />
             </div>
 
             <div style={{ minHeight: '2.4em' }}>
-              {severityAsNumber ? (
+              {isSeverityAsNumber ? (
                 <DualRangeSlider
                   min={0}
                   max={24}
                   lowerFormName="minSeverity"
                   upperFormName="maxSeverity"
+                  value={[searchParams.minSeverity, searchParams.maxSeverity]}
+                  onChange={([min, max]) =>
+                    updateSearchParams({ minSeverity: min, maxSeverity: max })
+                  }
                   disabled={isLoading}
                   getTooltipText={(val) =>
                     `${val} (${severityNumberToName(val)})`
@@ -393,6 +324,10 @@ export default function LogSearch() {
                 <Form.Select
                   name="severityText"
                   onFocus={handleSeverityTextSelectFocus}
+                  value={searchParams.severityText ?? ''}
+                  onChange={(e) =>
+                    updateSearchParams({ severityText: e.target.value })
+                  }
                 >
                   <option value="">Any</option>
                   {severityTextValues && severityTextValues.length > 0 && (
@@ -419,7 +354,17 @@ export default function LogSearch() {
                   placement="top"
                 />
               </Form.Label>
-              <Form.Control type="datetime-local" name="from" step={1} />
+              <Form.Control
+                type="datetime-local"
+                name="from"
+                step={1}
+                value={unixNanosecondsToDatetimeLocal(searchParams.from)}
+                onChange={(e) =>
+                  updateSearchParams({
+                    from: datetimeLocalToUnixNano(e.target.value),
+                  })
+                }
+              />
             </Form.Group>
 
             <Form.Group className="mb-3 col-md-6">
@@ -430,7 +375,17 @@ export default function LogSearch() {
                   placement="top"
                 />
               </Form.Label>
-              <Form.Control type="datetime-local" name="to" step={1} />
+              <Form.Control
+                type="datetime-local"
+                name="to"
+                step={1}
+                value={unixNanosecondsToDatetimeLocal(searchParams.to)}
+                onChange={(e) =>
+                  updateSearchParams({
+                    to: datetimeLocalToUnixNano(e.target.value),
+                  })
+                }
+              />
             </Form.Group>
           </div>
 
@@ -445,6 +400,10 @@ export default function LogSearch() {
               </Form.Label>
               <Form.Control
                 name="traceId"
+                value={searchParams.traceId ?? ''}
+                onChange={(e) =>
+                  updateSearchParams({ traceId: e.target.value })
+                }
                 placeholder="e.g. 5b8aa5a2d2c872e8321cf37308d69df2"
               ></Form.Control>
             </Form.Group>
@@ -459,6 +418,8 @@ export default function LogSearch() {
               </Form.Label>
               <Form.Control
                 name="spanId"
+                value={searchParams.spanId ?? ''}
+                onChange={(e) => updateSearchParams({ spanId: e.target.value })}
                 placeholder="e.g. 051581bf3cb55c13"
               ></Form.Control>
             </Form.Group>
@@ -479,7 +440,11 @@ export default function LogSearch() {
                 name="sortBy"
                 value="newest"
                 label="Newest"
-                defaultChecked
+                checked={searchParams.sortBy === 'newest'}
+                onChange={(e) => {
+                  if (e.target.checked)
+                    updateSearchParams({ sortBy: 'newest' });
+                }}
               />
               <Form.Check
                 inline
@@ -487,6 +452,11 @@ export default function LogSearch() {
                 name="sortBy"
                 value="oldest"
                 label="Oldest"
+                checked={searchParams.sortBy === 'oldest'}
+                onChange={(e) => {
+                  if (e.target.checked)
+                    updateSearchParams({ sortBy: 'oldest' });
+                }}
               />
               <Form.Check
                 inline
@@ -494,6 +464,11 @@ export default function LogSearch() {
                 name="sortBy"
                 value="severity"
                 label="Severity"
+                checked={searchParams.sortBy === 'severity'}
+                onChange={(e) => {
+                  if (e.target.checked)
+                    updateSearchParams({ sortBy: 'severity' });
+                }}
               />
             </div>
           </Form.Group>
@@ -607,7 +582,7 @@ function LogItem({
           </small>
           <samp className="text-truncate">
             <small>
-              <code>{`${formatUnixNanoseconds(log.timeUnixNano)}`}</code>{' '}
+              <code>{unixNanosecondsToDatetimeLocal(log.timeUnixNano)}</code>{' '}
               {`${log.messageBody}`}
             </small>
           </samp>

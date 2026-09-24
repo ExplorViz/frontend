@@ -8,6 +8,10 @@ import useSpanFetch, {
 } from 'explorviz-frontend/src/hooks/fetch/useSpanFetch';
 import { useModelStore } from 'explorviz-frontend/src/stores/repos/model-repository';
 import { useToastHandlerStore } from 'explorviz-frontend/src/stores/toast-handler';
+import {
+  datetimeLocalToUnixNano,
+  unixNanosecondsToDatetimeLocal,
+} from 'explorviz-frontend/src/utils/datetime/datetime-local-convert';
 import { Span } from 'explorviz-frontend/src/utils/landscape-schemes/telemetry/traces';
 import React, { use, useCallback, useEffect, useState } from 'react';
 import { Accordion, Button, Form, Spinner } from 'react-bootstrap';
@@ -15,28 +19,9 @@ import { List, RowComponentProps, useDynamicRowHeight } from 'react-window';
 import { useInfiniteLoader } from 'react-window-infinite-loader';
 import { ToolbarContext } from '../toolbar-context';
 
-function unixNanosecondsToDatetimeLocal(ns: bigint | undefined) {
-  if (ns === undefined) {
-    return '';
-  }
-
-  const date = new Date(Number(ns / 1_000_000n));
-  const year = date.getFullYear().toString();
-  const month = (date.getMonth() + 1).toString().padStart(2, '0');
-  const day = date.getDate().toString().padStart(2, '0');
-  const hours = date.getHours().toString().padStart(2, '0');
-  const minutes = date.getMinutes().toString().padStart(2, '0');
-  const seconds = date.getSeconds().toString().padStart(2, '0');
-  const millis = date.getMilliseconds().toString().padStart(3, '0');
-  return `${year}-${month}-${day}T${hours}:${minutes}:${seconds}.${millis}`;
-}
-
-function datetimeLocalToUnixNano(value: string): bigint {
-  return BigInt(new Date(value.toString()).getTime()) * 1_000_000n;
-}
-
 const defaultSearchParams: SpanSearchParams = {
   includeAttributeValues: true,
+  sortBy: 'newest',
 };
 
 const PAGINATION_SIZE = 50;
@@ -122,7 +107,6 @@ export default function SpanSearch() {
     setIsLoading(true);
     setAllItemsLoaded(false);
     loadSpans(searchParams);
-    setSearchParams(searchParams);
     setLastSubmittedParams(searchParams);
   };
 
@@ -324,10 +308,7 @@ export default function SpanSearch() {
                 value={unixNanosecondsToDatetimeLocal(searchParams.from)}
                 onChange={(e) =>
                   updateSearchParams({
-                    from:
-                      e.target.value !== ''
-                        ? datetimeLocalToUnixNano(e.target.value)
-                        : undefined,
+                    from: datetimeLocalToUnixNano(e.target.value),
                   })
                 }
               />
@@ -348,10 +329,7 @@ export default function SpanSearch() {
                 value={unixNanosecondsToDatetimeLocal(searchParams.to)}
                 onChange={(e) =>
                   updateSearchParams({
-                    to:
-                      e.target.value !== ''
-                        ? datetimeLocalToUnixNano(e.target.value)
-                        : undefined,
+                    to: datetimeLocalToUnixNano(e.target.value),
                   })
                 }
               />

@@ -10,7 +10,7 @@ function percentage(value: number, min: number, max: number) {
   return ((value - min) / (max - min)) * 100;
 }
 
-type DualRangeSliderProps = {
+interface DualRangeSliderProps {
   /** Minimum allowed slider value. */
   min: number;
 
@@ -20,8 +20,16 @@ type DualRangeSliderProps = {
   /** Increment size by which all dialed values are snapped (default = 1) */
   step?: number;
 
+  /**
+   * Manually sets the current value for both thumbs.
+   * Setting this value makes this a controlled component.
+   * If one of the values is undefined, it is fixed to the one
+   * given by {@link initialValue}.
+   */
+  value?: [number?, number?];
+
   /** Initial range to select (default = [min, max]) */
-  initialValues?: [number, number];
+  initialValue?: [number, number];
 
   /**
    * When using within a form, this name will be used to report the lower range value.
@@ -48,7 +56,7 @@ type DualRangeSliderProps = {
    * If left undefined, the tooltip will simply display the current value as a string.
    */
   getTooltipText?: (value: number) => string;
-};
+}
 
 /**
  * A dual-thumb range slider for selecting a numeric range between a given minimum and maximum value.
@@ -59,17 +67,43 @@ export default function DualRangeSlider({
   min,
   max,
   step = 1,
-  initialValues = [min, max],
+  value,
+  initialValue = [min, max],
   lowerFormName,
   upperFormName,
   disabled = false,
   onChange,
   getTooltipText,
 }: DualRangeSliderProps) {
-  const [range, setRange] = useState<[number, number]>(initialValues);
+  initialValue = initialValue.toSorted() as [number, number];
+
+  let [range, setRange] = useState<[number, number]>(initialValue);
+  const [swapThumbs, setSwapThumbs] = useState<boolean>(false);
+
   const trackRef = useRef<HTMLDivElement | null>(null);
   const firstThumbRef = useRef<SliderThumbHandle | null>(null);
   const secondThumbRef = useRef<SliderThumbHandle | null>(null);
+
+  if (value) {
+    range = [value[0] ?? initialValue[0], value[1] ?? initialValue[1]];
+  }
+
+  const updateValue = (index: 0 | 1, newValue: number) => {
+    newValue = clamp(newValue, min, max);
+    if (range[index] === newValue) {
+      return;
+    }
+
+    const newRange: [number, number] =
+      index === 0 ? [newValue, range[1]] : [range[0], newValue];
+    if (newRange[0] > newRange[1]) {
+      setSwapThumbs((state) => !state);
+      [newRange[0], newRange[1]] = [newRange[1], newRange[0]];
+    }
+
+    setRange(newRange);
+    onChange?.(newRange);
+  };
 
   const pointerPositionToValue = (clientX: number) => {
     const track = trackRef.current;
@@ -86,59 +120,56 @@ export default function DualRangeSlider({
     return clamp(snappedValue, min, max);
   };
 
-  const handleMove = (index: 0 | 1, clientX: number) => {
-    const newValue = pointerPositionToValue(clientX);
-    const newRange: [number, number] =
-      index === 0 ? [newValue, range[1]] : [range[0], newValue];
-    setRange(newRange);
-    onChange?.(newRange.toSorted() as [number, number]);
-  };
+  const handleMove = (index: 0 | 1, clientX: number) =>
+    updateValue(index, pointerPositionToValue(clientX));
 
-  const handleTrackPointerDown: React.PointerEventHandler<HTMLElement> = (
-    e
-  ) => {
+  const handleTrackPointerDown = (e: React.PointerEvent<HTMLElement>) => {
     e.preventDefault(); // Focus should be given to thumb, not track
 
-    const clickedValue = pointerPositionToValue(e.clientX);
-    if (clickedValue < min || clickedValue > max) {
-      return;
-    }
-    const diffFirst = Math.abs(range[0] - clickedValue);
-    const diffSecond = Math.abs(range[1] - clickedValue);
+    const clickedValue = clamp(pointerPositionToValue(e.clientX), min, max);
 
-    if (diffFirst <= diffSecond) {
-      setRange((state) => [clickedValue, state[1]]);
-      firstThumbRef.current?.triggerClick(e);
+    const diffLower = Math.abs(range[0] - clickedValue);
+    const diffUpper = Math.abs(range[1] - clickedValue);
+
+    const lowerThumbRef = swapThumbs ? secondThumbRef : firstThumbRef;
+    const upperThumbRef = swapThumbs ? firstThumbRef : secondThumbRef;
+
+    if (diffLower <= diffUpper) {
+      updateValue(0, clickedValue);
+      lowerThumbRef.current?.triggerClick(e);
     } else {
-      setRange((state) => [state[0], clickedValue]);
-      secondThumbRef.current?.triggerClick(e);
+      updateValue(1, clickedValue);
+      upperThumbRef.current?.triggerClick(e);
     }
   };
+
+  const firstIndex = swapThumbs ? 1 : 0;
+  const secondIndex = swapThumbs ? 0 : 1;
 
   const thumbs = [
     <SliderThumb
       key={0}
-      value={range[0]}
+      value={range[firstIndex]}
       min={min}
       max={max}
       step={step}
       disabled={disabled}
       ref={firstThumbRef}
-      onMove={(val) => handleMove(0, val)}
-      setValue={(val) => setRange([clamp(val, min, max), range[1]])}
+      onMove={(val) => handleMove(firstIndex, val)}
+      onStep={(val) => updateValue(firstIndex, val)}
       getTooltipText={getTooltipText}
     />,
 
     <SliderThumb
       key={1}
-      value={range[1]}
+      value={range[secondIndex]}
       min={min}
       max={max}
       step={step}
       disabled={disabled}
       ref={secondThumbRef}
-      onMove={(val) => handleMove(1, val)}
-      setValue={(val) => setRange([range[0], clamp(val, min, max)])}
+      onMove={(val) => handleMove(secondIndex, val)}
+      onStep={(val) => updateValue(secondIndex, val)}
       getTooltipText={getTooltipText}
     />,
   ];
@@ -228,8 +259,8 @@ interface SliderThumbProps {
   step: number;
   disabled: boolean;
   ref: React.RefObject<SliderThumbHandle | null>;
-  onMove: (clientX: number) => void;
-  setValue: (value: number) => void;
+  onMove: (clientX: number) => void; // For pointer input
+  onStep: (newValue: number) => void; // For keyboard input
   getTooltipText?: (value: number) => string;
 }
 
@@ -241,7 +272,7 @@ function SliderThumb({
   disabled,
   ref,
   onMove,
-  setValue,
+  onStep,
   getTooltipText,
 }: SliderThumbProps) {
   const [isDragging, setIsDragging] = useState<boolean>(false);
@@ -313,22 +344,22 @@ function SliderThumb({
 
     switch (e.key) {
       case 'ArrowLeft':
-        setValue(value - step);
+        onStep(value - step);
         break;
       case 'ArrowRight':
-        setValue(value + step);
+        onStep(value + step);
         break;
       case 'Home':
-        setValue(min);
+        onStep(min);
         break;
       case 'End':
-        setValue(max);
+        onStep(max);
         break;
       case 'PageDown':
-        setValue(value - step * 2);
+        onStep(value - step * 2);
         break;
       case 'PageUp':
-        setValue(value + step * 2);
+        onStep(value + step * 2);
         break;
     }
   };
