@@ -72,7 +72,7 @@ export default function ModelTypeBadge({
     <Badge
       bg=""
       pill={pill ?? true}
-      className={className}
+      className={`align-middle ${className}`}
       style={{
         backgroundColor: badgeColor,
         color: `contrast-color(${badgeColor})`,

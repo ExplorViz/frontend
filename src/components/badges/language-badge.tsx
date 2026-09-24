@@ -37,7 +37,7 @@ export default function LanguageBadge({
     <Badge
       bg=""
       pill={pill ?? true}
-      className={className}
+      className={`align-middle ${className}`}
       style={{
         backgroundColor: badgeColor,
         color: `contrast-color(${badgeColor})`,
