@@ -124,7 +124,7 @@ export default function SpanDetailsCard({
             <OverlayTrigger
               placement={'top'}
               trigger={['hover', 'focus']}
-              overlay={<Tooltip>Show all spans in this trace</Tooltip>}
+              overlay={<Tooltip>Search all spans in this trace</Tooltip>}
             >
               <small>
                 <a href="#" onClick={handleTraceIdClick}>

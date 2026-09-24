@@ -17,7 +17,16 @@ import {
 import { Log } from 'explorviz-frontend/src/utils/landscape-schemes/telemetry/logs';
 import { pingByModelId } from 'explorviz-frontend/src/view-objects/3d/city/animated-ping-r3f';
 import React, { use, useCallback, useEffect, useState } from 'react';
-import { Accordion, Badge, Button, Card, Form, Spinner } from 'react-bootstrap';
+import {
+  Accordion,
+  Badge,
+  Button,
+  Card,
+  Form,
+  OverlayTrigger,
+  Spinner,
+  Tooltip,
+} from 'react-bootstrap';
 import { List, RowComponentProps, useDynamicRowHeight } from 'react-window';
 import { useInfiniteLoader } from 'react-window-infinite-loader';
 import { ToolbarContext } from '../toolbar-context';
@@ -561,12 +570,14 @@ function LogItem({
     (state) => state.showErrorToastMessage
   );
 
+  const toolbarContext = use(ToolbarContext);
+
   const log = logs[index];
   const severityName = severityNumberToName(log.severity);
   const entityId = telemetryKeyToEntityId.get(log.telemetryKey);
   const entity = entityId ? buildings[entityId] : undefined;
 
-  const handleServiceNameClicked = () => {
+  const handleServiceNameClick = () => {
     if (!log.serviceName) {
       console.error('Service name of log is undefined in handler');
       return;
@@ -584,7 +595,10 @@ function LogItem({
     pingByModelId(city.id);
   };
 
-  const handleEntityClicked = () => {
+  const handleSearchServiceClick = () =>
+    toolbarContext.searchLogs({ serviceName: log.serviceName });
+
+  const handleEntityClick = () => {
     if (!entity) {
       console.error('Entity related to log is undefined in handler');
       return;
@@ -592,6 +606,18 @@ function LogItem({
 
     lookAtEntity(entity.id);
     pingByModelId(entity.id);
+  };
+
+  const handleSearchEntityClick = () => {
+    toolbarContext.searchLogs({ telemetryKey: log.telemetryKey });
+  };
+
+  const handleTraceIdClick = () => {
+    toolbarContext.searchLogs({ traceId: log.traceId });
+  };
+
+  const handleSpanIdClick = () => {
+    toolbarContext.searchLogs({ spanId: log.spanId });
   };
 
   return (
@@ -660,11 +686,36 @@ function LogItem({
                   <>
                     <dt>Entity</dt>
                     <dd>
-                      <small>
-                        <a href="#" onClick={handleEntityClicked}>
-                          {entity.fqn ?? entity.name}
-                        </a>
-                      </small>
+                      <OverlayTrigger
+                        placement={'top'}
+                        trigger={['hover', 'focus']}
+                        overlay={
+                          <Tooltip>Highlight entity in visualization</Tooltip>
+                        }
+                      >
+                        <small>
+                          <a href="#" onClick={handleEntityClick}>
+                            {entity.fqn ?? entity.name}
+                          </a>
+                        </small>
+                      </OverlayTrigger>
+
+                      <OverlayTrigger
+                        placement={'top'}
+                        trigger={['hover', 'focus']}
+                        overlay={
+                          <Tooltip>Search all logs for this entity</Tooltip>
+                        }
+                      >
+                        <Button
+                          variant="light"
+                          size="sm"
+                          className="ms-1"
+                          onClick={handleSearchEntityClick}
+                        >
+                          <SearchIcon />
+                        </Button>
+                      </OverlayTrigger>
                     </dd>
                   </>
                 )}
@@ -673,11 +724,36 @@ function LogItem({
                   <>
                     <dt>Service Name</dt>
                     <dd>
-                      <small>
-                        <a href="#" onClick={handleServiceNameClicked}>
-                          {log.serviceName}
-                        </a>
-                      </small>
+                      <OverlayTrigger
+                        placement={'top'}
+                        trigger={['hover', 'focus']}
+                        overlay={
+                          <Tooltip>Highlight service in visualization</Tooltip>
+                        }
+                      >
+                        <small>
+                          <a href="#" onClick={handleServiceNameClick}>
+                            {log.serviceName}
+                          </a>
+                        </small>
+                      </OverlayTrigger>
+
+                      <OverlayTrigger
+                        placement={'top'}
+                        trigger={['hover', 'focus']}
+                        overlay={
+                          <Tooltip>Search all logs for this service</Tooltip>
+                        }
+                      >
+                        <Button
+                          variant="light"
+                          size="sm"
+                          className="ms-1"
+                          onClick={handleSearchServiceClick}
+                        >
+                          <SearchIcon />
+                        </Button>
+                      </OverlayTrigger>
                     </dd>
                   </>
                 )}
@@ -686,7 +762,19 @@ function LogItem({
                   <>
                     <dt>Trace ID</dt>
                     <dd>
-                      <code>{log.traceId}</code>
+                      <OverlayTrigger
+                        placement={'top'}
+                        trigger={['hover', 'focus']}
+                        overlay={
+                          <Tooltip>Search all logs for this trace</Tooltip>
+                        }
+                      >
+                        <small>
+                          <a href="#" onClick={handleTraceIdClick}>
+                            <samp>{log.traceId}</samp>
+                          </a>
+                        </small>
+                      </OverlayTrigger>
                     </dd>
                   </>
                 )}
@@ -695,7 +783,19 @@ function LogItem({
                   <>
                     <dt>Span ID</dt>
                     <dd>
-                      <code>{log.spanId}</code>
+                      <OverlayTrigger
+                        placement={'top'}
+                        trigger={['hover', 'focus']}
+                        overlay={
+                          <Tooltip>Search all logs for this trace</Tooltip>
+                        }
+                      >
+                        <small>
+                          <a href="#" onClick={handleSpanIdClick}>
+                            <samp>{log.spanId}</samp>
+                          </a>
+                        </small>
+                      </OverlayTrigger>
                     </dd>
                   </>
                 )}
