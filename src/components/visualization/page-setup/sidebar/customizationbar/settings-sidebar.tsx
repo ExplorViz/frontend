@@ -1,11 +1,11 @@
 import { XIcon } from '@primer/octicons-react';
+import UndoRestructure from 'explorviz-frontend/src/components/visualization/page-setup/sidebar/customizationbar/restructure/undo-restructure';
 import { ReactNode } from 'react';
 import SidebarResizer from '../sidebar-resizer';
-import UndoRestructure from 'explorviz-frontend/src/components/visualization/page-setup/sidebar/customizationbar/restructure/undo-restructure';
 
 interface SettingsSidebarProps {
   closeSettingsSidebar: () => void;
-  children: ReactNode[];
+  children: ReactNode;
 }
 
 export default function SettingsSidebar({

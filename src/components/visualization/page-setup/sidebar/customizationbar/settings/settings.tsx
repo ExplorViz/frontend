@@ -14,7 +14,6 @@ import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-setting
 import { deleteTraceData } from 'explorviz-frontend/src/utils/landscape-http-request-util';
 import { ColorSchemeId } from 'explorviz-frontend/src/utils/settings/color-schemes';
 import {
-  ColorSettingId,
   isButtonSetting,
   isColorSetting,
   isFlagSetting,
@@ -42,9 +41,7 @@ export default function Settings({
   const visualizationSettings = useUserSettingsStore(
     (state) => state.visualizationSettings
   );
-  const updateUserSetting = useUserSettingsStore(
-    (state) => state.updateSetting
-  );
+  const updateSetting = useUserSettingsStore((state) => state.updateSetting);
   const showSuccessToastMessage = useToastHandlerStore(
     (state) => state.showSuccessToastMessage
   );
@@ -178,7 +175,7 @@ export default function Settings({
   const updateRangeSetting = (name: VisualizationSettingId, value: number) => {
     const settingId = name as VisualizationSettingId;
     try {
-      updateUserSetting(settingId, value);
+      updateSetting(settingId, value);
     } catch (e: any) {
       showErrorToastMessage(e.message);
     }
@@ -189,7 +186,7 @@ export default function Settings({
     value: unknown
   ) => {
     try {
-      updateUserSetting(settingId, value);
+      updateSetting(settingId, value);
     } catch (e: any) {
       showErrorToastMessage(e.message);
     }
@@ -240,7 +237,7 @@ export default function Settings({
     value?: boolean
   ) => {
     try {
-      updateUserSetting(settingId, value);
+      updateSetting(settingId, value);
     } catch (e: any) {
       showErrorToastMessage(e.message);
     }
@@ -335,6 +332,11 @@ export default function Settings({
     });
   };
 
+  const camelCaseToLabel = (name: string) => {
+    name = name.replace(/[A-Z]/g, (upperCaseLetter) => ` ${upperCaseLetter}`);
+    return name.charAt(0).toUpperCase() + name.slice(1);
+  };
+
   const groupedSettings = Object.entries(filteredSettingsByGroup).map(
     ([groupId, settingIdArray]) => {
       if (settingIdArray.length === 0) {
@@ -385,7 +387,9 @@ export default function Settings({
                 return (
                   <ColorPicker
                     key={settingId}
-                    id={settingId as ColorSettingId}
+                    label={camelCaseToLabel(setting.displayName)}
+                    value={setting.value}
+                    onChange={(v) => updateSetting(settingId, v)}
                   />
                 );
               } else if (isButtonSetting(setting)) {

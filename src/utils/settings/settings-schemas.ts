@@ -30,20 +30,7 @@ export type CameraSettingId = keyof CameraSettings;
 
 export type ColorSettingId =
   | 'backgroundColor'
-  | 'javaBuildingColor'
-  | 'cBuildingColor'
-  | 'cppBuildingColor'
-  | 'csharpBuildingColor'
-  | 'goBuildingColor'
-  | 'javascriptBuildingColor'
-  | 'kotlinBuildingColor'
-  | 'phpBuildingColor'
-  | 'pythonBuildingColor'
-  | 'rustBuildingColor'
-  | 'swiftBuildingColor'
-  | 'typescriptBuildingColor'
-  | 'plaintextBuildingColor'
-  | 'otherBuildingColor'
+  | 'buildingColor'
   | 'buildingTextColor'
   | 'communicationArrowColor'
   | 'communicationColor'
@@ -66,6 +53,37 @@ export type ColorSettingId =
   | 'k8sDiagramColor';
 
 export type ColorSettings = Record<ColorSettingId, ColorSetting>;
+
+export const BUILDING_GEOMETRY_OPTIONS = [
+  'Box',
+  'Cone',
+  'Sphere',
+  'Cylinder',
+] as const;
+export type BuildingGeometryType = (typeof BUILDING_GEOMETRY_OPTIONS)[number];
+
+export type GeometrySettings = {
+  buildingGeometry: SelectSetting<BuildingGeometryType>;
+};
+export type GeometrySettingId = keyof GeometrySettings;
+
+export type AppearanceOverride<T> = {
+  modelType: Partial<Record<string, T>>;
+  language: Partial<Record<string, T>>;
+};
+export type AppearanceOverrideGroupKey = keyof AppearanceOverride<unknown>;
+
+export type ColorOverrideSettings = {
+  cityColorOverrides: Setting<AppearanceOverride<string>>;
+  districtColorOverrides: Setting<AppearanceOverride<string>>;
+  buildingColorOverrides: Setting<AppearanceOverride<string>>;
+};
+export type ColorOverrideSettingsId = keyof ColorOverrideSettings;
+
+export type GeometryOverrideSettings = {
+  buildingGeometryOverrides: Setting<AppearanceOverride<BuildingGeometryType>>;
+};
+export type GeometryOverrideSettingsId = keyof GeometryOverrideSettings;
 
 export type ControlSettings = {
   leftMouseButtonAction: SelectSetting<string>;
@@ -235,27 +253,10 @@ export type MagnifierSettingId = keyof MagnifierSettings;
 export type XrSettingId = 'autoEnterVr';
 export type XrSettings = Record<XrSettingId, FlagSetting>;
 
-export type GeometrySettings = {
-  languageGeometryJava: SelectSetting<string>;
-  languageGeometryC: SelectSetting<string>;
-  languageGeometryCpp: SelectSetting<string>;
-  languageGeometryCsharp: SelectSetting<string>;
-  languageGeometryGo: SelectSetting<string>;
-  languageGeometryJavaScript: SelectSetting<string>;
-  languageGeometryKotlin: SelectSetting<string>;
-  languageGeometryPhp: SelectSetting<string>;
-  languageGeometryPython: SelectSetting<string>;
-  languageGeometryRust: SelectSetting<string>;
-  languageGeometrySwift: SelectSetting<string>;
-  languageGeometryTypeScript: SelectSetting<string>;
-  languageGeometryPlaintext: SelectSetting<string>;
-  languageGeometryOther: SelectSetting<string>;
-};
-export type GeometrySettingId = keyof GeometrySettings;
-
 export type VisualizationSettingId =
   | CameraSettingId
   | ColorSettingId
+  | GeometrySettingId
   | CommunicationSettingId
   | ControlSettingId
   | DebugSettingId
@@ -268,7 +269,8 @@ export type VisualizationSettingId =
   | MiscSettingId
   | SemanticZoomSettingId
   | 'autoEnterVr'
-  | GeometrySettingId
+  | ColorOverrideSettingsId
+  | GeometryOverrideSettingsId
   | ImmersiveSettingId;
 
 export type VisualizationSettings = CameraSettings &
@@ -277,7 +279,8 @@ export type VisualizationSettings = CameraSettings &
   DebugSettings &
   HeatmapSettings &
   EffectSettings &
-  GeometrySettings &
+  ColorOverrideSettings &
+  GeometryOverrideSettings &
   LayoutSettings &
   LabelSettings &
   MagnifierSettings &
@@ -286,6 +289,7 @@ export type VisualizationSettings = CameraSettings &
   SemanticZoomSettings &
   XrSettings &
   ColorSettings &
+  GeometrySettings &
   ImmersiveSettings;
 
 export type ImmersiveSettings = {

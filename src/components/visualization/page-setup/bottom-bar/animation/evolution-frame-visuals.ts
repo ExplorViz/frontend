@@ -2,6 +2,8 @@ import { decodeDeltaFrame } from 'explorviz-frontend/src/components/visualizatio
 import {
   AnimationDeltaFrame,
   AnimationFrame,
+} from 'explorviz-frontend/src/utils/landscape-schemes/animation';
+import {
   Building,
   CommitComparison,
   FlatLandscape,
@@ -37,7 +39,8 @@ export function computeEvolutionFrameVisuals(
     const decoded = decodeDeltaFrame(
       input.deltaFrames,
       currentFrameIndex,
-      input.keepRemovedVisible);
+      input.keepRemovedVisible
+    );
     if (!decoded) return null;
 
     const currentDate =

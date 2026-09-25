@@ -62,6 +62,9 @@ const StructureFiltering = forwardRef<
   const pauseVisualizationUpdating = useRenderingServiceStore(
     (state) => state.pauseVisualizationUpdating
   );
+  const hiddenModelTypes = useVisualizationStore(
+    (state) => state.hiddenModelTypes
+  );
   const hiddenLanguages = useVisualizationStore(
     (state) => state.hiddenLanguages
   );
@@ -115,6 +118,7 @@ const StructureFiltering = forwardRef<
         filterSourceFlatLandscape.buildings,
         compileBuildingFilter({
           filterMode,
+          hiddenModelTypes,
           hiddenLanguages,
           inclusionExpressions: inclusionExpressionValues,
           exclusionExpressions: exclusionExpressionValues,
@@ -124,6 +128,7 @@ const StructureFiltering = forwardRef<
     [
       filterSourceFlatLandscape,
       filterMode,
+      hiddenModelTypes,
       hiddenLanguages,
       inclusionExpressionValues,
       exclusionExpressionValues,

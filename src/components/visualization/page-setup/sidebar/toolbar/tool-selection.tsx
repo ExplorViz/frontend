@@ -1,11 +1,11 @@
-import React, { ReactNode } from 'react';
+import { ReactNode } from 'react';
 
 import { XIcon } from '@primer/octicons-react';
 import SidebarResizer from 'explorviz-frontend/src/components/visualization/page-setup/sidebar/sidebar-resizer';
 
 interface ToolSelection {
   closeToolSelection: () => void;
-  children: ReactNode[];
+  children: ReactNode;
 }
 
 export default function ToolSelection({

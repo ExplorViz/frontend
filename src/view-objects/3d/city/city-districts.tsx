@@ -83,6 +83,7 @@ const CityDistricts = forwardRef<InstancedMesh2, Args>(
       closedDistrictHeight,
       districtRootLevelColor,
       districtDeepestLevelColor,
+      districtColorOverrides,
       enableAnimations,
       enableHoverEffects,
       highlightedEntityColor,
@@ -101,6 +102,8 @@ const CityDistricts = forwardRef<InstancedMesh2, Args>(
           state.visualizationSettings.districtRootLevelColor.value,
         districtDeepestLevelColor:
           state.visualizationSettings.districtDeepestLevelColor.value,
+        districtColorOverrides:
+          state.visualizationSettings.districtColorOverrides,
         closedDistrictHeight:
           state.visualizationSettings.closedDistrictHeight.value,
         openedDistrictHeight:
@@ -191,10 +194,20 @@ const CityDistricts = forwardRef<InstancedMesh2, Args>(
         const layout = layoutMap.get(districtId);
         if (!layout) return new Color('white');
 
+        const colorOverride =
+          districtColorOverrides.value.modelType[district.type];
+
         let baseColor: Color;
         if (isHighlighted) {
           baseColor = getHighlightingColorForEntity(districtId);
         } else {
+          // If a color override is set (which defines just one color),
+          // we simply brighten that color up for the depth gradient
+          const rootColor = new Color(colorOverride ?? districtRootLevelColor);
+          const deepestColor = colorOverride
+            ? new Color(colorOverride).offsetHSL(0, 0, 0.35)
+            : new Color(districtDeepestLevelColor);
+
           // Calculate gradient color based on level
           const rootLevel = 1;
           const deepestLevel = useLayoutStore.getState().maxDistrictDepth ?? 20;
@@ -205,9 +218,7 @@ const CityDistricts = forwardRef<InstancedMesh2, Args>(
             // Interpolate between top and deepest level colors
             const alpha =
               (layout.level - rootLevel) / (deepestLevel - rootLevel); // 0.0 to 1.0
-            const rootLevelColor = new Color(districtRootLevelColor);
-            const deepestLevelColor = new Color(districtDeepestLevelColor);
-            baseColor = rootLevelColor.clone().lerp(deepestLevelColor, alpha);
+            baseColor = rootColor.clone().lerp(deepestColor, alpha);
           }
         }
 
@@ -223,6 +234,7 @@ const CityDistricts = forwardRef<InstancedMesh2, Args>(
         unchangedDistrictColor,
         districtRootLevelColor,
         districtDeepestLevelColor,
+        districtColorOverrides,
         enableHoverEffects,
         hoveredEntityId,
         highlightedEntityIds,

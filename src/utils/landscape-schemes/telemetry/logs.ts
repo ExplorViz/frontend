@@ -16,7 +16,7 @@ export interface Log {
   /** Timestamp at which the log was observed, in nanoseconds since Unix epoch. */
   timeUnixNano: bigint;
 
-  /** Telemetry key of the entity from which this log originates. */
+  /** Lookup key for telemetry of the entity from which this log originates. */
   telemetryKey?: string;
 
   /** Name of the service / application from which this log originates. */

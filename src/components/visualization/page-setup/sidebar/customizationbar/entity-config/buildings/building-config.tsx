@@ -1,24 +1,35 @@
-import BuildingMetricSettings from 'explorviz-frontend/src/components/visualization/page-setup/sidebar/customizationbar/building-config/building-metric-settings';
-import LanguageBuildingSettings, {
-  useLanguagesInLandscape,
-} from 'explorviz-frontend/src/components/visualization/page-setup/sidebar/customizationbar/building-config/language-building-settings';
-import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
+import BuildingMetricSettings from 'explorviz-frontend/src/components/visualization/page-setup/sidebar/customizationbar/entity-config/buildings/building-metric-settings';
+import useLanguagesInLandscape from 'explorviz-frontend/src/hooks/useLanguagesInLandscape';
+import { useModelStore } from 'explorviz-frontend/src/stores/repos/model-repository';
+import { SUPPORTED_LANGUAGES } from 'explorviz-frontend/src/utils/landscape-schemes/flat-landscape';
 import {
-  getLanguageColor,
-  LANGUAGE_DISPLAY_ORDER,
-  LANGUAGE_SETTING_CONFIG,
+  getLabelForLanguage,
   normalizeLanguage,
   sortLanguages,
-} from 'explorviz-frontend/src/utils/settings/language-settings';
+} from 'explorviz-frontend/src/utils/language-utils';
+import {
+  getLabelForModelType,
+  sortModelTypes,
+} from 'explorviz-frontend/src/utils/model-type-utils';
 import { useMemo, useState } from 'react';
-import Accordion from 'react-bootstrap/Accordion';
 import Form from 'react-bootstrap/Form';
+import BuildingModelConfig from './building-model-config';
 
 export default function BuildingConfig() {
-  const visualizationSettings = useUserSettingsStore(
-    (state) => state.visualizationSettings
-  );
+  const buildings = useModelStore((state) => state.buildings);
+
   const languagesInLandscape = useLanguagesInLandscape();
+
+  const buildingTypesInLandscape = sortModelTypes(
+    Array.from(
+      new Set(
+        Object.values(buildings)
+          .map((m) => m.type)
+          .filter((t) => !!t)
+      )
+    )
+  );
+
   const [searchQuery, setSearchQuery] = useState('');
   const [showAllLanguages, setShowAllLanguages] = useState(
     () => languagesInLandscape.length === 0
@@ -27,7 +38,7 @@ export default function BuildingConfig() {
   const visibleLanguages = useMemo(() => {
     const baseLanguages =
       showAllLanguages || languagesInLandscape.length === 0
-        ? LANGUAGE_DISPLAY_ORDER
+        ? SUPPORTED_LANGUAGES
         : sortLanguages(languagesInLandscape);
 
     const normalizedQuery = searchQuery.trim().toLowerCase();
@@ -36,7 +47,7 @@ export default function BuildingConfig() {
     }
 
     return baseLanguages.filter((language) => {
-      const { label } = LANGUAGE_SETTING_CONFIG[normalizeLanguage(language)];
+      const label = normalizeLanguage(language);
       return (
         label.toLowerCase().includes(normalizedQuery) ||
         language.toLowerCase().includes(normalizedQuery)
@@ -44,14 +55,29 @@ export default function BuildingConfig() {
     });
   }, [languagesInLandscape, searchQuery, showAllLanguages]);
 
-  const defaultExpandedLanguage = visibleLanguages[0] ?? null;
-
   return (
     <div className="building-config">
       <section className="building-config-section">
         <h6 className="building-config-section-title">Metric mapping</h6>
         <BuildingMetricSettings />
       </section>
+
+      {buildingTypesInLandscape.length > 0 && (
+        <section>
+          <h6 className="fw-bold">Model types</h6>
+          <p className="small mb-2">
+            Set the color and geometry for buildings from different analysis
+            types. Model types of buildings found in the current landscape are
+            shown by default.
+          </p>
+
+          <BuildingModelConfig
+            overrideGroupKey="modelType"
+            values={buildingTypesInLandscape}
+            formatValueLabel={getLabelForModelType}
+          />
+        </section>
+      )}
 
       <section className="building-config-section">
         <div className="building-config-section-heading">
@@ -86,43 +112,11 @@ export default function BuildingConfig() {
             No languages match your search.
           </p>
         ) : (
-          <Accordion
-            defaultActiveKey={defaultExpandedLanguage ?? undefined}
-            className="building-config-language-accordion"
-          >
-            {visibleLanguages.map((language) => {
-              const normalizedLanguage = normalizeLanguage(language);
-              const { label } = LANGUAGE_SETTING_CONFIG[normalizedLanguage];
-              const color = getLanguageColor(
-                normalizedLanguage,
-                visualizationSettings
-              );
-
-              return (
-                <Accordion.Item
-                  eventKey={normalizedLanguage}
-                  key={normalizedLanguage}
-                  className="building-config-language-item"
-                >
-                  <Accordion.Header>
-                    <span className="building-config-language-header">
-                      <span
-                        className="building-config-language-swatch building-config-language-swatch--header"
-                        style={{ backgroundColor: color }}
-                        aria-hidden
-                      />
-                      <span className="building-config-language-name">
-                        {label}
-                      </span>
-                    </span>
-                  </Accordion.Header>
-                  <Accordion.Body>
-                    <LanguageBuildingSettings language={normalizedLanguage} />
-                  </Accordion.Body>
-                </Accordion.Item>
-              );
-            })}
-          </Accordion>
+          <BuildingModelConfig
+            overrideGroupKey="language"
+            values={visibleLanguages}
+            formatValueLabel={getLabelForLanguage}
+          />
         )}
       </section>
     </div>

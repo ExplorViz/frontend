@@ -1,4 +1,7 @@
-import { Language } from 'explorviz-frontend/src/utils/landscape-schemes/flat-landscape';
+import {
+  Language,
+  ModelType,
+} from 'explorviz-frontend/src/utils/landscape-schemes/flat-landscape';
 import { create } from 'zustand';
 
 interface VisualizationStoreState {
@@ -11,6 +14,8 @@ interface VisualizationStoreState {
   // State for buildings
   hiddenBuildingIds: Set<string>; // Buildings hidden by entity filters (Hide mode)
   removedDistrictIds: Set<string>;
+  // State for model type filtering
+  hiddenModelTypes: Set<ModelType>;
   // State for language filtering
   hiddenLanguages: Set<Language>;
   sceneLayers: layersType;
@@ -34,6 +39,9 @@ interface VisualizationStoreState {
     removeDistricts: (ids: Set<string>) => void;
     setRemovedDistricts: (ids: Set<string>) => void;
     setSceneLayers: (layers: layersType) => void;
+    // Model type filtering
+    toggleModelTypeVisibility: (type: ModelType) => void;
+    resetModelTypeFilter: () => void;
     // Language filtering
     toggleLanguageVisibility: (language: Language) => void;
     resetLanguageFilter: () => void;
@@ -64,6 +72,8 @@ export const useVisualizationStore = create<VisualizationStoreState>(
     // Building state
     hiddenBuildingIds: new Set(),
     removedDistrictIds: new Set(),
+    // Model type filtering
+    hiddenModelTypes: new Set(),
     // Language filtering
     hiddenLanguages: new Set(),
     sceneLayers: {
@@ -125,6 +135,7 @@ export const useVisualizationStore = create<VisualizationStoreState>(
           closedDistrictIds: new Set(),
           hiddenDistrictIds: new Set(),
           hiddenBuildingIds: new Set(),
+          hiddenModelTypes: new Set(),
           hiddenLanguages: new Set(),
         });
       },
@@ -222,6 +233,18 @@ export const useVisualizationStore = create<VisualizationStoreState>(
       },
       setSceneLayers: (layers: layersType) => {
         set({ sceneLayers: layers });
+      },
+      toggleModelTypeVisibility: (modelType: ModelType) => {
+        const current = new Set(get().hiddenModelTypes);
+        if (current.has(modelType)) {
+          current.delete(modelType);
+        } else {
+          current.add(modelType);
+        }
+        set({ hiddenModelTypes: current });
+      },
+      resetModelTypeFilter: () => {
+        set({ hiddenModelTypes: new Set() });
       },
       toggleLanguageVisibility: (language: Language) => {
         const current = new Set(get().hiddenLanguages);

@@ -10,84 +10,81 @@ export type FlatLandscape = {
   buildings: Record<string, Building>;
 };
 
-export type AnimationFrame = {
-  commitHash: string;
-  authorDate: number; // epoch ms → new Date(authorDate)
-  ordinal: number; // global index in commit history (authorDate ASC)
-  landscape: FlatLandscape;
-};
-
-export type AnimationWindow = {
-  totalCount: number;
-  windowStart: number;
-  frames: AnimationFrame[];
-};
-
-export type AnimationSkeleton = {
-  landscape: FlatLandscape;
-  fqnToFirstOrdinal: Record<string, number>;
-  orderedCommitHashes: string[];
-  orderedCommitTimestamps: number[];
-};
-
-export type BuildingState = {
-  fqn: string;
-  lastChangeOrdinal: number;
-  lastChangeDate: number;
-  lastAction: CommitComparison;
-};
-
-export type BuildingChange = {
-  fqn: string;
-  action: CommitComparison;
-};
-
-export type AnimationDeltaFrame = {
-  commitHash: string;
-  authorDate: number;
-  ordinal: number;
-  keyframe: boolean;
-  tsFrom: number;
-  tsTo: number;
-  commitCount: number;
-  state: BuildingState[] | null;
-  changes: BuildingChange[] | null;
-};
-
-export type AnimationDeltaWindow = {
-  totalCount: number;
-  windowStart: number;
-  frames: AnimationDeltaFrame[];
-};
-
-type FlatBaseModel = {
+export type FlatBaseModel = {
   id: string;
   name: string;
+
+  /** Fully-qualified name of the model */
   fqn?: string;
-  telemetryKey?: string; // Lookup key to request telemetry data for this entity
+
+  /**
+   * Classification of this model's role or origin. Can be used for distinguishing models
+   * that come from different analysis sources, e.g. code analysis or HTTP endpoint analysis.
+   */
+  type: ModelType;
+
+  /**
+   * Lookup key to use when requesting telemetry data for this model.
+   * While it is not a globally unique identifier, it should be unique
+   * in combination with a particular commit.
+   */
+  telemetryKey?: string;
+
+  /** Indicates the mode of analysis from which this model was obtained */
   originOfData?: TypeOfAnalysis;
-  commitComparison?: CommitComparison; // For two selected commits
-  editingState?: 'added' | 'removed'; // Reflect changes from restructuring
-  isPlaceholder?: boolean; // Flag to make it invisible in animation
-  agingFactor?: number; // 0 = just changed, 1 = fully aged (unchanged past threshold); animation only
+
+  /**
+   * When comparing two commits, this value indicates if and how
+   * this model changed from the first to the second commit
+   */
+  commitComparison?: CommitComparison;
+
+  /** Indicates changes made to this model when using restructuring mode */
+  editingState?: 'added' | 'removed';
+
+  /** For use with evolution animation. If true, the model is made invisible in animation */
+  isPlaceholder?: boolean;
+
+  /**
+   * For use with evolution animation. Indicates the time since the model was last changed.
+   * A value of 0 indicates that the model was just changed. A value of 1 means that the model
+   * is fully aged (unchanged past threshold).
+   */
+  agingFactor?: number;
+
   lastAction?: CommitComparison;
 };
 
-export type Language =
-  | 'LANGUAGE_UNSPECIFIED'
-  | 'C'
-  | 'CPP'
-  | 'CSHARP'
-  | 'GO'
-  | 'JAVA'
-  | 'JAVASCRIPT'
-  | 'KOTLIN'
-  | 'PHP'
-  | 'PLAINTEXT'
-  | 'PYTHON'
-  | 'RUST'
-  | 'SWIFT'
-  | 'TYPESCRIPT';
+/** Classification of the analysis subject from which a model originates */
+export const MODEL_TYPES = [
+  'unknown',
+  'service',
+  'instrumentation_scope',
+  'code',
+  'rpc',
+  'http',
+] as const;
+
+export type ModelType = (typeof MODEL_TYPES)[number];
+
+export const SUPPORTED_LANGUAGES = [
+  'C',
+  'CPP',
+  'CSHARP',
+  'GO',
+  'JAVA',
+  'JAVASCRIPT',
+  'KOTLIN',
+  'PHP',
+  'PYTHON',
+  'RUST',
+  'SWIFT',
+  'TYPESCRIPT',
+  'PLAINTEXT',
+  'LANGUAGE_UNSPECIFIED',
+] as const;
+
+export type Language = (typeof SUPPORTED_LANGUAGES)[number];
 
 export type City = FlatBaseModel & {
   buildingIds: string[];
@@ -129,7 +126,7 @@ export function isFlatLandscape(x: any): x is FlatLandscape {
   );
 }
 
-function isFlatBaseModel(x: any): x is FlatBaseModel {
+export function isFlatBaseModel(x: any): x is FlatBaseModel {
   return (
     x !== null &&
     typeof x === 'object' &&

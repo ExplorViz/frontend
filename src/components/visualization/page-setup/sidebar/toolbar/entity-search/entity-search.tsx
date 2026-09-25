@@ -34,7 +34,11 @@ const EntitySearch = function EntitySearch({ ref, ..._ }) {
     const parts = fqnStr.split(new RegExp(`(${searchString})`, 'gi'));
 
     return parts.map((part, index) =>
-      part === searchString ? <strong key={index}>{part}</strong> : part
+      part.toLowerCase() === searchString.toLowerCase() ? (
+        <strong key={index}>{part}</strong>
+      ) : (
+        part
+      )
     );
   };
 

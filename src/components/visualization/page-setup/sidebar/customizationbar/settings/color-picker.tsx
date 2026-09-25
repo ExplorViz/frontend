@@ -1,13 +1,11 @@
-import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
-import {
-  ColorSetting,
-  ColorSettingId,
-} from 'explorviz-frontend/src/utils/settings/settings-schemas';
+import { ColorSettingId } from 'explorviz-frontend/src/utils/settings/settings-schemas';
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
-import { createPortal } from 'react-dom';
 import { ColorResult, SketchPicker } from 'react-color';
+import { createPortal } from 'react-dom';
 import { Color } from 'three';
+import ResetButton from './setting-type/reset-button';
 
+const COLOR_WHEN_NULL = '#ffffff';
 const SKETCH_PICKER_WIDTH = 220;
 const SKETCH_PICKER_HEIGHT = 320;
 const POPUP_MARGIN = 8;
@@ -38,21 +36,27 @@ function computePopupPosition(trigger: HTMLElement): PopupPosition {
   return { top, left };
 }
 
-export default function ColorPicker({
-  id,
-  label,
-}: {
-  id: ColorSettingId;
-  label?: string;
-}) {
-  const colorSetting = useUserSettingsStore(
-    (state) => state.visualizationSettings[id] as ColorSetting
-  );
+interface ColorPickerProps {
+  label: string;
+  value?: string;
+  initialValue?: string | null;
+  onChange?(hexColor: string | null): void;
+}
 
+export default function ColorPicker({
+  label,
+  value,
+  initialValue,
+  onChange,
+}: ColorPickerProps) {
+  const [selectedValue, setSelectedValue] = useState<string | null>(
+    initialValue ?? null
+  );
   const [displayColorPicker, setDisplayColorPicker] = useState(false);
   const [popupPosition, setPopupPosition] = useState<PopupPosition | null>(
     null
   );
+
   const colorPickerRef = useRef<HTMLDivElement>(null);
   const triggerRef = useRef<HTMLSpanElement>(null);
   const popupRef = useRef<HTMLDivElement>(null);
@@ -114,24 +118,11 @@ export default function ColorPicker({
   }, [displayColorPicker]);
 
   const handleColorChange = (color: ColorResult) => {
-    useUserSettingsStore.getState().updateSetting(id, color.hex);
+    setSelectedValue(color.hex);
+    onChange?.(color.hex);
   };
 
-  const formatColorProperty = (displayName: string) => {
-    if (displayName.length > 0) {
-      displayName = displayName.replace(
-        /[A-Z]/g,
-        (upperCaseLetter) => ` ${upperCaseLetter}`
-      );
-      displayName = displayName.charAt(0).toUpperCase() + displayName.slice(1);
-    } else {
-      displayName = '';
-    }
-
-    return displayName;
-  };
-
-  const colorObject = new Color(colorSetting.value);
+  const colorObject = new Color(value ?? selectedValue ?? COLOR_WHEN_NULL);
 
   const popup =
     displayColorPicker && popupPosition
@@ -145,7 +136,7 @@ export default function ColorPicker({
             }}
           >
             <SketchPicker
-              color={colorSetting.value}
+              color={value ?? selectedValue ?? COLOR_WHEN_NULL}
               onChange={handleColorChange}
               disableAlpha
             />
@@ -154,31 +145,57 @@ export default function ColorPicker({
         )
       : null;
 
+  const handleResetClick = () => {
+    setSelectedValue(initialValue!);
+    onChange?.(initialValue!);
+  };
+
+  const isNoColorSelected =
+    value === null || (value === undefined && selectedValue === null);
+
   return (
     <>
       <div
-        id={`cp-application-${id}`}
         className="setting-container input-group justify-content-between"
         ref={colorPickerRef}
       >
-        <span className="colorpicker-label">
-          {label ?? formatColorProperty(colorSetting.displayName)}
-        </span>
-        <span className="input-group-append colorpicker-input">
-          <div className="colorpicker-wrapper">
-            <span
-              ref={triggerRef}
-              className="input-group-text colorpicker-input-addon"
-              id={`cp-application-span${id}`}
-              onClick={() => setDisplayColorPicker(!displayColorPicker)}
-              style={{
-                ['--colorpicker-color' as string]: colorObject.getStyle(),
-              }}
-            >
-              <i></i>
-            </span>
-          </div>
-        </span>
+        <span className="colorpicker-label">{label}</span>
+        <div className="d-flex align-items-center gap-2">
+          <span className="input-group-append colorpicker-input">
+            <div className="colorpicker-wrapper">
+              <span
+                ref={triggerRef}
+                className={`input-group-text colorpicker-input-addon overflow-hidden ${isNoColorSelected ? 'crossed' : ''}`}
+                onClick={() => setDisplayColorPicker(!displayColorPicker)}
+                style={{
+                  ['--colorpicker-color' as string]: colorObject.getStyle(),
+                }}
+              >
+                <i></i>
+              </span>
+
+              {/* Show red diagonal across box if no value is selected */}
+              <style>
+                {`
+                  .crossed::after {
+                    content: "";
+                    position: absolute;
+                    left: 50%;
+                    top: 50%;
+                    width: 100%;
+                    height: 2px;
+                    background: red;
+                    transform: translate(-50%, -50%) rotate(-45deg);
+                    overflow: hidden;
+                  }
+                `}
+              </style>
+            </div>
+          </span>
+          {initialValue !== undefined && (
+            <ResetButton onClick={handleResetClick} />
+          )}
+        </div>
       </div>
       {popup}
     </>

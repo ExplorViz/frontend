@@ -5,6 +5,7 @@ import {
   PersonIcon,
   SignOutIcon,
   UndoIcon,
+  VscodeIcon,
 } from '@primer/octicons-react';
 import StatusIcons from 'explorviz-frontend/src/components/page-setup/status-icons';
 import { useIdeWebsocketStore } from 'explorviz-frontend/src/ide/ide-websocket';
@@ -13,14 +14,12 @@ import { useIdeWebsocketFacadeStore } from 'explorviz-frontend/src/stores/ide-we
 import { useLandscapeTokenStore } from 'explorviz-frontend/src/stores/landscape-token';
 import { useRenderingServiceStore } from 'explorviz-frontend/src/stores/rendering-service';
 import { useSnapshotTokenStore } from 'explorviz-frontend/src/stores/snapshot-token';
-import { useEffect, useRef, useState } from 'react';
+import { Dropdown, DropdownButton } from 'react-bootstrap';
 import { useNavigate } from 'react-router-dom';
 
 const tokenToShow = import.meta.env.VITE_ONLY_SHOW_TOKEN;
 
 export default function Navbar() {
-  const [isDropdownOpen, setIsDropdownOpen] = useState<boolean>(false);
-
   const restartAndSetSocket = useIdeWebsocketStore(
     (state) => state.restartAndSetSocket
   );
@@ -29,35 +28,21 @@ export default function Navbar() {
     (state) => state.closeConnection
   );
 
-  const dropdownRef = useRef<HTMLUListElement | null>(null);
-
-  const isConnected = useIdeWebsocketFacadeStore((state) => state.isConnected);
+  const isIdeConnected = useIdeWebsocketFacadeStore(
+    (state) => state.isConnected
+  );
   const user = useAuthStore((state) => state.user);
   const landscapeToken = useLandscapeTokenStore((state) => state.token);
   const _analysisMode = useRenderingServiceStore(
     (state) => state._analysisMode
   );
-  const setTokenSnapshot = useSnapshotTokenStore((state) => state.setToken);
+  const setSnapshotToken = useSnapshotTokenStore((state) => state.setToken);
   const setSnapshotSelected = useSnapshotTokenStore(
     (state) => state.setSnapshotSelected
   );
-  const setTokenLandscape = useLandscapeTokenStore((state) => state.setToken);
+  const setLandscapeToken = useLandscapeTokenStore((state) => state.setToken);
 
   const navigate = useNavigate();
-
-  useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
-        setIsDropdownOpen(false);
-      }
-    };
-
-    document.addEventListener('mousedown', handleClickOutside);
-
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
-  }, []);
 
   const isSingleLandscapeMode = () => {
     return tokenToShow.length > 0 && tokenToShow !== 'change-token';
@@ -71,18 +56,16 @@ export default function Navbar() {
 
   const goToLandscapeSelection = () => {
     setSnapshotSelected(false);
-    setTokenLandscape(null);
-    setTokenSnapshot(null);
-    setIsDropdownOpen(false);
+    setLandscapeToken(null);
+    setSnapshotToken(null);
     navigate('/landscapes');
   };
 
   const goToSettings = () => {
-    setTokenLandscape(null);
+    setLandscapeToken(null);
     setSnapshotSelected(false);
-    setTokenSnapshot(null);
+    setSnapshotToken(null);
     navigate('/settings');
-    setIsDropdownOpen(false);
   };
 
   return (
@@ -120,116 +103,60 @@ export default function Navbar() {
         <div id="navbar-user-options" className="btn-group pointer-events-all">
           <StatusIcons />
           <div className="btn-group" style={{ marginLeft: '1rem' }}>
-            <button
-              type="button"
-              className="dropdown-toggle navbar-user-button"
-              onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-              aria-expanded={isDropdownOpen}
-            >
-              {/* {user?.picture */}
-              {false ? (
-                <img
-                  // src={user?.picture}
-                  alt="User profile"
-                  width="16px"
-                  height="16px"
-                />
-              ) : (
-                <PersonIcon size="small" />
-              )}
-            </button>
-            {isDropdownOpen && (
-              <ul
-                ref={dropdownRef}
-                className={`dropdown-menu dropdown-menu-right ${isDropdownOpen ? 'show' : ''}`}
-              >
-                <li>
-                  <div className="dropdown-header">
-                    <div>
-                      <strong className="truncate-text">
-                        <PersonIcon size="small" />
-                        {user?.nickname}
-                      </strong>
-                    </div>
+            <DropdownButton variant="white" title={<PersonIcon size="small" />}>
+              <Dropdown.Header>
+                <div className="d-flex align-items-center">
+                  <PersonIcon size="medium" className="me-1" />
+                  <div
+                    className="d-flex flex-column"
+                    style={{ height: '32px' }}
+                  >
+                    <strong className="truncate-text">{user?.nickname}</strong>
                     <span className="truncate-text">
-                      <IdBadgeIcon size="small" />
+                      <IdBadgeIcon size="small" className="me-1" />
                       {user?.sub}
                     </span>
                   </div>
-                </li>
-                {landscapeToken && (
-                  <li>
-                    <button
-                      className="dropdown-item"
-                      type="button"
-                      onClick={goToLandscapeSelection}
-                    >
-                      <KeyIcon size="small" />
-                      {landscapeToken.alias}
-                    </button>
-                  </li>
-                )}
-                <li>
-                  <button
-                    className="dropdown-item"
-                    type="button"
-                    onClick={goToSettings}
-                  >
-                    <GitBranchIcon size="small" />
-                    Git API Token
-                  </button>
-                </li>
-                <li>
-                  {isConnected ? (
-                    <button
-                      className="dropdown-item"
-                      type="button"
-                      onClick={() => closeConnection()}
-                    >
-                      Disconnect from VSCode extension
-                    </button>
-                  ) : (
-                    <button
-                      className="dropdown-item"
-                      type="button"
-                      onClick={() => restartAndSetSocket(landscapeToken?.value)}
-                    >
-                      Connect to VSCode extension
-                    </button>
-                  )}
-                </li>
-                <li>
-                  <button
-                    className="dropdown-item"
-                    type="button"
-                    onClick={() => {
-                      window.location.href = `${import.meta.env.VITE_KEYCLOAK_URL}/realms/${import.meta.env.VITE_KEYCLOAK_REALM}/account/`;
-                    }}
-                  >
-                    <PersonIcon size="small" />
-                    Manage Account
-                  </button>
-                </li>
-                <li>
-                  <button
-                    className="dropdown-item"
-                    type="button"
-                    onClick={logout}
-                  >
-                    <SignOutIcon size="small" />
-                    Logout
-                  </button>
-                </li>
-                <li>
-                  <hr className="dropdown-divider" />
-                </li>
-                <li>
-                  <div className="dropdown-item disabled">
-                    Version: {versionTag()}
-                  </div>
-                </li>
-              </ul>
-            )}
+                </div>
+              </Dropdown.Header>
+              <Dropdown.Divider />
+              {landscapeToken && (
+                <Dropdown.Item onClick={goToLandscapeSelection}>
+                  <KeyIcon size="small" className="me-2" />
+                  {landscapeToken.alias}
+                </Dropdown.Item>
+              )}
+              <Dropdown.Item onClick={goToSettings}>
+                <GitBranchIcon size="small" className="me-2" />
+                Git API Token
+              </Dropdown.Item>
+              {isIdeConnected ? (
+                <Dropdown.Item onClick={() => closeConnection()}>
+                  Disconnect from VSCode extension
+                </Dropdown.Item>
+              ) : (
+                <Dropdown.Item
+                  onClick={() => restartAndSetSocket(landscapeToken?.value)}
+                >
+                  <VscodeIcon size="small" className="me-2" />
+                  Connect to VSCode extension
+                </Dropdown.Item>
+              )}
+              <Dropdown.Item
+                onClick={() => {
+                  window.location.href = `${import.meta.env.VITE_KEYCLOAK_URL}/realms/${import.meta.env.VITE_KEYCLOAK_REALM}/account/`;
+                }}
+              >
+                <PersonIcon size="small" className="me-2" />
+                Manage Account
+              </Dropdown.Item>
+              <Dropdown.Item onClick={logout}>
+                <SignOutIcon size="small" className="me-2" />
+                Logout
+              </Dropdown.Item>
+              <Dropdown.Divider />
+              <Dropdown.Item disabled>Version: {versionTag()}</Dropdown.Item>
+            </DropdownButton>
           </div>
         </div>
       </div>

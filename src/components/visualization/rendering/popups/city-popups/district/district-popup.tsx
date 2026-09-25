@@ -1,6 +1,6 @@
+import ModelTypeBadge from 'explorviz-frontend/src/components/badges/model-type-badge';
 import LinkButton from 'explorviz-frontend/src/components/link-button.tsx';
 import AggregatedBuildingMetricsTable from 'explorviz-frontend/src/components/visualization/rendering/popups/city-popups/aggregated-building-metrics-table';
-import EntityStructureStatsTable from 'explorviz-frontend/src/components/visualization/rendering/popups/city-popups/entity-structure-stats-table';
 import FilesTab from 'explorviz-frontend/src/components/visualization/rendering/popups/city-popups/files-tab';
 import { useLiveDistrict } from 'explorviz-frontend/src/components/visualization/rendering/popups/city-popups/use-live-flat-entity';
 import { useVisibleEntityCounts } from 'explorviz-frontend/src/components/visualization/rendering/popups/city-popups/use-visible-entity-counts';
@@ -14,7 +14,7 @@ import { District } from 'explorviz-frontend/src/utils/landscape-schemes/flat-la
 import { TypeOfAnalysis } from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
 import { buildDirectoryTreeUrl } from 'explorviz-frontend/src/utils/repository-file-url';
 import { useMemo } from 'react';
-import { Tab, Tabs } from 'react-bootstrap';
+import { Tab, Table, Tabs } from 'react-bootstrap';
 
 interface DistrictPopupProps {
   popupData: PopupData;
@@ -69,36 +69,78 @@ export default function DistrictPopup({ popupData }: DistrictPopupProps) {
   return (
     <>
       <h3 className="popover-header">
-        <div className="d-flex align-items-center justify-content-center gap-2">
-          <div className="text-center text-break fw-bold pl-1">
-            {district.name}
-          </div>
-          {showSourceLink && (
-            <LinkButton
-              url={sourceDirectoryUrl}
-              disabled={!sourceDirectoryUrl}
-              tooltip={sourceLinkTooltip}
-            />
-          )}
+        <div className="text-center text-break fw-bold pl-1">
+          {district.name}
         </div>
+        {showSourceLink && (
+          <LinkButton
+            url={sourceDirectoryUrl}
+            disabled={!sourceDirectoryUrl}
+            tooltip={sourceLinkTooltip}
+          />
+        )}
       </h3>
-      <div className="popover-body">
+      <div className="popover-body p-2">
         <Tabs
           defaultActiveKey="general"
           id={`district-popup-tabs-${uuid}`}
           className="nav-tabs justify-content-center"
         >
           <Tab eventKey="general" title="General">
-            <EntityStructureStatsTable
-              directDistrictCount={visibleEntityCounts.directDistrictCount}
-              containedDistrictCount={
-                visibleEntityCounts.containedDistrictCount
-              }
-              directBuildingCount={visibleEntityCounts.directBuildingCount}
-              containedBuildingCount={
-                visibleEntityCounts.containedBuildingCount
-              }
-            />
+            <Table hover className="table table-sm mt-2 mb-0">
+              <tbody>
+                <tr>
+                  <td className="fw-bold">Type</td>
+                  <td className="text-right text-break pl-1">
+                    <ModelTypeBadge
+                      type={district.type}
+                      flatEntityType="district"
+                    />
+                  </td>
+                </tr>
+                {district.fqn && (
+                  <tr>
+                    <td className="fw-bold">FQN</td>
+                    <td className="text-right text-break pl-1">
+                      {district.fqn}
+                    </td>
+                  </tr>
+                )}
+                {district.originOfData && (
+                  <tr>
+                    <td className="fw-bold">Origin</td>
+                    <td className="text-right text-break pl-1">
+                      {district.originOfData}
+                    </td>
+                  </tr>
+                )}
+
+                <tr>
+                  <td className="fw-bold">Direct Districts</td>
+                  <td className="text-right text-break pl-1">
+                    {visibleEntityCounts.directDistrictCount}
+                  </td>
+                </tr>
+                <tr>
+                  <td className="fw-bold">Contained Districts</td>
+                  <td className="text-right text-break pl-1">
+                    {visibleEntityCounts.containedDistrictCount}
+                  </td>
+                </tr>
+                <tr>
+                  <td className="fw-bold">Direct Buildings</td>
+                  <td className="text-right text-break pl-1">
+                    {visibleEntityCounts.directBuildingCount}
+                  </td>
+                </tr>
+                <tr>
+                  <td className="fw-bold">Contained Buildings</td>
+                  <td className="text-right text-break pl-1">
+                    {visibleEntityCounts.containedBuildingCount}
+                  </td>
+                </tr>
+              </tbody>
+            </Table>
           </Tab>
           <Tab eventKey="metrics" title="Metrics">
             <AggregatedBuildingMetricsTable buildingIds={buildingIds} />

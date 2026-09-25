@@ -12,14 +12,6 @@
   justify-content: flex-end;
 }
 
-.active-opener {
-  font-weight: bold;
-}
-
-.inactive-opener {
-  font-weight: normal;
-}
-
 .th-btn {
   padding-top: 0px;
   padding-bottom: 4px;
@@ -375,14 +367,6 @@
 
 .language-filter-item {
   min-height: 1.5rem;
-}
-
-.language-filter-color-swatch {
-  border: 1px solid rgba(0, 0, 0, 0.15);
-  border-radius: 0.2rem;
-  flex-shrink: 0;
-  height: 0.85rem;
-  width: 0.85rem;
 }
 
 .language-filter-checkbox.form-check {

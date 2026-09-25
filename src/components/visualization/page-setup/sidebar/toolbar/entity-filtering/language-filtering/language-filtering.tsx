@@ -3,28 +3,12 @@ import { useEntityFilteringStore } from 'explorviz-frontend/src/stores/entity-fi
 import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
 import { useVisualizationStore } from 'explorviz-frontend/src/stores/visualization-store';
 import { Language } from 'explorviz-frontend/src/utils/landscape-schemes/flat-landscape';
-import { defaultColors } from 'explorviz-frontend/src/utils/settings/color-schemes';
-import {
-  getLanguageColorSettingId,
-  LANGUAGE_SETTING_CONFIG,
-} from 'explorviz-frontend/src/utils/settings/language-settings';
-import { ColorSettingId } from 'explorviz-frontend/src/utils/settings/settings-schemas';
+import { getLabelForLanguage } from 'explorviz-frontend/src/utils/language-utils';
 import Form from 'react-bootstrap/Form';
 import OverlayTrigger from 'react-bootstrap/OverlayTrigger';
 import Tooltip from 'react-bootstrap/Tooltip';
 import { useShallow } from 'zustand/react/shallow';
-
-function resolveLanguageDisplayColor(
-  language: Language,
-  languageColors: Partial<Record<ColorSettingId, string>>
-): string {
-  const colorSettingId = getLanguageColorSettingId(language);
-  return (
-    languageColors[colorSettingId] ??
-    languageColors.otherBuildingColor ??
-    defaultColors.otherBuildingColor
-  );
-}
+import ColorSwatch from '../color-swatch';
 
 function LanguageFileExtensionInfo({
   language,
@@ -58,7 +42,7 @@ function LanguageFileExtensionInfo({
       <button
         type="button"
         className="language-filter-info-button btn btn-link p-0 border-0"
-        aria-label={`File extensions for ${LANGUAGE_SETTING_CONFIG[language]?.label ?? language}`}
+        aria-label={`File extensions for ${getLabelForLanguage(language) ?? language}`}
         onClick={(event) => {
           event.preventDefault();
           event.stopPropagation();
@@ -82,17 +66,11 @@ export default function LanguageFiltering() {
     }))
   );
 
-  const languageColors = useUserSettingsStore(
-    useShallow((state) => {
-      const colors: Partial<Record<ColorSettingId, string>> = {};
-
-      for (const config of Object.values(LANGUAGE_SETTING_CONFIG)) {
-        colors[config.colorSettingId] =
-          state.visualizationSettings[config.colorSettingId]?.value;
-      }
-
-      return colors;
-    })
+  const buildingColorOverrides = useUserSettingsStore(
+    (state) => state.visualizationSettings.buildingColorOverrides
+  );
+  const buildingColor = useUserSettingsStore(
+    (state) => state.visualizationSettings.buildingColor
   );
 
   if (baselineLanguageStats.length === 0) {
@@ -106,7 +84,10 @@ export default function LanguageFiltering() {
   return (
     <div className="language-filter-list">
       {baselineLanguageStats.map(([language, count]) => {
-        const color = resolveLanguageDisplayColor(language, languageColors);
+        const color =
+          buildingColorOverrides.value.language[language] ??
+          buildingColorOverrides.value.modelType['code'] ??
+          buildingColor.value;
         const isVisible = !hiddenLanguages.has(language);
 
         return (
@@ -114,20 +95,14 @@ export default function LanguageFiltering() {
             key={language}
             className="language-filter-item d-flex align-items-center gap-2 mb-2"
           >
-            <span
-              className="language-filter-color-swatch"
-              style={{ backgroundColor: color }}
-              aria-hidden
-            />
+            <ColorSwatch color={color} />
             <Form.Check
               type="checkbox"
               id={`lang-filter-${language}`}
               className="language-filter-checkbox mb-0 flex-grow-1"
               label={
                 <span className="d-flex align-items-center gap-2">
-                  <span>
-                    {LANGUAGE_SETTING_CONFIG[language]?.label ?? language}
-                  </span>
+                  <span>{getLabelForLanguage(language) ?? language}</span>
                   <span
                     className="d-inline-flex align-items-center gap-1 text-muted"
                     style={{ fontSize: '0.8rem' }}

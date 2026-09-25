@@ -1,17 +1,19 @@
 import { type EntityFilterMode } from 'explorviz-frontend/src/stores/entity-filtering-store';
 import {
+  ModelType,
   type Building,
   type Language,
 } from 'explorviz-frontend/src/utils/landscape-schemes/flat-landscape';
+import { normalizeLanguage } from 'explorviz-frontend/src/utils/language-utils';
 import {
   compileSearchExpressions,
   matchesAnyCompiledExpression,
 } from 'explorviz-frontend/src/utils/search-expression-matcher';
-import { normalizeLanguage } from 'explorviz-frontend/src/utils/settings/language-settings';
 import { BUILDING_METRIC_NAMES } from 'explorviz-frontend/src/utils/settings/settings-schemas';
 
 export type BuildingFilterCriteria = {
   filterMode: EntityFilterMode;
+  hiddenModelTypes: ReadonlySet<ModelType>;
   hiddenLanguages: ReadonlySet<Language>;
   inclusionExpressions: readonly string[];
   exclusionExpressions: readonly string[];
@@ -42,6 +44,9 @@ const NOTHING_FILTERED: CompiledBuildingFilter = {
 export function compileBuildingFilter(
   criteria: BuildingFilterCriteria
 ): CompiledBuildingFilter {
+  const filtersByModelType =
+    criteria.filterMode === 'Remove' && criteria.hiddenModelTypes.size > 0;
+
   // In "Hide" mode a hidden language is applied by the visibility checks rather
   // than by removing the building from the landscape.
   const filtersByLanguage =
@@ -63,14 +68,20 @@ export function compileBuildingFilter(
   const matchesFqn =
     inclusionExpressions.length > 0 || exclusionExpressions.length > 0;
 
-  if (!filtersByLanguage && activeMetricNames.length === 0 && !matchesFqn) {
+  if (
+    !filtersByModelType &&
+    !filtersByLanguage &&
+    activeMetricNames.length === 0 &&
+    !matchesFqn
+  ) {
     return NOTHING_FILTERED;
   }
 
   const isFiltered = (building: Building): boolean => {
     if (
-      filtersByLanguage &&
-      criteria.hiddenLanguages.has(normalizeLanguage(building.language))
+      (filtersByModelType && criteria.hiddenModelTypes.has(building.type)) ||
+      (filtersByLanguage &&
+        criteria.hiddenLanguages.has(normalizeLanguage(building.language)))
     ) {
       return true;
     }

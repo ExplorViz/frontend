@@ -1,7 +1,5 @@
-import {
-  AnimationDeltaFrame,
-  CommitComparison,
-} from 'explorviz-frontend/src/utils/landscape-schemes/flat-landscape';
+import { AnimationDeltaFrame } from 'explorviz-frontend/src/utils/landscape-schemes/animation';
+import { CommitComparison } from 'explorviz-frontend/src/utils/landscape-schemes/flat-landscape';
 import { WINDOW_SIZE } from './evolution-animation-store';
 
 export type DecodedFileState = {

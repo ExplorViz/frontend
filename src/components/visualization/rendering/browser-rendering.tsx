@@ -1,36 +1,20 @@
 import { GearIcon, ToolsIcon } from '@primer/octicons-react';
-import CollaborationOpener from 'explorviz-frontend/src/components/collaboration/visualization/page-setup/sidebar/customizationbar/collaboration/collaboration-opener';
 import VscodeExtensionSettings from 'explorviz-frontend/src/components/collaboration/visualization/page-setup/sidebar/customizationbar/vscode/vscode-extension-settings';
-import VscodeExtensionOpener from 'explorviz-frontend/src/components/collaboration/visualization/page-setup/sidebar/customizationbar/vscode/vscode-extension-settings-opener';
 import HeatmapInfo from 'explorviz-frontend/src/components/heatmap/heatmap-info';
-import BuildingConfig from 'explorviz-frontend/src/components/visualization/page-setup/sidebar/customizationbar/building-config/building-config';
-import BuildingConfigOpener from 'explorviz-frontend/src/components/visualization/page-setup/sidebar/customizationbar/building-config/building-config-opener';
-import RestructureOpener from 'explorviz-frontend/src/components/visualization/page-setup/sidebar/customizationbar/restructure/restructure-opener';
 import Settings from 'explorviz-frontend/src/components/visualization/page-setup/sidebar/customizationbar/settings/settings';
-import SettingsOpener from 'explorviz-frontend/src/components/visualization/page-setup/sidebar/customizationbar/settings/settings-opener';
-import SnapshotOpener from 'explorviz-frontend/src/components/visualization/page-setup/sidebar/customizationbar/snapshot/snapshot-opener';
-import CodeAnalysisTriggerOpener from 'explorviz-frontend/src/components/visualization/page-setup/sidebar/toolbar/code-analysis-trigger/code-analysis-trigger-opener';
-import EntityFilteringOpener from 'explorviz-frontend/src/components/visualization/page-setup/sidebar/toolbar/entity-filtering/entity-filtering-opener';
 import EntitySearch from 'explorviz-frontend/src/components/visualization/page-setup/sidebar/toolbar/entity-search/entity-search';
-import EntitySearchOpener from 'explorviz-frontend/src/components/visualization/page-setup/sidebar/toolbar/entity-search/entity-search-opener';
 import KubernetesDiagrams from 'explorviz-frontend/src/components/visualization/page-setup/sidebar/toolbar/kubernetes-diagrams/kubernetes-diagrams';
-import KubernetesDiagramsOpener from 'explorviz-frontend/src/components/visualization/page-setup/sidebar/toolbar/kubernetes-diagrams/kubernetes-diagrams-opener';
-import TraceReplayerOpener from 'explorviz-frontend/src/components/visualization/page-setup/sidebar/toolbar/trace-replayer/trace-replayer-opener';
 import CanvasWrapper from 'explorviz-frontend/src/components/visualization/rendering/canvas-wrapper';
 import { useIdeWebsocketStore } from 'explorviz-frontend/src/ide/ide-websocket';
 import { useAnnotationHandlerStore } from 'explorviz-frontend/src/stores/annotation-handler';
 import { usePlayroomConnectionStore } from 'explorviz-frontend/src/stores/collaboration/playroom-connection-store';
 import { useConfigurationStore } from 'explorviz-frontend/src/stores/configuration';
-import { LandscapeToken } from 'explorviz-frontend/src/stores/landscape-token';
+import { useLandscapeTokenStore } from 'explorviz-frontend/src/stores/landscape-token';
 import { usePopupHandlerStore } from 'explorviz-frontend/src/stores/popup-handler';
-import { SnapshotToken } from 'explorviz-frontend/src/stores/snapshot-token';
+import { useRenderingServiceStore } from 'explorviz-frontend/src/stores/rendering-service';
 import { ApiToken } from 'explorviz-frontend/src/stores/user-api-token';
 import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
 import GamepadControls from 'explorviz-frontend/src/utils/controls/gamepad/gamepad-controls';
-import eventEmitter from 'explorviz-frontend/src/utils/event-emitter';
-import { LandscapeData } from 'explorviz-frontend/src/utils/landscape-schemes/landscape-data';
-import { StructureLandscapeData } from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
-import { DynamicLandscapeData } from 'explorviz-frontend/src/utils/landscape-schemes/telemetry/traces';
 import { useEffect, useRef, useState } from 'react';
 import Button from 'react-bootstrap/Button';
 import { useShallow } from 'zustand/react/shallow';
@@ -41,53 +25,62 @@ import {
 import CollaborationControls from '../../collaboration/visualization/page-setup/sidebar/customizationbar/collaboration/collaboration-controls';
 import ContextMenu from '../../context-menu';
 import { EditingProvider } from '../../editing/editing-context';
+import ComponentTabs from '../page-setup/sidebar/component-tabs';
 import ChatBox from '../page-setup/sidebar/customizationbar/chat/chat-box';
 import ChatbotBox from '../page-setup/sidebar/customizationbar/chatbot/chatbot-box';
-import ChatbotOpener from '../page-setup/sidebar/customizationbar/chatbot/chatbot-opener';
+import EntityConfig from '../page-setup/sidebar/customizationbar/entity-config/entity-config';
 import Restructure from '../page-setup/sidebar/customizationbar/restructure/restructure';
 import SettingsSidebar from '../page-setup/sidebar/customizationbar/settings-sidebar';
+import {
+  defaultSettingsSidebarState,
+  SettingsSidebarActions,
+  SettingsSidebarContext,
+  SettingsSidebarState,
+  SettingsSidebarTab,
+} from '../page-setup/sidebar/customizationbar/settings-sidebar-context';
 import Snapshot from '../page-setup/sidebar/customizationbar/snapshot/snapshot';
-import SidebarComponent from '../page-setup/sidebar/sidebar-component';
 import { CodeAnalysisSection } from '../page-setup/sidebar/toolbar/code-analysis-trigger/code-analysis-section';
 import EntityFiltering from '../page-setup/sidebar/toolbar/entity-filtering/entity-filtering';
 import EntityFilteringApplier from '../page-setup/sidebar/toolbar/entity-filtering/entity-filtering-applier';
-import LogSearch, {
-  LogSearchOpener,
-} from '../page-setup/sidebar/toolbar/log-search/log-search';
+import TelemetrySearch from '../page-setup/sidebar/toolbar/telemetry-search/telemetry-search';
 import ToolSelection from '../page-setup/sidebar/toolbar/tool-selection';
+import {
+  defaultToolbarState,
+  ToolbarActions,
+  ToolbarContext,
+  ToolbarState,
+  ToolbarTool,
+} from '../page-setup/sidebar/toolbar/toolbar-context';
 import TraceSelectionAndReplayer from '../page-setup/sidebar/toolbar/trace-replayer/trace-selection-and-replayer';
 import AnnotationCoordinator from './annotations/annotation-coordinator';
 import Popups from './popups/popups';
 
 interface BrowserRenderingProps {
-  readonly id: string;
-  readonly landscapeData: LandscapeData | null;
-  readonly landscapeToken: LandscapeToken;
   readonly userApiTokens: ApiToken[];
   readonly visualizationPaused: boolean;
-  readonly snapshot: boolean | undefined | null;
-  readonly snapshotReload: SnapshotToken | undefined | null;
-  toggleVisualizationUpdating(): void;
-  switchToAR(): void;
-  restructureLandscape(
-    structureData: StructureLandscapeData,
-    dynamicData: DynamicLandscapeData
-  ): void;
 }
 
 export default function BrowserRendering({
-  landscapeData,
-  landscapeToken,
   userApiTokens,
   visualizationPaused,
-  toggleVisualizationUpdating,
-  restructureLandscape,
 }: BrowserRenderingProps) {
   // MARK: Stores
+  const landscapeData = useRenderingServiceStore(
+    (state) => state._landscapeData
+  );
+  const landscapeToken = useLandscapeTokenStore((state) => state.token);
+  const visualizationSettings = useUserSettingsStore(
+    (state) => state.visualizationSettings
+  );
+
   const configurationActions = useConfigurationStore(
     useShallow((state) => ({
       setIsCommRendered: state.setIsCommRendered,
     }))
+  );
+
+  const toggleVisualizationUpdating = useRenderingServiceStore(
+    (state) => state.toggleVisualizationUpdating
   );
 
   const popupHandlerActions = usePopupHandlerStore(
@@ -184,62 +177,111 @@ export default function BrowserRendering({
     }
   };
 
-  const toggleToolsSidebarComponent = (component: string): boolean => {
-    const newOpenedToolComponent =
-      openedToolComponent === component ? null : component;
-    setOpenedToolComponent(newOpenedToolComponent);
-    return newOpenedToolComponent === component;
-  };
-
-  const toggleSettingsSidebarComponent = (component: string): boolean => {
-    const newOpenedSettingComponent =
-      openedSettingComponent === component ? null : component;
-    setOpenedSettingComponent(newOpenedSettingComponent);
-    return newOpenedSettingComponent === component;
-  };
-
   // MARK: State
 
-  const [showToolsSidebar, setShowToolsSidebar] = useState<boolean>(false);
-  const [showSettingsSidebar, setShowSettingsSidebar] =
-    useState<boolean>(false);
-  const [openedToolComponent, setOpenedToolComponent] = useState<string | null>(
-    null
-  );
-  const [openedSettingComponent, setOpenedSettingComponent] = useState<
-    string | null
-  >(null);
+  const [toolbarState, setToolbarState] =
+    useState<ToolbarState>(defaultToolbarState);
 
-  const entityFilteringRef = useRef<EntityFilteringController | null>(null);
-  const entitySearchRef = useRef<EntitySearchController | null>(null);
+  const toolbarActions: ToolbarActions = {
+    openTool: (tool) =>
+      setToolbarState((state) => ({
+        ...state,
+        showSidebar: true,
+        selectedTool: tool,
+      })),
+
+    setTelemetrySearchTab: (tab) =>
+      setToolbarState((state) => ({
+        ...state,
+        telemetrySearchState: {
+          ...state.telemetrySearchState,
+          selectedTab: tab,
+        },
+      })),
+
+    searchSpans: (searchParams) =>
+      setToolbarState((state) => ({
+        ...state,
+        showSidebar: true,
+        selectedTool: ToolbarTool.TelemetrySearch,
+        telemetrySearchState: {
+          ...state.telemetrySearchState,
+          selectedTab: 'spans',
+          spanSearchRequest: searchParams,
+        },
+      })),
+
+    searchMetrics: (searchParams) => {
+      setToolbarState((state) => ({
+        ...state,
+        showSidebar: true,
+        selectedTool: ToolbarTool.TelemetrySearch,
+        telemetrySearchState: {
+          ...state.telemetrySearchState,
+          selectedTab: 'metrics',
+          metricsSearchRequest: searchParams,
+        },
+      }));
+    },
+
+    searchLogs: (searchParams) =>
+      setToolbarState((state) => ({
+        ...state,
+        showSidebar: true,
+        selectedTool: ToolbarTool.TelemetrySearch,
+        telemetrySearchState: {
+          ...state.telemetrySearchState,
+          selectedTab: 'logs',
+          logSearchRequest: searchParams,
+        },
+      })),
+  };
+
+  const showToolsSidebar = toolbarState.showSidebar;
+  const setShowToolsSidebar = (isShow: boolean) =>
+    setToolbarState({ ...toolbarState, showSidebar: isShow });
+  const selectedToolbarTool = toolbarState.selectedTool;
+  const setSelectedToolbarTool = (tool: ToolbarTool) =>
+    setToolbarState((state) => ({
+      ...state,
+      selectedTool: tool === selectedToolbarTool ? null : tool,
+    }));
+
+  const [settingsSidebarState, setSettingsSidebarState] =
+    useState<SettingsSidebarState>(defaultSettingsSidebarState);
+
+  const settingsSidebarActions: SettingsSidebarActions = {
+    openSettingsSidebarTab: (tab) =>
+      setSettingsSidebarState((state) => ({
+        ...state,
+        showSidebar: true,
+        selectedTab: tab,
+      })),
+  };
+
+  const showSettingsSidebar = settingsSidebarState.showSidebar;
+  const setShowSettingsSidebar = (isShow: boolean) =>
+    setSettingsSidebarState((state) => ({
+      ...state,
+      showSidebar: isShow,
+    }));
+  const selectedSettingsSidebarTab = settingsSidebarState.selectedTab;
+  const setSelectedSettingsSidebarTab = (tab: SettingsSidebarTab | null) =>
+    setSettingsSidebarState((state) => ({
+      ...state,
+      selectedTab: tab === selectedSettingsSidebarTab ? null : tab,
+    }));
 
   // MARK: Refs
 
+  const entityFilteringRef = useRef<EntityFilteringController | null>(null);
+  const entitySearchRef = useRef<EntitySearchController | null>(null);
   const outerDiv = useRef<HTMLDivElement | null>(null);
   const gamepadControls = useRef<GamepadControls | null>(null);
 
   // MARK: Effects and hooks
 
   useEffect(function initialize() {
-    // Open sidebars automatically on certain restructure actions
-
-    const handleOpenSettingsSidebarEvent = () => {
-      setShowSettingsSidebar(true);
-    };
-
-    const handleToggleSettingsSidebarComponentEvent = (component: string) => {
-      const newOpenedSettingComponent =
-        openedSettingComponent === component ? null : component;
-      setOpenedSettingComponent(newOpenedSettingComponent);
-      return newOpenedSettingComponent === component;
-    };
-
-    eventEmitter.on('openSettingsSidebar', handleOpenSettingsSidebarEvent);
-    eventEmitter.on(
-      'restructureComponent',
-      handleToggleSettingsSidebarComponentEvent
-    );
-
     // IDE Websocket connection setup
     //restartAndSetSocket(landscapeToken?.value);
 
@@ -249,12 +291,6 @@ export default function BrowserRendering({
       popupHandlerActions.cleanup();
       annotationHandlerActions.cleanup();
 
-      eventEmitter.off('openSettingsSidebar', handleOpenSettingsSidebarEvent);
-      eventEmitter.off(
-        'restructureComponent',
-        handleToggleSettingsSidebarComponentEvent
-      );
-
       closeConnection();
     };
   }, []);
@@ -262,12 +298,10 @@ export default function BrowserRendering({
   // Close the sidebar, when the connection menu is opened (so ot does not overlap)
   const isConnected = usePlayroomConnectionStore((state) => state.isConnected);
   const isLobbyOpen = usePlayroomConnectionStore((state) => state.isLobbyOpen);
-  useEffect(() => {
-    if (isLobbyOpen) {
-      setShowSettingsSidebar(false);
-      setShowToolsSidebar(false);
-    }
-  }, [isLobbyOpen]);
+  if (isLobbyOpen) {
+    setShowSettingsSidebar(false);
+    setShowToolsSidebar(false);
+  }
 
   // MARK: JSX
 
@@ -286,256 +320,231 @@ export default function BrowserRendering({
         entityFilteringControllerRef={entityFilteringRef}
         entitySearchControllerRef={entitySearchRef}
       > */}
-      <div className="row h-100">
-        <div className="d-flex flex-column h-100 col-12">
-          <div id="rendering" ref={outerDiv}>
-            {!showToolsSidebar && (
-              <div className="sidebar-tools-button foreground mt-6">
-                <Button
-                  id="toolsOpener"
-                  variant="outline-secondary"
-                  title="Tools"
-                  onClick={() => setShowToolsSidebar(true)}
-                >
-                  <ToolsIcon size="small" className="align-middle" />
-                </Button>
-              </div>
-            )}
-
-            {!showSettingsSidebar && (
-              <div className="sidebar-open-button foreground mt-6">
-                <Button
-                  id="undoAction"
-                  variant="outline-secondary"
-                  title="Settings"
-                  onClick={() => setShowSettingsSidebar(true)}
-                >
-                  <GearIcon size="small" className="align-middle" />
-                </Button>
-              </div>
-            )}
-
-            {useUserSettingsStore.getState().visualizationSettings
-              .heatmapEnabled.value && <HeatmapInfo />}
-
-            <ContextMenu>
-              <CanvasWrapper
-                key={landscapeToken?.value ?? 'no-token'}
-                landscapeData={landscapeData}
-              />
-            </ContextMenu>
-
-            {landscapeData && <Popups landscapeData={landscapeData} />}
-
-            {landscapeData && (
-              <EntityFilteringApplier landscapeData={landscapeData} />
-            )}
-
-            {annotationHandlerState.annotationData.map((data) => (
-              <AnnotationCoordinator
-                key={data.annotationId}
-                annotationData={data}
-                removeAnnotation={removeAnnotation}
-              />
-            ))}
-          </div>
-        </div>
-        {showToolsSidebar && (
-          <div className="sidebar left" id="toolselection">
-            <div className="mt-6 d-flex flex-row w-100" style={{ zIndex: 90 }}>
-              <ToolSelection
-                closeToolSelection={() => setShowToolsSidebar(false)}
-              >
-                <div className="explorviz-visualization-navbar">
-                  <ul className="nav justify-content-center">
-                    <EntityFilteringOpener
-                      openedComponent={openedToolComponent}
-                      toggleToolsSidebarComponent={toggleToolsSidebarComponent}
-                    />
-                    <EntitySearchOpener
-                      openedComponent={openedToolComponent}
-                      toggleToolsSidebarComponent={toggleToolsSidebarComponent}
-                    />
-                    <TraceReplayerOpener
-                      openedComponent={openedToolComponent}
-                      toggleToolsSidebarComponent={toggleToolsSidebarComponent}
-                    />
-                    <LogSearchOpener
-                      openedComponent={openedToolComponent}
-                      toggleToolsSidebarComponent={toggleToolsSidebarComponent}
-                    />
-                    <CodeAnalysisTriggerOpener
-                      openedComponent={openedToolComponent}
-                      toggleToolsSidebarComponent={toggleToolsSidebarComponent}
-                    />
-                    <KubernetesDiagramsOpener
-                      openedComponent={openedToolComponent}
-                      toggleToolsSidebarComponent={toggleToolsSidebarComponent}
-                    />
-                  </ul>
-                </div>
-                {openedToolComponent && (
-                  <div className="card sidebar-card mt-3">
-                    <div className="card-body d-flex flex-column">
-                      {openedToolComponent === 'entity-filtering' &&
-                        landscapeData && (
-                          <>
-                            <h5 className="text-center">Filter</h5>
-                            <EntityFiltering
-                              ref={entityFilteringRef}
-                              landscapeData={landscapeData}
-                            />
-                          </>
-                        )}
-                      {openedToolComponent === 'entity-search' && (
-                        <>
-                          <h5 className="text-center">Search</h5>
-                          <EntitySearch ref={entitySearchRef} />
-                        </>
-                      )}
-                      {openedToolComponent === 'Trace-Replayer' &&
-                        landscapeData && (
-                          <TraceSelectionAndReplayer
-                            highlightTrace={() => {}}
-                            removeHighlighting={() => {}}
-                            dynamicData={landscapeData.dynamicLandscapeData}
-                            flatData={landscapeData.flatLandscapeData}
-                          />
-                        )}
-                      {openedToolComponent === 'log-search' && <LogSearch />}
-                      {openedToolComponent === 'code-analysis-trigger' && (
-                        <>
-                          <h5 className="text-center">
-                            Git Repository Analysis
-                          </h5>
-                          <CodeAnalysisSection
-                            landscapeToken={landscapeToken.value}
-                          />
-                        </>
-                      )}
-                      {openedToolComponent === 'kubernetes-diagrams' && (
-                        <>
-                          <h5 className="text-center">Kubernetes Diagrams</h5>
-                          <KubernetesDiagrams />
-                        </>
-                      )}
-                    </div>
+      <ToolbarContext value={{ ...toolbarState, ...toolbarActions }}>
+        <SettingsSidebarContext
+          value={{ ...settingsSidebarState, ...settingsSidebarActions }}
+        >
+          <div className="row h-100">
+            <div className="d-flex flex-column h-100 col-12">
+              <div id="rendering" ref={outerDiv}>
+                {!showToolsSidebar && (
+                  <div className="sidebar-tools-button foreground mt-6">
+                    <Button
+                      id="toolsOpener"
+                      variant="outline-secondary"
+                      title="Tools"
+                      onClick={() => setShowToolsSidebar(true)}
+                    >
+                      <ToolsIcon size="small" className="align-middle" />
+                    </Button>
                   </div>
                 )}
-              </ToolSelection>
-            </div>
-          </div>
-        )}
-        {showSettingsSidebar && (
-          <div className="sidebar right" id="settingsSidebar">
-            <div className="mt-6 d-flex flex-row w-100" style={{ zIndex: 90 }}>
-              <SettingsSidebar
-                closeSettingsSidebar={() => setShowSettingsSidebar(false)}
-              >
-                <div className="explorviz-visualization-navbar">
-                  <ul className="nav justify-content-center">
-                    <BuildingConfigOpener
-                      openedComponent={openedSettingComponent}
-                      toggleSettingsSidebarComponent={
-                        toggleSettingsSidebarComponent
-                      }
-                    />
-                    <CollaborationOpener
-                      openedComponent={openedSettingComponent!}
-                      toggleSettingsSidebarComponent={
-                        toggleSettingsSidebarComponent
-                      }
-                    />
-                    <ChatbotOpener
-                      openedComponent={openedSettingComponent}
-                      toggleSettingsSidebarComponent={
-                        toggleSettingsSidebarComponent
-                      }
-                    />
-                    <VscodeExtensionOpener
-                      openedComponent={openedSettingComponent}
-                      toggleSettingsSidebarComponent={
-                        toggleSettingsSidebarComponent
-                      }
-                    />
-                    <RestructureOpener
-                      openedComponent={openedSettingComponent}
-                      toggleSettingsSidebarComponent={
-                        toggleSettingsSidebarComponent
-                      }
-                    />
-                    <SnapshotOpener
-                      openedComponent={openedSettingComponent}
-                      toggleSettingsSidebarComponent={
-                        toggleSettingsSidebarComponent
-                      }
-                    />
-                    <SettingsOpener
-                      openedComponent={openedSettingComponent}
-                      toggleSettingsSidebarComponent={
-                        toggleSettingsSidebarComponent
-                      }
-                    />
-                  </ul>
-                </div>
-                {openedSettingComponent && (
-                  <SidebarComponent componentId={openedSettingComponent}>
-                    {openedSettingComponent === 'Collaboration' && (
-                      <>
-                        <CollaborationControls />
-                        {isConnected && <ChatBox />}
-                      </>
-                    )}
-                    {openedSettingComponent === 'Chatbot' && (
-                      <>
-                        <ChatbotBox />
-                      </>
-                    )}
-                    {openedSettingComponent === 'VSCode-Extension-Settings' && (
-                      <VscodeExtensionSettings />
-                    )}
-                    {openedSettingComponent === 'Restructure-Landscape' && (
-                      <Restructure
-                        landscapeData={landscapeData!}
-                        restructureLandscape={restructureLandscape}
-                        visualizationPaused={visualizationPaused}
-                        toggleVisualizationUpdating={
-                          toggleVisualizationUpdating
-                        }
-                        userApiTokens={userApiTokens}
-                        annotationData={annotationHandlerState.annotationData}
-                        minimizedAnnotations={
-                          annotationHandlerState.minimizedAnnotations
-                        }
-                        landscapeToken={landscapeToken}
-                      />
-                    )}
-                    {openedSettingComponent === 'Persist-Landscape' && (
-                      <Snapshot
-                        landscapeData={landscapeData!}
-                        annotationData={annotationHandlerState.annotationData}
-                        minimizedAnnotations={
-                          annotationHandlerState.minimizedAnnotations
-                        }
-                        landscapeToken={landscapeToken}
-                      />
-                    )}
-                    {openedSettingComponent === 'Building-Config' && (
-                      <BuildingConfig />
-                    )}
-                    {openedSettingComponent === 'Settings' && (
-                      <Settings
-                        enterFullscreen={enterFullscreen}
-                        setGamepadSupport={setGamepadSupport}
-                      />
-                    )}
-                  </SidebarComponent>
+
+                {!showSettingsSidebar && (
+                  <div className="sidebar-open-button foreground mt-6">
+                    <Button
+                      id="undoAction"
+                      variant="outline-secondary"
+                      title="Settings"
+                      onClick={() => setShowSettingsSidebar(true)}
+                    >
+                      <GearIcon size="small" className="align-middle" />
+                    </Button>
+                  </div>
                 )}
-              </SettingsSidebar>
+
+                {visualizationSettings.heatmapEnabled.value && <HeatmapInfo />}
+
+                <ContextMenu>
+                  <CanvasWrapper
+                    key={landscapeToken?.value ?? 'no-token'}
+                    landscapeData={landscapeData}
+                  />
+                </ContextMenu>
+
+                {landscapeData && <Popups landscapeData={landscapeData} />}
+
+                {landscapeData && (
+                  <EntityFilteringApplier landscapeData={landscapeData} />
+                )}
+
+                {annotationHandlerState.annotationData.map((data) => (
+                  <AnnotationCoordinator
+                    key={data.annotationId}
+                    annotationData={data}
+                    removeAnnotation={removeAnnotation}
+                  />
+                ))}
+              </div>
             </div>
+            {showToolsSidebar && (
+              <div className="sidebar left" id="toolselection">
+                <div
+                  className="mt-6 d-flex flex-row w-100"
+                  style={{ zIndex: 90 }}
+                >
+                  <ToolSelection
+                    closeToolSelection={() => setShowToolsSidebar(false)}
+                  >
+                    <ComponentTabs
+                      activeTab={selectedToolbarTool}
+                      onChange={setSelectedToolbarTool}
+                      tabs={[
+                        {
+                          value: ToolbarTool.Filter,
+                          content: (
+                            <>
+                              <h5 className="text-center">Filter</h5>
+                              <EntityFiltering
+                                ref={entityFilteringRef}
+                                landscapeData={landscapeData}
+                              />
+                            </>
+                          ),
+                        },
+                        {
+                          value: ToolbarTool.EntitySearch,
+                          content: (
+                            <>
+                              <h5 className="text-center">Search</h5>
+                              <EntitySearch ref={entitySearchRef} />
+                            </>
+                          ),
+                        },
+                        {
+                          value: ToolbarTool.TracePlayer,
+                          content: (
+                            <TraceSelectionAndReplayer
+                              highlightTrace={() => {}}
+                              removeHighlighting={() => {}}
+                              dynamicData={landscapeData.dynamicLandscapeData}
+                              flatData={landscapeData.flatLandscapeData}
+                            />
+                          ),
+                        },
+                        {
+                          value: ToolbarTool.TelemetrySearch,
+                          content: <TelemetrySearch />,
+                        },
+                        {
+                          value: ToolbarTool.RepositoryAnalysis,
+                          content: (
+                            <>
+                              <h5 className="text-center">
+                                Git Repository Analysis
+                              </h5>
+                              <CodeAnalysisSection
+                                landscapeToken={landscapeToken?.value}
+                              />
+                            </>
+                          ),
+                        },
+                        {
+                          value: ToolbarTool.KubernetesDiagrams,
+                          content: (
+                            <>
+                              <h5 className="text-center">
+                                Kubernetes Diagrams
+                              </h5>
+                              <KubernetesDiagrams />
+                            </>
+                          ),
+                        },
+                      ]}
+                    />
+                  </ToolSelection>
+                </div>
+              </div>
+            )}
+
+            {showSettingsSidebar && (
+              <div className="sidebar right" id="settingsSidebar">
+                <div
+                  className="mt-6 d-flex flex-row w-100"
+                  style={{ zIndex: 90 }}
+                >
+                  <SettingsSidebar
+                    closeSettingsSidebar={() => setShowSettingsSidebar(false)}
+                  >
+                    <ComponentTabs
+                      activeTab={selectedSettingsSidebarTab}
+                      onChange={setSelectedSettingsSidebarTab}
+                      tabs={[
+                        {
+                          value: SettingsSidebarTab.EntityConfig,
+                          content: <EntityConfig />,
+                        },
+                        {
+                          value: SettingsSidebarTab.Collaboration,
+                          content: (
+                            <>
+                              <CollaborationControls />
+                              {isConnected && <ChatBox />}
+                            </>
+                          ),
+                        },
+                        {
+                          value: SettingsSidebarTab.Chatbot,
+                          content: <ChatbotBox />,
+                        },
+                        {
+                          value: SettingsSidebarTab.VsCodeExtension,
+                          content: <VscodeExtensionSettings />,
+                        },
+                        {
+                          value: SettingsSidebarTab.Restructure,
+                          content: (
+                            <Restructure
+                              landscapeData={landscapeData!}
+                              restructureLandscape={() => {}}
+                              visualizationPaused={visualizationPaused}
+                              toggleVisualizationUpdating={
+                                toggleVisualizationUpdating
+                              }
+                              userApiTokens={userApiTokens}
+                              annotationData={
+                                annotationHandlerState.annotationData
+                              }
+                              minimizedAnnotations={
+                                annotationHandlerState.minimizedAnnotations
+                              }
+                              landscapeToken={landscapeToken}
+                            />
+                          ),
+                        },
+                        {
+                          value: SettingsSidebarTab.Snapshot,
+                          content: (
+                            <Snapshot
+                              landscapeData={landscapeData!}
+                              annotationData={
+                                annotationHandlerState.annotationData
+                              }
+                              minimizedAnnotations={
+                                annotationHandlerState.minimizedAnnotations
+                              }
+                              landscapeToken={landscapeToken}
+                            />
+                          ),
+                        },
+                        {
+                          value: SettingsSidebarTab.Settings,
+                          content: (
+                            <Settings
+                              enterFullscreen={enterFullscreen}
+                              setGamepadSupport={setGamepadSupport}
+                            />
+                          ),
+                        },
+                      ]}
+                    />
+                  </SettingsSidebar>
+                </div>
+              </div>
+            )}
           </div>
-        )}
-      </div>
+        </SettingsSidebarContext>
+      </ToolbarContext>
       {/* </ChatbotProvider> */}
     </EditingProvider>
   );

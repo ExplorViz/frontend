@@ -1,13 +1,10 @@
 import { useAuthStore } from 'explorviz-frontend/src/stores/auth';
 import { useLandscapeTokenStore } from 'explorviz-frontend/src/stores/landscape-token';
 import {
-  AnimationFrame,
+  AnimationDeltaWindow,
   AnimationSkeleton,
   AnimationWindow,
-  FlatLandscape,
-  AnimationDeltaFrame,
-  AnimationDeltaWindow,
-} from 'explorviz-frontend/src/utils/landscape-schemes/flat-landscape';
+} from 'explorviz-frontend/src/utils/landscape-schemes/animation';
 import { create } from 'zustand';
 
 interface EvolutionAnimationFetchState {
@@ -32,7 +29,11 @@ interface EvolutionAnimationFetchState {
     rangeTo?: number
   ): Promise<AnimationDeltaWindow>;
 
-  fetchAnimationSkeleton(repositoryName: string, rangeFrom?: number, rangeTo?: number): Promise<AnimationSkeleton>;
+  fetchAnimationSkeleton(
+    repositoryName: string,
+    rangeFrom?: number,
+    rangeTo?: number
+  ): Promise<AnimationSkeleton>;
   _getLandscapeToken(): string;
   _constructUrl(endpoint: string, ...params: string[]): string;
   _fetchFromService<T>(url: string): Promise<T>;

@@ -1,6 +1,6 @@
 import AggregatedCommunication from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/aggregated-communication';
 import { pingByModelId } from 'explorviz-frontend/src/view-objects/3d/city/animated-ping-r3f';
-import { OverlayTrigger, Tooltip } from 'react-bootstrap';
+import { OverlayTrigger, Table, Tooltip } from 'react-bootstrap';
 
 interface GeneralTabProps {
   communication: AggregatedCommunication;
@@ -12,11 +12,11 @@ export default function GeneralTab({ communication }: GeneralTabProps) {
   );
 
   return (
-    <table className="w-100">
+    <Table hover className="table table-sm mt-2 mb-0">
       <tbody>
-        {/* Source Entity */}
+        {/* Source entity */}
         <tr>
-          <td className="text-nowrap align-top">Source:</td>
+          <td className="fw-bold">Source</td>
           <td className="text-right text-break pl-1">
             <OverlayTrigger
               placement="top"
@@ -27,22 +27,21 @@ export default function GeneralTab({ communication }: GeneralTabProps) {
                 </Tooltip>
               }
             >
-              <button
-                type="button"
-                className="buttonToLink"
+              <a
+                href="#"
                 onClick={() => {
                   pingByModelId(communication.sourceEntity.id);
                 }}
               >
                 {communication.sourceEntity.name}
-              </button>
+              </a>
             </OverlayTrigger>
           </td>
         </tr>
 
-        {/* Target Entity */}
+        {/* Target entity */}
         <tr>
-          <td className="text-nowrap align-top">Target:</td>
+          <td className="fw-bold">Target</td>
           <td className="text-right text-break pl-1">
             <OverlayTrigger
               placement="top"
@@ -53,52 +52,43 @@ export default function GeneralTab({ communication }: GeneralTabProps) {
                 </Tooltip>
               }
             >
-              <button
-                type="button"
-                className="buttonToLink"
+              <a
+                href="#"
                 onClick={() => pingByModelId(communication.targetEntity.id)}
               >
                 {communication.targetEntity.name}
-              </button>
+              </a>
             </OverlayTrigger>
           </td>
         </tr>
 
-        <tr className="border-bottom">
-          <td colSpan={2} className="py-1"></td>
+        {/* Communication properties */}
+        <tr>
+          <td className="fw-bold">Bidirectional</td>
+          <td>{communication.isBidirectional ? 'Yes' : 'No'}</td>
         </tr>
 
-        {/* Communication Properties */}
-        {communication.isBidirectional && (
-          <tr>
-            <td className="text-nowrap align-top">Direction:</td>
-            <td className="text-right text-break pl-1">Bidirectional</td>
-          </tr>
-        )}
+        <tr>
+          <td className="fw-bold">Recursive</td>
+          <td>{communication.isRecursive ? 'Yes' : 'No'}</td>
+        </tr>
 
-        {communication.isRecursive && (
-          <tr>
-            <td className="text-nowrap align-top">Recursive:</td>
-            <td className="text-right text-break pl-1">Yes</td>
-          </tr>
-        )}
+        <tr>
+          <td className="fw-bold">Aggregated from</td>
+          <td>
+            {communication.buildingCommunicationIds.length} building link
+            {communication.buildingCommunicationIds.length > 1 ? 's' : ''}
+          </td>
+        </tr>
 
         {/* Metrics */}
         {metrics.map(([key, value]) => (
           <tr key={key}>
-            <td className="text-nowrap align-top">{key}:</td>
+            <td className="fw-bold">{key}</td>
             <td className="text-right text-break pl-1">{value}</td>
           </tr>
         ))}
-
-        {/* Building Communications Count */}
-        <tr>
-          <td className="text-nowrap align-top">Aggregated from:</td>
-          <td className="text-right text-break pl-1">
-            {communication.buildingCommunicationIds.length} building-links
-          </td>
-        </tr>
       </tbody>
-    </table>
+    </Table>
   );
 }
