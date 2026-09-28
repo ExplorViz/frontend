@@ -79,7 +79,9 @@ export default function ModelTypeBadge({
         ...style,
       }}
     >
-      <samp>{getLabelForModelType(type ?? 'unknown')}</samp>
+      <samp>
+        {getLabelForModelType(type ?? 'unknown') ?? type?.toUpperCase()}
+      </samp>
     </Badge>
   );
 }
