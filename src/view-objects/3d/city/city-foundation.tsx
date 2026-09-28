@@ -221,11 +221,19 @@ export default function CityFoundation({
         onPointerOut: handleOnPointerOut,
       })}
     >
-      <meshBasicMaterial
-        color={computeColor()}
-        transparent={entityOpacity < 1.0}
-        opacity={entityOpacity}
-      />
+      {city.type === 'database' ? (
+        <meshStandardMaterial
+          color={computeColor()}
+          transparent={entityOpacity < 1.0}
+          opacity={entityOpacity}
+        />
+      ) : (
+        <meshBasicMaterial
+          color={computeColor()}
+          transparent={entityOpacity < 1.0}
+          opacity={entityOpacity}
+        />
+      )}
       {city.type === 'database' ? <cylinderGeometry /> : <boxGeometry />}
       {cityLabelMargin > 1.5 && (
         <Text
