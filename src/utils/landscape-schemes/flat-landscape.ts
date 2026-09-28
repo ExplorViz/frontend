@@ -61,6 +61,7 @@ export const MODEL_TYPES = [
   'service',
   'instrumentation_scope',
   'code',
+  'database',
   'rpc',
   'http',
 ] as const;

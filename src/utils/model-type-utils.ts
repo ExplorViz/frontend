@@ -4,6 +4,7 @@ const MODEL_TYPE_TO_LABEL = new Map<ModelType, string>([
   ['service', 'Service'],
   ['instrumentation_scope', 'Instrumentation Scope'],
   ['code', 'Code'],
+  ['database', 'Database'],
   ['rpc', 'RPC'],
   ['http', 'HTTP'],
   ['unknown', 'Unknown'],
