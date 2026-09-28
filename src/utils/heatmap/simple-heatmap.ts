@@ -5,9 +5,9 @@ import {
 } from 'explorviz-frontend/src/stores/heatmap/heatmap-store';
 import simpleheat from 'simpleheat';
 
-export function getColorGradient(): Gradient {
-  const gradientSetting = useHeatmapStore.getState().selectedGradient;
-
+export function getColorGradient(
+  gradientSetting: HeatmapGradient = useHeatmapStore.getState().selectedGradient
+): Gradient {
   switch (gradientSetting) {
     case HeatmapGradient.TEMPERATURE_GRADIENT:
       return getTemperatureGradient();

@@ -24,7 +24,10 @@ import { getImmersiveTargetWorldPosition } from 'explorviz-frontend/src/utils/ci
 import { emitContextMenuFromWorld } from 'explorviz-frontend/src/utils/context-menu-bridge';
 import { getSourceReferenceCommitHash } from 'explorviz-frontend/src/utils/evolution-data-helpers';
 import { getMetricValues } from 'explorviz-frontend/src/utils/heatmap/building-heatmap-helper';
-import { getSimpleHeatmapColor } from 'explorviz-frontend/src/utils/heatmap/simple-heatmap';
+import {
+  getColorGradient,
+  getSimpleHeatmapColor,
+} from 'explorviz-frontend/src/utils/heatmap/simple-heatmap';
 import calculateColorBrightness from 'explorviz-frontend/src/utils/helpers/threejs-helpers';
 import { requestFileDetailedData } from 'explorviz-frontend/src/utils/landscape-http-request-util';
 import {
@@ -211,14 +214,19 @@ const GeometryGroup: React.FC<GeometryGroupProps> = ({
     }))
   );
 
-  const { heatmapActive, selectedBuildingMetric, selectedValueMapping } =
-    useHeatmapStore(
-      useShallow((state) => ({
-        heatmapActive: state.isActive(),
-        selectedBuildingMetric: state.getSelectedBuildingMetric(),
-        selectedValueMapping: state.selectedValueMapping,
-      }))
-    );
+  const {
+    heatmapActive,
+    selectedBuildingMetric,
+    selectedGradient,
+    selectedValueMapping,
+  } = useHeatmapStore(
+    useShallow((state) => ({
+      heatmapActive: state.isActive(),
+      selectedBuildingMetric: state.getSelectedBuildingMetric(),
+      selectedGradient: state.selectedGradient,
+      selectedValueMapping: state.selectedValueMapping,
+    }))
+  );
 
   const { addPopup, updatePopup } = usePopupHandlerStore(
     useShallow((state) => ({
@@ -306,7 +314,7 @@ const GeometryGroup: React.FC<GeometryGroupProps> = ({
         getSimpleHeatmapColor(
           metricValues.current,
           metricValues.max,
-          undefined,
+          getColorGradient(selectedGradient),
           selectedValueMapping ?? HeatmapValueMapping.LINEAR
         )
       );
@@ -639,6 +647,7 @@ const GeometryGroup: React.FC<GeometryGroupProps> = ({
     highlightedEntityColor,
     heatmapActive,
     selectedBuildingMetric,
+    selectedGradient,
     selectedValueMapping,
     evoConfig.renderOnlyDifferences,
     evoConfig.renderStatic,
