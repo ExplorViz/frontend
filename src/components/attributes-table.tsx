@@ -14,7 +14,7 @@ export default function AttributesTable({
   );
 
   if (filteredEntries.length === 0) {
-    return <div>None</div>;
+    return <small>None</small>;
   }
 
   return (
