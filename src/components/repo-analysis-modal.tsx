@@ -1,5 +1,6 @@
 import CodeAnalysisTriggerForm from 'explorviz-frontend/src/components/visualization/page-setup/sidebar/toolbar/code-analysis-trigger/code-analysis-trigger-form';
 import { useWatchAnalysisState } from 'explorviz-frontend/src/hooks/useWatchAnalysisState';
+import { useLandscapeTokenStore } from 'explorviz-frontend/src/stores/landscape-token';
 import { cancelAnalysisJob } from 'explorviz-frontend/src/utils/cancel-analysis-job';
 import { useRef, useState } from 'react';
 import { Modal } from 'react-bootstrap';
@@ -19,11 +20,23 @@ export const RepoAnalysisModal = ({ show, landscapeToken, onClose }: Props) => {
   const activeLandscapeTokenRef = useRef<string | null>(null);
   const navigate = useNavigate();
 
-  const redirectToLandscapePage = (landscapeToken: string) => {
+  const redirectToLandscapePage = async (landscapeTokenValue: string) => {
+    const tokens = await useLandscapeTokenStore.getState().retrieveTokens();
+    const selectedToken = tokens.find(
+      (token) => token.value === landscapeTokenValue
+    );
+    if (selectedToken) {
+      useLandscapeTokenStore.getState().setToken(selectedToken);
+    } else {
+      await useLandscapeTokenStore
+        .getState()
+        .setTokenByValue(landscapeTokenValue);
+    }
+
     closeModal();
     navigate({
       pathname: '/visualization',
-      search: `?${createSearchParams({ landscapeToken })}`,
+      search: `?${createSearchParams({ landscapeToken: landscapeTokenValue })}`,
     });
   };
 
@@ -36,7 +49,7 @@ export const RepoAnalysisModal = ({ show, landscapeToken, onClose }: Props) => {
     onFinished: () => {
       const token = activeLandscapeTokenRef.current;
       if (token) {
-        redirectToLandscapePage(token);
+        void redirectToLandscapePage(token);
       }
     },
     onFailed: () => {

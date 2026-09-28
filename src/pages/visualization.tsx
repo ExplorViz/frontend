@@ -287,18 +287,19 @@ export default function Visualization() {
     ) {
       navigate('/landscapes');
     }
-
-    return () => {
-      landscapeTokenRemoveToken();
-    };
   }, [
     landscapeTokenServiceToken,
-    landscapeTokenRemoveToken,
     navigate,
     searchParams,
     snapshotToken,
     snapshotSelected,
   ]);
+
+  useEffect(() => {
+    return () => {
+      landscapeTokenRemoveToken();
+    };
+  }, [landscapeTokenRemoveToken]);
 
   useEffect(() => {
     const handleRestructureLandscapeData = (
