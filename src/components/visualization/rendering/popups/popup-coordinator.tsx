@@ -25,6 +25,7 @@ import { MetricsSearchParams } from 'explorviz-frontend/src/hooks/fetch/useMetri
 import { SpanSearchParams } from 'explorviz-frontend/src/hooks/fetch/useSpanFetch';
 import { usePlayroomConnectionStore } from 'explorviz-frontend/src/stores/collaboration/playroom-connection-store';
 import { useLandscapeRestructureStore } from 'explorviz-frontend/src/stores/landscape-restructure';
+import { usePopupHandlerStore } from 'explorviz-frontend/src/stores/popup-handler';
 import { useModelStore } from 'explorviz-frontend/src/stores/repos/model-repository';
 import { useToastHandlerStore } from 'explorviz-frontend/src/stores/toast-handler';
 import { useVisualizationStore } from 'explorviz-frontend/src/stores/visualization-store';
@@ -73,124 +74,159 @@ export default function PopupCoordinator({
 
   const element = useRef<HTMLDivElement | null>(null);
   const lastMousePosition = useRef<Position2D>({ x: 0, y: 0 });
+  const isDragging = useRef(false);
+  const currentPopupPosition = useRef<Position2D>({
+    x: popupData.mouseX,
+    y: popupData.mouseY,
+  });
+  const dragBounds = useRef({
+    width: 0,
+    height: 0,
+    containerWidth: 0,
+    containerHeight: 0,
+  });
 
   const entityType = getEntityType(popupData);
   const telemetryKey: string | undefined = (popupData.entity as any)
     .telemetryKey;
 
-  const vizStore = useVisualizationStore();
-
   const toolbarContext = use(ToolbarContext);
 
-  const onPointerOver = () => {
-    updatePopup({ ...popupData, hovered: true });
+  const setHoveredEntityId = useVisualizationStore(
+    (state) => state.actions.setHoveredEntityId
+  );
 
-    const entity = popupData.entity;
-    vizStore.actions.setHoveredEntityId(entity.id);
+  const onPointerEnter = () => {
+    setHoveredEntityId(popupData.entity.id);
   };
 
   const onPointerLeave = (event: React.PointerEvent<HTMLDivElement>) => {
+    if (isDragging.current) {
+      return;
+    }
+
     const relatedTarget = event.relatedTarget as Node | null;
     if (relatedTarget && element.current?.contains(relatedTarget)) {
       return;
     }
 
-    updatePopup({ ...popupData, hovered: false });
-    vizStore.actions.setHoveredEntityId(null);
+    setHoveredEntityId(null);
   };
-
-  useEffect(() => {
-    updatePopup({
-      ...popupData,
-      hovered: vizStore.hoveredEntityId === popupData.entity.id,
-    });
-  }, [vizStore.hoveredEntityId]);
 
   const highlight = () => {
     toggleHighlightById(popupData.entity.id);
   };
 
-  const elementDrag = (event: MouseEvent) => {
-    event.preventDefault();
-    // Calculate delta of cursor position:
-    const diffX = lastMousePosition.current.x - event.clientX;
-    const diffY = lastMousePosition.current.y - event.clientY;
+  const persistPopupPosition = () => {
+    const { x, y } = currentPopupPosition.current;
+    const latest = usePopupHandlerStore
+      .getState()
+      .popupData.find((pd) => pd.entityId === popupData.entityId);
 
-    // Store latest mouse position for next delta calculation
-    lastMousePosition.current.x = event.clientX;
-    lastMousePosition.current.y = event.clientY;
-
-    if (!element.current) {
-      console.error('Cannot update popup position: Div ref is not assigned');
+    if (
+      latest &&
+      latest.wasMoved &&
+      latest.mouseX === x &&
+      latest.mouseY === y
+    ) {
       return;
     }
 
-    if (!element.current.parentElement) {
-      console.error(
-        'Cannot update popup position: Parent element is not accessible'
-      );
+    updatePopup({
+      ...(latest ?? popupData),
+      wasMoved: true,
+      mouseX: x,
+      mouseY: y,
+    });
+  };
+
+  const stopDragging = (event?: React.PointerEvent<HTMLDivElement>) => {
+    if (!isDragging.current) {
+      return;
     }
 
-    // Set the element's new position:
-    const containerDiv = element.current.parentElement as HTMLElement;
+    isDragging.current = false;
+    if (event && event.currentTarget.hasPointerCapture(event.pointerId)) {
+      event.currentTarget.releasePointerCapture(event.pointerId);
+    }
+    element.current?.classList.remove('is-dragging');
+    persistPopupPosition();
 
-    const popoverHeight = element.current.clientHeight;
-    const popoverWidth = element.current.clientWidth;
+    if (element.current && !element.current.matches(':hover')) {
+      setHoveredEntityId(null);
+    }
+  };
 
-    let newPositionX = element.current.offsetLeft - diffX;
-    let newPositionY = element.current.offsetTop - diffY;
+  const onPointerMove = (event: React.PointerEvent<HTMLDivElement>) => {
+    if (!isDragging.current || !element.current) {
+      return;
+    }
 
-    // Prevent popup position outside of rendering canvas in x-direction
+    const diffX = lastMousePosition.current.x - event.clientX;
+    const diffY = lastMousePosition.current.y - event.clientY;
+
+    lastMousePosition.current.x = event.clientX;
+    lastMousePosition.current.y = event.clientY;
+
+    const { width, height, containerWidth, containerHeight } =
+      dragBounds.current;
+
+    let newPositionX = currentPopupPosition.current.x - diffX;
+    let newPositionY = currentPopupPosition.current.y - diffY;
+
     if (newPositionX < 0) {
       newPositionX = 0;
-    } else if (
-      containerDiv.clientWidth &&
-      newPositionX > containerDiv.clientWidth - popoverWidth
-    ) {
-      newPositionX = containerDiv.clientWidth - popoverWidth;
+    } else if (containerWidth && newPositionX > containerWidth - width) {
+      newPositionX = containerWidth - width;
     }
 
-    // Prevent popup position outside of rendering canvas in y-direction
     if (newPositionY < 0) {
       newPositionY = 0;
-    } else if (
-      containerDiv.clientHeight &&
-      newPositionY > containerDiv.clientHeight - popoverHeight
-    ) {
-      newPositionY = containerDiv.clientHeight - popoverHeight;
+    } else if (containerHeight && newPositionY > containerHeight - height) {
+      newPositionY = containerHeight - height;
     }
 
-    // Update stored popup position relative to new position
-    updatePopup({
-      ...popupData,
-      mouseX: newPositionX,
-      mouseY: newPositionY,
-    });
-
+    currentPopupPosition.current.x = newPositionX;
+    currentPopupPosition.current.y = newPositionY;
     element.current.style.top = `${newPositionY}px`;
     element.current.style.left = `${newPositionX}px`;
   };
 
-  const closeDragElement = () => {
-    /* stop moving when mouse button is released: */
-    document.onpointerup = null;
-    document.onpointermove = null;
-  };
+  const dragMouseDown = (event: React.PointerEvent<HTMLDivElement>) => {
+    if (event.button !== 0 || !element.current) {
+      return;
+    }
 
-  const dragMouseDown = (event: React.MouseEvent) => {
-    updatePopup({
-      ...popupData,
-      wasMoved: true,
-    });
+    const interactiveTarget = (event.target as HTMLElement).closest(
+      'button, a, input, textarea, select, label, .nav-link, .accordion-button'
+    );
+    if (interactiveTarget) {
+      return;
+    }
 
-    //this line makes it impossible to interact with input fields
-    //event.preventDefault();
-    // get the mouse cursor position at startup:
+    const containerDiv = element.current.parentElement;
+    if (!containerDiv) {
+      console.error(
+        'Cannot update popup position: Parent element is not accessible'
+      );
+      return;
+    }
+
+    isDragging.current = true;
+    element.current.classList.remove('no-user-select');
+    element.current.classList.add('is-dragging');
     lastMousePosition.current.x = event.clientX;
     lastMousePosition.current.y = event.clientY;
-    document.onpointerup = closeDragElement;
-    // call a function whenever the cursor moves:
-    document.onpointermove = elementDrag;
+    currentPopupPosition.current.x = element.current.offsetLeft;
+    currentPopupPosition.current.y = element.current.offsetTop;
+    dragBounds.current = {
+      width: element.current.offsetWidth,
+      height: element.current.offsetHeight,
+      containerWidth: containerDiv.clientWidth,
+      containerHeight: containerDiv.clientHeight,
+    };
+
+    event.currentTarget.setPointerCapture(event.pointerId);
   };
 
   useEffect(() => {
@@ -309,7 +345,10 @@ export default function PopupCoordinator({
         position: 'absolute',
       }}
       onPointerDown={dragMouseDown}
-      onPointerOver={onPointerOver}
+      onPointerMove={onPointerMove}
+      onPointerUp={stopDragging}
+      onPointerCancel={stopDragging}
+      onPointerEnter={onPointerEnter}
       onPointerLeave={onPointerLeave}
       ref={element}
     >

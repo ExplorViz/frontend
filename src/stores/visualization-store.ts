@@ -91,6 +91,9 @@ export const useVisualizationStore = create<VisualizationStoreState>(
     actions: {
       // Shared entity states
       setHoveredEntityId: (id: string | null) => {
+        if (get().hoveredEntityId === id) {
+          return;
+        }
         set({ hoveredEntityId: id });
       },
       setHighlightedEntityId: (id: string, isHighlighted: boolean) => {

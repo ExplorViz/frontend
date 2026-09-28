@@ -1,9 +1,36 @@
 import { GearIcon, ToolsIcon } from '@primer/octicons-react';
 import VscodeExtensionSettings from 'explorviz-frontend/src/components/collaboration/visualization/page-setup/sidebar/customizationbar/vscode/vscode-extension-settings';
 import HeatmapInfo from 'explorviz-frontend/src/components/heatmap/heatmap-info';
+import ComponentTabs from 'explorviz-frontend/src/components/visualization/page-setup/sidebar/component-tabs';
+import ChatBox from 'explorviz-frontend/src/components/visualization/page-setup/sidebar/customizationbar/chat/chat-box';
+import ChatbotBox from 'explorviz-frontend/src/components/visualization/page-setup/sidebar/customizationbar/chatbot/chatbot-box';
+import EntityConfig from 'explorviz-frontend/src/components/visualization/page-setup/sidebar/customizationbar/entity-config/entity-config';
+import Restructure from 'explorviz-frontend/src/components/visualization/page-setup/sidebar/customizationbar/restructure/restructure';
+import SettingsSidebar from 'explorviz-frontend/src/components/visualization/page-setup/sidebar/customizationbar/settings-sidebar';
+import {
+  defaultSettingsSidebarState,
+  SettingsSidebarActions,
+  SettingsSidebarContext,
+  SettingsSidebarState,
+  SettingsSidebarTab,
+} from 'explorviz-frontend/src/components/visualization/page-setup/sidebar/customizationbar/settings-sidebar-context';
 import Settings from 'explorviz-frontend/src/components/visualization/page-setup/sidebar/customizationbar/settings/settings';
+import Snapshot from 'explorviz-frontend/src/components/visualization/page-setup/sidebar/customizationbar/snapshot/snapshot';
+import { CodeAnalysisSection } from 'explorviz-frontend/src/components/visualization/page-setup/sidebar/toolbar/code-analysis-trigger/code-analysis-section';
+import EntityFiltering from 'explorviz-frontend/src/components/visualization/page-setup/sidebar/toolbar/entity-filtering/entity-filtering';
+import EntityFilteringApplier from 'explorviz-frontend/src/components/visualization/page-setup/sidebar/toolbar/entity-filtering/entity-filtering-applier';
 import EntitySearch from 'explorviz-frontend/src/components/visualization/page-setup/sidebar/toolbar/entity-search/entity-search';
 import KubernetesDiagrams from 'explorviz-frontend/src/components/visualization/page-setup/sidebar/toolbar/kubernetes-diagrams/kubernetes-diagrams';
+import TelemetrySearch from 'explorviz-frontend/src/components/visualization/page-setup/sidebar/toolbar/telemetry-search/telemetry-search';
+import ToolSelection from 'explorviz-frontend/src/components/visualization/page-setup/sidebar/toolbar/tool-selection';
+import {
+  defaultToolbarState,
+  ToolbarActions,
+  ToolbarContext,
+  ToolbarState,
+  ToolbarTool,
+} from 'explorviz-frontend/src/components/visualization/page-setup/sidebar/toolbar/toolbar-context';
+import TraceSelectionAndReplayer from 'explorviz-frontend/src/components/visualization/page-setup/sidebar/toolbar/trace-replayer/trace-selection-and-replayer';
 import CanvasWrapper from 'explorviz-frontend/src/components/visualization/rendering/canvas-wrapper';
 import { useIdeWebsocketStore } from 'explorviz-frontend/src/ide/ide-websocket';
 import { useAnnotationHandlerStore } from 'explorviz-frontend/src/stores/annotation-handler';
@@ -25,33 +52,6 @@ import {
 import CollaborationControls from '../../collaboration/visualization/page-setup/sidebar/customizationbar/collaboration/collaboration-controls';
 import ContextMenu from '../../context-menu';
 import { EditingProvider } from '../../editing/editing-context';
-import ComponentTabs from '../page-setup/sidebar/component-tabs';
-import ChatBox from '../page-setup/sidebar/customizationbar/chat/chat-box';
-import ChatbotBox from '../page-setup/sidebar/customizationbar/chatbot/chatbot-box';
-import EntityConfig from '../page-setup/sidebar/customizationbar/entity-config/entity-config';
-import Restructure from '../page-setup/sidebar/customizationbar/restructure/restructure';
-import SettingsSidebar from '../page-setup/sidebar/customizationbar/settings-sidebar';
-import {
-  defaultSettingsSidebarState,
-  SettingsSidebarActions,
-  SettingsSidebarContext,
-  SettingsSidebarState,
-  SettingsSidebarTab,
-} from '../page-setup/sidebar/customizationbar/settings-sidebar-context';
-import Snapshot from '../page-setup/sidebar/customizationbar/snapshot/snapshot';
-import { CodeAnalysisSection } from '../page-setup/sidebar/toolbar/code-analysis-trigger/code-analysis-section';
-import EntityFiltering from '../page-setup/sidebar/toolbar/entity-filtering/entity-filtering';
-import EntityFilteringApplier from '../page-setup/sidebar/toolbar/entity-filtering/entity-filtering-applier';
-import TelemetrySearch from '../page-setup/sidebar/toolbar/telemetry-search/telemetry-search';
-import ToolSelection from '../page-setup/sidebar/toolbar/tool-selection';
-import {
-  defaultToolbarState,
-  ToolbarActions,
-  ToolbarContext,
-  ToolbarState,
-  ToolbarTool,
-} from '../page-setup/sidebar/toolbar/toolbar-context';
-import TraceSelectionAndReplayer from '../page-setup/sidebar/toolbar/trace-replayer/trace-selection-and-replayer';
 import AnnotationCoordinator from './annotations/annotation-coordinator';
 import Popups from './popups/popups';
 

@@ -29,6 +29,12 @@
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
   background: var(--bs-body-bg, #f8f9fa);
 
+  &.is-dragging {
+    will-change: left, top;
+    touch-action: none;
+    user-select: none;
+  }
+
   .popover-header {
     background: var(--bs-primary-dark, #0056b3);
     color: var(--bs-white);

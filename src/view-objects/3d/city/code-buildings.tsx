@@ -226,7 +226,6 @@ const GeometryGroup: React.FC<GeometryGroupProps> = ({
       updatePopup: state.updatePopup,
     }))
   );
-  const popupData = usePopupHandlerStore((state) => state.popupData);
 
   const heightMetricBounds = getCachedBuildingMetricBounds(
     buildings,
@@ -739,8 +738,11 @@ const GeometryGroup: React.FC<GeometryGroupProps> = ({
       return;
     }
 
-    // Check if we have data in an existing popup
-    const existingPopup = popupData.find((p) => p.entityId === buildingId);
+    // Check if we have data in an existing popup. Read from the store
+    // instead of subscribing so popup drag/hover does not re-render buildings.
+    const existingPopup = usePopupHandlerStore
+      .getState()
+      .popupData.find((p) => p.entityId === buildingId);
 
     if (existingPopup && existingPopup.fileDetailedData) {
       enterImmersive(

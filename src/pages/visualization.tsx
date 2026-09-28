@@ -88,6 +88,7 @@ function resetVisualizationSessionState(options?: { clearModels?: boolean }) {
   useEntityFilteringStore.getState().actions.resetFilters();
   useCommitTreeStateStore.getState().resetCommitTreeFilters();
   useChatStore.getState().clearFilter();
+  usePopupHandlerStore.getState().clearPopups();
 
   if (options?.clearModels) {
     useModelStore.getState().clearAll();

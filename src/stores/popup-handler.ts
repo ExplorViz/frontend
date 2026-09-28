@@ -223,6 +223,7 @@ export const usePopupHandlerStore = create<PopupHandlerState>((set, get) => ({
   },
 
   cleanup: () => {
+    get().clearPopups();
     eventEmitter.off('restore_popups', get().onRestorePopups);
   },
 
