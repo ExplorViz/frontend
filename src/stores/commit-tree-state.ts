@@ -19,16 +19,23 @@ export type SelectedCommit = Commit;
 interface CommitTreeStateState {
   _selectedCommits: Map<string, SelectedCommit[]>; // tracked
   _repoNameAndBranchNameToColorMap: Map<string, string>;
+  _repoNameToSelectedBranchNameMap: Map<string, string>;
   _currentSelectedRepositoryName: string;
   _xAxisPlacement: CommitXAxisPlacement;
   _commitTreeFilters: CommitTreeFilters;
   getSelectedCommits: () => Map<string, Commit[]>;
   getCurrentSelectedRepositoryName: () => string;
+  getSelectedBranchNameForRepo: (repoName: string) => string | undefined;
+  getRepoNameToSelectedBranchNameMap: () => Map<string, string>;
   getXAxisPlacement: () => CommitXAxisPlacement;
   getCommitTreeFilters: () => CommitTreeFilters;
   setCommitTreeFilters: (filters: CommitTreeFilters) => void;
   resetCommitTreeFilters: () => void;
   setXAxisPlacement: (placement: CommitXAxisPlacement) => void;
+  setSelectedBranchNameForRepo: (
+    repoName: string,
+    branchName: string
+  ) => void;
   setDefaultState: (
     currentRepoNameCommitTreeMap: RepoNameCommitTreeMap,
     commit1: string,
@@ -114,6 +121,7 @@ export const useCommitTreeStateStore = create<CommitTreeStateState>(
   (set, get) => ({
     _selectedCommits: new Map(),
     _repoNameAndBranchNameToColorMap: new Map(),
+    _repoNameToSelectedBranchNameMap: new Map(),
     _currentSelectedRepositoryName: '',
     _xAxisPlacement: 'equidistant',
     _commitTreeFilters: { ...DEFAULT_COMMIT_TREE_FILTERS },
@@ -124,6 +132,20 @@ export const useCommitTreeStateStore = create<CommitTreeStateState>(
 
     getCurrentSelectedRepositoryName: () => {
       return get()._currentSelectedRepositoryName;
+    },
+
+    getSelectedBranchNameForRepo: (repoName: string) => {
+      return get()._repoNameToSelectedBranchNameMap.get(repoName);
+    },
+
+    getRepoNameToSelectedBranchNameMap: () => {
+      return get()._repoNameToSelectedBranchNameMap;
+    },
+
+    setSelectedBranchNameForRepo: (repoName: string, branchName: string) => {
+      const nextMap = new Map(get()._repoNameToSelectedBranchNameMap);
+      nextMap.set(repoName, branchName);
+      set({ _repoNameToSelectedBranchNameMap: nextMap });
     },
 
     getXAxisPlacement: () => {

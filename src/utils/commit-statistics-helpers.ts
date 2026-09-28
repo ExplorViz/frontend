@@ -8,9 +8,20 @@ import {
   Branch,
   CommitNode,
   CommitTree,
+  RepoNameCommitTreeMap,
 } from 'explorviz-frontend/src/utils/evolution-schemes/evolution-data';
 
-export type CommitStatisticsView = 'year' | 'month' | 'weekday' | 'timeOfDay';
+export type CommitStatisticsView =
+  | 'year'
+  | 'month'
+  | 'day'
+  | 'weekday'
+  | 'timeOfDay';
+
+export type CommitStatisticsAggregateOptions = {
+  dateFrom?: string;
+  dateTo?: string;
+};
 
 export type CommitStatisticsYearGroup = {
   year: string;
@@ -72,9 +83,20 @@ export const COMMIT_STATISTICS_VIEW_OPTIONS: Array<{
 }> = [
   { value: 'timeOfDay', label: 'Commits per Time of Day' },
   { value: 'weekday', label: 'Commits per Weekday' },
+  { value: 'day', label: 'Commits per Day' },
   { value: 'month', label: 'Commits per Month' },
   { value: 'year', label: 'Commits per Year' },
 ];
+
+export function getBranchesWithCommits(
+  commitTree: CommitTree | undefined
+): Branch[] {
+  if (!commitTree) {
+    return [];
+  }
+
+  return commitTree.branches.filter((branch) => branch.commits.length > 0);
+}
 
 export function getBranchCommits(
   commitTree: CommitTree | undefined,
@@ -96,6 +118,99 @@ export function getBranchesWithDatedCommits(
   return (
     branch?.commits.some((commit) => getCommitDateMs(commit) != null) ?? false
   );
+}
+
+export function getDatedBranchNames(
+  commitTree: CommitTree | undefined
+): string[] {
+  if (!commitTree) {
+    return [];
+  }
+
+  return commitTree.branches
+    .filter((branch) => getBranchesWithDatedCommits(branch))
+    .map((branch) => branch.name);
+}
+
+/**
+ * Branch names that exist (with dated commits) in every selected repository.
+ * Names are sorted alphabetically for stable UI ordering.
+ */
+export function getSharedDatedBranchNames(
+  repoNameCommitTreeMap: RepoNameCommitTreeMap,
+  selectedRepoNames: string[]
+): string[] {
+  if (selectedRepoNames.length === 0) {
+    return [];
+  }
+
+  let sharedNames: Set<string> | null = null;
+
+  for (const repoName of selectedRepoNames) {
+    const branchNames = new Set(
+      getDatedBranchNames(repoNameCommitTreeMap.get(repoName))
+    );
+
+    if (sharedNames == null) {
+      sharedNames = branchNames;
+      continue;
+    }
+
+    for (const name of [...sharedNames]) {
+      if (!branchNames.has(name)) {
+        sharedNames.delete(name);
+      }
+    }
+  }
+
+  return [...(sharedNames ?? [])].sort((left, right) =>
+    left.localeCompare(right)
+  );
+}
+
+export function getCommitsForReposAndBranch(
+  repoNameCommitTreeMap: RepoNameCommitTreeMap,
+  selectedRepoNames: string[],
+  branchName: string
+): CommitNode[] {
+  if (!branchName || selectedRepoNames.length === 0) {
+    return [];
+  }
+
+  const commits: CommitNode[] = [];
+
+  for (const repoName of selectedRepoNames) {
+    commits.push(
+      ...getBranchCommits(repoNameCommitTreeMap.get(repoName), branchName)
+    );
+  }
+
+  return commits;
+}
+
+export function getCommitsForReposAndBranchNames(
+  repoNameCommitTreeMap: RepoNameCommitTreeMap,
+  selectedRepoNames: string[],
+  repoNameToBranchName: Map<string, string>
+): CommitNode[] {
+  if (selectedRepoNames.length === 0) {
+    return [];
+  }
+
+  const commits: CommitNode[] = [];
+
+  for (const repoName of selectedRepoNames) {
+    const branchName = repoNameToBranchName.get(repoName);
+    if (!branchName) {
+      continue;
+    }
+
+    commits.push(
+      ...getBranchCommits(repoNameCommitTreeMap.get(repoName), branchName)
+    );
+  }
+
+  return commits;
 }
 
 function parseDateInputBoundary(
@@ -293,6 +408,75 @@ function formatYearMonthKey(year: number, month: number): string {
   return `${year}-${String(month + 1).padStart(2, '0')}`;
 }
 
+function formatDateKey(year: number, month: number, day: number): string {
+  return `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+}
+
+function commitDateToKey(commitDateMs: number): string {
+  const date = new Date(commitDateMs);
+  return formatDateKey(date.getFullYear(), date.getMonth(), date.getDate());
+}
+
+function enumerateDays(startKey: string, endKey: string): string[] {
+  const startMs = parseDateInputBoundary(startKey, false);
+  const endMs = parseDateInputBoundary(endKey, true);
+  if (startMs == null || endMs == null || startMs > endMs) {
+    return [];
+  }
+
+  const days: string[] = [];
+  const cursor = new Date(startMs);
+  cursor.setHours(0, 0, 0, 0);
+  const end = new Date(endMs);
+  end.setHours(0, 0, 0, 0);
+
+  while (cursor.getTime() <= end.getTime()) {
+    days.push(
+      formatDateKey(cursor.getFullYear(), cursor.getMonth(), cursor.getDate())
+    );
+    cursor.setDate(cursor.getDate() + 1);
+  }
+
+  return days;
+}
+
+function resolveDayChartRange(
+  commits: CommitNode[],
+  dateFrom?: string,
+  dateTo?: string
+): { startKey: string; endKey: string } | null {
+  let minKey: string | null = null;
+  let maxKey: string | null = null;
+
+  for (const commit of commits) {
+    const commitDateMs = getCommitDateMs(commit);
+    if (commitDateMs == null) {
+      continue;
+    }
+
+    const key = commitDateToKey(commitDateMs);
+    if (minKey == null || key < minKey) {
+      minKey = key;
+    }
+    if (maxKey == null || key > maxKey) {
+      maxKey = key;
+    }
+  }
+
+  const startKey = dateFrom?.trim() || minKey;
+  const endKey = dateTo?.trim() || maxKey;
+
+  if (!startKey || !endKey || startKey > endKey) {
+    return null;
+  }
+
+  return { startKey, endKey };
+}
+
+function formatMonthGroupLabel(year: number, month: number): string {
+  return `${MONTH_LABELS[month]} ${year}`;
+}
+
 function enumerateYearMonths(startKey: string, endKey: string): string[] {
   const [startYear, startMonth] = startKey.split('-').map(Number);
   const [endYear, endMonth] = endKey.split('-').map(Number);
@@ -391,6 +575,77 @@ function aggregateByMonth(commits: CommitNode[]): CommitStatisticsChartData {
   );
 }
 
+function aggregateByDay(
+  commits: CommitNode[],
+  dateFrom?: string,
+  dateTo?: string
+): CommitStatisticsChartData {
+  const range = resolveDayChartRange(commits, dateFrom, dateTo);
+  if (!range) {
+    return {
+      labels: [],
+      values: [],
+      xAxisTitle: '',
+      yAxisTitle: 'Commits',
+    };
+  }
+
+  const days = enumerateDays(range.startKey, range.endKey);
+  if (days.length === 0) {
+    return {
+      labels: [],
+      values: [],
+      xAxisTitle: '',
+      yAxisTitle: 'Commits',
+    };
+  }
+
+  const includeAuthors = commitsHaveAuthorData(commits);
+  const monthLabels: string[] = [];
+  const hoverLabels: string[] = [];
+  const monthGroupLabels: string[] = [];
+
+  for (const dayKey of days) {
+    const [yearStr, monthStr, dayStr] = dayKey.split('-');
+    const year = Number(yearStr);
+    const month = Number(monthStr) - 1;
+    const day = Number(dayStr);
+    monthGroupLabels.push(formatMonthGroupLabel(year, month));
+    monthLabels.push(String(day));
+    hoverLabels.push(`${formatMonthGroupLabel(year, month)} ${day}`);
+  }
+
+  const accumulator = createAuthorBucketAccumulator(days.length);
+  const dayToIndex = new Map(days.map((dayKey, index) => [dayKey, index]));
+
+  for (const commit of commits) {
+    const commitDateMs = getCommitDateMs(commit);
+    if (commitDateMs == null) {
+      continue;
+    }
+
+    const bucketIndex = dayToIndex.get(commitDateToKey(commitDateMs));
+    if (bucketIndex == null) {
+      continue;
+    }
+
+    recordCommitInBucket(accumulator, bucketIndex, commit, includeAuthors);
+  }
+
+  return finalizeChartData(
+    {
+      labels: days,
+      monthLabels,
+      yearGroups: buildYearGroups(monthGroupLabels),
+      hoverLabels,
+      xAxisTitle: '',
+      yAxisTitle: 'Commits',
+    },
+    accumulator,
+    includeAuthors
+  );
+}
+
 function aggregateByWeekday(commits: CommitNode[]): CommitStatisticsChartData {
   const includeAuthors = commitsHaveAuthorData(commits);
   const accumulator = createAuthorBucketAccumulator(WEEKDAY_LABELS.length);
@@ -451,13 +706,16 @@ function aggregateByTimeOfDay(
 
 export function aggregateCommitStatistics(
   commits: CommitNode[],
-  view: CommitStatisticsView
+  view: CommitStatisticsView,
+  options?: CommitStatisticsAggregateOptions
 ): CommitStatisticsChartData {
   switch (view) {
     case 'year':
       return aggregateByYear(commits);
     case 'month':
       return aggregateByMonth(commits);
+    case 'day':
+      return aggregateByDay(commits, options?.dateFrom, options?.dateTo);
     case 'weekday':
       return aggregateByWeekday(commits);
     case 'timeOfDay':

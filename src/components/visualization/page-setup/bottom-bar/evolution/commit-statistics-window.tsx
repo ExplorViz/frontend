@@ -1,4 +1,5 @@
 import { DownloadIcon, XIcon } from '@primer/octicons-react';
+import { useCommitTreeStateStore } from 'explorviz-frontend/src/stores/commit-tree-state';
 import { useEvolutionDataRepositoryStore } from 'explorviz-frontend/src/stores/repos/evolution-data-repository';
 import { buildCommitStatisticsPlotlyFigure } from 'explorviz-frontend/src/utils/commit-statistics-chart';
 import {
@@ -8,8 +9,8 @@ import {
   CommitStatisticsView,
   filterCommitsByDateRange,
   filterCommitStatisticsByAuthors,
-  getBranchCommits,
-  getBranchesWithDatedCommits,
+  getBranchesWithCommits,
+  getCommitsForReposAndBranchNames,
 } from 'explorviz-frontend/src/utils/commit-statistics-helpers';
 import { RepoNameCommitTreeMap } from 'explorviz-frontend/src/utils/evolution-schemes/evolution-data';
 import Plotly from 'plotly.js-dist';
@@ -28,8 +29,8 @@ function sanitizeFilenamePart(value: string): string {
 }
 
 function buildCommitStatisticsImageFilename(
-  repoName: string,
-  branchName: string,
+  repoNames: string[],
+  branchNames: string[],
   statisticsView: CommitStatisticsView
 ): string {
   const viewLabel =
@@ -37,10 +38,31 @@ function buildCommitStatisticsImageFilename(
       (option) => option.value === statisticsView
     )?.label ?? statisticsView;
 
+  const repoPart =
+    repoNames.length === 0
+      ? 'unknown'
+      : repoNames.length === 1
+        ? repoNames[0]
+        : repoNames.length <= 3
+          ? repoNames.join('_')
+          : `${repoNames.length}-repositories`;
+
+  const uniqueBranchNames = [...new Set(branchNames)].sort((left, right) =>
+    left.localeCompare(right)
+  );
+  const branchPart =
+    uniqueBranchNames.length === 0
+      ? 'unknown'
+      : uniqueBranchNames.length === 1
+        ? uniqueBranchNames[0]
+        : uniqueBranchNames.length <= 3
+          ? uniqueBranchNames.join('_')
+          : `${uniqueBranchNames.length}-branches`;
+
   return [
     'commit-statistics',
-    sanitizeFilenamePart(repoName),
-    sanitizeFilenamePart(branchName),
+    sanitizeFilenamePart(repoPart),
+    sanitizeFilenamePart(branchPart),
     sanitizeFilenamePart(viewLabel),
   ].join('-');
 }
@@ -48,14 +70,12 @@ function buildCommitStatisticsImageFilename(
 type CommitStatisticsWindowProps = {
   repoNameCommitTreeMap: RepoNameCommitTreeMap;
   initialRepoName: string;
-  initialBranchName: string;
   onClose: () => void;
 };
 
 export default function CommitStatisticsWindow({
   repoNameCommitTreeMap,
   initialRepoName,
-  initialBranchName,
   onClose,
 }: CommitStatisticsWindowProps) {
   const windowRef = useRef<HTMLDivElement>(null);
@@ -66,6 +86,12 @@ export default function CommitStatisticsWindow({
   const fetchAndStoreRepositoryCommitTrees = useEvolutionDataRepositoryStore(
     (state) => state.fetchAndStoreRepositoryCommitTrees
   );
+  const repoNameToSelectedBranchNameMap = useCommitTreeStateStore(
+    (state) => state._repoNameToSelectedBranchNameMap
+  );
+  const setSelectedBranchNameForRepo = useCommitTreeStateStore(
+    (state) => state.setSelectedBranchNameForRepo
+  );
 
   const repositoryNames = useMemo(
     () =>
@@ -75,13 +101,14 @@ export default function CommitStatisticsWindow({
     [repoNameCommitTreeMap]
   );
 
-  const [selectedRepoName, setSelectedRepoName] = useState(
-    repositoryNames.includes(initialRepoName)
-      ? initialRepoName
-      : (repositoryNames[0] ?? '')
+  const [selectedRepoNames, setSelectedRepoNames] = useState<Set<string>>(
+    () => {
+      const initialSelection = repositoryNames.includes(initialRepoName)
+        ? initialRepoName
+        : (repositoryNames[0] ?? '');
+      return initialSelection ? new Set([initialSelection]) : new Set();
+    }
   );
-  const [selectedBranchName, setSelectedBranchName] =
-    useState(initialBranchName);
   const [dateFrom, setDateFrom] = useState('');
   const [dateTo, setDateTo] = useState('');
   const [statisticsView, setStatisticsView] =
@@ -92,34 +119,114 @@ export default function CommitStatisticsWindow({
   );
   const [isDownloadingImage, setIsDownloadingImage] = useState(false);
 
-  const commitTree = repoNameCommitTreeMap.get(selectedRepoName);
-  const branchOptions = useMemo(
-    () =>
-      commitTree?.branches.filter((branch) =>
-        getBranchesWithDatedCommits(branch)
-      ) ?? [],
-    [commitTree]
+  const selectedRepoNamesList = useMemo(() => {
+    const selected = repositoryNames.filter((repoName) =>
+      selectedRepoNames.has(repoName)
+    );
+
+    if (selected.length > 0) {
+      return selected;
+    }
+
+    if (repositoryNames.length === 0) {
+      return [];
+    }
+
+    const fallback = repositoryNames.includes(initialRepoName)
+      ? initialRepoName
+      : repositoryNames[0];
+    return [fallback];
+  }, [repositoryNames, selectedRepoNames, initialRepoName]);
+
+  const selectedRepoNamesSet = useMemo(
+    () => new Set(selectedRepoNamesList),
+    [selectedRepoNamesList]
   );
 
-  useEffect(() => {
-    if (branchOptions.length === 0) {
-      setSelectedBranchName('');
-      return;
-    }
+  const selectedRepoBranchAssignments = useMemo(
+    () =>
+      selectedRepoNamesList.map((repoName) => ({
+        repoName,
+        branchName: repoNameToSelectedBranchNameMap.get(repoName) ?? '',
+      })),
+    [selectedRepoNamesList, repoNameToSelectedBranchNameMap]
+  );
 
-    if (!branchOptions.some((branch) => branch.name === selectedBranchName)) {
-      setSelectedBranchName(branchOptions[0].name);
-    }
-  }, [branchOptions, selectedBranchName]);
+  const reposWithBranchChoice = useMemo(
+    () =>
+      selectedRepoNamesList
+        .map((repoName) => ({
+          repoName,
+          branches: getBranchesWithCommits(
+            repoNameCommitTreeMap.get(repoName)
+          ),
+        }))
+        .filter(({ branches }) => branches.length > 1),
+    [selectedRepoNamesList, repoNameCommitTreeMap]
+  );
+
+  const showBranchSelection = reposWithBranchChoice.length > 0;
+
+  const reposWithBranchCount = useMemo(
+    () =>
+      selectedRepoBranchAssignments.filter(
+        ({ repoName, branchName }) =>
+          branchName !== '' &&
+          repoNameCommitTreeMap
+            .get(repoName)
+            ?.branches.some((branch) => branch.name === branchName)
+      ).length,
+    [repoNameCommitTreeMap, selectedRepoBranchAssignments]
+  );
 
   const filteredCommits = useMemo(() => {
-    const branchCommits = getBranchCommits(commitTree, selectedBranchName);
+    const branchCommits = getCommitsForReposAndBranchNames(
+      repoNameCommitTreeMap,
+      selectedRepoNamesList,
+      repoNameToSelectedBranchNameMap
+    );
     return filterCommitsByDateRange(branchCommits, dateFrom, dateTo);
-  }, [commitTree, selectedBranchName, dateFrom, dateTo]);
+  }, [
+    repoNameCommitTreeMap,
+    selectedRepoNamesList,
+    repoNameToSelectedBranchNameMap,
+    dateFrom,
+    dateTo,
+  ]);
+
+  const toggleRepository = (repoName: string) => {
+    const nextSelection = new Set(selectedRepoNamesList);
+
+    if (nextSelection.has(repoName)) {
+      if (nextSelection.size === 1) {
+        return;
+      }
+      nextSelection.delete(repoName);
+    } else {
+      nextSelection.add(repoName);
+    }
+
+    setSelectedRepoNames(nextSelection);
+  };
+
+  const selectAllRepositories = () => {
+    setSelectedRepoNames(new Set(repositoryNames));
+  };
+
+  const selectOnlyInitialRepository = () => {
+    const fallback = repositoryNames.includes(initialRepoName)
+      ? initialRepoName
+      : (repositoryNames[0] ?? '');
+    setSelectedRepoNames(fallback ? new Set([fallback]) : new Set());
+  };
 
   const chartData = useMemo(
-    () => aggregateCommitStatistics(filteredCommits, statisticsView),
-    [filteredCommits, statisticsView]
+    () =>
+      aggregateCommitStatistics(filteredCommits, statisticsView, {
+        dateFrom: statisticsView === 'day' ? dateFrom : undefined,
+        dateTo: statisticsView === 'day' ? dateTo : undefined,
+      }),
+    [filteredCommits, statisticsView, dateFrom, dateTo]
   );
 
   const hasAuthorData = useMemo(
@@ -290,8 +397,10 @@ export default function CommitStatisticsWindow({
       await Plotly.downloadImage(chartElement, {
         format: 'png',
         filename: buildCommitStatisticsImageFilename(
-          selectedRepoName,
-          selectedBranchName,
+          selectedRepoNamesList,
+          selectedRepoBranchAssignments
+            .map((assignment) => assignment.branchName)
+            .filter(Boolean),
           statisticsView
         ),
         width: Math.max(chartElement.offsetWidth, 800),
@@ -336,40 +445,105 @@ export default function CommitStatisticsWindow({
       </div>
 
       <div className="commit-statistics-window-controls">
-        <label className="commit-statistics-window-control">
-          <span className="commit-statistics-window-control-label">
-            Repository
-          </span>
-          <select
-            value={selectedRepoName}
-            onChange={(event) => setSelectedRepoName(event.target.value)}
-            aria-label="Select repository"
-            className="commit-statistics-window-control-input"
+        <div className="commit-statistics-window-repo-panel commit-statistics-window-control--full">
+          <div className="commit-statistics-window-repo-toolbar">
+            <span className="commit-statistics-window-control-label">
+              Repositories
+            </span>
+            <div className="commit-statistics-window-repo-actions">
+              <Button
+                type="button"
+                size="sm"
+                variant="outline-secondary"
+                onClick={selectAllRepositories}
+                disabled={selectedRepoNamesSet.size === repositoryNames.length}
+              >
+                Select All
+              </Button>
+              <Button
+                type="button"
+                size="sm"
+                variant="outline-secondary"
+                onClick={selectOnlyInitialRepository}
+                disabled={
+                  selectedRepoNamesSet.size === 1 &&
+                  selectedRepoNamesSet.has(
+                    repositoryNames.includes(initialRepoName)
+                      ? initialRepoName
+                      : (repositoryNames[0] ?? '')
+                  )
+                }
+              >
+                Reset
+              </Button>
+            </div>
+          </div>
+          <div
+            className="commit-statistics-window-repo-list"
+            role="group"
+            aria-label="Select repositories"
           >
             {repositoryNames.map((repoName) => (
-              <option key={repoName} value={repoName}>
-                {repoName}
-              </option>
+              <Form.Check
+                key={repoName}
+                type="checkbox"
+                id={`commit-statistics-repo-${repoName}`}
+                checked={selectedRepoNamesSet.has(repoName)}
+                disabled={
+                  selectedRepoNamesSet.has(repoName) &&
+                  selectedRepoNamesSet.size === 1
+                }
+                onChange={() => toggleRepository(repoName)}
+                label={repoName}
+              />
             ))}
-          </select>
-        </label>
+          </div>
+        </div>
 
-        <label className="commit-statistics-window-control">
-          <span className="commit-statistics-window-control-label">Branch</span>
-          <select
-            value={selectedBranchName}
-            onChange={(event) => setSelectedBranchName(event.target.value)}
-            aria-label="Select branch"
-            className="commit-statistics-window-control-input"
-            disabled={branchOptions.length === 0}
-          >
-            {branchOptions.map((branch) => (
-              <option key={branch.name} value={branch.name}>
-                {branch.name}
-              </option>
-            ))}
-          </select>
-        </label>
+        {showBranchSelection && (
+          <div className="commit-statistics-window-branch-panel commit-statistics-window-control--full">
+            <span className="commit-statistics-window-control-label">
+              Branches
+            </span>
+            <div
+              className="commit-statistics-window-branch-list"
+              role="group"
+              aria-label="Select branch per repository"
+            >
+              {reposWithBranchChoice.map(({ repoName, branches }) => (
+                <label
+                  key={repoName}
+                  className="commit-statistics-window-branch-row"
+                >
+                  <span className="commit-statistics-window-branch-repo">
+                    {repoName}
+                  </span>
+                  <select
+                    value={
+                      repoNameToSelectedBranchNameMap.get(repoName) ??
+                      branches[0]?.name ??
+                      ''
+                    }
+                    onChange={(event) =>
+                      setSelectedBranchNameForRepo(
+                        repoName,
+                        event.target.value
+                      )
+                    }
+                    aria-label={`Select branch for ${repoName}`}
+                    className="commit-statistics-window-control-input"
+                  >
+                    {branches.map((branch) => (
+                      <option key={branch.name} value={branch.name}>
+                        {branch.name}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+              ))}
+            </div>
+          </div>
+        )}
 
         <label className="commit-statistics-window-control">
           <span className="commit-statistics-window-control-label">From</span>
@@ -497,18 +671,26 @@ export default function CommitStatisticsWindow({
 
       <div className="commit-statistics-window-summary">
         <span>
-          {filteredCommits.length === 0
-            ? 'No commits with dates match the current filters.'
-            : [
-                `${filteredCommits.length.toLocaleString('en-US')} commits in selection`,
-                colorByAuthor && hasAuthorData && chartData.authorSeries
-                  ? `${selectedAuthorKeys.size.toLocaleString('en-US')} of ${chartData.authorSeries.length.toLocaleString('en-US')} authors selected`
-                  : hasAuthorData && chartData.authorSeries
-                    ? `${chartData.authorSeries.length.toLocaleString('en-US')} authors`
-                    : null,
-              ]
-                .filter(Boolean)
-                .join(' · ')}
+          {selectedRepoNamesList.length === 0
+            ? 'Select at least one repository.'
+            : reposWithBranchCount === 0
+              ? 'Select a branch in the commit chart for at least one repository.'
+              : filteredCommits.length === 0
+                ? 'No commits with dates match the current filters.'
+                : [
+                    `${filteredCommits.length.toLocaleString('en-US')} commits in selection`,
+                    `${selectedRepoNamesList.length.toLocaleString('en-US')} of ${repositoryNames.length.toLocaleString('en-US')} repositories`,
+                    reposWithBranchCount < selectedRepoNamesList.length
+                      ? `${reposWithBranchCount.toLocaleString('en-US')} of ${selectedRepoNamesList.length.toLocaleString('en-US')} repositories have a branch selected in the commit chart`
+                      : null,
+                    colorByAuthor && hasAuthorData && chartData.authorSeries
+                      ? `${selectedAuthorKeys.size.toLocaleString('en-US')} of ${chartData.authorSeries.length.toLocaleString('en-US')} authors selected`
+                      : hasAuthorData && chartData.authorSeries
+                        ? `${chartData.authorSeries.length.toLocaleString('en-US')} authors`
+                        : null,
+                  ]
+                    .filter(Boolean)
+                    .join(' · ')}
         </span>
         <Button
           type="button"

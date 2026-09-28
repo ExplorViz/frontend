@@ -360,7 +360,14 @@ export default function PlotlyCommitTree({
 }: PlotlyCommitTreeArgs) {
   const plotlyCommitDivRef = useRef<HTMLDivElement>(null);
   const lastAnimationBarXRef = useRef<number | null>(null);
-  const [selectedBranchName, setSelectedBranchName] = useState('');
+  const repoNameToSelectedBranchNameMap = useCommitTreeStateStore(
+    (state) => state._repoNameToSelectedBranchNameMap
+  );
+  const setSelectedBranchNameForRepo = useCommitTreeStateStore(
+    (state) => state.setSelectedBranchNameForRepo
+  );
+  const selectedBranchName =
+    repoNameToSelectedBranchNameMap.get(selectedRepoName) ?? '';
   const [selectedMetric, setSelectedMetric] = useState(NONE_METRIC);
   const [appliedMetricChangeThreshold, setAppliedMetricChangeThreshold] =
     useState(DEFAULT_METRIC_CHANGE_THRESHOLD);
@@ -412,6 +419,20 @@ export default function PlotlyCommitTree({
   const isAuthorFilterActive = hasActiveAuthorFilter(appliedCommitTreeFilters);
 
   useEffect(() => {
+    const { setSelectedBranchNameForRepo: setBranchForRepo } =
+      useCommitTreeStateStore.getState();
+
+    for (const [repoName, commitTree] of repoNameCommitTreeMap) {
+      if (!repoNameToSelectedBranchNameMap.has(repoName)) {
+        const branch = getFirstBranchWithCommits(commitTree);
+        if (branch) {
+          setBranchForRepo(repoName, branch.name);
+        }
+      }
+    }
+  }, [repoNameCommitTreeMap, repoNameToSelectedBranchNameMap]);
+
+  useEffect(() => {
     const commitTreeForRepo = repoNameCommitTreeMap.get(selectedRepoName);
     const currentBranchStillValid =
       selectedBranchName !== '' &&
@@ -426,13 +447,23 @@ export default function PlotlyCommitTree({
 
     const branch = getFirstBranchWithCommits(commitTreeForRepo);
     if (branch) {
-      setSelectedBranchName(branch.name);
-      setSelectedMetric(getDefaultMetricName(branch));
+      // Branch is repository-specific; only set a default metric on first
+      // selection. Keep the user's metric when switching repositories.
+      const isInitialBranchSelection = selectedBranchName === '';
+      setSelectedBranchNameForRepo(selectedRepoName, branch.name);
+      if (isInitialBranchSelection) {
+        setSelectedMetric(getDefaultMetricName(branch));
+      }
     } else {
-      setSelectedBranchName('');
+      setSelectedBranchNameForRepo(selectedRepoName, '');
       setSelectedMetric(NONE_METRIC);
     }
-  }, [selectedRepoName, repoNameCommitTreeMap, selectedBranchName]);
+  }, [
+    selectedRepoName,
+    repoNameCommitTreeMap,
+    selectedBranchName,
+    setSelectedBranchNameForRepo,
+  ]);
 
   useEffect(() => {
     if (!selectedBranch) {
@@ -888,13 +919,7 @@ export default function PlotlyCommitTree({
 
   const handleSearchSelectCommit = (commit: Commit) => {
     if (commit.branchName !== selectedBranchName) {
-      const branch = commitTree?.branches.find(
-        (candidate) => candidate.name === commit.branchName
-      );
-      setSelectedBranchName(commit.branchName);
-      if (branch) {
-        setSelectedMetric(getDefaultMetricName(branch));
-      }
+      setSelectedBranchNameForRepo(selectedRepoName, commit.branchName);
     }
 
     const newSelectedCommits = addCommitToSelection(
@@ -1032,14 +1057,7 @@ export default function PlotlyCommitTree({
           <select
             value={selectedBranchName}
             onChange={(event) => {
-              const branchName = event.target.value;
-              const branch = commitTree.branches.find(
-                (candidate) => candidate.name === branchName
-              );
-              setSelectedBranchName(branchName);
-              if (branch) {
-                setSelectedMetric(getDefaultMetricName(branch));
-              }
+              setSelectedBranchNameForRepo(selectedRepoName, event.target.value);
             }}
             aria-label="Select branch"
             className="commit-metrics-chart-select"
@@ -1140,7 +1158,6 @@ export default function PlotlyCommitTree({
         <CommitStatisticsWindow
           repoNameCommitTreeMap={repoNameCommitTreeMap}
           initialRepoName={selectedRepoName}
-          initialBranchName={selectedBranchName}
           onClose={() => setShowStatisticsWindow(false)}
         />
       )}

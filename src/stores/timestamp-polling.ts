@@ -11,7 +11,6 @@ import {
 } from 'explorviz-frontend/src/stores/repos/debug-snapshot-repository';
 import { useTimestampRepositoryStore } from 'explorviz-frontend/src/stores/repos/timestamp-repository';
 import { useSnapshotTokenStore } from 'explorviz-frontend/src/stores/snapshot-token';
-import { useToastHandlerStore } from 'explorviz-frontend/src/stores/toast-handler';
 import {
   applyNewestCommitSelectionToState,
   markNewestCommitAutoSelectedForCurrentLandscape,
@@ -203,10 +202,10 @@ export const useTimestampPollingStore = create<TimestampPollingState>(
             }
           })
           .catch((error: Error) => {
-            console.error(`Error on fetch of timestamps: ${error}`);
-            useToastHandlerStore
-              .getState()
-              .showErrorToastMessage('No timestamp data could be fetched.');
+            // console.error(`Error on fetch of timestamps: ${error}`);
+            // useToastHandlerStore
+            //   .getState()
+            //   .showErrorToastMessage('No timestamp data could be fetched.');
             callback(new Map([[CROSS_COMMIT_IDENTIFIER, []]]));
             return;
           })
@@ -271,10 +270,10 @@ export const useTimestampPollingStore = create<TimestampPollingState>(
               );
             })
             .catch((error: Error) => {
-              console.error(`Error on fetch of timestamps: ${error}`);
-              useToastHandlerStore
-                .getState()
-                .showErrorToastMessage('No timestamp data could be fetched.');
+              // console.error(`Error on fetch of timestamps: ${error}`);
+              // useToastHandlerStore
+              //   .getState()
+              //   .showErrorToastMessage('No timestamp data could be fetched.');
               polledCommitToTimestampMap.set(selectedCommit.commitId, []);
             });
         }

@@ -678,6 +678,89 @@
   }
 }
 
+.commit-statistics-window-repo-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  min-width: 0;
+}
+
+.commit-statistics-window-repo-toolbar {
+  display: grid;
+  grid-template-columns: 5.5rem minmax(0, 1fr);
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.commit-statistics-window-repo-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.commit-statistics-window-repo-list {
+  max-height: 128px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  margin-left: 6rem;
+
+  .form-check {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0;
+    min-height: 1.5rem;
+  }
+
+  .form-check-input {
+    margin-top: 0;
+    flex-shrink: 0;
+  }
+
+  .form-check-label {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: 0.8125rem;
+  }
+}
+
+.commit-statistics-window-branch-panel {
+  display: grid;
+  grid-template-columns: 5.5rem minmax(0, 1fr);
+  align-items: start;
+  gap: 0.5rem;
+  min-width: 0;
+}
+
+.commit-statistics-window-branch-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  max-height: 128px;
+  overflow-y: auto;
+}
+
+.commit-statistics-window-branch-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 0.5rem;
+  align-items: center;
+  margin-bottom: 0;
+}
+
+.commit-statistics-window-branch-repo {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 0.8125rem;
+  color: var(--bs-body-color, #212529);
+}
+
 .commit-statistics-window-author-row {
   display: flex;
   align-items: center;
@@ -708,7 +791,8 @@
 }
 
 @media (max-width: 640px) {
-  .commit-statistics-window-author-list {
+  .commit-statistics-window-author-list,
+  .commit-statistics-window-repo-list {
     margin-left: 0;
   }
 }
