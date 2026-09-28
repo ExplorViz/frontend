@@ -63,15 +63,21 @@ export default function SpanDetailsCard({
   };
 
   const handleSearchServiceClick = () => {
-    toolbarContext.searchSpans({ serviceName: span.serviceName });
+    toolbarContext.searchSpans({
+      serviceName: span.serviceName,
+      sortBy: 'oldest',
+    });
   };
 
   const handleSearchEntityClick = () => {
-    toolbarContext.searchSpans({ telemetryKey: span.telemetryKey });
+    toolbarContext.searchSpans({
+      telemetryKey: span.telemetryKey,
+      sortBy: 'oldest',
+    });
   };
 
   const handleTraceIdClick = () => {
-    toolbarContext.searchSpans({ traceId: span.traceId });
+    toolbarContext.searchSpans({ traceId: span.traceId, sortBy: 'oldest' });
   };
 
   return (

@@ -598,7 +598,10 @@ function LogItem({
   };
 
   const handleSearchServiceClick = () =>
-    toolbarContext.searchLogs({ serviceName: log.serviceName });
+    toolbarContext.searchLogs({
+      serviceName: log.serviceName,
+      sortBy: 'oldest',
+    });
 
   const handleEntityClick = () => {
     if (!entity) {
@@ -611,15 +614,18 @@ function LogItem({
   };
 
   const handleSearchEntityClick = () => {
-    toolbarContext.searchLogs({ telemetryKey: log.telemetryKey });
+    toolbarContext.searchLogs({
+      telemetryKey: log.telemetryKey,
+      sortBy: 'oldest',
+    });
   };
 
   const handleTraceIdClick = () => {
-    toolbarContext.searchLogs({ traceId: log.traceId });
+    toolbarContext.searchLogs({ traceId: log.traceId, sortBy: 'oldest' });
   };
 
   const handleSpanIdClick = () => {
-    toolbarContext.searchLogs({ spanId: log.spanId });
+    toolbarContext.searchLogs({ spanId: log.spanId, sortBy: 'oldest' });
   };
 
   return (
