@@ -27,7 +27,9 @@ const defaultSearchParams: SpanSearchParams = {
 const PAGINATION_SIZE = 50;
 
 export default function SpanSearch() {
-  const cities = useModelStore((state) => state.cities);
+  const cities = Object.values(useModelStore((state) => state.cities)).toSorted(
+    (a, b) => a.name.localeCompare(b.name)
+  );
   const showErrorToastMessage = useToastHandlerStore(
     (state) => state.showErrorToastMessage
   );
@@ -257,10 +259,10 @@ export default function SpanSearch() {
               }
             >
               <option value="">Any</option>
-              {Object.keys(cities).length > 0 && (
+              {cities.length > 0 && (
                 <>
                   <option disabled>────────</option>
-                  {Object.values(cities).map((city) => (
+                  {cities.map((city) => (
                     <option key={city.id} value={city.name}>
                       {city.name}
                     </option>

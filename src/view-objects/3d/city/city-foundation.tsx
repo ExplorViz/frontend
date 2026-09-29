@@ -17,6 +17,8 @@ import { useEffect, useState } from 'react';
 import * as THREE from 'three';
 import { useShallow } from 'zustand/react/shallow';
 
+const DATABASE_HEIGHT_MULTIPLIER = 4;
+
 export default function CityFoundation({
   city,
   layout,
@@ -185,13 +187,31 @@ export default function CityFoundation({
     }
   };
 
+  const meshPosition = foundationPosition.clone(); // Center around city's position
+
+  const meshScale: [number, number, number] = [
+    layout.width,
+    layout.height,
+    layout.depth,
+  ];
+
+  if (city.type === 'database') {
+    // Round primitives default to radius 1 (diameter 2); multiply by 0.5 to match BoxGeometry's 1x1 footprint.
+    meshScale[0] *= 0.5;
+    meshScale[1] *= DATABASE_HEIGHT_MULTIPLIER;
+    meshScale[2] *= 0.5;
+
+    // Match base position of scaled cylinder to base of regular foundations
+    meshPosition.y += layout.height * (DATABASE_HEIGHT_MULTIPLIER * 0.5 - 0.5);
+  }
+
   return (
     <mesh
       layers={sceneLayers.Foundation}
       castShadow={castShadows}
       name={'Foundation of ' + city.name}
-      scale={[layout.width, layout.height, layout.depth]}
-      position={foundationPosition} // Center around city's position
+      scale={meshScale}
+      position={meshPosition}
       userData={{ explorvizEntity: { type: 'city', entityId: city.id } }}
       onClick={handleClickWithPrevent}
       onContextMenu={handleRightClickWithPrevent}
@@ -201,12 +221,20 @@ export default function CityFoundation({
         onPointerOut: handleOnPointerOut,
       })}
     >
-      <meshBasicMaterial
-        color={computeColor()}
-        transparent={entityOpacity < 1.0}
-        opacity={entityOpacity}
-      />
-      <boxGeometry />
+      {city.type === 'database' ? (
+        <meshStandardMaterial
+          color={computeColor()}
+          transparent={entityOpacity < 1.0}
+          opacity={entityOpacity}
+        />
+      ) : (
+        <meshBasicMaterial
+          color={computeColor()}
+          transparent={entityOpacity < 1.0}
+          opacity={entityOpacity}
+        />
+      )}
+      {city.type === 'database' ? <cylinderGeometry /> : <boxGeometry />}
       {cityLabelMargin > 1.5 && (
         <Text
           layers={sceneLayers.Label}

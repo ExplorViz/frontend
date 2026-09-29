@@ -67,7 +67,9 @@ const defaultSearchParams: LogSearchParams = {
 const PAGINATION_SIZE = 50;
 
 export default function LogSearch() {
-  const cities = useModelStore((state) => state.cities);
+  const cities = Object.values(useModelStore((state) => state.cities)).toSorted(
+    (a, b) => a.name.localeCompare(b.name)
+  );
   const showErrorToastMessage = useToastHandlerStore(
     (state) => state.showErrorToastMessage
   );
@@ -274,10 +276,10 @@ export default function LogSearch() {
               }
             >
               <option value="">Any</option>
-              {Object.keys(cities).length > 0 && (
+              {cities.length > 0 && (
                 <>
                   <option disabled>────────</option>
-                  {Object.values(cities).map((city) => (
+                  {cities.map((city) => (
                     <option key={city.id} value={city.name}>
                       {city.name}
                     </option>
@@ -596,7 +598,10 @@ function LogItem({
   };
 
   const handleSearchServiceClick = () =>
-    toolbarContext.searchLogs({ serviceName: log.serviceName });
+    toolbarContext.searchLogs({
+      serviceName: log.serviceName,
+      sortBy: 'oldest',
+    });
 
   const handleEntityClick = () => {
     if (!entity) {
@@ -609,15 +614,18 @@ function LogItem({
   };
 
   const handleSearchEntityClick = () => {
-    toolbarContext.searchLogs({ telemetryKey: log.telemetryKey });
+    toolbarContext.searchLogs({
+      telemetryKey: log.telemetryKey,
+      sortBy: 'oldest',
+    });
   };
 
   const handleTraceIdClick = () => {
-    toolbarContext.searchLogs({ traceId: log.traceId });
+    toolbarContext.searchLogs({ traceId: log.traceId, sortBy: 'oldest' });
   };
 
   const handleSpanIdClick = () => {
-    toolbarContext.searchLogs({ spanId: log.spanId });
+    toolbarContext.searchLogs({ spanId: log.spanId, sortBy: 'oldest' });
   };
 
   return (

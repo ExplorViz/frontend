@@ -285,15 +285,15 @@ export default function PopupCoordinator({
   }, []);
 
   const handleSearchSpansClick = () => {
-    let params: SpanSearchParams;
+    let params: SpanSearchParams = { sortBy: 'oldest' };
 
     if (isCity(popupData.entity)) {
-      params = { serviceName: popupData.entity.name };
+      params = { ...params, serviceName: popupData.entity.name };
     } else if (
       isFlatBaseModel(popupData.entity) &&
       popupData.entity.telemetryKey
     ) {
-      params = { telemetryKey: popupData.entity.telemetryKey };
+      params = { ...params, telemetryKey: popupData.entity.telemetryKey };
     } else {
       showErrorToastMessage('Cannot search spans for entity');
       return;
@@ -321,15 +321,15 @@ export default function PopupCoordinator({
   };
 
   const handleSearchLogsClick = () => {
-    let params: LogSearchParams;
+    let params: LogSearchParams = { sortBy: 'oldest' };
 
     if (isCity(popupData.entity)) {
-      params = { serviceName: popupData.entity.name };
+      params = { ...params, serviceName: popupData.entity.name };
     } else if (
       isFlatBaseModel(popupData.entity) &&
       popupData.entity.telemetryKey
     ) {
-      params = { telemetryKey: popupData.entity.telemetryKey };
+      params = { ...params, telemetryKey: popupData.entity.telemetryKey };
     } else {
       showErrorToastMessage('Cannot search logs for entity');
       return;

@@ -37,6 +37,9 @@ const DISTRICT_PREFIX = 'dist-';
 const BUILDING_PREFIX = 'buil-';
 const DUMMY_PREFIX = 'dumy-';
 
+const MINIMUM_CITY_WIDTH = 50;
+const MINIMUM_CITY_HEIGHT = 50;
+
 let CITY_ALGORITHM: string;
 let DISTRICT_ALGORITHM: string;
 let BUILDING_ALGORITHM: string;
@@ -314,6 +317,8 @@ function createCityGraph(
     id: CITY_PREFIX + city.id,
     children: [],
     layoutOptions: {
+      'elk.nodeSize.constraints': 'MINIMUM_SIZE',
+      'elk.nodeSize.minimum': `(${MINIMUM_CITY_WIDTH}, ${MINIMUM_CITY_HEIGHT})`,
       aspectRatio: ASPECT_RATIO,
       algorithm: DISTRICT_ALGORITHM,
       'elk.padding': getPaddingForLabelPlacement(
