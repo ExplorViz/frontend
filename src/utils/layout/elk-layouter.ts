@@ -146,32 +146,51 @@ function setVisualizationSettings() {
 }
 
 /**
- * Computes the minimum size a city needs such that its foundation label fits
- * onto the foundation without overlapping its borders. The label runs along
- * the side given by the label placement: For top/bottom it needs width, for
- * left/right it needs depth (when the label is rotated).
+ * Computes the minimum size a city needs such that its
+ * label fits without overlapping the borders. The label runs along the side
+ * given by the label placement: For top/bottom it needs width, for left/right
+ * it needs depth (when the label is rotated).
  */
-function getMinimumCitySize(city: City): { width: number; height: number } {
-  let width = MINIMUM_CITY_WIDTH;
-  let height = MINIMUM_CITY_HEIGHT;
+function getMinimumSizeForLabel(
+  name: string,
+  fontSize: number,
+  margin: number,
+  minimumSize: { width: number; height: number }
+): { width: number; height: number } {
+  let { width, height } = minimumSize;
 
-  if (CITY_LABEL_MARGIN > MIN_CITY_LABEL_MARGIN) {
-    // Reserve some space for the annotation icon which can be appended to the name
-    const labelWidth =
-      getTextWidth(city.name, getCityLabelFontSize(CITY_LABEL_MARGIN)) +
-      getTextWidth(' 📝', getCityLabelFontSize(CITY_LABEL_MARGIN));
-    const neededSpaceForLabel = labelWidth + 2 * CITY_MARGIN;
-    if (
-      DISTRICT_LABEL_PLACEMENT === 'left' ||
-      DISTRICT_LABEL_PLACEMENT === 'right'
-    ) {
-      height = Math.max(height, neededSpaceForLabel);
-    } else {
-      width = Math.max(width, neededSpaceForLabel);
-    }
+  // Reserve some space for the annotation icon which can be appended to the name
+  const labelWidth =
+    getTextWidth(name, fontSize) + getTextWidth(' 📝', fontSize);
+  const neededSpaceForLabel = labelWidth + 2 * margin;
+  if (
+    DISTRICT_LABEL_PLACEMENT === 'left' ||
+    DISTRICT_LABEL_PLACEMENT === 'right'
+  ) {
+    height = Math.max(height, neededSpaceForLabel);
+  } else {
+    width = Math.max(width, neededSpaceForLabel);
   }
 
   return { width, height };
+}
+
+function getMinimumCitySize(city: City): { width: number; height: number } {
+  const minimumSize = {
+    width: MINIMUM_CITY_WIDTH,
+    height: MINIMUM_CITY_HEIGHT,
+  };
+
+  if (CITY_LABEL_MARGIN <= MIN_CITY_LABEL_MARGIN) {
+    return minimumSize;
+  }
+
+  return getMinimumSizeForLabel(
+    city.name,
+    getCityLabelFontSize(CITY_LABEL_MARGIN),
+    CITY_MARGIN,
+    minimumSize
+  );
 }
 
 function getPaddingForLabelPlacement(

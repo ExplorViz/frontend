@@ -6,6 +6,10 @@ import { getEntityDisplayName } from 'explorviz-frontend/src/utils/annotation-ut
 import { isDistrictOpen } from 'explorviz-frontend/src/utils/city-rendering/district-close-state';
 import { District } from 'explorviz-frontend/src/utils/landscape-schemes/flat-landscape';
 import BoxLayout from 'explorviz-frontend/src/utils/layout/box-layout';
+import {
+  getOpenDistrictLabelFontSize,
+  truncateLabelToWidth,
+} from 'explorviz-frontend/src/utils/layout/label-utils';
 import { getLabelRotation } from 'explorviz-frontend/src/view-objects/utils/label-utils';
 import gsap from 'gsap';
 import { useEffect, useState } from 'react';
@@ -87,8 +91,11 @@ export default function CityDistrictLabel({
   );
 
   const fontSize = isOpen
-    ? districtLabelMargin * 0.5
-    : Math.max(layout.width * 0.1, districtLabelMargin * 0.5);
+    ? getOpenDistrictLabelFontSize(districtLabelMargin)
+    : Math.max(
+        layout.width * 0.1,
+        getOpenDistrictLabelFontSize(districtLabelMargin)
+      );
 
   // Larger labels of larger districts should be visible from a greater distance
   const sizeMultiplier = 1.0 + layout.area / 100000.0 + fontSize / 10.0;
@@ -132,6 +139,7 @@ function CityDistrictLabelContent({
     closedDistrictHeight,
     openedDistrictHeight,
     districtLabelMargin,
+    districtMargin,
     enableAnimations,
     animationDuration,
     districtLabelPlacement,
@@ -145,6 +153,7 @@ function CityDistrictLabelContent({
         state.visualizationSettings.openedDistrictHeight.value,
       districtLabelMargin:
         state.visualizationSettings.districtLabelMargin.value,
+      districtMargin: state.visualizationSettings.districtMargin.value,
       enableAnimations: state.visualizationSettings.enableAnimations.value,
       animationDuration: state.visualizationSettings.animationDuration.value,
       districtLabelPlacement:
@@ -220,6 +229,24 @@ function CityDistrictLabelContent({
     districtLabelMargin,
   ]);
 
+  // Shorten labels that would otherwise overflow the district. The label runs
+  // along the side given by the label placement, i.e., along the depth if it
+  // is placed left or right (rotated label).
+  const availableLabelWidth =
+    (districtLabelPlacement === 'left' || districtLabelPlacement === 'right'
+      ? layout.depth
+      : layout.width) -
+    2 * districtMargin;
+  const displayName = getEntityDisplayName(district.name, district.id);
+  // Everything after the name (e.g., annotation icon) is always kept
+  const labelSuffix = displayName.substring(district.name.length);
+  const labelText = truncateLabelToWidth(
+    district.name,
+    labelSuffix,
+    fontSize,
+    availableLabelWidth
+  );
+
   return (
     <Text
       layers={sceneLayers.Label}
@@ -230,7 +257,7 @@ function CityDistrictLabelContent({
       fontSize={fontSize}
       raycast={() => null}
     >
-      {getEntityDisplayName(district.name, district.id)}
+      {labelText}
     </Text>
   );
 }
