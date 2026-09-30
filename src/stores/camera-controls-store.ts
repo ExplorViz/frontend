@@ -2,8 +2,8 @@ import { CameraControls } from '@react-three/drei';
 import { SnapshotCamera } from 'explorviz-frontend/src/stores/snapshot-token';
 import { getWorldPositionOfModel } from 'explorviz-frontend/src/utils/layout-helper';
 import { useEffect } from 'react';
-import { create } from 'zustand';
 import * as THREE from 'three';
+import { create } from 'zustand';
 
 interface CameraControlsState {
   cameraControlsRef: React.RefObject<CameraControls | null> | null;
@@ -110,6 +110,7 @@ export const useCameraControlsStore = create<CameraControlsState>(
           target[2],
           enableTransition
         );
+        cameraControlsRef.current.normalizeRotations();
       }
     },
 
