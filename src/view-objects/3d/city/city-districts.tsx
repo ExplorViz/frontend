@@ -48,6 +48,11 @@ interface Args {
   city: City;
 }
 
+function killAllTweens(tweens: Map<string, gsap.core.Tween>) {
+  tweens.forEach((tween) => tween.kill());
+  tweens.clear();
+}
+
 // eslint-disable-next-line
 const CityDistricts = forwardRef<InstancedMesh2, Args>(
   ({ districtIds, layoutMap, city }, ref) => {
@@ -58,6 +63,13 @@ const CityDistricts = forwardRef<InstancedMesh2, Args>(
     const districtIdToInstanceId = useMemo(() => new Map<string, number>(), []);
 
     const meshRef = useRef<InstancedMesh2 | null>(null);
+
+    const activeTweens = useRef(new Map<string, gsap.core.Tween>());
+
+    useEffect(() => {
+      const tweens = activeTweens.current;
+      return () => killAllTweens(tweens);
+    }, []);
 
     const {
       closedDistrictIds,
@@ -252,6 +264,7 @@ const CityDistricts = forwardRef<InstancedMesh2, Args>(
         return;
       }
       if (!meshRef.current) return;
+      killAllTweens(activeTweens.current);
       meshRef.current.clearInstances();
       instanceIdToDistrictId.clear();
       districtIdToInstanceId.clear();
@@ -360,6 +373,9 @@ const CityDistricts = forwardRef<InstancedMesh2, Args>(
           ? openedDistrictHeight
           : closedDistrictHeight;
 
+        activeTweens.current.get(districtId)?.kill();
+        activeTweens.current.delete(districtId);
+
         try {
           currentMeshRef.getMatrixAt(instanceId, tempMatrix);
         } catch (err) {
@@ -367,6 +383,21 @@ const CityDistricts = forwardRef<InstancedMesh2, Args>(
           return;
         }
         tempMatrix.decompose(pos, quat, scale);
+
+        const isUninitialized =
+          pos.x === 0 &&
+          pos.y === 0 &&
+          pos.z === 0 &&
+          scale.x === 1 &&
+          scale.y === 1 &&
+          scale.z === 1;
+        if (isUninitialized) {
+          pos.set(targetPositionX, targetPositionY, targetPositionZ);
+          scale.set(targetWidth, targetHeight, targetDepth);
+          tempMatrix.compose(pos, quat, scale);
+          currentMeshRef.setMatrixAt(instanceId, tempMatrix);
+          return;
+        }
 
         // skip animation if nothing changed for the district instance
         if (
@@ -390,7 +421,7 @@ const CityDistricts = forwardRef<InstancedMesh2, Args>(
           positionZ: pos.z,
         };
 
-        gsap.to(values, {
+        const tween: gsap.core.Tween = gsap.to(values, {
           duration: animationDuration,
           // animate to target
           width: targetWidth,
@@ -399,6 +430,11 @@ const CityDistricts = forwardRef<InstancedMesh2, Args>(
           positionX: targetPositionX,
           positionY: targetPositionY,
           positionZ: targetPositionZ,
+          onComplete: () => {
+            if (activeTweens.current.get(districtId) === tween) {
+              activeTweens.current.delete(districtId);
+            }
+          },
           onUpdate: () => {
             // update local pos/scale, compose matrix and write back
             scale.x = values.width;
@@ -412,6 +448,7 @@ const CityDistricts = forwardRef<InstancedMesh2, Args>(
             currentMeshRef.setMatrixAt(instanceId, tempMatrix);
           },
         });
+        activeTweens.current.set(districtId, tween);
       });
     }, [
       closedDistrictIds,
@@ -432,14 +469,13 @@ const CityDistricts = forwardRef<InstancedMesh2, Args>(
         return district != null && layoutMap.has(districtId);
       });
 
-      const allDistrictsHaveLayout = configuredDistrictIds.length > 0;
-      if (
+      const instancesMatchDistricts =
         configuredDistrictIds.length > 0 &&
-        allDistrictsHaveLayout &&
-        districtIdToInstanceId.size > 0 &&
         districtIdToInstanceId.size === configuredDistrictIds.length &&
-        enableAnimations
-      ) {
+        configuredDistrictIds.every((districtId) =>
+          districtIdToInstanceId.has(districtId)
+        );
+      if (instancesMatchDistricts && enableAnimations) {
         animateDistrictChange();
       } else {
         computeInstances();
