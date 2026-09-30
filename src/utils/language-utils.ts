@@ -22,6 +22,10 @@ const LANGUAGE_TO_LABEL = new Map<Language, string>([
 
 const TRAILING_LANGUAGES: Language[] = ['PLAINTEXT', 'LANGUAGE_UNSPECIFIED'];
 
+const SUPPORTED_LANGUAGE_SET: ReadonlySet<string> = new Set(
+  SUPPORTED_LANGUAGES
+);
+
 /**
  * Returns a human-friendly textual representation for the given language.
  * If the input is not a valid language according to {@link Language}, undefined is returned.
@@ -42,8 +46,14 @@ export function normalizeLanguage(lang: string | undefined | null): Language {
     return 'LANGUAGE_UNSPECIFIED';
   }
 
+  // Called for every building on each visibility check and recoloring, and
+  // backend values are almost always already normalized.
+  if (SUPPORTED_LANGUAGE_SET.has(lang)) {
+    return lang as Language;
+  }
+
   const normalized = lang.trim().toUpperCase();
-  if (SUPPORTED_LANGUAGES.includes(normalized as Language)) {
+  if (SUPPORTED_LANGUAGE_SET.has(normalized)) {
     return normalized as Language;
   }
 

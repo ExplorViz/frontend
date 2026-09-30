@@ -127,6 +127,10 @@ export function isFlatLandscape(x: any): x is FlatLandscape {
   );
 }
 
+// Type guards run for every entity of a landscape, so the valid values are
+// computed once instead of allocating an array per call.
+const TYPE_OF_ANALYSIS_VALUES = new Set<unknown>(Object.values(TypeOfAnalysis));
+
 export function isFlatBaseModel(x: any): x is FlatBaseModel {
   return (
     x !== null &&
@@ -136,7 +140,7 @@ export function isFlatBaseModel(x: any): x is FlatBaseModel {
     (x.fqn === undefined || typeof x.fqn === 'string') &&
     (x.telemetryKey === undefined || typeof x.telemetryKey === 'string') &&
     (x.originOfData === undefined ||
-      Object.values(TypeOfAnalysis).includes(x.originOfData)) &&
+      TYPE_OF_ANALYSIS_VALUES.has(x.originOfData)) &&
     (x.commitComparison === undefined ||
       typeof x.commitComparison === 'string') &&
     (x.editingState === undefined || typeof x.editingState === 'string')
@@ -198,16 +202,19 @@ export function isMetricValue(x: any): x is MetricValue {
 export function getAllIdsOfFlatLandscape(
   flatLandscape: FlatLandscape
 ): string[] {
-  return Object.entries(flatLandscape)
-    .filter(
-      ([, value]) =>
-        typeof value === 'object' && !Array.isArray(value) && value !== null
-    )
-    .flatMap(([, value]) =>
-      Object.values(value as Record<string, { id: string }>)
-    )
-    .filter((item) => 'id' in item)
-    .map((item) => item.id);
+  const ids: string[] = [];
+  for (const value of Object.values(flatLandscape)) {
+    if (typeof value !== 'object' || value === null || Array.isArray(value)) {
+      continue;
+    }
+
+    for (const item of Object.values(value as Record<string, { id: string }>)) {
+      if ('id' in item) {
+        ids.push(item.id);
+      }
+    }
+  }
+  return ids;
 }
 
 export function getBuildingById(
