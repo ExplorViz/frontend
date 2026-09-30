@@ -11,6 +11,10 @@ import { emitContextMenuFromWorld } from 'explorviz-frontend/src/utils/context-m
 import calculateColorBrightness from 'explorviz-frontend/src/utils/helpers/threejs-helpers';
 import { City } from 'explorviz-frontend/src/utils/landscape-schemes/flat-landscape';
 import BoxLayout from 'explorviz-frontend/src/utils/layout/box-layout';
+import {
+  getCityLabelFontSize,
+  MIN_CITY_LABEL_MARGIN,
+} from 'explorviz-frontend/src/utils/layout/label-utils';
 import { getLabelRotation } from 'explorviz-frontend/src/view-objects/utils/label-utils';
 import { gsap } from 'gsap';
 import { useEffect, useState } from 'react';
@@ -167,26 +171,6 @@ export default function CityFoundation({
     }
   };
 
-  const getLabelPosition = (): [number, number, number] => {
-    const margin = cityLabelMargin / layout.depth / 2;
-    // Convert world-space label offset to local mesh-space because foundation is scaled.
-    const normalizedLabelOffset =
-      layout.height === 0 ? 0 : labelOffset / layout.height;
-    const yPos = 0.51 + normalizedLabelOffset; // Just above the foundation + global label offset
-    switch (districtLabelPlacement) {
-      case 'top':
-        return [0, yPos, -0.5 + margin];
-      case 'bottom':
-        return [0, yPos, 0.5 - margin];
-      case 'left':
-        return [-0.5 + margin, yPos, 0];
-      case 'right':
-        return [0.5 - margin, yPos, 0];
-      default:
-        return [0, yPos, 0.5 - margin];
-    }
-  };
-
   const meshPosition = foundationPosition.clone(); // Center around city's position
 
   const meshScale: [number, number, number] = [
@@ -204,6 +188,36 @@ export default function CityFoundation({
     // Match base position of scaled cylinder to base of regular foundations
     meshPosition.y += layout.height * (DATABASE_HEIGHT_MULTIPLIER * 0.5 - 0.5);
   }
+
+  // The label is a child of the foundation mesh, so it is removed together with
+  // it. The mesh can be scaled non-uniformly, which would distort the label.
+  // Therefore, the label is wrapped in a group with the inverse of the final
+  // mesh scale (i.e., after the database adjustments above), and its position
+  // is given in unscaled world units relative to the center of the mesh.
+  const inverseScale: [number, number, number] = [
+    meshScale[0] === 0 ? 1 : 1 / meshScale[0],
+    meshScale[1] === 0 ? 1 : 1 / meshScale[1],
+    meshScale[2] === 0 ? 1 : 1 / meshScale[2],
+  ];
+
+  // Half of the actual (scaled) mesh height, i.e., the top of the foundation
+  const halfMeshHeight = meshScale[1] / 2;
+
+  const getLabelPosition = (): [number, number, number] => {
+    const halfMargin = cityLabelMargin / 2;
+    const y = halfMeshHeight + labelOffset + 0.01 * layout.height;
+    switch (districtLabelPlacement) {
+      case 'top':
+        return [0, y, -layout.depth / 2 + halfMargin];
+      case 'left':
+        return [-layout.width / 2 + halfMargin, y, 0];
+      case 'right':
+        return [layout.width / 2 - halfMargin, y, 0];
+      case 'bottom':
+      default:
+        return [0, y, layout.depth / 2 - halfMargin];
+    }
+  };
 
   return (
     <mesh
@@ -235,18 +249,20 @@ export default function CityFoundation({
         />
       )}
       {city.type === 'database' ? <cylinderGeometry /> : <boxGeometry />}
-      {cityLabelMargin > 1.5 && (
-        <Text
-          layers={sceneLayers.Label}
-          color={foundationTextColor}
-          outlineColor={'white'}
-          position={getLabelPosition()}
-          rotation={getLabelRotation(districtLabelPlacement)}
-          fontSize={(cityLabelMargin * 0.9) / layout.depth}
-          raycast={() => null}
-        >
-          {getEntityDisplayName(city.name, city.id)}
-        </Text>
+      {cityLabelMargin > MIN_CITY_LABEL_MARGIN && (
+        <group scale={inverseScale}>
+          <Text
+            layers={sceneLayers.Label}
+            color={foundationTextColor}
+            outlineColor={'white'}
+            position={getLabelPosition()}
+            rotation={getLabelRotation(districtLabelPlacement)}
+            fontSize={getCityLabelFontSize(cityLabelMargin)}
+            raycast={() => null}
+          >
+            {getEntityDisplayName(city.name, city.id)}
+          </Text>
+        </group>
       )}
     </mesh>
   );

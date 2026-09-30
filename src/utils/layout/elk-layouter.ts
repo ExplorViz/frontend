@@ -11,6 +11,11 @@ import BoxLayout from 'explorviz-frontend/src/utils/layout/box-layout';
 import { applyCircleLayoutToClasses as applyCircleLayoutToBuildings } from 'explorviz-frontend/src/utils/layout/circle-layouter';
 import getElk from 'explorviz-frontend/src/utils/layout/elk-instance';
 import {
+  getCityLabelFontSize,
+  getTextWidth,
+  MIN_CITY_LABEL_MARGIN,
+} from 'explorviz-frontend/src/utils/layout/label-utils';
+import {
   applySpiralLayoutToClasses as applySpiralLayoutToBuildings,
   calculateSpiralSideLength,
   countCityBuildings,
@@ -101,12 +106,19 @@ function layoutCoversLandscape(
   return true;
 }
 
-function layoutInputSignature(removedDistrictIds: Set<string>): string {
+function layoutInputSignature(
+  landscape: FlatLandscape,
+  removedDistrictIds: Set<string>
+): string {
   const { visualizationSettings: vs } = useUserSettingsStore.getState();
   const settings = Object.entries(vs)
     .map(([id, setting]) => `${id}=${(setting as { value: unknown }).value}`)
     .join('|');
-  return `${settings};removed=${[...removedDistrictIds].join(',')}`;
+  // Take city labels into account as they could affect the minimum size of cities
+  const cityIdsAndLabels = Object.values(landscape.cities)
+    .map((city) => `${city.id}:${city.name}`)
+    .join(',');
+  return `${settings};removed=${[...removedDistrictIds].join(',')};cities=${cityIdsAndLabels}`;
 }
 
 function setVisualizationSettings() {
@@ -131,6 +143,35 @@ function setVisualizationSettings() {
   DISTRICT_MARGIN = vs.districtMargin.value;
   DISTRICT_HEIGHT = vs.openedDistrictHeight.value;
   DISTRICT_LABEL_PLACEMENT = vs.districtLabelPlacement.value;
+}
+
+/**
+ * Computes the minimum size a city needs such that its foundation label fits
+ * onto the foundation without overlapping its borders. The label runs along
+ * the side given by the label placement: For top/bottom it needs width, for
+ * left/right it needs depth (when the label is rotated).
+ */
+function getMinimumCitySize(city: City): { width: number; height: number } {
+  let width = MINIMUM_CITY_WIDTH;
+  let height = MINIMUM_CITY_HEIGHT;
+
+  if (CITY_LABEL_MARGIN > MIN_CITY_LABEL_MARGIN) {
+    // Reserve some space for the annotation icon which can be appended to the name
+    const labelWidth =
+      getTextWidth(city.name, getCityLabelFontSize(CITY_LABEL_MARGIN)) +
+      getTextWidth(' 📝', getCityLabelFontSize(CITY_LABEL_MARGIN));
+    const neededSpaceForLabel = labelWidth + 2 * CITY_MARGIN;
+    if (
+      DISTRICT_LABEL_PLACEMENT === 'left' ||
+      DISTRICT_LABEL_PLACEMENT === 'right'
+    ) {
+      height = Math.max(height, neededSpaceForLabel);
+    } else {
+      width = Math.max(width, neededSpaceForLabel);
+    }
+  }
+
+  return { width, height };
 }
 
 function getPaddingForLabelPlacement(
@@ -158,7 +199,7 @@ export default async function layoutLandscape(
   if (cacheable) {
     latestCacheableGeneration = generation;
   }
-  const signature = layoutInputSignature(removedDistrictIds);
+  const signature = layoutInputSignature(landscape, removedDistrictIds);
   const landscapeSignature = getFlatLandscapeStructureSignature(landscape);
 
   if (
@@ -275,10 +316,11 @@ async function computeLayout(
           vs.spiralCenterOffset.value
         );
       }
+      const minimumSize = getMinimumCitySize(city);
       landscapeGraph.children.push(
         createdFixedSizeCity(city, {
-          width: citySideLength,
-          depth: citySideLength,
+          width: Math.max(citySideLength, minimumSize.width),
+          depth: Math.max(citySideLength, minimumSize.height),
         })
       );
       // Layout without special class layout algorithm
@@ -313,12 +355,13 @@ function createCityGraph(
   city: City,
   removedDistrictIds: Set<string>
 ) {
+  const minimumSize = getMinimumCitySize(city);
   const cityGraph = {
     id: CITY_PREFIX + city.id,
     children: [],
     layoutOptions: {
       'elk.nodeSize.constraints': 'MINIMUM_SIZE',
-      'elk.nodeSize.minimum': `(${MINIMUM_CITY_WIDTH}, ${MINIMUM_CITY_HEIGHT})`,
+      'elk.nodeSize.minimum': `(${minimumSize.width}, ${minimumSize.height})`,
       aspectRatio: ASPECT_RATIO,
       algorithm: DISTRICT_ALGORITHM,
       'elk.padding': getPaddingForLabelPlacement(
@@ -353,13 +396,6 @@ function createdFixedSizeCity(
       ),
     },
   };
-
-  /*city.allContainedBuildingIds.forEach((buildingId) => {
-    const building = landscape.buildings[buildingId];
-    if (building) {
-      buildingGraph.children.push(createBuildingNode(building));
-    }
-  });*/
 
   return buildingGraph;
 }

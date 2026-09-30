@@ -168,7 +168,7 @@ export function applySpiralLayoutToClasses(
       return;
     }
 
-    cityLayout.width =
+    const spiralWidth =
       calculateSpiralSideLength(
         buildings.length,
         BUILDING_FOOTPRINT,
@@ -177,7 +177,12 @@ export function applySpiralLayoutToClasses(
         SPIRAL_CENTER_OFFSET
       ) +
       2 * CITY_MARGIN;
-    cityLayout.depth = cityLayout.width - CITY_MARGIN + CITY_LABEL_MARGIN;
+    const spiralDepth = spiralWidth - CITY_MARGIN + CITY_LABEL_MARGIN;
+
+    // The ELK layout already respects the minimum size required by the city
+    // label, which must not be undercut by the spiral size.
+    cityLayout.width = Math.max(spiralWidth, cityLayout.width);
+    cityLayout.depth = Math.max(spiralDepth, cityLayout.depth);
 
     // Calculate spacing between classes (footprint + margin)
     const spacing = BUILDING_FOOTPRINT + BUILDING_MARGIN;
