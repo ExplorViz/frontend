@@ -1,4 +1,5 @@
 import { useClusterStore } from 'explorviz-frontend/src/stores/cluster-store';
+import { useLayoutStore } from 'explorviz-frontend/src/stores/layout-store';
 import { useModelStore } from 'explorviz-frontend/src/stores/repos/model-repository';
 import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
 import { useVisualizationStore } from 'explorviz-frontend/src/stores/visualization-store';
@@ -14,16 +15,34 @@ import { useEffect } from 'react';
 import { useShallow } from 'zustand/react/shallow';
 
 /**
+ * Returns the nesting depth (level) of a district (0 for top-level districts).
+ */
+function getDistrictLevel(districtId: string): number {
+  // Use layout data if available
+  const districtLayout = useLayoutStore.getState().getLayout(districtId);
+  if (districtLayout) return districtLayout.level;
+  // Compute level from model otherwise
+  const { getDistrict } = useModelStore.getState();
+  let level = 0;
+  let parentId = getDistrict(districtId)?.parentDistrictId;
+  while (parentId) {
+    level++;
+    parentId = getDistrict(parentId)?.parentDistrictId;
+  }
+  return level;
+}
+
+/**
  * Component that automatically opens and closes districts based on
  * the distance from the camera to their cluster centroids.
- * Districts can only be automatically opened if the parent district is already opened.
- * Districts can only be automatically closed if all nested districts are already closed.
  */
 export default function AutoDistrictOpenerR3F() {
   const {
     enableClustering,
     autoOpenCloseDistricts,
     districtOpenCloseDistanceThreshold,
+    districtNestingInfluence,
+    districtSizeInfluence,
     distanceUpdateFrequency,
   } = useUserSettingsStore(
     useShallow((state) => ({
@@ -32,6 +51,10 @@ export default function AutoDistrictOpenerR3F() {
         state.visualizationSettings.autoOpenCloseDistricts.value,
       districtOpenCloseDistanceThreshold:
         state.visualizationSettings.districtOpenCloseDistanceThreshold.value,
+      districtNestingInfluence:
+        state.visualizationSettings.districtNestingInfluence.value,
+      districtSizeInfluence:
+        state.visualizationSettings.districtSizeInfluence.value,
       distanceUpdateFrequency:
         state.visualizationSettings.distanceUpdateFrequency.value,
     }))
@@ -48,6 +71,8 @@ export default function AutoDistrictOpenerR3F() {
     }))
   );
 
+  const districtLayouts = useLayoutStore((state) => state.districtLayouts);
+
   const getAllDistricts = useModelStore((state) => state.getAllDistricts);
 
   useEffect(() => {
@@ -60,6 +85,11 @@ export default function AutoDistrictOpenerR3F() {
     }
     const districts = getAllDistricts();
 
+    let maxArea = 0;
+    districtLayouts.forEach((layout) => {
+      maxArea = Math.max(maxArea, layout.area);
+    });
+
     districts.forEach((district) => {
       const distance = getCentroidDistance(district.id);
       if (distance === undefined) {
@@ -68,7 +98,18 @@ export default function AutoDistrictOpenerR3F() {
       }
 
       const isCurrentlyOpen = isDistrictOpen(district.id, closedDistrictIds);
-      const isWithinThreshold = distance <= districtOpenCloseDistanceThreshold;
+      // Nested districts get a smaller threshold, so they open later
+      // (closer to the camera) than their ancestors.
+      const districtLevel = getDistrictLevel(district.id);
+      // Larger districts get a larger threshold, so they open from farther away.
+      const layout = districtLayouts.get(district.id);
+      const relativeSize =
+        layout && maxArea > 0 ? Math.sqrt(layout.area / maxArea) : 0;
+      const effectiveThreshold =
+        districtOpenCloseDistanceThreshold *
+        Math.pow(1 - districtNestingInfluence, districtLevel) *
+        (1 + districtSizeInfluence * relativeSize);
+      const isWithinThreshold = distance <= effectiveThreshold;
 
       if (isWithinThreshold && !isCurrentlyOpen) {
         const parentIsOpen =
@@ -110,6 +151,9 @@ export default function AutoDistrictOpenerR3F() {
     autoOpenCloseDistricts,
     distanceUpdateFrequency,
     districtOpenCloseDistanceThreshold,
+    districtNestingInfluence,
+    districtSizeInfluence,
+    districtLayouts,
     getAllDistricts,
   ]);
 

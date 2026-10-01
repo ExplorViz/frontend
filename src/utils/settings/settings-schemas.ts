@@ -231,6 +231,8 @@ export type SemanticZoomSettings = {
   distanceUpdateFrequency: RangeSetting;
   autoOpenCloseDistricts: FlagSetting;
   districtOpenCloseDistanceThreshold: RangeSetting;
+  districtNestingInfluence: RangeSetting;
+  districtSizeInfluence: RangeSetting;
 };
 export type SemanticZoomSettingId = keyof SemanticZoomSettings;
 

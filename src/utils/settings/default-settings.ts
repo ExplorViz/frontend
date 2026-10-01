@@ -1006,6 +1006,34 @@ export const defaultVizSettings: VisualizationSettings = {
     },
     isRangeSetting: true,
   },
+  districtNestingInfluence: {
+    level: SettingLevel.DEFAULT,
+    value: 0.1,
+    range: { min: 0.0, max: 0.5, step: 0.005 },
+    group: 'Semantic Zoom',
+    displayName: 'District Nesting Influence',
+    description:
+      'Reduces the open/close distance threshold of nested districts. A value of 0 disables the nesting influence.',
+    dependsOn: {
+      settingId: 'autoOpenCloseDistricts',
+      value: true,
+    },
+    isRangeSetting: true,
+  },
+  districtSizeInfluence: {
+    level: SettingLevel.DEFAULT,
+    value: 2.0,
+    range: { min: 0.0, max: 5.0, step: 0.1 },
+    group: 'Semantic Zoom',
+    displayName: 'District Size Influence',
+    description:
+      'Larger districts are opened from a greater distance. A value of 0 disables the size influence.',
+    dependsOn: {
+      settingId: 'autoOpenCloseDistricts',
+      value: true,
+    },
+    isRangeSetting: true,
+  },
   // Camera settings
   cameraNear: {
     level: SettingLevel.DEFAULT,
