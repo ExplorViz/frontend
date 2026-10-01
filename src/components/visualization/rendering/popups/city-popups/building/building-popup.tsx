@@ -6,6 +6,7 @@ import {
   formatInteger,
   formatMetricValue,
 } from 'explorviz-frontend/src/components/visualization/rendering/popups/city-popups/building-metrics-utils';
+import BuildingFileHistoryTab from 'explorviz-frontend/src/components/visualization/rendering/popups/city-popups/building/building-file-history-tab';
 import PopupData from 'explorviz-frontend/src/components/visualization/rendering/popups/popup-data';
 import { useCommitTreeStateStore } from 'explorviz-frontend/src/stores/commit-tree-state';
 import { usePopupHandlerStore } from 'explorviz-frontend/src/stores/popup-handler';
@@ -303,6 +304,10 @@ export default function BuildingPopup({ popupData }: BuildingPopupProps) {
 
   const detailedData = popupData.fileDetailedData;
 
+  // After a rename the history contains changes made under different paths.
+  const historySpansSeveralPaths =
+    new Set(history?.map((e) => e.path)).size > 1;
+
   const isStatic =
     building.originOfData === TypeOfAnalysis.Static ||
     building.originOfData === TypeOfAnalysis.StaticAndRuntime;
@@ -432,45 +437,10 @@ export default function BuildingPopup({ popupData }: BuildingPopupProps) {
                 className="mt-3"
                 style={{ maxHeight: '300px', overflowY: 'auto' }}
               >
-                {history === undefined ? (
-                  <div className="text-center text-muted py-3">
-                    Loading history…
-                  </div>
-                ) : history.length === 0 ? (
-                  <div className="text-center text-muted py-3">
-                    No changes recorded
-                  </div>
-                ) : (
-                  <table className="table table-sm mb-0">
-                    <tbody>
-                      {history.map((e) => (
-                        <tr key={e.commitHash + e.action}>
-                          <td>
-                            <code>{e.commitHash.slice(0, 7)}</code>
-                          </td>
-                          <td className="text-muted small">
-                            {e.date
-                              ? new Date(e.date).toLocaleDateString()
-                              : '-'}
-                          </td>
-                          <td className="text-right">
-                            <span
-                              className={
-                                e.action === 'ADDED'
-                                  ? 'text-success'
-                                  : e.action === 'DELETED'
-                                    ? 'text-danger'
-                                    : 'text-warning'
-                              }
-                            >
-                              {e.action}
-                            </span>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                )}
+                <BuildingFileHistoryTab
+                  history={history}
+                  historySpansSeveralPaths={historySpansSeveralPaths}
+                />
               </div>
             </Tab>
           )}

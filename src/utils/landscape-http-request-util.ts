@@ -399,6 +399,14 @@ export type FileHistory = {
   commitHash: string;
   date: number;
   action: string;
+  /** Path of the file when the change was made; differs across renames. */
+  path?: string;
+  /** For the action `RENAMED`: the path the file had before the commit. */
+  renamedFrom?: string | null;
+  /** Git author display name when known. */
+  authorName?: string | null;
+  /** True when the commit is a git merge (multiple parents). */
+  mergeCommit?: boolean;
 };
 
 export function requestFileHistory(
@@ -427,4 +435,3 @@ export function requestFileHistory(
       .catch(reject);
   });
 }
-
