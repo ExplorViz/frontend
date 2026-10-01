@@ -953,7 +953,7 @@ export const defaultVizSettings: VisualizationSettings = {
   },
   labelDistanceThreshold: {
     level: SettingLevel.DEFAULT,
-    value: 5.0,
+    value: 10.0,
     range: { min: 0.0, max: 100.0, step: 0.5 },
     group: 'Semantic Zoom',
     displayName: 'Label Distance Threshold',
@@ -1008,7 +1008,7 @@ export const defaultVizSettings: VisualizationSettings = {
   },
   districtNestingInfluence: {
     level: SettingLevel.DEFAULT,
-    value: 0.1,
+    value: 0.05,
     range: { min: 0.0, max: 0.5, step: 0.005 },
     group: 'Semantic Zoom',
     displayName: 'District Nesting Influence',
