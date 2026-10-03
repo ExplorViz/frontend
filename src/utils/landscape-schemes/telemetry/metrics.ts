@@ -26,9 +26,7 @@ export interface MetricOverview {
 
 /** Represents a set of values from an OpenTelemetry metric that can be visualized in a chart. */
 export type MetricValues =
-  | SumMetricValues
-  | GaugeMetricValues
-  | HistogramMetricValues;
+  SumMetricValues | GaugeMetricValues | HistogramMetricValues;
 
 /**
  * Represents an individual datapoint in a sum time series.
