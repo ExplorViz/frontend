@@ -1,5 +1,5 @@
 import { LogSearchParams } from 'explorviz-frontend/src/hooks/fetch/useLogFetch';
-import { MetricsSearchParams } from 'explorviz-frontend/src/hooks/fetch/useMetricsFetch';
+import { MetricsSearchParams } from 'explorviz-frontend/src/hooks/fetch/useRuntimeMetricsFetch';
 import { SpanSearchParams } from 'explorviz-frontend/src/hooks/fetch/useSpanFetch';
 import { createContext } from 'react';
 
