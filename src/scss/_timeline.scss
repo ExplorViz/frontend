@@ -372,7 +372,8 @@
   border-bottom-left-radius: 0 !important;
   background-color: var(--bs-body-bg, #f8f9fa) !important;
   left: 50%;
-  transform: translate(-50%, -26px);
+  // Sit exactly on top of the bar's top edge, independent of button height
+  transform: translate(-50%, -100%);
   z-index: 490;
   min-height: var(--ev-button-min-height);
   border-radius: var(--ev-radius-md);
