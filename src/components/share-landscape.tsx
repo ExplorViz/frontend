@@ -21,6 +21,8 @@ const userService = import.meta.env.VITE_USER_SERV_URL;
 export default function ShareLandscape(args: ShareLandscapeArgs) {
   const user = useAuthStore((state) => state.user);
   const [username, setUserName] = useState<string>('');
+  const [showTooltip, setShowTooltip] = useState(false);
+  const [showPopover, setShowPopover] = useState(false);
 
   const grantAccess = async (event: React.MouseEvent) => {
     event.stopPropagation();
@@ -237,6 +239,9 @@ export default function ShareLandscape(args: ShareLandscapeArgs) {
       <OverlayTrigger
         trigger={['hover', 'focus']}
         placement="bottom"
+        // Hide the tooltip while the access popover covers it
+        show={showTooltip && !showPopover}
+        onToggle={setShowTooltip}
         overlay={<Tooltip id="tooltip-bottom">Manage access to token</Tooltip>}
       >
         <div>
@@ -244,6 +249,8 @@ export default function ShareLandscape(args: ShareLandscapeArgs) {
             trigger="click"
             placement="bottom"
             flip
+            show={showPopover}
+            onToggle={setShowPopover}
             overlay={popover}
             rootClose
           >

@@ -4,6 +4,7 @@ import { useAuthStore } from 'explorviz-frontend/src/stores/auth';
 import { LandscapeToken } from 'explorviz-frontend/src/stores/landscape-token';
 import { Popover, Tooltip } from 'react-bootstrap';
 import OverlayTrigger from 'react-bootstrap/OverlayTrigger';
+import { useState } from 'react';
 
 export default function AdditionalTokenInfo({
   token,
@@ -11,6 +12,8 @@ export default function AdditionalTokenInfo({
   token: LandscapeToken;
 }) {
   const user = useAuthStore.getInitialState().user;
+  const [showTooltip, setShowTooltip] = useState(false);
+  const [showPopover, setShowPopover] = useState(false);
 
   const handleClick = (event: any) => {
     event.stopPropagation();
@@ -54,12 +57,17 @@ export default function AdditionalTokenInfo({
       <OverlayTrigger
         placement={'bottom'}
         trigger={['hover', 'focus']}
+        // Hide the tooltip while the details popover covers it
+        show={showTooltip && !showPopover}
+        onToggle={setShowTooltip}
         overlay={<Tooltip>Show Token Details</Tooltip>}
       >
         <div>
           <OverlayTrigger
             placement={'bottom'}
             trigger="click"
+            show={showPopover}
+            onToggle={setShowPopover}
             overlay={popover}
             rootClose
           >
