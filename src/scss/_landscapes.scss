@@ -12,7 +12,8 @@
   display: flex !important;
   flex-direction: column !important;
   overflow: hidden !important;
-  margin-top: 3rem !important;
+  // The navbar is absolutely positioned on top of the page
+  margin-top: 5rem !important;
   margin-bottom: 3rem !important;
   font-size: large;
 }
@@ -76,10 +77,6 @@
 }
 
 @media (min-width: 800px) {
-  #landscape-container {
-    margin-top: 1rem !important;
-  }
-
   #tabnav {
     .nav {
       .nav-link {

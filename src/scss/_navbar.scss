@@ -66,6 +66,8 @@
   position: static;
   align-items: center;
   height: 100%;
+  // Stay in the right column when .navbar-center is hidden on small screens
+  grid-column: 3;
   justify-self: end;
   margin-top: 0.5rem;
 }
