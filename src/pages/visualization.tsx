@@ -630,15 +630,11 @@ export default function Visualization() {
                 isBottomBarMaximized ? 'Hide Bottom Bar' : 'Show Bottom Bar'
               }
             >
-              {!isBottomBarMaximized && (
-                <span className="pr-1">Bottom Bar</span>
-              )}
+              {!isBottomBarMaximized && <span>Bottom Bar</span>}
               <ChevronUpIcon
                 size="small"
                 className={
-                  isBottomBarMaximized
-                    ? 'align-middle hide-bottom-bar-icon-down'
-                    : 'align-middle'
+                  isBottomBarMaximized ? 'hide-bottom-bar-icon-down' : ''
                 }
               />
             </Button>

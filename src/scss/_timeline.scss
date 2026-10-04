@@ -378,6 +378,11 @@
   min-height: var(--ev-button-min-height);
   border-radius: var(--ev-radius-md);
   position: absolute;
+  // Center the chevron on the label; align-middle on an inline svg sits low
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.25rem;
   padding-top: 0 !important;
   padding-bottom: 0 !important;
   color: var(--bs-secondary-color, #6c757d) !important;
