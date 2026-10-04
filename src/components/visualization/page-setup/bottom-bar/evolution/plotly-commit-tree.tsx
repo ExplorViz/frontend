@@ -874,6 +874,24 @@ export default function PlotlyCommitTree({
     };
   }, []);
 
+  // Chart fills the resizable bottom bar, so redraw whenever its size changes.
+  // Depends on commitTree since the chart div is only mounted once data exists
+  useEffect(() => {
+    const plotlyDiv = plotlyCommitDivRef.current;
+    if (!plotlyDiv) {
+      return;
+    }
+
+    const resizeObserver = new ResizeObserver(() => {
+      if (chartReadyRef.current) {
+        void Plotly.Plots.resize(plotlyDiv);
+      }
+    });
+    resizeObserver.observe(plotlyDiv);
+
+    return () => resizeObserver.disconnect();
+  }, [commitTree]);
+
   const refocusChart = () => {
     const plotlyDiv =
       plotlyCommitDivRef.current as PlotlyChartDivWithLayout | null;
@@ -1057,7 +1075,10 @@ export default function PlotlyCommitTree({
           <select
             value={selectedBranchName}
             onChange={(event) => {
-              setSelectedBranchNameForRepo(selectedRepoName, event.target.value);
+              setSelectedBranchNameForRepo(
+                selectedRepoName,
+                event.target.value
+              );
             }}
             aria-label="Select branch"
             className="commit-metrics-chart-select"

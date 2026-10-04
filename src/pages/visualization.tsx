@@ -1,9 +1,10 @@
-import { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 
 import { ChevronUpIcon, SyncIcon } from '@primer/octicons-react';
 import BottomBarChartDropdown, {
   type BottomBarChartView,
 } from 'explorviz-frontend/src/components/visualization/page-setup/bottom-bar/bottom-bar-chart-dropdown';
+import BottomBarResizeHandle from 'explorviz-frontend/src/components/visualization/page-setup/bottom-bar/bottom-bar-resize-handle';
 import CommitTreeRepositorySelection from 'explorviz-frontend/src/components/visualization/page-setup/bottom-bar/evolution/commit-tree-repository-selection';
 import EvolutionRenderingButtons from 'explorviz-frontend/src/components/visualization/page-setup/bottom-bar/evolution/evolution-rendering-buttons';
 import PlotlyCommitTree from 'explorviz-frontend/src/components/visualization/page-setup/bottom-bar/evolution/plotly-commit-tree';
@@ -12,6 +13,7 @@ import SocialMetricsPanel from 'explorviz-frontend/src/components/visualization/
 import BrowserRendering from 'explorviz-frontend/src/components/visualization/rendering/browser-rendering';
 import PlayPauseButton from 'explorviz-frontend/src/components/visualization/rendering/play-pause-button';
 import XrRendering from 'explorviz-frontend/src/components/visualization/rendering/xr-rendering';
+import useBottomBarHeight from 'explorviz-frontend/src/hooks/useBottomBarHeight';
 import { useChatStore } from 'explorviz-frontend/src/stores/chat';
 import { useLocalUserStore } from 'explorviz-frontend/src/stores/collaboration/local-user';
 import { useCommitTreeStateStore } from 'explorviz-frontend/src/stores/commit-tree-state';
@@ -118,6 +120,8 @@ export default function Visualization() {
   );
   const [isBottomBarMaximized, setIsBottomBarMaximized] =
     useState<boolean>(true);
+  const [bottomBarHeight, setBottomBarHeight] = useBottomBarHeight();
+  const bottomBarChartContainer = useRef<HTMLDivElement>(null);
   const [isRuntimeTimelineSelected, setIsRuntimeTimelineSelected] =
     useState<boolean>(false);
   const [isCommitTreeSelected, setIsCommitTreeSelected] =
@@ -639,12 +643,27 @@ export default function Visualization() {
               />
             </Button>
 
+            {/* Outside the scrollable chart container so it never scrolls away */}
+            {isBottomBarMaximized && (
+              <BottomBarResizeHandle
+                height={bottomBarHeight}
+                onResize={setBottomBarHeight}
+                barRef={bottomBarChartContainer}
+              />
+            )}
+
             {/* ! Runtime / Code Charts */}
             <div
               id="bottom-bar-chart-container"
+              ref={bottomBarChartContainer}
               className={`bottom-bar-chart
                 ${isCommitTreeSelected && isBottomBarMaximized ? 'bottom-bar-chart-commitTree' : ''}
                 ${!isBottomBarMaximized ? 'bottom-bar-chart-hide' : ''}`}
+              style={
+                {
+                  '--bottom-bar-height': `${bottomBarHeight}px`,
+                } as React.CSSProperties
+              }
             >
               <BottomBarChartDropdown
                 selectedView={bottomChartView}
