@@ -1,6 +1,6 @@
 import { ReactNode } from 'react';
 
-import { XIcon } from '@primer/octicons-react';
+import { ChevronLeftIcon } from '@primer/octicons-react';
 import SidebarResizeHandle from 'explorviz-frontend/src/components/visualization/page-setup/sidebar/sidebar-resize-handle';
 
 interface ToolSelection {
@@ -27,12 +27,12 @@ export default function ToolSelection({
       <div id="toolsSidebarButtonContainer" className="foreground">
         <button
           type="button"
-          className="btn btn-outline-secondary sidebar-button"
-          title="Close Sidebar"
-          aria-label="Close"
+          className="sidebar-close-tab"
+          title="Close tools sidebar"
+          aria-label="Close tools sidebar"
           onClick={closeToolSelection}
         >
-          <XIcon size="small" verticalAlign="middle" className="align-middle" />
+          <ChevronLeftIcon size="small" />
         </button>
       </div>
     </>
