@@ -115,8 +115,8 @@ export default function ShareLandscape(args: ShareLandscapeArgs) {
               <>
                 {args.token.sharedUsersIds.map((userWithAccess) => (
                   <tr className="d-flex" key={userWithAccess}>
-                    <td className="col-10">{userWithAccess}</td>
-                    <td className="col-2">
+                    <td className="flex-grow-1">{userWithAccess}</td>
+                    <td className="flex-shrink-0">
                       <OverlayTrigger
                         placement={'bottom'}
                         trigger={['hover', 'focus']}
@@ -141,7 +141,7 @@ export default function ShareLandscape(args: ShareLandscapeArgs) {
                   </tr>
                 ))}
                 <tr className="d-flex">
-                  <td className="col-10">
+                  <td className="flex-grow-1">
                     <label htmlFor="username">Enter username</label>
                     <input
                       id="username"
@@ -152,7 +152,7 @@ export default function ShareLandscape(args: ShareLandscapeArgs) {
                       onClick={(e) => e.stopPropagation()}
                     />
                   </td>
-                  <td className="col-2">
+                  <td className="flex-shrink-0">
                     <OverlayTrigger
                       placement={'bottom'}
                       trigger={['hover', 'focus']}
@@ -177,8 +177,8 @@ export default function ShareLandscape(args: ShareLandscapeArgs) {
             ) : (
               <>
                 <tr className="d-flex">
-                  <td className="col-10">Revoke own access</td>
-                  <td className="col-2">
+                  <td className="flex-grow-1">Revoke own access</td>
+                  <td className="flex-shrink-0">
                     <OverlayTrigger
                       placement={'bottom'}
                       trigger={['hover', 'focus']}
@@ -200,8 +200,8 @@ export default function ShareLandscape(args: ShareLandscapeArgs) {
                   </td>
                 </tr>
                 <tr className="d-flex">
-                  <td className="col-10">Clone token</td>
-                  <td className="col-2">
+                  <td className="flex-grow-1">Clone token</td>
+                  <td className="flex-shrink-0">
                     <OverlayTrigger
                       placement={'bottom'}
                       trigger={['hover', 'focus']}
@@ -242,7 +242,8 @@ export default function ShareLandscape(args: ShareLandscapeArgs) {
         <div>
           <OverlayTrigger
             trigger="click"
-            placement="right"
+            placement="bottom"
+            flip
             overlay={popover}
             rootClose
           >
