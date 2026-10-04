@@ -1,5 +1,6 @@
+import { useLandscapeTokenStore } from 'explorviz-frontend/src/stores/landscape-token';
 import { useRenderingServiceStore } from 'explorviz-frontend/src/stores/rendering-service';
-import { DebugSnapshot } from 'explorviz-frontend/src/stores/repos/debug-snapshot-repository';
+import { useDebugSnapshotRepositoryStore } from 'explorviz-frontend/src/stores/repos/debug-snapshot-repository';
 import { useTimestampPollingStore } from 'explorviz-frontend/src/stores/timestamp-polling';
 import { nanosecondsToMilliseconds } from 'explorviz-frontend/src/utils/landscape-http-request-util';
 import { Timestamp } from 'explorviz-frontend/src/utils/landscape-schemes/timestamp';
@@ -22,17 +23,32 @@ const MAX_TIMESTAMP_SELECTION = 1;
 
 interface PlotlyTimelineArgs {
   timelineDataObject: TimelineDataObject;
-  debugSnapshots?: DebugSnapshot[];
-  timelineUpdateVersion?: number;
   clicked(selectedTimestamps: Map<string, Timestamp[]>): void;
 }
 
 export default function PlotlyTimeline({
   timelineDataObject,
-  debugSnapshots,
-  timelineUpdateVersion,
   clicked,
 }: PlotlyTimelineArgs) {
+  //#region Store picks
+
+  const landscapeToken = useLandscapeTokenStore((state) => state.token);
+  const landscapeTokenToDebugSnapshotMap = useDebugSnapshotRepositoryStore(
+    (state) => state.landscapeTokenToDebugSnapshotMap
+  );
+
+  const debugSnapshots = Array.from(
+    landscapeTokenToDebugSnapshotMap
+      .get(landscapeToken?.value ?? '')
+      ?.values() ?? []
+  );
+
+  const timelineUpdateVersion = useRenderingServiceStore(
+    (state) => state.timelineUpdateVersion
+  );
+
+  //#endregion
+
   //#region Refs and Effects
 
   const markerStateMap = useRef<Map<string, IMarkerStates>>(new Map());

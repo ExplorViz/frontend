@@ -17,15 +17,6 @@ interface DebugSnapshotRepositoryState {
     landscapeToken: string,
     debugSnapshot: DebugSnapshot
   ) => void;
-
-  getDebugSnapshotsByLandscapeToken: (
-    landscapeToken: string
-  ) => DebugSnapshot[] | undefined;
-
-  getDebugSnapshotByLandscapeTokenAndTimestamp: (
-    landscapeToken: string,
-    timestamp: bigint
-  ) => DebugSnapshot | undefined;
 }
 
 export const useDebugSnapshotRepositoryStore =
@@ -50,20 +41,5 @@ export const useDebugSnapshotRepositoryStore =
 
       snapshots.set(debugSnapshot.timestamp.epochNano, debugSnapshot);
       outerMap.set(landscapeToken, snapshots);
-    },
-
-    getDebugSnapshotsByLandscapeToken: (landscapeToken: string) => {
-      const snapshotsMap =
-        get().landscapeTokenToDebugSnapshotMap.get(landscapeToken);
-      return snapshotsMap ? Array.from(snapshotsMap.values()) : [];
-    },
-
-    getDebugSnapshotByLandscapeTokenAndTimestamp: (
-      landscapeToken: string,
-      epochNano: bigint
-    ) => {
-      return get()
-        .landscapeTokenToDebugSnapshotMap.get(landscapeToken)
-        ?.get(epochNano);
     },
   }));

@@ -24,7 +24,6 @@ interface CommitTreeStateState {
   _xAxisPlacement: CommitXAxisPlacement;
   _commitTreeFilters: CommitTreeFilters;
   getSelectedCommits: () => Map<string, Commit[]>;
-  getCurrentSelectedRepositoryName: () => string;
   getSelectedBranchNameForRepo: (repoName: string) => string | undefined;
   getRepoNameToSelectedBranchNameMap: () => Map<string, string>;
   getXAxisPlacement: () => CommitXAxisPlacement;
@@ -32,10 +31,7 @@ interface CommitTreeStateState {
   setCommitTreeFilters: (filters: CommitTreeFilters) => void;
   resetCommitTreeFilters: () => void;
   setXAxisPlacement: (placement: CommitXAxisPlacement) => void;
-  setSelectedBranchNameForRepo: (
-    repoName: string,
-    branchName: string
-  ) => void;
+  setSelectedBranchNameForRepo: (repoName: string, branchName: string) => void;
   setDefaultState: (
     currentRepoNameCommitTreeMap: RepoNameCommitTreeMap,
     commit1: string,
@@ -128,10 +124,6 @@ export const useCommitTreeStateStore = create<CommitTreeStateState>(
 
     getSelectedCommits: () => {
       return get()._selectedCommits;
-    },
-
-    getCurrentSelectedRepositoryName: () => {
-      return get()._currentSelectedRepositoryName;
     },
 
     getSelectedBranchNameForRepo: (repoName: string) => {

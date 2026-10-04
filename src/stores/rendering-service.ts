@@ -233,9 +233,8 @@ export const useRenderingServiceStore = create<RenderingServiceState>(
     _applyEvolutionLayoutFilter: (
       flatLandscape: FlatLandscape
     ): FlatLandscape => {
-      const repositoryName = useCommitTreeStateStore
-        .getState()
-        .getCurrentSelectedRepositoryName();
+      const repositoryName =
+        useCommitTreeStateStore.getState()._currentSelectedRepositoryName;
       const selectedCommits = useCommitTreeStateStore
         .getState()
         .getSelectedCommits();
@@ -268,9 +267,8 @@ export const useRenderingServiceStore = create<RenderingServiceState>(
         return;
       }
 
-      const repositoryName = useCommitTreeStateStore
-        .getState()
-        .getCurrentSelectedRepositoryName();
+      const repositoryName =
+        useCommitTreeStateStore.getState()._currentSelectedRepositoryName;
       const evolutionLandscapeMap = useEvolutionDataRepositoryStore
         .getState()
         .getRepoNameToFlatLandscapeMap();
@@ -302,9 +300,8 @@ export const useRenderingServiceStore = create<RenderingServiceState>(
       try {
         const repoNameToSelectedCommits: Map<string, SelectedCommit[]> =
           useCommitTreeStateStore.getState().getSelectedCommits();
-        const currentSelectedRepo = useCommitTreeStateStore
-          .getState()
-          .getCurrentSelectedRepositoryName();
+        const currentSelectedRepo =
+          useCommitTreeStateStore.getState()._currentSelectedRepositoryName;
 
         // Always pause when the selected commits change
         get().pauseVisualizationUpdating(false);

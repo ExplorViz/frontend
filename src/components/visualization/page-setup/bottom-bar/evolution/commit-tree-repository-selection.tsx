@@ -1,15 +1,16 @@
 import { useCommitTreeStateStore } from 'explorviz-frontend/src/stores/commit-tree-state';
-import { RepoNameCommitTreeMap } from 'explorviz-frontend/src/utils/evolution-schemes/evolution-data';
+import { useEvolutionDataRepositoryStore } from 'explorviz-frontend/src/stores/repos/evolution-data-repository';
 import { useEffect } from 'react';
 import Button from 'react-bootstrap/Button';
 
-export default function CommitTreeRepositorySelection({
-  repoNameCommitTreeMap,
-  selectedRepoName,
-}: {
-  repoNameCommitTreeMap: RepoNameCommitTreeMap;
-  selectedRepoName: string;
-}) {
+export default function CommitTreeRepositorySelection() {
+  const selectedRepoName = useCommitTreeStateStore(
+    (state) => state._currentSelectedRepositoryName
+  );
+  const repoNameCommitTreeMap = useEvolutionDataRepositoryStore(
+    (state) => state._repoNameCommitTreeMap
+  );
+
   useEffect(() => {
     const repoNames = Array.from(repoNameCommitTreeMap.keys());
 

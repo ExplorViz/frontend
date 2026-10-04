@@ -1,9 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-
-export type BottomBarChartView =
-  | 'commit-chart'
-  | 'runtime-chart'
-  | 'social-metrics';
+import { BottomBarChartView } from './bottom-bar-context';
 
 const CHART_VIEWS: { id: BottomBarChartView; label: string }[] = [
   { id: 'commit-chart', label: 'Commit Chart' },

@@ -6,6 +6,8 @@ import CommitChartFilters from 'explorviz-frontend/src/components/visualization/
 import CommitChartSearch from 'explorviz-frontend/src/components/visualization/page-setup/bottom-bar/evolution/commit-chart-search';
 import CommitStatisticsWindow from 'explorviz-frontend/src/components/visualization/page-setup/bottom-bar/evolution/commit-statistics-window';
 import { useCommitTreeStateStore } from 'explorviz-frontend/src/stores/commit-tree-state';
+import { useRenderingServiceStore } from 'explorviz-frontend/src/stores/rendering-service';
+import { useEvolutionDataRepositoryStore } from 'explorviz-frontend/src/stores/repos/evolution-data-repository';
 import {
   addCommitToSelection,
   BranchChartSeries,
@@ -49,18 +51,6 @@ import {
   type RefObject,
 } from 'react';
 import Button from 'react-bootstrap/Button';
-
-interface PlotlyCommitTreeArgs {
-  repoNameCommitTreeMap: RepoNameCommitTreeMap;
-  selectedRepoName: string;
-  selectedCommits: Map<string, Commit[]>;
-  triggerVizRenderingForSelectedCommits(): void;
-  setSelectedCommits(newSelectedCommits: Map<string, Commit[]>): void;
-  getCloneOfRepoNameAndBranchNameToColorMap(): Map<string, string>;
-  setRepoNameAndBranchNameToColorMap(
-    newRepoNameAndBranchNameToColorMap: Map<string, string>
-  ): void;
-}
 
 const MAX_COMMIT_SELECTION_PER_APP = 2;
 const COMMIT_UNSELECTED_SIZE = 8;
@@ -351,15 +341,25 @@ function attachCommitChartListeners(
   });
 }
 
-export default function PlotlyCommitTree({
-  repoNameCommitTreeMap,
-  selectedRepoName,
-  selectedCommits,
-  triggerVizRenderingForSelectedCommits,
-  setSelectedCommits,
-}: PlotlyCommitTreeArgs) {
+export default function PlotlyCommitTree() {
   const plotlyCommitDivRef = useRef<HTMLDivElement>(null);
   const lastAnimationBarXRef = useRef<number | null>(null);
+
+  const triggerVizRenderingForSelectedCommits = useRenderingServiceStore(
+    (state) => state.triggerRenderingForSelectedCommits
+  );
+  const repoNameCommitTreeMap = useEvolutionDataRepositoryStore(
+    (state) => state._repoNameCommitTreeMap
+  );
+  const selectedRepoName = useCommitTreeStateStore(
+    (state) => state._currentSelectedRepositoryName
+  );
+  const selectedCommits = useCommitTreeStateStore(
+    (state) => state._selectedCommits
+  );
+  const setSelectedCommits = useCommitTreeStateStore(
+    (state) => state.setSelectedCommits
+  );
   const repoNameToSelectedBranchNameMap = useCommitTreeStateStore(
     (state) => state._repoNameToSelectedBranchNameMap
   );
@@ -1057,7 +1057,10 @@ export default function PlotlyCommitTree({
           <select
             value={selectedBranchName}
             onChange={(event) => {
-              setSelectedBranchNameForRepo(selectedRepoName, event.target.value);
+              setSelectedBranchNameForRepo(
+                selectedRepoName,
+                event.target.value
+              );
             }}
             aria-label="Select branch"
             className="commit-metrics-chart-select"

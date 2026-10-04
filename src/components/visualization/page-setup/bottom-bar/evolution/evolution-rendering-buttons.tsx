@@ -1,21 +1,21 @@
 import BuildingComparisonFilterDropdown from 'explorviz-frontend/src/components/visualization/page-setup/bottom-bar/evolution/building-comparison-filter-dropdown';
 import { useCommitTreeStateStore } from 'explorviz-frontend/src/stores/commit-tree-state';
 import { useRenderingServiceStore } from 'explorviz-frontend/src/stores/rendering-service';
+import { useEvolutionDataRepositoryStore } from 'explorviz-frontend/src/stores/repos/evolution-data-repository';
 import { useVisibilityServiceStore } from 'explorviz-frontend/src/stores/visibility-service';
 import { BuildingComparisonVisibility } from 'explorviz-frontend/src/utils/city-rendering/building-comparison-visibility';
 import {
   branchHasAnalyzedCommits,
   buildNewestCommitSelectionMap,
 } from 'explorviz-frontend/src/utils/evolution-data-helpers';
-import { RepoNameCommitTreeMap } from 'explorviz-frontend/src/utils/evolution-schemes/evolution-data';
 import Button from 'react-bootstrap/Button';
 import { useShallow } from 'zustand/react/shallow';
 
-export default function EvolutionRenderingButtons({
-  repoNameCommitTreeMap,
-}: {
-  repoNameCommitTreeMap: RepoNameCommitTreeMap;
-}) {
+export default function EvolutionRenderingButtons() {
+  const repoNameCommitTreeMap = useEvolutionDataRepositoryStore(
+    (state) => state._repoNameCommitTreeMap
+  );
+
   const commitTreeState = useCommitTreeStateStore(
     useShallow((state) => ({
       resetSelectedCommits: state.resetSelectedCommits,
