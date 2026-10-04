@@ -18,13 +18,20 @@
     }
   }
 
+  // Hover styles go on the cells, not the rows: Safari paints row
+  // backgrounds into each cell and leaves stale patches while they animate,
+  // and it doesn't render box-shadow on rows at all
   tbody {
     tr {
-      transition: background-color 0.2s ease;
       border-bottom: 1px solid var(--bs-border-color);
 
-      &:hover {
-        transform: none;
+      > td,
+      > th {
+        transition: background-color 0.2s ease;
+      }
+
+      &:hover > td,
+      &:hover > th {
         background-color: var(--bs-light);
       }
 
@@ -122,25 +129,26 @@
 
 .token-selection-row {
   cursor: pointer;
-  transition:
-    background-color var(--ev-transition-fast),
-    box-shadow var(--ev-transition-fast);
 
-  &:hover,
   &:focus-visible {
     outline: none;
-    background-color: rgba(13, 110, 253, 0.08) !important;
-    /* Stronger hover cue without changing text metrics/column widths */
-    box-shadow:
-      inset 3px 0 0 rgba(13, 110, 253, 0.75),
-      inset 0 0 0 1px rgba(13, 110, 253, 0.2);
   }
 
   &:hover > td,
-  &:hover > th,
-  &:focus-visible > td,
-  &:focus-visible > th {
+  &:focus-visible > td {
     background-color: rgba(13, 110, 253, 0.08) !important;
+  }
+
+  // Accent bar on the first cell; keep Bootstrap's stripe shadow underneath
+  &:hover > td:first-child,
+  &:focus-visible > td:first-child {
+    box-shadow:
+      inset 3px 0 0 rgba(13, 110, 253, 0.75),
+      inset 0 0 0 9999px
+        var(
+          --bs-table-bg-state,
+          var(--bs-table-bg-type, var(--bs-table-accent-bg))
+        );
   }
 }
 
