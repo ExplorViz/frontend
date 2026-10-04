@@ -322,6 +322,8 @@
   opacity: 0;
   margin-bottom: 0;
   overflow: hidden;
+  // Otherwise the border keeps the opaque container 1px tall when hidden
+  border-top-width: 0;
 }
 
 #bottom-bar-chart-button-div,
