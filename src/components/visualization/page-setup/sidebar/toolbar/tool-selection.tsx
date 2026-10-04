@@ -1,7 +1,7 @@
 import { ReactNode } from 'react';
 
 import { XIcon } from '@primer/octicons-react';
-import SidebarResizer from 'explorviz-frontend/src/components/visualization/page-setup/sidebar/sidebar-resizer';
+import SidebarResizeHandle from 'explorviz-frontend/src/components/visualization/page-setup/sidebar/sidebar-resize-handle';
 
 interface ToolSelection {
   closeToolSelection: () => void;
@@ -14,7 +14,16 @@ export default function ToolSelection({
 }: ToolSelection) {
   return (
     <>
-      <div className="sidebar-card-container pr-3 pl-3 pb-3">{children}</div>
+      <div className="sidebar-card-container pr-3 pl-3 pb-3">
+        <div className="sidebar-content">
+          {children}
+          <SidebarResizeHandle
+            sidebarId="toolselection"
+            side="left"
+            ariaLabel="Resize tools sidebar"
+          />
+        </div>
+      </div>
       <div id="toolsSidebarButtonContainer" className="foreground">
         <button
           type="button"
@@ -25,12 +34,6 @@ export default function ToolSelection({
         >
           <XIcon size="small" verticalAlign="middle" className="align-middle" />
         </button>
-        <SidebarResizer
-          buttonName="toolSidebarDragButton"
-          containerName="toolsSidebarButtonContainer"
-          sidebarName="toolselection"
-          expandToRight={true}
-        />
       </div>
     </>
   );

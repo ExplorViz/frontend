@@ -95,8 +95,8 @@
 .sidebar {
   display: flex;
   flex-direction: row !important;
-  flex: 0 0 33.333333%;
-  max-width: 33.333333%;
+  // Set from the user-resizable width, see sidebar-resize-handle.tsx
+  max-width: var(--sidebar-width, 33.333333%);
   position: absolute !important;
   height: 100%;
   right: 0;
@@ -107,6 +107,30 @@
 .sidebar.left {
   left: 0;
   right: auto;
+}
+
+.sidebar-content {
+  position: relative;
+}
+
+// Spans the cards rather than the full sidebar height, so it neither covers
+// the canvas below short cards nor scrolls away with long ones
+.sidebar-resize-handle {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 6px;
+  pointer-events: all;
+  // Above the sidebar card, which is positioned
+  z-index: 1;
+}
+
+.sidebar.left .sidebar-resize-handle {
+  right: 0;
+}
+
+.sidebar.right .sidebar-resize-handle {
+  left: 0;
 }
 
 .sidebar-card-container {
@@ -142,10 +166,6 @@
 
 .sidebar-button {
   pointer-events: all;
-}
-
-.sidebar-resize-button {
-  cursor: ew-resize;
 }
 
 #sidebarButtonContainer,
