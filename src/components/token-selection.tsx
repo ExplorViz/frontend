@@ -2,13 +2,20 @@ import {
   CheckIcon,
   CodeIcon,
   DesktopDownloadIcon,
+  InfoIcon,
+  KebabHorizontalIcon,
   PencilIcon,
   PlusIcon,
+  ShareAndroidIcon,
   TrashIcon,
   XIcon,
 } from '@primer/octicons-react';
-import AdditionalTokenInfo from 'explorviz-frontend/src/components/additional-token-info';
-import ShareLandscape from 'explorviz-frontend/src/components/share-landscape';
+import AdditionalTokenInfo, {
+  TokenDetails,
+} from 'explorviz-frontend/src/components/additional-token-info';
+import ShareLandscape, {
+  ManageAccess,
+} from 'explorviz-frontend/src/components/share-landscape';
 import { useAuthStore } from 'explorviz-frontend/src/stores/auth';
 import {
   LandscapeToken,
@@ -22,7 +29,14 @@ import {
 } from 'explorviz-frontend/src/utils/evolution-schemes/evolution-data';
 import JSZip from 'jszip';
 import React, { useEffect, useRef, useState } from 'react';
-import { Button, Modal, OverlayTrigger, Tooltip } from 'react-bootstrap';
+import { createPortal } from 'react-dom';
+import {
+  Button,
+  Dropdown,
+  Modal,
+  OverlayTrigger,
+  Tooltip,
+} from 'react-bootstrap';
 interface TokenSelectionArgs {
   tokens: LandscapeToken[];
   openTokenCreationModal(): void;
@@ -50,6 +64,11 @@ export default function TokenSelection({
   const [tokenToDelete, setTokenToDelete] = useState<LandscapeToken | null>(
     null
   );
+  // Small screens show details and access management in modals, since the
+  // popovers anchored to the row icons are not available there
+  const [detailsToken, setDetailsToken] = useState<LandscapeToken | null>(null);
+  const [manageAccessToken, setManageAccessToken] =
+    useState<LandscapeToken | null>(null);
   const editAliasInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -289,7 +308,7 @@ export default function TokenSelection({
         className="table table-striped explorviz-table"
       >
         <thead>
-          <tr className="token-header-row">
+          <tr className="token-header-row d-none d-md-table-row">
             <th
               style={{ cursor: 'ns-resize' }}
               scope="col"
@@ -335,7 +354,7 @@ export default function TokenSelection({
                   }
                 }}
               >
-                <td data-label="Alias">
+                <td>
                   {editingTokenValue === token.value ? (
                     <div className="d-flex gap-1 align-items-center">
                       <input
@@ -366,13 +385,18 @@ export default function TokenSelection({
                       </button>
                     </div>
                   ) : (
-                    token.alias
+                    <>
+                      {token.alias}
+                      <div className="token-mobile-timestamp d-md-none">
+                        {new Date(token.created).toLocaleString()}
+                      </div>
+                    </>
                   )}
                 </td>
-                <td className="token-timestamp-cell">
+                <td className="token-timestamp-cell d-none d-md-table-cell">
                   {new Date(token.created).toLocaleString()}
                 </td>
-                <td className="token-button-cell">
+                <td className="token-button-cell d-none d-md-table-cell">
                   <ul className="token-selection-icons">
                     <li>
                       <OverlayTrigger
@@ -459,11 +483,69 @@ export default function TokenSelection({
                     </li>
                   </ul>
                 </td>
+                <td className="token-actions-cell d-md-none">
+                  <Dropdown align="end">
+                    <Dropdown.Toggle
+                      as="button"
+                      type="button"
+                      className="button-svg-with-hover token-actions-toggle"
+                      aria-label="Token actions"
+                    >
+                      <KebabHorizontalIcon size="small" />
+                    </Dropdown.Toggle>
+                    {/* Portalled so the table's scroll container neither clips
+                        nor flips the menu */}
+                    {createPortal(
+                      <Dropdown.Menu>
+                        <Dropdown.Item
+                          as="button"
+                          onClick={() => openRepoAnalysisModal(token)}
+                        >
+                          <CodeIcon size="small" className="me-2" />
+                          Trigger analysis
+                        </Dropdown.Item>
+                        <Dropdown.Item
+                          as="button"
+                          onClick={() => setDetailsToken(token)}
+                        >
+                          <InfoIcon size="small" className="me-2" />
+                          Show token details
+                        </Dropdown.Item>
+                        {user?.sub === token.ownerId && (
+                          <>
+                            <Dropdown.Item
+                              as="button"
+                              onClick={() => startEditing(token)}
+                            >
+                              <PencilIcon size="small" className="me-2" />
+                              Edit alias
+                            </Dropdown.Item>
+                            <Dropdown.Item
+                              as="button"
+                              onClick={() => setTokenToDelete(token)}
+                            >
+                              <TrashIcon size="small" className="me-2" />
+                              Delete token
+                            </Dropdown.Item>
+                          </>
+                        )}
+                        <Dropdown.Item
+                          as="button"
+                          onClick={() => setManageAccessToken(token)}
+                        >
+                          <ShareAndroidIcon size="small" className="me-2" />
+                          Manage access
+                        </Dropdown.Item>
+                      </Dropdown.Menu>,
+                      document.body
+                    )}
+                  </Dropdown>
+                </td>
               </tr>
             ))
           ) : (
             <tr>
-              <td colSpan={3} className="text-center">
+              <td colSpan={4} className="text-center">
                 There are no tokens linked to your account at the moment.
               </td>
             </tr>
@@ -471,7 +553,7 @@ export default function TokenSelection({
         </tbody>
         <tfoot>
           <tr>
-            <td colSpan={3} className="p-1">
+            <td colSpan={4} className="p-1">
               <div className="d-flex flex-row justify-content-center gap-2">
                 <Button
                   variant="primary"
@@ -507,6 +589,27 @@ export default function TokenSelection({
             Delete
           </Button>
         </Modal.Footer>
+      </Modal>
+      <Modal show={detailsToken !== null} onHide={() => setDetailsToken(null)}>
+        <Modal.Header closeButton>
+          <Modal.Title>{detailsToken?.alias}</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          {detailsToken && <TokenDetails token={detailsToken} />}
+        </Modal.Body>
+      </Modal>
+      <Modal
+        show={manageAccessToken !== null}
+        onHide={() => setManageAccessToken(null)}
+      >
+        <Modal.Header closeButton>
+          <Modal.Title>Manage Access</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          {manageAccessToken && (
+            <ManageAccess token={manageAccessToken} reload={reload} />
+          )}
+        </Modal.Body>
       </Modal>
     </>
   );

@@ -6,12 +6,43 @@ import { Popover, Tooltip } from 'react-bootstrap';
 import OverlayTrigger from 'react-bootstrap/OverlayTrigger';
 import { useState } from 'react';
 
+export function TokenDetails({ token }: { token: LandscapeToken }) {
+  const user = useAuthStore.getInitialState().user;
+
+  return (
+    <table className="token-info-table">
+      <tbody>
+        <tr>
+          <td>Owner</td>
+          <td>{token.ownerId === user?.sub ? 'You' : token.ownerId}</td>
+          <td></td>
+        </tr>
+        <tr>
+          <td>ID</td>
+          <td>{token.value}</td>
+          <td>
+            <CopyButton text={token.value} />
+          </td>
+        </tr>
+        {token.secret && (
+          <tr>
+            <td>Secret</td>
+            <td>{token.secret}</td>
+            <td>
+              <CopyButton text={token.secret} />
+            </td>
+          </tr>
+        )}
+      </tbody>
+    </table>
+  );
+}
+
 export default function AdditionalTokenInfo({
   token,
 }: {
   token: LandscapeToken;
 }) {
-  const user = useAuthStore.getInitialState().user;
   const [showTooltip, setShowTooltip] = useState(false);
   const [showPopover, setShowPopover] = useState(false);
 
@@ -19,31 +50,7 @@ export default function AdditionalTokenInfo({
     <Popover title={token.alias} onClick={(e) => e.stopPropagation()}>
       <Popover.Header>{token.alias}</Popover.Header>
       <Popover.Body>
-        <table className="token-info-table">
-          <tbody>
-            <tr>
-              <td>Owner</td>
-              <td>{token.ownerId === user?.sub ? 'You' : token.ownerId}</td>
-              <td></td>
-            </tr>
-            <tr>
-              <td>ID</td>
-              <td>{token.value}</td>
-              <td>
-                <CopyButton text={token.value} />
-              </td>
-            </tr>
-            {token.secret && (
-              <tr>
-                <td>Secret</td>
-                <td>{token.secret}</td>
-                <td>
-                  <CopyButton text={token.secret} />
-                </td>
-              </tr>
-            )}
-          </tbody>
-        </table>
+        <TokenDetails token={token} />
       </Popover.Body>
     </Popover>
   );

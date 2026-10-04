@@ -18,11 +18,9 @@ interface ShareLandscapeArgs {
 
 const userService = import.meta.env.VITE_USER_SERV_URL;
 
-export default function ShareLandscape(args: ShareLandscapeArgs) {
+export function ManageAccess(args: ShareLandscapeArgs) {
   const user = useAuthStore((state) => state.user);
-  const [username, setUserName] = useState<string>('');
-  const [showTooltip, setShowTooltip] = useState(false);
-  const [showPopover, setShowPopover] = useState(false);
+  const [username, setUsername] = useState<string>('');
 
   const grantAccess = async (event: React.MouseEvent) => {
     event.stopPropagation();
@@ -98,6 +96,120 @@ export default function ShareLandscape(args: ShareLandscapeArgs) {
     });
   };
 
+  return (
+    <table className="table table-striped" style={{ width: '100%' }}>
+      <tbody>
+        {args.token.ownerId === user!.sub ? (
+          <>
+            {args.token.sharedUsersIds.map((userWithAccess) => (
+              <tr className="d-flex" key={userWithAccess}>
+                <td className="flex-grow-1">{userWithAccess}</td>
+                <td className="flex-shrink-0">
+                  <OverlayTrigger
+                    placement={'bottom'}
+                    trigger={['hover', 'focus']}
+                    overlay={
+                      <Tooltip id="tooltip-bottom">Revoke access</Tooltip>
+                    }
+                  >
+                    <button
+                      className="button-svg-with-hover"
+                      type="button"
+                      onClick={(event) => revokeAccess(userWithAccess, event)}
+                    >
+                      <DashIcon size="small" className="octicon align-middle" />
+                    </button>
+                  </OverlayTrigger>
+                </td>
+              </tr>
+            ))}
+            <tr className="d-flex">
+              <td className="flex-grow-1">
+                <label htmlFor="username">Enter username</label>
+                <input
+                  id="username"
+                  className="form-control"
+                  value={username}
+                  placeholder="github|12345"
+                  onChange={(e) => setUsername(e.target.value)}
+                  onClick={(e) => e.stopPropagation()}
+                />
+              </td>
+              <td className="flex-shrink-0">
+                <OverlayTrigger
+                  placement={'bottom'}
+                  trigger={['hover', 'focus']}
+                  overlay={<Tooltip id="tooltip-bottom">Grant access</Tooltip>}
+                >
+                  <button
+                    className="button-svg-with-hover"
+                    type="button"
+                    onClick={(event) => grantAccess(event)}
+                  >
+                    <PlusIcon size="small" className="octicon align-middle" />
+                  </button>
+                </OverlayTrigger>
+              </td>
+            </tr>
+          </>
+        ) : (
+          <>
+            <tr className="d-flex">
+              <td className="flex-grow-1">Revoke own access</td>
+              <td className="flex-shrink-0">
+                <OverlayTrigger
+                  placement={'bottom'}
+                  trigger={['hover', 'focus']}
+                  overlay={
+                    <Tooltip id="tooltip-bottom">Revoke own access</Tooltip>
+                  }
+                >
+                  <button
+                    className="button-svg-with-hover"
+                    type="button"
+                    onClick={(event) => revokeAccess(user!.sub, event)}
+                  >
+                    <TrashIcon size="small" className="octicon align-middle" />
+                  </button>
+                </OverlayTrigger>
+              </td>
+            </tr>
+            <tr className="d-flex">
+              <td className="flex-grow-1">Clone token</td>
+              <td className="flex-shrink-0">
+                <OverlayTrigger
+                  placement={'bottom'}
+                  trigger={['hover', 'focus']}
+                  overlay={
+                    <Tooltip id="tooltip-bottom">
+                      Clone token to gain write access
+                    </Tooltip>
+                  }
+                >
+                  <button
+                    className="button-svg-with-hover"
+                    type="button"
+                    onClick={(event) => cloneToken(user!.sub, event)}
+                  >
+                    <RepoForkedIcon
+                      size="small"
+                      className="octicon align-middle"
+                    />
+                  </button>
+                </OverlayTrigger>
+              </td>
+            </tr>
+          </>
+        )}
+      </tbody>
+    </table>
+  );
+}
+
+export default function ShareLandscape(args: ShareLandscapeArgs) {
+  const [showTooltip, setShowTooltip] = useState(false);
+  const [showPopover, setShowPopover] = useState(false);
+
   const popover = (
     <Popover
       id="share-landscape-popover"
@@ -106,125 +218,7 @@ export default function ShareLandscape(args: ShareLandscapeArgs) {
     >
       <Popover.Header>Manage Access</Popover.Header>
       <Popover.Body>
-        <table className="table table-striped" style={{ width: '100%' }}>
-          <tbody>
-            {args.token.ownerId === user!.sub ? (
-              <>
-                {args.token.sharedUsersIds.map((userWithAccess) => (
-                  <tr className="d-flex" key={userWithAccess}>
-                    <td className="flex-grow-1">{userWithAccess}</td>
-                    <td className="flex-shrink-0">
-                      <OverlayTrigger
-                        placement={'bottom'}
-                        trigger={['hover', 'focus']}
-                        overlay={
-                          <Tooltip id="tooltip-bottom">Revoke access</Tooltip>
-                        }
-                      >
-                        <button
-                          className="button-svg-with-hover"
-                          type="button"
-                          onClick={(event) =>
-                            revokeAccess(userWithAccess, event)
-                          }
-                        >
-                          <DashIcon
-                            size="small"
-                            className="octicon align-middle"
-                          />
-                        </button>
-                      </OverlayTrigger>
-                    </td>
-                  </tr>
-                ))}
-                <tr className="d-flex">
-                  <td className="flex-grow-1">
-                    <label htmlFor="username">Enter username</label>
-                    <input
-                      id="username"
-                      className="form-control"
-                      value={username}
-                      placeholder="github|12345"
-                      onChange={(e) => setUserName(e.target.value)}
-                      onClick={(e) => e.stopPropagation()}
-                    />
-                  </td>
-                  <td className="flex-shrink-0">
-                    <OverlayTrigger
-                      placement={'bottom'}
-                      trigger={['hover', 'focus']}
-                      overlay={
-                        <Tooltip id="tooltip-bottom">Grant access</Tooltip>
-                      }
-                    >
-                      <button
-                        className="button-svg-with-hover"
-                        type="button"
-                        onClick={(event) => grantAccess(event)}
-                      >
-                        <PlusIcon
-                          size="small"
-                          className="octicon align-middle"
-                        />
-                      </button>
-                    </OverlayTrigger>
-                  </td>
-                </tr>
-              </>
-            ) : (
-              <>
-                <tr className="d-flex">
-                  <td className="flex-grow-1">Revoke own access</td>
-                  <td className="flex-shrink-0">
-                    <OverlayTrigger
-                      placement={'bottom'}
-                      trigger={['hover', 'focus']}
-                      overlay={
-                        <Tooltip id="tooltip-bottom">Revoke own access</Tooltip>
-                      }
-                    >
-                      <button
-                        className="button-svg-with-hover"
-                        type="button"
-                        onClick={(event) => revokeAccess(user!.sub, event)}
-                      >
-                        <TrashIcon
-                          size="small"
-                          className="octicon align-middle"
-                        />
-                      </button>
-                    </OverlayTrigger>
-                  </td>
-                </tr>
-                <tr className="d-flex">
-                  <td className="flex-grow-1">Clone token</td>
-                  <td className="flex-shrink-0">
-                    <OverlayTrigger
-                      placement={'bottom'}
-                      trigger={['hover', 'focus']}
-                      overlay={
-                        <Tooltip id="tooltip-bottom">
-                          Clone token to gain write access
-                        </Tooltip>
-                      }
-                    >
-                      <button
-                        className="button-svg-with-hover"
-                        type="button"
-                        onClick={(event) => cloneToken(user!.sub, event)}
-                      >
-                        <RepoForkedIcon
-                          size="small"
-                          className="octicon align-middle"
-                        />
-                      </button>
-                    </OverlayTrigger>
-                  </td>
-                </tr>
-              </>
-            )}
-          </tbody>
-        </table>
+        <ManageAccess token={args.token} reload={args.reload} />
       </Popover.Body>
     </Popover>
   );
