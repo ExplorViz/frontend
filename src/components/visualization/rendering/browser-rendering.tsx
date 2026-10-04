@@ -328,7 +328,7 @@ export default function BrowserRendering({
             <div className="d-flex flex-column h-100 col-12">
               <div id="rendering" ref={outerDiv}>
                 {!showToolsSidebar && (
-                  <div className="sidebar-tools-button foreground mt-6">
+                  <div className="sidebar-tools-button foreground below-navbar">
                     <Button
                       id="toolsOpener"
                       variant="outline-secondary"
@@ -341,7 +341,7 @@ export default function BrowserRendering({
                 )}
 
                 {!showSettingsSidebar && (
-                  <div className="sidebar-open-button foreground mt-6">
+                  <div className="sidebar-open-button foreground below-navbar">
                     <Button
                       id="undoAction"
                       variant="outline-secondary"
@@ -380,7 +380,7 @@ export default function BrowserRendering({
             {showToolsSidebar && (
               <div className="sidebar left" id="toolselection">
                 <div
-                  className="mt-6 d-flex flex-row w-100"
+                  className="below-navbar d-flex flex-row w-100"
                   style={{ zIndex: 90 }}
                 >
                   <ToolSelection
@@ -460,7 +460,7 @@ export default function BrowserRendering({
             {showSettingsSidebar && (
               <div className="sidebar right" id="settingsSidebar">
                 <div
-                  className="mt-6 d-flex flex-row w-100"
+                  className="below-navbar d-flex flex-row w-100"
                   style={{ zIndex: 90 }}
                 >
                   <SettingsSidebar

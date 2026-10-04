@@ -150,8 +150,9 @@ body {
   flex: 1;
 }
 
-.mt-6 {
-  margin-top: 4rem !important;
+// Keeps floating controls and sidebars clear of the navbar
+.below-navbar {
+  margin-top: calc(var(--ev-navbar-height) + var(--ev-canvas-inset));
 }
 
 .mt-8 {
