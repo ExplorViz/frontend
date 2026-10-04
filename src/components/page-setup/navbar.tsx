@@ -67,10 +67,7 @@ export default function Navbar() {
   };
 
   return (
-    <div
-      className="p-3 disable-select pointer-events-none"
-      style={{ position: 'absolute', width: '100vw', zIndex: 1000 }}
-    >
+    <div className="navbar-container p-3 disable-select">
       <div className="navbar-layout">
         <div className="navbar-left">
           <img
