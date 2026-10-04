@@ -2,7 +2,6 @@ import {
   CheckIcon,
   CodeIcon,
   DesktopDownloadIcon,
-  EyeIcon,
   PencilIcon,
   PlusIcon,
   TrashIcon,
@@ -366,20 +365,6 @@ export default function TokenSelection({
                 </td>
                 <td className="token-button-cell">
                   <ul className="token-selection-icons">
-                    <li>
-                      <OverlayTrigger
-                        placement="bottom"
-                        overlay={<Tooltip>Go to Landscape</Tooltip>}
-                      >
-                        <button
-                          className="button-svg-with-hover"
-                          type="button"
-                          onClick={() => selectToken(token)}
-                        >
-                          <EyeIcon size="small" className="align-middle" />
-                        </button>
-                      </OverlayTrigger>
-                    </li>
                     <li>
                       <OverlayTrigger
                         placement="bottom"
