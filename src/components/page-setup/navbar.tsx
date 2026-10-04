@@ -1,10 +1,8 @@
 import {
   GitBranchIcon,
   IdBadgeIcon,
-  KeyIcon,
   PersonIcon,
   SignOutIcon,
-  UndoIcon,
   VscodeIcon,
 } from '@primer/octicons-react';
 import StatusIcons from 'explorviz-frontend/src/components/page-setup/status-icons';
@@ -83,18 +81,20 @@ export default function Navbar() {
             onClick={goToLandscapeSelection}
           />
         </div>
-        <div className="navbar-center d-none d-md-block">
+        <div className="navbar-center">
           {!isSingleLandscapeMode() && landscapeToken && (
             <>
-              <div className="navbar-token-link pointer-events-all">
-                <span
-                  className="d-flex-center"
-                  role="button"
+              <div className="navbar-token-row">
+                <span className="navbar-token-title">
+                  {landscapeToken.alias}
+                </span>
+                <button
+                  type="button"
+                  className="navbar-change-token pointer-events-all"
                   onClick={goToLandscapeSelection}
                 >
-                  <UndoIcon size="small" />
-                  &nbsp;{landscapeToken.alias}
-                </span>
+                  Change
+                </button>
               </div>
               <div className="navbar-rendering-mode">{_analysisMode}</div>
             </>
@@ -120,12 +120,6 @@ export default function Navbar() {
                 </div>
               </Dropdown.Header>
               <Dropdown.Divider />
-              {landscapeToken && (
-                <Dropdown.Item onClick={goToLandscapeSelection}>
-                  <KeyIcon size="small" className="me-2" />
-                  {landscapeToken.alias}
-                </Dropdown.Item>
-              )}
               <Dropdown.Item onClick={goToSettings}>
                 <GitBranchIcon size="small" className="me-2" />
                 Git API Token
