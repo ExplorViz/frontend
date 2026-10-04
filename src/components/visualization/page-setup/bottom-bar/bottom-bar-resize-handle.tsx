@@ -1,8 +1,8 @@
 import React, { useRef } from 'react';
 
+import ResizeHandle from 'explorviz-frontend/src/components/visualization/page-setup/resize-handle';
 import { clampBottomBarHeight } from 'explorviz-frontend/src/hooks/useBottomBarHeight';
 
-const KEYBOARD_STEP_IN_PX = 20;
 const RESIZING_CLASS = 'bottom-bar-chart-resizing';
 
 interface BottomBarResizeHandleProps {
@@ -12,31 +12,27 @@ interface BottomBarResizeHandleProps {
   onResize(newHeight: number): void;
 }
 
-/**
- * Re-rendering the visualization page per pointer move takes ~200ms, so the
- * height is previewed directly on the bar element and only committed via
- * onResize once the drag or key press ends.
- */
+/** Top edge of the bottom bar, committing its height on release via onResize */
 export default function BottomBarResizeHandle({
   height,
   barRef,
   onResize,
 }: BottomBarResizeHandleProps) {
-  const dragStart = useRef<{ pointerY: number; height: number } | null>(null);
   const previewHeight = useRef<number | null>(null);
 
-  const preview = (newHeight: number) => {
-    const bar = barRef.current;
-    if (!bar) {
-      return;
-    }
+  const onPreview = (newHeight: number) => {
+    const clampedHeight = clampBottomBarHeight(newHeight);
+    previewHeight.current = clampedHeight;
 
-    previewHeight.current = clampBottomBarHeight(newHeight);
-    bar.classList.add(RESIZING_CLASS);
-    bar.style.setProperty('--bottom-bar-height', `${previewHeight.current}px`);
+    const bar = barRef.current;
+    if (bar) {
+      bar.classList.add(RESIZING_CLASS);
+      bar.style.setProperty('--bottom-bar-height', `${clampedHeight}px`);
+    }
+    return clampedHeight;
   };
 
-  const commit = () => {
+  const onCommit = () => {
     barRef.current?.classList.remove(RESIZING_CLASS);
     if (previewHeight.current !== null) {
       onResize(previewHeight.current);
@@ -44,66 +40,17 @@ export default function BottomBarResizeHandle({
     }
   };
 
-  const onPointerDown = (event: React.PointerEvent<HTMLDivElement>) => {
-    if (event.button !== 0) {
-      return;
-    }
-
-    event.preventDefault();
-    dragStart.current = { pointerY: event.clientY, height };
-    event.currentTarget.setPointerCapture(event.pointerId);
-  };
-
-  const onPointerMove = (event: React.PointerEvent<HTMLDivElement>) => {
-    if (!dragStart.current) {
-      return;
-    }
-
-    // Bar grows upwards, so dragging up (smaller clientY) increases height
-    preview(
-      dragStart.current.height + dragStart.current.pointerY - event.clientY
-    );
-  };
-
-  const stopDragging = (event: React.PointerEvent<HTMLDivElement>) => {
-    if (!dragStart.current) {
-      return;
-    }
-
-    dragStart.current = null;
-    if (event.currentTarget.hasPointerCapture(event.pointerId)) {
-      event.currentTarget.releasePointerCapture(event.pointerId);
-    }
-    commit();
-  };
-
-  const onKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) => {
-    const currentHeight = previewHeight.current ?? height;
-    if (event.key === 'ArrowUp') {
-      event.preventDefault();
-      preview(currentHeight + KEYBOARD_STEP_IN_PX);
-    } else if (event.key === 'ArrowDown') {
-      event.preventDefault();
-      preview(currentHeight - KEYBOARD_STEP_IN_PX);
-    }
-  };
-
   return (
-    <div
+    <ResizeHandle
       className="bottom-bar-resize-handle"
-      role="separator"
-      aria-orientation="horizontal"
-      aria-label="Resize bottom bar"
-      aria-valuenow={Math.round(height)}
-      title="Drag to resize"
-      tabIndex={0}
-      onPointerDown={onPointerDown}
-      onPointerMove={onPointerMove}
-      onPointerUp={stopDragging}
-      onPointerCancel={stopDragging}
-      onKeyDown={onKeyDown}
-      onKeyUp={commit}
-      onBlur={commit}
+      ariaLabel="Resize bottom bar"
+      orientation="horizontal"
+      // Bar grows upwards, so moving the pointer down shrinks it
+      growDirection={-1}
+      valueNow={height}
+      getSize={() => previewHeight.current ?? height}
+      onPreview={onPreview}
+      onCommit={onCommit}
     />
   );
 }

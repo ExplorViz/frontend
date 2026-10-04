@@ -305,16 +305,8 @@
   left: 0;
   width: 100%;
   height: 6px;
-  cursor: ns-resize;
-  touch-action: none;
   // Above the chart container that follows it in the DOM, below the toggle (490)
   z-index: 2;
-
-  &:hover,
-  &:focus-visible {
-    outline: none;
-    background-color: rgba(var(--bs-primary-rgb, 13, 110, 253), 0.4);
-  }
 }
 
 .bottom-bar-chart-hide {

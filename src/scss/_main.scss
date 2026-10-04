@@ -150,6 +150,25 @@ body {
   flex: 1;
 }
 
+// Drag handle on a panel edge, see resize-handle.tsx
+.resize-handle {
+  touch-action: none;
+
+  &[aria-orientation='horizontal'] {
+    cursor: ns-resize;
+  }
+
+  &[aria-orientation='vertical'] {
+    cursor: ew-resize;
+  }
+
+  &:hover,
+  &:focus-visible {
+    outline: none;
+    background-color: rgba(var(--bs-primary-rgb, 13, 110, 253), 0.4);
+  }
+}
+
 // Keeps floating controls and sidebars clear of the navbar
 .below-navbar {
   margin-top: calc(var(--ev-navbar-height) + var(--ev-canvas-inset));
