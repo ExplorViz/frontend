@@ -13,8 +13,11 @@
 }
 
 @media (min-width: 576px) {
-  .popover {
+  .draggable-popover {
     cursor: move;
+  }
+
+  .popover {
     max-width: 550px !important;
     padding: 0.3rem;
   }

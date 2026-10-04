@@ -340,7 +340,7 @@ export default function PopupCoordinator({
 
   return (
     <div
-      className={`popover${popupData.wasMoved ? '' : ' no-user-select'}${popupData.hovered ? ' hovered' : ''}`}
+      className={`popover draggable-popover${popupData.wasMoved ? '' : ' no-user-select'}${popupData.hovered ? ' hovered' : ''}`}
       style={{
         position: 'absolute',
       }}
