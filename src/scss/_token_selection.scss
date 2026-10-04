@@ -1,7 +1,6 @@
 @use '_main';
 
 .explorviz-table {
-  border-radius: var(--ev-radius-lg);
   background-color: var(--bs-white);
 
   thead {
@@ -207,7 +206,6 @@
   max-height: 70vh;
   overflow: auto;
   position: relative;
-  border-radius: var(--ev-radius-lg);
 }
 
 .selection-table thead,
