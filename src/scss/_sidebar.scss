@@ -129,6 +129,9 @@
 
 .sidebar-content {
   position: relative;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
 }
 
 // Spans the cards rather than the full sidebar height, so it neither covers
@@ -152,13 +155,23 @@
 }
 
 .sidebar-card-container {
-  overflow: auto;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
   width: 100%;
 }
 
 .sidebar-card {
   background-color: rgba(rgb(255, 255, 255), 0.95) !important;
   pointer-events: all;
+  min-height: 0;
+
+  // Only the tab content scrolls, so a scrollbar never narrows and rewraps
+  // the tab menu, which also stays reachable while scrolling
+  > .card-body {
+    overflow-y: auto;
+    min-height: 0;
+  }
 }
 
 .sidebar-open-button {

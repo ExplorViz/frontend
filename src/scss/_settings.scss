@@ -6,7 +6,9 @@
 
 .quick-navigation-container {
   position: sticky;
-  top: 0;
+  // Stick at the scroll area's edge rather than below the card body padding,
+  // so no scrolled content shows above it
+  top: calc(-1 * var(--bs-card-spacer-y));
   z-index: 10;
   background-color: var(--bs-body-bg, #fff);
   padding-top: 0.5rem;
