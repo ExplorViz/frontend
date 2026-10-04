@@ -56,14 +56,16 @@ export default function AdditionalTokenInfo({
         trigger={['hover', 'focus']}
         overlay={<Tooltip>Show Token Details</Tooltip>}
       >
-        <div className="additional-token-info">
+        <div>
           <OverlayTrigger
             placement={'bottom'}
             trigger="click"
             overlay={popover}
             rootClose
           >
-            <InfoIcon verticalAlign="middle" size="small" />
+            <button className="button-svg-with-hover" type="button">
+              <InfoIcon size="small" className="align-middle" />
+            </button>
           </OverlayTrigger>
         </div>
       </OverlayTrigger>
