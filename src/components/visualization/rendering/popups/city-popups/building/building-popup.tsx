@@ -127,10 +127,7 @@ function FileTabContent({
   const flattenedClasses = flattenClasses(detailedData.classes ?? []);
 
   return (
-    <div
-      className="mt-3 d-flex flex-column gap-3"
-      style={{ maxHeight: '300px', overflowY: 'auto' }}
-    >
+    <div className="mt-3 d-flex flex-column gap-3">
       <section>
         <h6 className="mb-2">Imports</h6>
         <Accordion
@@ -340,10 +337,7 @@ export default function BuildingPopup({ popupData }: BuildingPopupProps) {
           className="nav-tabs justify-content-center"
         >
           <Tab eventKey="general" title="General">
-            <div
-              className="mt-3"
-              style={{ maxHeight: '300px', overflowY: 'auto' }}
-            >
+            <div className="mt-3">
               <table className="table table-sm mb-0">
                 <tbody>
                   <tr>
@@ -428,10 +422,7 @@ export default function BuildingPopup({ popupData }: BuildingPopupProps) {
           </Tab>
           {building.type === 'code' && (
             <Tab eventKey="history" title="History">
-              <div
-                className="mt-3"
-                style={{ maxHeight: '300px', overflowY: 'auto' }}
-              >
+              <div className="mt-3">
                 {history === undefined ? (
                   <div className="text-center text-muted py-3">
                     Loading history…
