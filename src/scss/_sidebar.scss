@@ -131,9 +131,21 @@
   left: 15px;
 }
 
+// Floating controls sit directly on the 3D canvas, so they need an opaque
+// background to stay readable over any city colors
+.sidebar-tools-button > .btn,
+.sidebar-open-button > .btn,
+.sidebar-button {
+  --bs-btn-bg: var(--bs-body-bg, #fff);
+  box-shadow: var(--ev-shadow-floating);
+}
+
 .sidebar-button {
   pointer-events: all;
-  opacity: 0.5;
+}
+
+.sidebar-resize-button {
+  cursor: ew-resize;
 }
 
 #sidebarButtonContainer,

@@ -30,7 +30,7 @@ export default function UndoRestructure() {
     canUndo && (
       <button
         type="button"
-        className="btn btn-light btn-outline-dark sidebar-button"
+        className="btn btn-outline-secondary sidebar-button"
         title="Undo"
         aria-label="Undo"
         onClick={undoAction}

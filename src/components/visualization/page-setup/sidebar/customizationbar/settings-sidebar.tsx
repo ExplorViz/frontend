@@ -17,7 +17,7 @@ export default function SettingsSidebar({
       <div id="sidebarButtonContainer">
         <button
           type="button"
-          className="btn btn-light btn-outline-dark sidebar-button"
+          className="btn btn-outline-secondary sidebar-button"
           title="Close Sidebar"
           aria-label="Close"
           onClick={closeSettingsSidebar}

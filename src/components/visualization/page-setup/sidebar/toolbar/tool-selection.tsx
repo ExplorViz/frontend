@@ -18,7 +18,7 @@ export default function ToolSelection({
       <div id="toolsSidebarButtonContainer" className="foreground">
         <button
           type="button"
-          className="btn btn-light btn-outline-dark sidebar-button"
+          className="btn btn-outline-secondary sidebar-button"
           title="Close Sidebar"
           aria-label="Close"
           onClick={closeToolSelection}

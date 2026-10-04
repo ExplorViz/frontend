@@ -126,11 +126,11 @@ export default function SidebarResizer({
     <button
       id={buttonName}
       type="button"
-      className="btn btn-light btn-outline-dark sidebar-button"
-      title="Resize Sidebar"
-      aria-label="Resize"
+      className="btn btn-outline-secondary sidebar-button sidebar-resize-button"
+      title="Drag to resize sidebar"
+      aria-label="Resize sidebar"
     >
-      <ArrowBothIcon verticalAlign="middle" size="small" fill="#777" />
+      <ArrowBothIcon verticalAlign="middle" size="small" />
     </button>
   );
 }
