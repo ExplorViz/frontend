@@ -182,7 +182,8 @@
 .sidebar-open-button {
   position: absolute;
   height: fit-content;
-  left: calc(100vw - 60px);
+  // Mirrors .sidebar-tools-button
+  right: 15px;
 }
 
 .sidebar-tools-button {
@@ -198,6 +199,23 @@
 .sidebar-button {
   --bs-btn-bg: var(--bs-body-bg, #fff);
   box-shadow: var(--ev-shadow-floating);
+}
+
+// Square icon buttons with the icon centered; align-middle on an inline svg
+// sits below the middle
+.sidebar-tools-button > .btn,
+.sidebar-open-button > .btn {
+  // Regular Bootstrap button height
+  --sidebar-open-button-size: calc(
+    var(--bs-btn-line-height) * var(--bs-btn-font-size) + 2 *
+      var(--bs-btn-padding-y) + 2 * var(--bs-btn-border-width)
+  );
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--sidebar-open-button-size);
+  height: var(--sidebar-open-button-size);
+  padding: 0;
 }
 
 .sidebar-button {

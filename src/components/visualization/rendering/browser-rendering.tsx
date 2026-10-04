@@ -336,7 +336,7 @@ export default function BrowserRendering({
                       title="Tools"
                       onClick={() => setShowToolsSidebar(true)}
                     >
-                      <ToolsIcon size="small" className="align-middle" />
+                      <ToolsIcon size="small" />
                     </Button>
                   </div>
                 )}
@@ -349,7 +349,7 @@ export default function BrowserRendering({
                       title="Settings"
                       onClick={() => setShowSettingsSidebar(true)}
                     >
-                      <GearIcon size="small" className="align-middle" />
+                      <GearIcon size="small" />
                     </Button>
                   </div>
                 )}
