@@ -24,7 +24,7 @@ export default function ComponentTabs<T>({
   };
 
   return (
-    <>
+    <div className="card sidebar-card">
       <div className="explorviz-visualization-navbar">
         <ul className="nav justify-content-center">
           {tabs.map((tab) => (
@@ -37,12 +37,12 @@ export default function ComponentTabs<T>({
           ))}
         </ul>
       </div>
-      <div className="card sidebar-card mt-3">
+      {selectedTab && (
         <div className="card-body d-flex flex-column">
-          {selectedTab && selectedTab.content}
+          {selectedTab.content}
         </div>
-      </div>
-    </>
+      )}
+    </div>
   );
 }
 
