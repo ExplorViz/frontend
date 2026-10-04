@@ -77,7 +77,7 @@ export default function Navbar() {
         <div className="navbar-left">
           <img
             className="pointer-events-all navbar-logo"
-            src="images/explorviz-30px.png"
+            src="images/explorviz-90px.png"
             alt="ExplorViz"
             draggable="false"
             onClick={goToLandscapeSelection}
