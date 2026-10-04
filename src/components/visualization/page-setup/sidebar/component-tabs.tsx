@@ -64,7 +64,10 @@ export function ComponentTab<T>({
         title={'Show/Hide ' + String(value)}
         onClick={() => onClick(value)}
       >
-        <div className={selected ? 'fw-bold' : 'fw-normal'}>
+        <div
+          className={selected ? 'fw-bold' : 'fw-normal'}
+          data-label={String(value)}
+        >
           {String(value)}
         </div>
       </div>

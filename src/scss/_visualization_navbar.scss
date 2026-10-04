@@ -14,6 +14,21 @@
   user-select: none;
 }
 
+// Invisible bold copy of the label reserves its bold width, so selecting a
+// tab does not widen it and shift or rewrap its neighbors
+.nav-link-with-cursor > [data-label] {
+  text-align: center;
+
+  &::after {
+    content: attr(data-label);
+    display: block;
+    height: 0;
+    overflow: hidden;
+    visibility: hidden;
+    font-weight: bold;
+  }
+}
+
 .nav-item-with-def-cursor {
   flex: 1 1 auto;
   text-align: center;
