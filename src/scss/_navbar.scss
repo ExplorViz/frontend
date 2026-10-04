@@ -2,14 +2,26 @@
   all: unset;
 }
 
-// Opaque so the 3D canvas never renders behind the logo and landscape title
+// Frosted glass: the city shows through blurred, while the logo and landscape
+// title stay readable on the mostly white tint
 .navbar-container {
   position: absolute;
   width: 100vw;
   z-index: 1000;
-  background-color: var(--bs-body-bg, #fff);
+  background-color: rgba(var(--bs-body-bg-rgb, 255, 255, 255), 0.7);
+  -webkit-backdrop-filter: blur(8px) saturate(180%);
+  backdrop-filter: blur(8px) saturate(180%);
   border-bottom: 1px solid
     var(--bs-border-color-translucent, rgba(0, 0, 0, 0.175));
+}
+
+// Without blur a translucent navbar would show a sharp city behind its text
+@supports not (
+  (backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))
+) {
+  .navbar-container {
+    background-color: var(--bs-body-bg, #fff);
+  }
 }
 
 .navbar-layout {
