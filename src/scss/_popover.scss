@@ -1,6 +1,15 @@
 // Needed since sidebar has z-index of 10000001
 .tooltip {
   z-index: 10000010 !important;
+  // Keep tooltips out of the document flow until popper has positioned them,
+  // otherwise they flash below the page content when hovered quickly. Happens in Safari, Chrome was fine.
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+
+.tooltip:not([style*='transform']) {
+  visibility: hidden;
 }
 
 @media (min-width: 576px) {
