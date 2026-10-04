@@ -1,4 +1,4 @@
-import sha256 from 'crypto-js/sha256';
+import { sha256Hex } from 'explorviz-frontend/src/utils/helpers/sha256';
 import isObject from 'explorviz-frontend/src/utils/object-helpers';
 
 export interface Variable {
@@ -225,9 +225,9 @@ export function preProcessAndEnhanceStructureLandscape(
 
   function hashEntityIds() {
     entitiesForIdHashing.forEach((entity) => {
-      entity.id = sha256(entity.id).toString();
+      entity.id = sha256Hex(entity.id);
       if (isApplication(entity)) {
-        entity.parentId = sha256(entity.parentId).toString();
+        entity.parentId = sha256Hex(entity.parentId);
       }
     });
   }

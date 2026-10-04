@@ -1,4 +1,4 @@
-import sha256 from 'crypto-js/sha256';
+import { sha256Hex } from 'explorviz-frontend/src/utils/helpers/sha256';
 import AggregatedCommunication from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/aggregated-communication';
 import {
   Application,
@@ -38,7 +38,7 @@ export class AppChangeLogEntry extends BaseChangeLogEntry {
   //createdPckg?: PackageChangeLogEntry;
 
   constructor(action: RestructureAction, app: Application) {
-    const id = sha256(action + app.id).toString();
+    const id = sha256Hex(action + app.id);
     super(id, action, app);
   }
 
@@ -71,7 +71,7 @@ export class PackageChangeLogEntry extends BaseChangeLogEntry {
   original?: Package;
 
   constructor(action: RestructureAction, app: Application, pckg: Package) {
-    const id = sha256(action + app.id + pckg.id).toString();
+    const id = sha256Hex(action + app.id + pckg.id);
     super(id, action, app);
     this.pckg = pckg;
     this.originalPckgName = pckg.name;
@@ -159,7 +159,7 @@ export class SubPackageChangeLogEntry extends BaseChangeLogEntry {
   original?: Package;
 
   constructor(action: RestructureAction, app: Application, pckg: Package) {
-    const id = sha256(action + app.id + pckg.id).toString();
+    const id = sha256Hex(action + app.id + pckg.id);
     super(id, action, app);
     this.pckg = pckg;
     this.originalPckgName = pckg.name;
@@ -246,7 +246,7 @@ export class ClassChangeLogEntry extends BaseChangeLogEntry {
   original?: Class;
 
   constructor(action: RestructureAction, app: Application, clazz: Class) {
-    const id = sha256(action + app.id + clazz.parent.id + clazz.id).toString();
+    const id = sha256Hex(action + app.id + clazz.parent.id + clazz.id);
     super(id, action, app);
     this.pckg = clazz.parent;
     this.clazz = clazz;
@@ -309,7 +309,7 @@ export class CommunicationChangeLogEntry extends BaseChangeLogEntry {
   originalOperationName: string;
 
   constructor(action: RestructureAction, communication: AggregatedCommunication) {
-    const id = sha256(action + communication.id).toString();
+    const id = sha256Hex(action + communication.id);
     super(id, action, undefined);
     this.communication = communication;
     this.originalOperationName = communication?.operationName;

@@ -20,6 +20,9 @@ importers:
       '@malte-hansen/magnify-r3f':
         specifier: ^2.0.2
         version: 2.0.2(@react-three/fiber@9.6.1(@types/react@19.2.1)(react-dom@19.2.5(react@19.2.5))(react@19.2.5)(three@0.183.2))(react-dom@19.2.5(react@19.2.5))(react@19.2.5)(three@0.183.2)
+      '@noble/hashes':
+        specifier: 2.4.0
+        version: 2.4.0
       '@primer/octicons-react':
         specifier: ^19.25.0
         version: 19.25.0(react@19.2.5)
@@ -71,9 +74,6 @@ importers:
       colors:
         specifier: 1.4.0
         version: 1.4.0
-      crypto-js:
-        specifier: 4.2.0
-        version: 4.2.0
       date-fns:
         specifier: 4.1.0
         version: 4.1.0
@@ -216,9 +216,6 @@ importers:
       '@types/chart.js':
         specifier: 4.0.1
         version: 4.0.1
-      '@types/crypto-js':
-        specifier: 4.2.2
-        version: 4.2.2
       '@types/express':
         specifier: ^5.0.6
         version: 5.0.6
@@ -912,6 +909,10 @@ packages:
     peerDependencies:
       '@emnapi/core': ^1.7.1
       '@emnapi/runtime': ^1.7.1
+
+  '@noble/hashes@2.4.0':
+    resolution: {integrity: sha512-X5XaVWZIBCT7HHZGm5I7ZQXDwLG+bGXuSrMQAW+7Zvl87h1kmc1ZB1VSRJcpUfoUrGQp4Fkoxm5kZ+Ms+aW+eA==}
+    engines: {node: '>= 20.19.0'}
 
   '@nodelib/fs.scandir@2.1.5':
     resolution: {integrity: sha512-vq24Bq3ym5HEQm2NKCr3yXDwjc7vTsEThRDnkp2DK9p1uqLR+DHurm/NOTo0KG7HYHU7eppKZj3MyqYuMBf62g==}
@@ -1682,9 +1683,6 @@ packages:
   '@types/connect@3.4.38':
     resolution: {integrity: sha512-K6uROf1LD88uDQqJCktA4yzL1YYAK6NgfsI0v/mTgyPKWsX1CnJ0XPSDhViejru1GcRkLWb8RlzFYJRqGUbaug==}
 
-  '@types/crypto-js@4.2.2':
-    resolution: {integrity: sha512-sDOLlVbHhXpAUAL0YHDUUwDZf3iN4Bwi4W6a0W0b+QcAezUbRtH4FVb+9J4h+XFPW7l/gQ9F8qC7P+Ec4k8QVQ==}
-
   '@types/d3-array@3.2.2':
     resolution: {integrity: sha512-hOLWVbm7uRza0BYXpIIW5pxfrKe0W+D5lrFiAEYR+pb6w3N2SwSMaJbXdUfSEv+dT4MfHBLtn5js0LAWaO6otw==}
 
@@ -2428,9 +2426,6 @@ packages:
     resolution: {integrity: sha512-gvWSbgqP+569DdslUiCelxIv3IYK5Lgmq1UrRnk+s1WxQOQ16j3GPDcjdtgL5Au65DU/xQi6q3xPtf5Kta+3IQ==}
     engines: {node: '>=0.8.0'}
     deprecated: This version has been deprecated in accordance with the hapi support policy (hapi.im/support). Please upgrade to the latest version to get the best features, bug fixes, and security patches. If you are unable to upgrade at this time, paid support is available for older versions (hapi.im/commercial).
-
-  crypto-js@4.2.0:
-    resolution: {integrity: sha512-KALDyEYgpY+Rlob/iriUtjV6d5Eq+Y191A5g4UqLAi8CyGP9N1+FdVbkc1SxKc2r4YAYqG8JzO2KGL+AizD70Q==}
 
   css-select@5.2.2:
     resolution: {integrity: sha512-TizTzUddG/xYLA3NXodFM0fSbNizXjOKhqiQQwvhlspadZokn1KDy0NZFS0wuEubIYAV5/c1/lAr0TaaFXEXzw==}
@@ -6521,6 +6516,8 @@ snapshots:
       '@tybys/wasm-util': 0.10.2
     optional: true
 
+  '@noble/hashes@2.4.0': {}
+
   '@nodelib/fs.scandir@2.1.5':
     dependencies:
       '@nodelib/fs.stat': 2.0.5
@@ -7339,8 +7336,6 @@ snapshots:
     dependencies:
       '@types/node': 25.6.0
 
-  '@types/crypto-js@4.2.2': {}
-
   '@types/d3-array@3.2.2': {}
 
   '@types/d3-axis@3.0.6':
@@ -8145,8 +8140,6 @@ snapshots:
     dependencies:
       boom: 0.4.2
     optional: true
-
-  crypto-js@4.2.0: {}
 
   css-select@5.2.2:
     dependencies:
