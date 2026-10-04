@@ -3,7 +3,7 @@ import { use } from 'react';
 import { Tab, Tabs } from 'react-bootstrap';
 import { ToolbarContext } from '../toolbar-context';
 import LogSearch from './log-search';
-import MetricsSearch from './metric-search';
+import MetricsSearch from './metrics-search';
 import SpanSearch from './span-search';
 
 export default function TelemetrySearch() {
