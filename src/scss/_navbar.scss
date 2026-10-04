@@ -69,12 +69,17 @@
   // Stay in the right column when .navbar-center is hidden on small screens
   grid-column: 3;
   justify-self: end;
-  margin-top: 0.5rem;
 }
 
 #navbar-user-options > .dropdown {
   position: static;
   display: flex;
+  align-items: center;
+}
+
+#navbar-user-options .dropdown-toggle {
+  // Center the person icon and caret instead of sitting them on a text line
+  display: inline-flex;
   align-items: center;
 }
 
