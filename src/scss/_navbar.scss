@@ -21,10 +21,13 @@
 .navbar-center {
   justify-self: center;
   text-align: center;
+  // Keep both lines within the 30px logo height so the navbar doesn't grow
+  line-height: 1.1;
 }
 
 .navbar-token-link {
   color: var(--bs-primary, #0d6efd);
+  font-size: 0.9rem;
 
   .d-flex-center {
     justify-content: center;
@@ -33,6 +36,7 @@
 
 .navbar-rendering-mode {
   color: var(--bs-secondary-color, #6c757d);
+  font-size: 0.75rem;
 }
 
 .truncate-text {
