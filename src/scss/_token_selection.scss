@@ -160,6 +160,10 @@
     align-items: center;
 
     button {
+      // Center the icon so it lines up with tooltip and popover arrows
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
       border: none;
       background: transparent;
       min-width: 2rem;
