@@ -1,69 +1,60 @@
-import { Toast as BootstrapToast } from 'bootstrap';
-import 'bootstrap/dist/css/bootstrap.min.css';
-import 'bootstrap/dist/js/bootstrap.bundle.min.js';
 import eventEmitter from 'explorviz-frontend/src/utils/event-emitter';
 import generateUuidv4 from 'explorviz-frontend/src/utils/helpers/uuid4-generator';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Toast, ToastContainer } from 'react-bootstrap';
 
+const cssClasses = new Map<string, string>([
+  ['info', 'bg-info text-white'],
+  ['error', 'bg-danger text-white'],
+  ['success', 'bg-success text-white'],
+]);
+
+interface ToastMessageData {
+  htmlId: string;
+  header: string | undefined;
+  message: string;
+  cssClasses: string;
+  // False while fading out, removed once the fade has finished
+  show: boolean;
+}
+
+/**
+ * Toasts are shown and hidden by react-bootstrap alone. Also driving them with
+ * Bootstrap's own Toast JS restarted their fade-in on every render, which made
+ * them flicker.
+ */
 export default function ToastMessage() {
-  const cssClassesValues: [string, string][] = [
-    ['info', 'bg-info text-white'],
-    ['error', 'bg-danger text-white'],
-    ['success', 'bg-success text-white'],
-  ];
+  const [toastMessages, setToastMessages] = useState<ToastMessageData[]>([]);
 
-  const cssClasses = new Map<string, string>(cssClassesValues);
-
-  const [toastMessages, setToastMessages] = useState<
-    {
-      htmlId: string;
-      header: string | undefined;
-      message: string;
-      cssClasses: string;
-    }[]
-  >([]);
-  const toastRefs = useRef<{ [key: string]: HTMLDivElement | null }>({});
-
-  const addToastMessage = (type: string, message: string, header: string) => {
-    const htmlIdUnique = 'toast-' + generateUuidv4();
-
-    let cssClassesString = cssClasses.get(type) || '';
-
-    setToastMessages((prevMessages: any) => [
-      ...prevMessages,
-      {
-        htmlId: htmlIdUnique,
-        header,
-        message,
-        cssClasses: cssClassesString,
-      },
-    ]);
-  };
   useEffect(() => {
-    const showToastCallback = addToastMessage;
+    const addToastMessage = (type: string, message: string, header: string) => {
+      setToastMessages((prevMessages) => [
+        ...prevMessages,
+        {
+          htmlId: 'toast-' + generateUuidv4(),
+          header,
+          message,
+          cssClasses: cssClasses.get(type) || '',
+          show: true,
+        },
+      ]);
+    };
 
-    eventEmitter.on('newToastMessage', showToastCallback);
+    eventEmitter.on('newToastMessage', addToastMessage);
 
     return () => {
-      eventEmitter.off('newToastMessage', showToastCallback);
+      eventEmitter.off('newToastMessage', addToastMessage);
     };
-  }, [addToastMessage]);
+  }, []);
 
-  const toastRenderIsComplete = (id: string) => {
-    const toastElement = toastRefs.current[id];
+  const hideToast = (id: string) => {
+    setToastMessages((prev) =>
+      prev.map((item) => (item.htmlId === id ? { ...item, show: false } : item))
+    );
+  };
 
-    if (toastElement) {
-      const bsToast = new BootstrapToast(toastElement, {
-        autohide: true,
-        delay: 5000,
-      });
-      bsToast.show();
-
-      toastElement.addEventListener('hidden.bs.toast', () => {
-        setToastMessages((prev) => prev.filter((item) => item.htmlId !== id));
-      });
-    }
+  const removeToast = (id: string) => {
+    setToastMessages((prev) => prev.filter((item) => item.htmlId !== id));
   };
 
   return (
@@ -73,19 +64,13 @@ export default function ToastMessage() {
       style={{ zIndex: 10000003 }}
     >
       <div className="toast-card-stack">
-        {toastMessages.map(({ htmlId, header, message, cssClasses }) => (
+        {toastMessages.map(({ htmlId, header, message, cssClasses, show }) => (
           <Toast
             className={`mb-3 toast toast-card ${cssClasses}`}
             key={htmlId}
-            ref={(el) => {
-              toastRefs.current[htmlId] = el;
-              if (el) toastRenderIsComplete(htmlId);
-            }}
-            onClose={() =>
-              setToastMessages((prev) =>
-                prev.filter((item) => item.htmlId !== htmlId)
-              )
-            }
+            show={show}
+            onClose={() => hideToast(htmlId)}
+            onExited={() => removeToast(htmlId)}
             autohide
             delay={5000}
           >
