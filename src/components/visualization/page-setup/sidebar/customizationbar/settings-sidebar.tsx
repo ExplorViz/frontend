@@ -26,7 +26,7 @@ export default function SettingsSidebar({
         </button>
         <UndoRestructure />
       </div>
-      <div className="sidebar-card-container pr-3 pl-3 pb-3">
+      <div className="sidebar-card-container">
         <div className="sidebar-content">
           {children}
           <SidebarResizeHandle

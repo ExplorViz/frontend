@@ -324,8 +324,9 @@ export default function BrowserRendering({
         <SettingsSidebarContext
           value={{ ...settingsSidebarState, ...settingsSidebarActions }}
         >
-          <div className="row h-100">
-            <div className="d-flex flex-column h-100 col-12">
+          {/* Not a Bootstrap .row, whose gutters pad the sidebars and overhang the window */}
+          <div className="d-flex h-100">
+            <div className="d-flex flex-column h-100 w-100">
               <div id="rendering" ref={outerDiv}>
                 {!showToolsSidebar && (
                   <div className="sidebar-tools-button foreground below-navbar">
@@ -380,7 +381,7 @@ export default function BrowserRendering({
             {showToolsSidebar && (
               <div className="sidebar left" id="toolselection">
                 <div
-                  className="below-navbar d-flex flex-row w-100"
+                  className="sidebar-layout d-flex flex-row w-100"
                   style={{ zIndex: 90 }}
                 >
                   <ToolSelection
@@ -460,7 +461,7 @@ export default function BrowserRendering({
             {showSettingsSidebar && (
               <div className="sidebar right" id="settingsSidebar">
                 <div
-                  className="below-navbar d-flex flex-row w-100"
+                  className="sidebar-layout d-flex flex-row w-100"
                   style={{ zIndex: 90 }}
                 >
                   <SettingsSidebar

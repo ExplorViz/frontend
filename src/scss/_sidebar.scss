@@ -109,6 +109,24 @@
   right: auto;
 }
 
+// Docked flush against the navbar and the window edge
+.sidebar-layout {
+  margin-top: var(--ev-navbar-height);
+}
+
+// Only the inner bottom corner is free, all other edges touch navbar or window
+.sidebar.left .sidebar-card {
+  border-top: 0;
+  border-left: 0;
+  border-radius: 0 0 var(--bs-card-border-radius) 0;
+}
+
+.sidebar.right .sidebar-card {
+  border-top: 0;
+  border-right: 0;
+  border-radius: 0 0 0 var(--bs-card-border-radius);
+}
+
 .sidebar-content {
   position: relative;
 }
@@ -170,6 +188,8 @@
 
 #sidebarButtonContainer,
 #toolsSidebarButtonContainer {
+  // Same inset as the sidebar open buttons, see .below-navbar
+  margin-top: var(--ev-canvas-inset);
   display: flex;
   flex-direction: column;
   gap: 1rem;
