@@ -15,10 +15,6 @@ export default function AdditionalTokenInfo({
   const [showTooltip, setShowTooltip] = useState(false);
   const [showPopover, setShowPopover] = useState(false);
 
-  const handleClick = (event: any) => {
-    event.stopPropagation();
-  };
-
   const popover = (
     <Popover title={token.alias} onClick={(e) => e.stopPropagation()}>
       <Popover.Header>{token.alias}</Popover.Header>
@@ -53,7 +49,7 @@ export default function AdditionalTokenInfo({
   );
 
   return (
-    <div onClick={(event) => handleClick(event)}>
+    <div>
       <OverlayTrigger
         placement={'bottom'}
         trigger={['hover', 'focus']}

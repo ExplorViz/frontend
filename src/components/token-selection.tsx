@@ -97,11 +97,7 @@ export default function TokenSelection({
     return sortOrder === 'asc' ? (valA > valB ? 1 : -1) : valA < valB ? 1 : -1;
   });
 
-  const downloadDemoSupplierFiles = async (
-    token: LandscapeToken,
-    event: React.MouseEvent
-  ) => {
-    event?.stopPropagation();
+  const downloadDemoSupplierFiles = async (token: LandscapeToken) => {
     // Fetch repository names first to know what else to download
     const repoNamesResponse = await fetch(
       `${landscapeService}/v3/landscapes/${token.value}/repositories`,
@@ -258,23 +254,17 @@ export default function TokenSelection({
     }
   };
 
-  const startEditing = (token: LandscapeToken, event: React.MouseEvent) => {
-    event.stopPropagation();
+  const startEditing = (token: LandscapeToken) => {
     setEditingTokenValue(token.value);
     setEditAliasValue(token.alias);
   };
 
-  const cancelEditing = (event: React.MouseEvent) => {
-    event.stopPropagation();
+  const cancelEditing = () => {
     setEditingTokenValue(null);
     setEditAliasValue('');
   };
 
-  const saveAlias = async (
-    token: LandscapeToken,
-    event?: React.SyntheticEvent
-  ) => {
-    event?.stopPropagation();
+  const saveAlias = async (token: LandscapeToken) => {
     try {
       await updateTokenAlias(token.value, editAliasValue);
       showSuccessToastMessage('Token alias updated successfully.');
@@ -324,7 +314,18 @@ export default function TokenSelection({
                 key={token.alias}
                 className="token-selection-row"
                 tabIndex={0}
-                onClick={() => selectToken(token)}
+                onClick={(e) => {
+                  // Buttons, inputs and popovers handle their own clicks.
+                  // Popovers are portalled, so their DOM is outside the row.
+                  const target = e.target as Element;
+                  if (
+                    !e.currentTarget.contains(target) ||
+                    target.closest('button, input')
+                  ) {
+                    return;
+                  }
+                  selectToken(token);
+                }}
                 onKeyDown={(e) => {
                   // Ignore keys from nested buttons and the alias input
                   if (e.target !== e.currentTarget) return;
@@ -343,24 +344,23 @@ export default function TokenSelection({
                         className="form-control form-control-sm"
                         value={editAliasValue}
                         onChange={(e) => setEditAliasValue(e.target.value)}
-                        onClick={(e) => e.stopPropagation()}
                         onKeyDown={(e) => {
                           if (e.key === 'Enter') {
-                            void saveAlias(token, e);
+                            void saveAlias(token);
                           }
                         }}
                       />
                       <button
                         className="button-svg-with-hover"
                         type="button"
-                        onClick={(e) => saveAlias(token, e)}
+                        onClick={() => saveAlias(token)}
                       >
                         <CheckIcon size="small" className="align-middle" />
                       </button>
                       <button
                         className="button-svg-with-hover"
                         type="button"
-                        onClick={(e) => cancelEditing(e)}
+                        onClick={cancelEditing}
                       >
                         <XIcon size="small" className="align-middle" />
                       </button>
@@ -384,10 +384,7 @@ export default function TokenSelection({
                         <button
                           className="button-svg-with-hover"
                           type="button"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            openRepoAnalysisModal(token);
-                          }}
+                          onClick={() => openRepoAnalysisModal(token)}
                         >
                           <CodeIcon size="small" className="align-middle" />
                         </button>
@@ -406,7 +403,7 @@ export default function TokenSelection({
                             <button
                               className="button-svg-with-hover"
                               type="button"
-                              onClick={(e) => startEditing(token, e)}
+                              onClick={() => startEditing(token)}
                             >
                               <PencilIcon
                                 size="small"
@@ -425,10 +422,7 @@ export default function TokenSelection({
                             <button
                               className="button-svg-with-hover"
                               type="button"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                setTokenToDelete(token);
-                              }}
+                              onClick={() => setTokenToDelete(token)}
                             >
                               <TrashIcon
                                 size="small"
@@ -451,7 +445,7 @@ export default function TokenSelection({
                         <button
                           className="button-svg-with-hover"
                           type="button"
-                          onClick={(e) => downloadDemoSupplierFiles(token, e)}
+                          onClick={() => downloadDemoSupplierFiles(token)}
                         >
                           <DesktopDownloadIcon
                             size="small"

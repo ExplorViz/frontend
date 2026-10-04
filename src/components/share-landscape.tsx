@@ -68,11 +68,6 @@ export default function ShareLandscape(args: ShareLandscapeArgs) {
     }
   };
 
-  const handleShareClick = (event: React.MouseEvent) => {
-    // Prevent click on table row which would trigger to open the visualization
-    event.stopPropagation();
-  };
-
   const sendModifyAccess = (
     tokenId: string,
     userId: string,
@@ -235,7 +230,7 @@ export default function ShareLandscape(args: ShareLandscapeArgs) {
   );
 
   return (
-    <div id="shareLandscape" onClick={(e) => e.stopPropagation()}>
+    <div id="shareLandscape">
       <OverlayTrigger
         trigger={['hover', 'focus']}
         placement="bottom"
@@ -254,11 +249,7 @@ export default function ShareLandscape(args: ShareLandscapeArgs) {
             overlay={popover}
             rootClose
           >
-            <button
-              className="button-svg-with-hover"
-              type="button"
-              onClick={(event) => handleShareClick(event)}
-            >
+            <button className="button-svg-with-hover" type="button">
               <ShareAndroidIcon size="small" className="octicon align-middle" />
             </button>
           </OverlayTrigger>
