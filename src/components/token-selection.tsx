@@ -23,7 +23,7 @@ import {
 } from 'explorviz-frontend/src/utils/evolution-schemes/evolution-data';
 import JSZip from 'jszip';
 import React, { useEffect, useRef, useState } from 'react';
-import { Button, OverlayTrigger, Tooltip } from 'react-bootstrap';
+import { Button, Modal, OverlayTrigger, Tooltip } from 'react-bootstrap';
 interface TokenSelectionArgs {
   tokens: LandscapeToken[];
   openTokenCreationModal(): void;
@@ -48,6 +48,9 @@ export default function TokenSelection({
     null
   );
   const [editAliasValue, setEditAliasValue] = useState<string>('');
+  const [tokenToDelete, setTokenToDelete] = useState<LandscapeToken | null>(
+    null
+  );
   const editAliasInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -283,195 +286,240 @@ export default function TokenSelection({
     }
   };
 
+  const confirmDelete = async (event: React.MouseEvent) => {
+    if (!tokenToDelete) return;
+    const tokenId = tokenToDelete.value;
+    setTokenToDelete(null);
+    await deleteToken(tokenId, event);
+  };
+
   return (
-    <table
-      id="token-selection-table"
-      className="table table-striped explorviz-table"
-    >
-      <thead>
-        <tr className="token-header-row">
-          <th
-            style={{ cursor: 'ns-resize' }}
-            scope="col"
-            onClick={() => sortBy('alias')}
-          >
-            Alias
-          </th>
-          <th
-            style={{ cursor: 'ns-resize' }}
-            scope="col"
-            onClick={() => sortBy('created')}
-          >
-            Created
-          </th>
-          <th scope="col"></th>
-        </tr>
-      </thead>
-      <tbody>
-        {sortedTokens.length > 0 ? (
-          sortedTokens.map((token) => (
-            <tr
-              key={token.alias}
-              className="token-selection-row"
-              onClick={() => selectToken(token)}
+    <>
+      <table
+        id="token-selection-table"
+        className="table table-striped explorviz-table"
+      >
+        <thead>
+          <tr className="token-header-row">
+            <th
+              style={{ cursor: 'ns-resize' }}
+              scope="col"
+              onClick={() => sortBy('alias')}
             >
-              <td data-label="Alias">
-                {editingTokenValue === token.value ? (
-                  <div className="d-flex gap-1 align-items-center">
-                    <input
-                      ref={editAliasInputRef}
-                      type="text"
-                      className="form-control form-control-sm"
-                      value={editAliasValue}
-                      onChange={(e) => setEditAliasValue(e.target.value)}
-                      onClick={(e) => e.stopPropagation()}
-                      onKeyDown={(e) => {
-                        if (e.key === 'Enter') {
-                          void saveAlias(token, e);
-                        }
-                      }}
-                    />
-                    <button
-                      className="button-svg-with-hover"
-                      type="button"
-                      onClick={(e) => saveAlias(token, e)}
-                    >
-                      <CheckIcon size="small" className="align-middle" />
-                    </button>
-                    <button
-                      className="button-svg-with-hover"
-                      type="button"
-                      onClick={(e) => cancelEditing(e)}
-                    >
-                      <XIcon size="small" className="align-middle" />
-                    </button>
-                  </div>
-                ) : (
-                  token.alias
-                )}
-              </td>
-              <td className="token-timestamp-cell">
-                {new Date(token.created).toLocaleString()}
-              </td>
-              <td className="token-button-cell">
-                <ul className="token-selection-icons">
-                  <li>
-                    <OverlayTrigger
-                      placement="bottom"
-                      overlay={<Tooltip>Go to Landscape</Tooltip>}
-                    >
-                      <button
-                        className="button-svg-with-hover"
-                        type="button"
-                        onClick={() => selectToken(token)}
-                      >
-                        <EyeIcon size="small" className="align-middle" />
-                      </button>
-                    </OverlayTrigger>
-                  </li>
-                  <li>
-                    <OverlayTrigger
-                      placement="bottom"
-                      overlay={
-                        <Tooltip>Trigger Analysis for Landscape</Tooltip>
-                      }
-                    >
-                      <button
-                        className="button-svg-with-hover"
-                        type="button"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          openRepoAnalysisModal(token);
+              Alias
+            </th>
+            <th
+              style={{ cursor: 'ns-resize' }}
+              scope="col"
+              onClick={() => sortBy('created')}
+            >
+              Created
+            </th>
+            <th scope="col"></th>
+          </tr>
+        </thead>
+        <tbody>
+          {sortedTokens.length > 0 ? (
+            sortedTokens.map((token) => (
+              <tr
+                key={token.alias}
+                className="token-selection-row"
+                onClick={() => selectToken(token)}
+              >
+                <td data-label="Alias">
+                  {editingTokenValue === token.value ? (
+                    <div className="d-flex gap-1 align-items-center">
+                      <input
+                        ref={editAliasInputRef}
+                        type="text"
+                        className="form-control form-control-sm"
+                        value={editAliasValue}
+                        onChange={(e) => setEditAliasValue(e.target.value)}
+                        onClick={(e) => e.stopPropagation()}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter') {
+                            void saveAlias(token, e);
+                          }
                         }}
-                      >
-                        <CodeIcon size="small" className="align-middle" />
-                      </button>
-                    </OverlayTrigger>
-                  </li>
-                  <li>
-                    <AdditionalTokenInfo token={token} />
-                  </li>
-                  {user?.sub === token.ownerId && (
-                    <>
-                      <li>
-                        <OverlayTrigger
-                          placement="bottom"
-                          overlay={<Tooltip>Edit token alias</Tooltip>}
-                        >
-                          <button
-                            className="button-svg-with-hover"
-                            type="button"
-                            onClick={(e) => startEditing(token, e)}
-                          >
-                            <PencilIcon size="small" className="align-middle" />
-                          </button>
-                        </OverlayTrigger>
-                      </li>
-                      <li>
-                        <OverlayTrigger
-                          placement="bottom"
-                          overlay={<Tooltip>Delete token permanently</Tooltip>}
-                        >
-                          <button
-                            className="button-svg-with-hover"
-                            type="button"
-                            onClick={(e) => deleteToken(token.value, e)}
-                          >
-                            <TrashIcon size="small" className="align-middle" />
-                          </button>
-                        </OverlayTrigger>
-                      </li>
-                    </>
-                  )}
-                  <li>
-                    <OverlayTrigger
-                      placement="bottom"
-                      overlay={
-                        <Tooltip>Download JSON files for Demo Supplier</Tooltip>
-                      }
-                    >
+                      />
                       <button
                         className="button-svg-with-hover"
                         type="button"
-                        onClick={(e) => downloadDemoSupplierFiles(token, e)}
+                        onClick={(e) => saveAlias(token, e)}
                       >
-                        <DesktopDownloadIcon
-                          size="small"
-                          className="align-middle"
-                        />
+                        <CheckIcon size="small" className="align-middle" />
                       </button>
-                    </OverlayTrigger>
-                  </li>
-                  <li>
-                    <ShareLandscape token={token} reload={reload} />
-                  </li>
-                </ul>
+                      <button
+                        className="button-svg-with-hover"
+                        type="button"
+                        onClick={(e) => cancelEditing(e)}
+                      >
+                        <XIcon size="small" className="align-middle" />
+                      </button>
+                    </div>
+                  ) : (
+                    token.alias
+                  )}
+                </td>
+                <td className="token-timestamp-cell">
+                  {new Date(token.created).toLocaleString()}
+                </td>
+                <td className="token-button-cell">
+                  <ul className="token-selection-icons">
+                    <li>
+                      <OverlayTrigger
+                        placement="bottom"
+                        overlay={<Tooltip>Go to Landscape</Tooltip>}
+                      >
+                        <button
+                          className="button-svg-with-hover"
+                          type="button"
+                          onClick={() => selectToken(token)}
+                        >
+                          <EyeIcon size="small" className="align-middle" />
+                        </button>
+                      </OverlayTrigger>
+                    </li>
+                    <li>
+                      <OverlayTrigger
+                        placement="bottom"
+                        overlay={
+                          <Tooltip>Trigger Analysis for Landscape</Tooltip>
+                        }
+                      >
+                        <button
+                          className="button-svg-with-hover"
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            openRepoAnalysisModal(token);
+                          }}
+                        >
+                          <CodeIcon size="small" className="align-middle" />
+                        </button>
+                      </OverlayTrigger>
+                    </li>
+                    <li>
+                      <AdditionalTokenInfo token={token} />
+                    </li>
+                    {user?.sub === token.ownerId && (
+                      <>
+                        <li>
+                          <OverlayTrigger
+                            placement="bottom"
+                            overlay={<Tooltip>Edit token alias</Tooltip>}
+                          >
+                            <button
+                              className="button-svg-with-hover"
+                              type="button"
+                              onClick={(e) => startEditing(token, e)}
+                            >
+                              <PencilIcon
+                                size="small"
+                                className="align-middle"
+                              />
+                            </button>
+                          </OverlayTrigger>
+                        </li>
+                        <li>
+                          <OverlayTrigger
+                            placement="bottom"
+                            overlay={
+                              <Tooltip>Delete token permanently</Tooltip>
+                            }
+                          >
+                            <button
+                              className="button-svg-with-hover"
+                              type="button"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setTokenToDelete(token);
+                              }}
+                            >
+                              <TrashIcon
+                                size="small"
+                                className="align-middle"
+                              />
+                            </button>
+                          </OverlayTrigger>
+                        </li>
+                      </>
+                    )}
+                    <li>
+                      <OverlayTrigger
+                        placement="bottom"
+                        overlay={
+                          <Tooltip>
+                            Download JSON files for Demo Supplier
+                          </Tooltip>
+                        }
+                      >
+                        <button
+                          className="button-svg-with-hover"
+                          type="button"
+                          onClick={(e) => downloadDemoSupplierFiles(token, e)}
+                        >
+                          <DesktopDownloadIcon
+                            size="small"
+                            className="align-middle"
+                          />
+                        </button>
+                      </OverlayTrigger>
+                    </li>
+                    <li>
+                      <ShareLandscape token={token} reload={reload} />
+                    </li>
+                  </ul>
+                </td>
+              </tr>
+            ))
+          ) : (
+            <tr>
+              <td colSpan={3} className="text-center">
+                There are no tokens linked to your account at the moment.
               </td>
             </tr>
-          ))
-        ) : (
+          )}
+        </tbody>
+        <tfoot>
           <tr>
-            <td colSpan={3} className="text-center">
-              There are no tokens linked to your account at the moment.
+            <td colSpan={3} className="p-1">
+              <div className="d-flex flex-row justify-content-center gap-2">
+                <Button
+                  variant="primary"
+                  className="align-self-center pt-2 px-3 primary"
+                  onClick={openTokenCreationModal}
+                >
+                  <PlusIcon size="small" />
+                </Button>
+              </div>
             </td>
           </tr>
-        )}
-      </tbody>
-      <tfoot>
-        <tr>
-          <td colSpan={3} className="p-1">
-            <div className="d-flex flex-row justify-content-center gap-2">
-              <Button
-                variant="primary"
-                className="align-self-center pt-2 px-3 primary"
-                onClick={openTokenCreationModal}
-              >
-                <PlusIcon size="small" />
-              </Button>
-            </div>
-          </td>
-        </tr>
-      </tfoot>
-    </table>
+        </tfoot>
+      </table>
+      <Modal
+        show={tokenToDelete !== null}
+        onHide={() => setTokenToDelete(null)}
+      >
+        <Modal.Header closeButton>
+          <Modal.Title>Delete Landscape Token</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          Do you really want to delete the token for{' '}
+          <b>{tokenToDelete?.alias}</b>? This cannot be undone.
+        </Modal.Body>
+        <Modal.Footer>
+          <Button
+            variant="outline-secondary"
+            onClick={() => setTokenToDelete(null)}
+          >
+            Cancel
+          </Button>
+          <Button variant="danger" onClick={confirmDelete}>
+            Delete
+          </Button>
+        </Modal.Footer>
+      </Modal>
+    </>
   );
 }
