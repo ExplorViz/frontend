@@ -126,7 +126,9 @@
     background-color var(--ev-transition-fast),
     box-shadow var(--ev-transition-fast);
 
-  &:hover {
+  &:hover,
+  &:focus-visible {
+    outline: none;
     background-color: rgba(13, 110, 253, 0.08) !important;
     /* Stronger hover cue without changing text metrics/column widths */
     box-shadow:
@@ -135,7 +137,9 @@
   }
 
   &:hover > td,
-  &:hover > th {
+  &:hover > th,
+  &:focus-visible > td,
+  &:focus-visible > th {
     background-color: rgba(13, 110, 253, 0.08) !important;
   }
 }

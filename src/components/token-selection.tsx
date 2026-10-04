@@ -323,7 +323,16 @@ export default function TokenSelection({
               <tr
                 key={token.alias}
                 className="token-selection-row"
+                tabIndex={0}
                 onClick={() => selectToken(token)}
+                onKeyDown={(e) => {
+                  // Ignore keys from nested buttons and the alias input
+                  if (e.target !== e.currentTarget) return;
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    selectToken(token);
+                  }
+                }}
               >
                 <td data-label="Alias">
                   {editingTokenValue === token.value ? (
