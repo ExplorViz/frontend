@@ -24,6 +24,20 @@ export interface MetricOverview {
   entities: string[];
 }
 
+export type MetricValues = GaugeMetricValues;
+
+export interface GaugeMetricPoint {
+  value: number;
+  timeUnixMilli: number;
+}
+
+export interface GaugeMetricValues {
+  pointKind: 'gauge';
+  points: GaugeMetricPoint[];
+  startUnixMilli: number;
+  endUnixMilli: number;
+}
+
 export function isMetricOverview(x: any): x is MetricOverview {
   const services = x.services;
   const entities = x.entities;
@@ -36,5 +50,27 @@ export function isMetricOverview(x: any): x is MetricOverview {
     services.every((v) => typeof v === 'string') &&
     Array.isArray(entities) &&
     entities.every((v) => typeof v === 'string')
+  );
+}
+
+export function isMetricValues(x: any): x is MetricValues {
+  return isGaugeMetricValues(x);
+}
+
+export function isGaugeMetricPoint(x: any): x is GaugeMetricPoint {
+  return (
+    x !== null &&
+    typeof x.value === 'number' &&
+    typeof x.timeUnixMilli === 'number'
+  );
+}
+
+export function isGaugeMetricValues(x: any): x is GaugeMetricValues {
+  const points = x.points;
+  return (
+    x !== null &&
+    x.pointKind === 'gauge' &&
+    Array.isArray(points) &&
+    points.every((v) => isGaugeMetricPoint(v))
   );
 }
