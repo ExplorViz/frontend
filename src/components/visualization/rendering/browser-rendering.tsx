@@ -183,6 +183,9 @@ export default function BrowserRendering({
     useState<ToolbarState>(defaultToolbarState);
 
   const toolbarActions: ToolbarActions = {
+    setShowSidebar: (showSidebar) =>
+      setToolbarState((state) => ({ ...state, showSidebar: false })),
+
     openTool: (tool) =>
       setToolbarState((state) => ({
         ...state,

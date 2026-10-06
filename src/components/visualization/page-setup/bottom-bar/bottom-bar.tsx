@@ -10,6 +10,7 @@ import { BottomBarContext } from './bottom-bar-context';
 import CommitTreeRepositorySelection from './evolution/commit-tree-repository-selection';
 import EvolutionRenderingButtons from './evolution/evolution-rendering-buttons';
 import PlotlyCommitTree from './evolution/plotly-commit-tree';
+import RuntimeMetricsChart from './runtime-metrics/runtime-metrics-chart';
 import PlotlyTimeline from './runtime/plotly-timeline';
 import SocialMetricsPanel from './social-metrics/social-metrics-panel';
 
@@ -110,8 +111,7 @@ export default function BottomBar({
           </>
         )}
 
-        {(selectedChart === 'commit-chart' ||
-          selectedChart === 'social-metrics') && (
+        {selectedChart === 'commit-chart' && (
           <>
             <Button
               className="commit-tree-refresh-button"
@@ -128,18 +128,42 @@ export default function BottomBar({
               />
             </Button>
             <EvolutionRenderingButtons />
-            {selectedChart !== 'social-metrics' && (
-              <>
-                <div className="row justify-content-center w-100 mx-0">
-                  <div className="col-12">
-                    <CommitTreeRepositorySelection />
-                  </div>
-                </div>
-                <PlotlyCommitTree />
-              </>
-            )}
 
-            {selectedChart === 'social-metrics' && <SocialMetricsPanel />}
+            <div className="row justify-content-center w-100 mx-0">
+              <div className="col-12">
+                <CommitTreeRepositorySelection />
+              </div>
+            </div>
+            <PlotlyCommitTree />
+          </>
+        )}
+
+        {selectedChart === 'runtime-metrics' && (
+          <RuntimeMetricsChart
+            key={`${bottomBarContext.selectedMetric?.pointKind}_${bottomBarContext.selectedMetric?.name}`}
+            metric={bottomBarContext.selectedMetric}
+          />
+        )}
+
+        {selectedChart === 'social-metrics' && (
+          <>
+            <Button
+              className="commit-tree-refresh-button"
+              variant="outline-secondary"
+              onClick={refreshCommitTreeData}
+              disabled={isCommitTreeRefreshing}
+              title={
+                isCommitTreeRefreshing ? 'Refreshing...' : 'Refresh commit data'
+              }
+            >
+              <SyncIcon
+                size="small"
+                className={isCommitTreeRefreshing ? 'spinning' : ''}
+              />
+            </Button>
+            <EvolutionRenderingButtons />
+
+            <SocialMetricsPanel />
           </>
         )}
       </div>

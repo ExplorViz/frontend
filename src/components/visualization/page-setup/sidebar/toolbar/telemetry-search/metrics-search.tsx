@@ -23,6 +23,7 @@ import {
 } from 'react-bootstrap';
 import { List, RowComponentProps, useDynamicRowHeight } from 'react-window';
 import { useInfiniteLoader } from 'react-window-infinite-loader';
+import { BottomBarContext } from '../../../bottom-bar/bottom-bar-context';
 import { ToolbarContext } from '../toolbar-context';
 
 const POINT_KIND_TO_LABEL = new Map<MetricsPointKind, string>([
@@ -415,9 +416,19 @@ function MetricItem({
       ? metric.unit.slice(1, -1)
       : metric.unit;
 
+  const bottomBarContext = use(BottomBarContext);
+  const toolbarContext = use(ToolbarContext);
+
+  const handleMetricSelect = () => {
+    bottomBarContext.setIsExpanded(true);
+    bottomBarContext.setSelectedChart('runtime-metrics');
+    bottomBarContext.setSelectedMetric(metric);
+    toolbarContext.setShowSidebar(false);
+  };
+
   return (
     <div className="pe-2 pb-2" style={style}>
-      <Card>
+      <Card className="metrics-search-card" onClick={handleMetricSelect}>
         <Card.Body>
           <Card.Title className="text-break mb-1">
             <code>{metric.name}</code>
@@ -448,6 +459,22 @@ function MetricItem({
           </div>
         </Card.Body>
       </Card>
+
+      <style>
+        {`
+          .metrics-search-card {
+            cursor: pointer;
+          }
+
+          .metrics-search-card:hover {
+            background: var(--bs-gray-100);
+          }
+
+          .metrics-search-card:active {
+            background: var(--bs-gray-200);
+          }
+        `}
+      </style>
     </div>
   );
 }

@@ -1,11 +1,18 @@
-import { useEffect, useRef, useState } from 'react';
-import { BottomBarChartView } from './bottom-bar-context';
+import { use, useEffect, useRef, useState } from 'react';
+import { BottomBarChartView, BottomBarContext } from './bottom-bar-context';
 
-const CHART_VIEWS: { id: BottomBarChartView; label: string }[] = [
-  { id: 'commit-chart', label: 'Commit Chart' },
-  { id: 'runtime-chart', label: 'Runtime Chart' },
-  { id: 'social-metrics', label: 'Social Metrics' },
-];
+function getChartViewLabel(chartView: BottomBarChartView): string {
+  switch (chartView) {
+    case 'commit-chart':
+      return 'Commit Chart';
+    case 'runtime-chart':
+      return 'Runtime Chart';
+    case 'runtime-metrics':
+      return 'Runtime Metrics';
+    case 'social-metrics':
+      return 'Social Metrics';
+  }
+}
 
 interface BottomBarChartDropdownProps {
   selectedView: BottomBarChartView;
@@ -19,9 +26,7 @@ export default function BottomBarChartDropdown({
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
-  const selectedLabel =
-    CHART_VIEWS.find((view) => view.id === selectedView)?.label ??
-    'Commit Chart';
+  const bottomBarContext = use(BottomBarContext);
 
   useEffect(() => {
     const handleClickOutside = ({ target }: MouseEvent) => {
@@ -46,6 +51,13 @@ export default function BottomBarChartDropdown({
     }
   };
 
+  const selectableCharts: BottomBarChartView[] = [
+    'commit-chart',
+    'runtime-chart',
+    ...(bottomBarContext.selectedMetric ? (['runtime-metrics'] as const) : []),
+    'social-metrics',
+  ];
+
   return (
     <div
       ref={dropdownRef}
@@ -59,23 +71,23 @@ export default function BottomBarChartDropdown({
         aria-expanded={isOpen}
         onClick={() => setIsOpen((open) => !open)}
       >
-        {selectedLabel}
+        {getChartViewLabel(selectedView) ?? selectedView}
       </button>
       <div
         className={`dropdown-menu bottom-bar-chart-dropdown-menu${
           isOpen ? ' show' : ''
         }`}
       >
-        {CHART_VIEWS.map((view) => (
+        {selectableCharts.map((chart) => (
           <button
-            key={view.id}
+            key={chart}
             type="button"
             className={`dropdown-item${
-              view.id === selectedView ? ' active' : ''
+              chart === selectedView ? ' active' : ''
             }`}
-            onClick={() => handleSelect(view.id)}
+            onClick={() => handleSelect(chart)}
           >
-            {view.label}
+            {getChartViewLabel(chart) ?? chart}
           </button>
         ))}
       </div>

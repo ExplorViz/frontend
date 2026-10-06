@@ -22,6 +22,7 @@ export type ToolbarState = {
 };
 
 export type ToolbarActions = {
+  setShowSidebar(showSidebar: boolean): void;
   openTool(tool: ToolbarTool | null): void;
   setTelemetrySearchTab(tab: 'spans' | 'metrics' | 'logs'): void;
   searchSpans(searchParams: SpanSearchParams): void;
@@ -49,6 +50,7 @@ export const defaultToolbarState: ToolbarState = {
 
 export const ToolbarContext = createContext<ToolbarState & ToolbarActions>({
   ...defaultToolbarState,
+  setShowSidebar: () => console.error('Toolbar context provider missing'),
   openTool: () => console.error('Toolbar context provider missing'),
   setTelemetrySearchTab: () =>
     console.error('Toolbar context provider missing'),

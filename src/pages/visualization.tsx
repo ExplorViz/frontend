@@ -110,6 +110,7 @@ export default function Visualization() {
   const [bottomBarState, setBottomBarState] = useState<BottomBarState>({
     isExpanded: true,
     selectedChart: 'commit-chart',
+    selectedMetric: null,
   });
 
   const bottomBarActions: BottomBarActions = {
@@ -121,6 +122,9 @@ export default function Visualization() {
         ...state,
         selectedChart: selectedChart,
       })),
+
+    setSelectedMetric: (metric) =>
+      setBottomBarState((state) => ({ ...state, selectedMetric: metric })),
   };
 
   const [countdown, setCountdown] = useState<number>(10);
