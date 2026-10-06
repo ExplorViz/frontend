@@ -146,6 +146,83 @@ export default function RuntimeMetricsChart({
     showErrorToastMessage,
   ]);
 
+  useEffect(() => {
+    const fetchMetricValues = async () => {
+      if (!metric) {
+        showErrorToastMessage('No metric is currently selected');
+        return;
+      }
+
+      const metricsServiceUrl = getMetricsServiceUrl();
+      if (metricsServiceUrl === '') {
+        showErrorToastMessage('Metrics service URL not configured');
+        return;
+      }
+
+      if (!landscapeToken) {
+        showErrorToastMessage('No landscape token selected');
+        return;
+      }
+
+      const requestUrl = new URL(
+        `${metricsServiceUrl}/v3/landscapes/${landscapeToken.value}/metric`
+      );
+
+      const queryParams = new URLSearchParams();
+      queryParams.set('name', metric.name);
+      queryParams.set('pointKind', metric.pointKind);
+      queryParams.set('window', window);
+      queryParams.set('aggregation', aggregation);
+      if (selectedService) {
+        queryParams.set('service', selectedService);
+      }
+
+      requestUrl.search = queryParams.toString();
+
+      let response: Response;
+      try {
+        response = await fetch(requestUrl, {
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+            'Access-Control-Allow-Origin': '*',
+          },
+        });
+      } catch (error) {
+        console.error(error);
+        showErrorToastMessage('A network error has occurred');
+        return;
+      }
+
+      if (!response.ok) {
+        showErrorToastMessage(
+          `Received non-ok response status ${response.status}`
+        );
+        return;
+      }
+
+      const receivedMetricValues = JSON.parse(await response.text(), (k, v) => {
+        return k === 'startUnixNano' || k === 'endUnixNano' ? BigInt(v) : v;
+      });
+      if (!isMetricValues(receivedMetricValues)) {
+        console.error(`JSON fails type guard ${isMetricValues.name}`);
+        showErrorToastMessage('Received invalid response');
+        return;
+      }
+
+      setMetricValues(receivedMetricValues);
+    };
+
+    fetchMetricValues();
+  }, [
+    metric,
+    selectedService,
+    window,
+    aggregation,
+    landscapeToken,
+    accessToken,
+    showErrorToastMessage,
+  ]);
+
   if (!metric) {
     return (
       <div className="timeline-no-timestamps-outer">
