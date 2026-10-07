@@ -147,10 +147,11 @@ export default function RuntimeMetricsChart({
 
   return (
     <div className="mx-3">
-      <div className="d-flex align-items-center justify-content-center">
-        <h5>
+      <div className="d-flex flex-column align-items-center justify-content-center">
+        <h5 className="mb-0">
           <code>{metric.name}</code>
         </h5>
+        <span className="text-muted text-truncate">{metric.description}</span>
       </div>
 
       <div
