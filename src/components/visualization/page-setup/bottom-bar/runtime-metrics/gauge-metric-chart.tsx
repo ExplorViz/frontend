@@ -1,4 +1,7 @@
-import { GaugeMetricValues } from 'explorviz-frontend/src/utils/landscape-schemes/telemetry/metrics';
+import {
+  GaugeMetricValues,
+  SumMetricValues,
+} from 'explorviz-frontend/src/utils/landscape-schemes/telemetry/metrics';
 import {
   CartesianGrid,
   Line,
@@ -15,7 +18,7 @@ const FOUR_HOURS_IN_MILLIS = 4 * ONE_HOUR_IN_MILLIS;
 const ONE_DAY_IN_MILLIS = 24 * ONE_HOUR_IN_MILLIS;
 
 interface GaugeMetricChartProps {
-  metric: GaugeMetricValues;
+  metric: GaugeMetricValues | SumMetricValues;
   window: MetricsWindow;
   height?: number;
 }

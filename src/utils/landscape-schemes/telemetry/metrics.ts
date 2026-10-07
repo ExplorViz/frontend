@@ -24,7 +24,19 @@ export interface MetricOverview {
   entities: string[];
 }
 
-export type MetricValues = GaugeMetricValues;
+export type MetricValues = SumMetricValues | GaugeMetricValues;
+
+export interface SumMetricPoint {
+  value: number;
+  timeUnixMilli: number;
+}
+
+export interface SumMetricValues {
+  pointKind: 'sum';
+  points: SumMetricPoint[];
+  startUnixMilli: number;
+  endUnixMilli: number;
+}
 
 export interface GaugeMetricPoint {
   value: number;
@@ -54,7 +66,25 @@ export function isMetricOverview(x: any): x is MetricOverview {
 }
 
 export function isMetricValues(x: any): x is MetricValues {
-  return isGaugeMetricValues(x);
+  return isSumMetricValues(x) || isGaugeMetricValues(x);
+}
+
+export function isSumMetricPoint(x: any): x is SumMetricPoint {
+  return (
+    x !== null &&
+    typeof x.value === 'number' &&
+    typeof x.timeUnixMilli === 'number'
+  );
+}
+
+export function isSumMetricValues(x: any): x is SumMetricValues {
+  const points = x.points;
+  return (
+    x !== null &&
+    x.pointKind === 'sum' &&
+    Array.isArray(points) &&
+    points.every((v) => isSumMetricPoint(v))
+  );
 }
 
 export function isGaugeMetricPoint(x: any): x is GaugeMetricPoint {

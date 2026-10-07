@@ -199,8 +199,13 @@ export default function RuntimeMetricsChart({
             ))}
           </DropdownButton>
         </div>
-        {metricValues && metricValues.pointKind === 'gauge' && (
-          <GaugeMetricChart metric={metricValues} window={window} />
+        {metricValues && (
+          <>
+            {(metricValues.pointKind === 'gauge' ||
+              metricValues.pointKind === 'sum') && (
+              <GaugeMetricChart metric={metricValues} window={window} />
+            )}
+          </>
         )}
         {metricValues === null && (
           <div className="timeline-no-timestamps-outer mt-3">
