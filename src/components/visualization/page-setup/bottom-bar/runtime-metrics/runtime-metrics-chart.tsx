@@ -112,9 +112,8 @@ export default function RuntimeMetricsChart({
         return;
       }
 
-      const receivedMetricValues = JSON.parse(await response.text(), (k, v) => {
-        return k === 'startUnixNano' || k === 'endUnixNano' ? BigInt(v) : v;
-      });
+      const receivedMetricValues = await response.json();
+
       if (!isMetricValues(receivedMetricValues)) {
         console.error(`JSON fails type guard ${isMetricValues.name}`);
         showErrorToastMessage('Received invalid response');
