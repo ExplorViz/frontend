@@ -11,7 +11,7 @@ import { useEffect, useState } from 'react';
 import { Dropdown, DropdownButton } from 'react-bootstrap';
 import { GaugeMetricChart } from './gauge-metric-chart';
 
-type MetricsWindow = '1h' | '4h' | '24h';
+export type MetricsWindow = '1h' | '4h' | '24h';
 
 const METRICS_AGGREGATIONS = ['avg', 'sum', 'min', 'max'] as const;
 type MetricsAggregation = (typeof METRICS_AGGREGATIONS)[number];
@@ -192,7 +192,7 @@ export default function RuntimeMetricsChart({
           </DropdownButton>
         </div>
         {metricValues && metricValues.pointKind === 'gauge' && (
-          <GaugeMetricChart metric={metricValues} />
+          <GaugeMetricChart metric={metricValues} window={window} />
         )}
       </div>
     </div>
