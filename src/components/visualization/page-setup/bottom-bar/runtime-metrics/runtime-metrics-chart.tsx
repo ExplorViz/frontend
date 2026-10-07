@@ -44,7 +44,9 @@ export default function RuntimeMetricsChart({
     (state) => state.showErrorToastMessage
   );
 
-  const [metricValues, setMetricValues] = useState<MetricValues | null>(null);
+  const [metricValues, setMetricValues] = useState<
+    MetricValues | null | undefined
+  >(undefined);
   const [selectedService, setSelectedService] = useState<string | null>(
     services?.[0] ?? null
   );
@@ -55,17 +57,20 @@ export default function RuntimeMetricsChart({
     const fetchMetricValues = async () => {
       if (!metric) {
         showErrorToastMessage('No metric is currently selected');
+        setMetricValues(null);
         return;
       }
 
       const metricsServiceUrl = getMetricsServiceUrl();
       if (metricsServiceUrl === '') {
         showErrorToastMessage('Metrics service URL not configured');
+        setMetricValues(null);
         return;
       }
 
       if (!landscapeToken) {
         showErrorToastMessage('No landscape token selected');
+        setMetricValues(null);
         return;
       }
 
@@ -95,6 +100,7 @@ export default function RuntimeMetricsChart({
       } catch (error) {
         console.error(error);
         showErrorToastMessage('A network error has occurred');
+        setMetricValues(null);
         return;
       }
 
@@ -102,6 +108,7 @@ export default function RuntimeMetricsChart({
         showErrorToastMessage(
           `Received non-ok response status ${response.status}`
         );
+        setMetricValues(null);
         return;
       }
 
@@ -111,6 +118,7 @@ export default function RuntimeMetricsChart({
       if (!isMetricValues(receivedMetricValues)) {
         console.error(`JSON fails type guard ${isMetricValues.name}`);
         showErrorToastMessage('Received invalid response');
+        setMetricValues(null);
         return;
       }
 
@@ -193,6 +201,13 @@ export default function RuntimeMetricsChart({
         </div>
         {metricValues && metricValues.pointKind === 'gauge' && (
           <GaugeMetricChart metric={metricValues} window={window} />
+        )}
+        {metricValues === null && (
+          <div className="timeline-no-timestamps-outer mt-3">
+            <div className="timeline-no-timestamps-inner">
+              No data for metric available
+            </div>
+          </div>
         )}
       </div>
     </div>
