@@ -21,12 +21,14 @@ interface GaugeMetricChartProps {
   metric: GaugeMetricValues | SumMetricValues;
   window: MetricsWindow;
   height?: number;
+  alwaysShowZero?: boolean;
 }
 
 export function GaugeMetricChart({
   metric,
   window,
   height = 300,
+  alwaysShowZero = true,
 }: GaugeMetricChartProps) {
   const data = metric.points.map((point) => ({
     time: point.timeUnixMilli,
@@ -71,7 +73,7 @@ export function GaugeMetricChart({
           tickFormatter={formatTime}
         />
 
-        <YAxis domain={['auto', 'auto']} />
+        <YAxis domain={alwaysShowZero ? undefined : ['auto', 'auto']} />
 
         <Tooltip
           labelFormatter={(timestamp) => formatTime(Number(timestamp))}

@@ -8,7 +8,7 @@ import {
   MetricValues,
 } from 'explorviz-frontend/src/utils/landscape-schemes/telemetry/metrics';
 import { useEffect, useState } from 'react';
-import { Dropdown, DropdownButton } from 'react-bootstrap';
+import { Dropdown, DropdownButton, Form } from 'react-bootstrap';
 import { GaugeMetricChart } from './gauge-metric-chart';
 
 export type MetricsWindow = '1h' | '4h' | '24h';
@@ -52,6 +52,7 @@ export default function RuntimeMetricsChart({
   );
   const [window, setWindow] = useState<MetricsWindow>('1h');
   const [aggregation, setAggregation] = useState<MetricsAggregation>('avg');
+  const [alwaysShowZero, setAlwaysShowZero] = useState<boolean>(true);
 
   useEffect(() => {
     const fetchMetricValues = async () => {
@@ -198,12 +199,25 @@ export default function RuntimeMetricsChart({
               </Dropdown.Item>
             ))}
           </DropdownButton>
+
+          <span>y-Axis:</span>
+          <Form.Check
+            type="switch"
+            id="y-axis-zero-switch"
+            label="Always show zero"
+            checked={alwaysShowZero}
+            onChange={() => setAlwaysShowZero((state) => !state)}
+          />
         </div>
         {metricValues && (
           <>
             {(metricValues.pointKind === 'gauge' ||
               metricValues.pointKind === 'sum') && (
-              <GaugeMetricChart metric={metricValues} window={window} />
+              <GaugeMetricChart
+                metric={metricValues}
+                window={window}
+                alwaysShowZero={alwaysShowZero}
+              />
             )}
           </>
         )}
