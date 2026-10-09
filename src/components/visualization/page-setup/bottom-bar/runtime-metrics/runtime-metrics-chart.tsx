@@ -7,6 +7,7 @@ import {
   MetricOverview,
   MetricValues,
 } from 'explorviz-frontend/src/utils/landscape-schemes/telemetry/metrics';
+import pluralize from 'pluralize';
 import { useEffect, useState } from 'react';
 import { Dropdown, DropdownButton, Form } from 'react-bootstrap';
 import { GaugeMetricChart } from './gauge-metric-chart';
@@ -153,10 +154,24 @@ export default function RuntimeMetricsChart({
     );
   }
 
-  const formattedUnit =
-    metric.unit.startsWith('{') && metric.unit.endsWith('}')
-      ? ' ' + metric.unit.slice(1, -1)
-      : metric.unit;
+  /**
+   * In OpenTelemetry, units may use curly braces to denote they are non-standard,
+   * e.g. "{connection}". For display, we want to discard the braces.
+   */
+  const regexDestructureUnitName = /^\{([^}]+)\}(\/.*)?$/;
+  const match = metric.unit.match(regexDestructureUnitName);
+
+  let formattedUnit: string;
+
+  if (!match) {
+    // Do not display the OpenTelemetry 'unity' unit as string
+    formattedUnit = metric.unit === '1' ? '' : metric.unit;
+  } else {
+    const [, prefix = '', suffix = ''] = match;
+    formattedUnit = pluralize(prefix) + suffix;
+    formattedUnit = formattedUnit.replaceAll('_', ' ');
+  }
+  formattedUnit = (formattedUnit !== '%' ? ' ' : '') + formattedUnit;
 
   return (
     <div className="mx-3">
