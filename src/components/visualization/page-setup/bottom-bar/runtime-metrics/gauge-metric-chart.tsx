@@ -20,8 +20,9 @@ const ONE_DAY_IN_MILLIS = 24 * ONE_HOUR_IN_MILLIS;
 interface GaugeMetricChartProps {
   values: GaugeMetricValues | SumMetricValues;
   window: MetricsWindow;
-  height?: number;
+  unit?: string;
   alwaysShowZero?: boolean;
+  height?: number;
 }
 
 /**
@@ -31,6 +32,7 @@ interface GaugeMetricChartProps {
 export function GaugeMetricChart({
   values,
   window,
+  unit = '',
   height = 300,
   alwaysShowZero = true,
 }: GaugeMetricChartProps) {
@@ -66,7 +68,7 @@ export function GaugeMetricChart({
     <ResponsiveContainer width="100%" height={height}>
       <LineChart
         data={data}
-        margin={{ top: 10, right: 10, left: 20, bottom: 10 }}
+        margin={{ top: 28, right: 10, left: 20, bottom: 10 }}
       >
         <CartesianGrid strokeDasharray="3 3" />
 
@@ -77,11 +79,22 @@ export function GaugeMetricChart({
           tickFormatter={formatTime}
         />
 
-        <YAxis domain={alwaysShowZero ? undefined : ['auto', 'auto']} />
+        <YAxis
+          domain={alwaysShowZero ? undefined : ['auto', 'auto']}
+          label={{
+            value: `Value (${unit.trimStart()})`,
+            position: 'top',
+            textAnchor: 'start',
+            offset: 15,
+          }}
+        />
 
         <Tooltip
           labelFormatter={(timestamp) => formatTime(Number(timestamp))}
-          formatter={(value) => [value, 'Value']}
+          formatter={(value) => [
+            `${Number(Number(value).toFixed(6))}${unit}`,
+            'Value',
+          ]}
         />
 
         <Line

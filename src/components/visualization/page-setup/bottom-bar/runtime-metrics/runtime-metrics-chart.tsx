@@ -39,6 +39,7 @@ export default function RuntimeMetricsChart({
   metric,
 }: RuntimeMetricsChartProps) {
   const services = metric?.services.toSorted();
+  const isSum = metric?.pointKind === 'sum';
   const isHistogram =
     metric?.pointKind === 'histogram' || metric?.pointKind === 'exp_histogram';
 
@@ -56,7 +57,7 @@ export default function RuntimeMetricsChart({
   );
   const [window, setWindow] = useState<MetricsWindow>('1h');
   const [aggregation, setAggregation] = useState<MetricsAggregation>(
-    isHistogram ? 'sum' : 'avg'
+    isSum || isHistogram ? 'sum' : 'avg'
   );
   const [alwaysShowZero, setAlwaysShowZero] = useState<boolean>(true);
 
@@ -152,6 +153,11 @@ export default function RuntimeMetricsChart({
     );
   }
 
+  const formattedUnit =
+    metric.unit.startsWith('{') && metric.unit.endsWith('}')
+      ? ' ' + metric.unit.slice(1, -1)
+      : metric.unit;
+
   return (
     <div className="mx-3">
       <div className="d-flex flex-column align-items-center justify-content-center">
@@ -200,13 +206,13 @@ export default function RuntimeMetricsChart({
             <Dropdown.Item onClick={() => setWindow('24h')}>24h</Dropdown.Item>
           </DropdownButton>
 
-          <span className={isHistogram ? 'text-muted' : undefined}>
+          <span className={isSum || isHistogram ? 'text-muted' : undefined}>
             Aggregation:
           </span>
           <DropdownButton
             id="metric-window-dropdown"
             title={getAggregationLabel(aggregation)}
-            disabled={isHistogram}
+            disabled={isSum || isHistogram}
           >
             {METRICS_AGGREGATIONS.map((agg) => (
               <Dropdown.Item key={agg} onClick={() => setAggregation(agg)}>
@@ -234,11 +240,15 @@ export default function RuntimeMetricsChart({
               <GaugeMetricChart
                 values={metricValues}
                 window={window}
+                unit={formattedUnit}
                 alwaysShowZero={alwaysShowZero}
               />
             )}
             {metricValues.pointKind === 'histogram' && (
-              <HistogramMetricChart values={metricValues} unit={metric.unit} />
+              <HistogramMetricChart
+                values={metricValues}
+                unit={formattedUnit}
+              />
             )}
           </>
         )}
