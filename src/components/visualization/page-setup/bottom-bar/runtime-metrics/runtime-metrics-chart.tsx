@@ -10,6 +10,7 @@ import {
 import { useEffect, useState } from 'react';
 import { Dropdown, DropdownButton, Form } from 'react-bootstrap';
 import { GaugeMetricChart } from './gauge-metric-chart';
+import HistogramMetricChart from './histogram-metric-chart';
 
 export type MetricsWindow = '1h' | '4h' | '24h';
 
@@ -33,10 +34,13 @@ interface RuntimeMetricsChartProps {
   metric: MetricOverview | null;
 }
 
+/** A panel with a chart and visualiziation options for visualizing an OpenTelemetry metric. */
 export default function RuntimeMetricsChart({
   metric,
 }: RuntimeMetricsChartProps) {
   const services = metric?.services.toSorted();
+  const isHistogram =
+    metric?.pointKind === 'histogram' || metric?.pointKind === 'exp_histogram';
 
   const landscapeToken = useLandscapeTokenStore((state) => state.token);
   const accessToken = useAuthStore((state) => state.accessToken);
@@ -51,7 +55,9 @@ export default function RuntimeMetricsChart({
     services?.[0] ?? null
   );
   const [window, setWindow] = useState<MetricsWindow>('1h');
-  const [aggregation, setAggregation] = useState<MetricsAggregation>('avg');
+  const [aggregation, setAggregation] = useState<MetricsAggregation>(
+    isHistogram ? 'sum' : 'avg'
+  );
   const [alwaysShowZero, setAlwaysShowZero] = useState<boolean>(true);
 
   useEffect(() => {
@@ -181,17 +187,26 @@ export default function RuntimeMetricsChart({
             </>
           )}
 
-          <span>Window:</span>
-          <DropdownButton id="metric-window-dropdown" title={window}>
+          <span className={isHistogram ? 'text-muted' : undefined}>
+            Window:
+          </span>
+          <DropdownButton
+            id="metric-window-dropdown"
+            title={window}
+            disabled={isHistogram}
+          >
             <Dropdown.Item onClick={() => setWindow('1h')}>1h</Dropdown.Item>
             <Dropdown.Item onClick={() => setWindow('4h')}>4h</Dropdown.Item>
             <Dropdown.Item onClick={() => setWindow('24h')}>24h</Dropdown.Item>
           </DropdownButton>
 
-          <span>Aggregation:</span>
+          <span className={isHistogram ? 'text-muted' : undefined}>
+            Aggregation:
+          </span>
           <DropdownButton
             id="metric-window-dropdown"
             title={getAggregationLabel(aggregation)}
+            disabled={isHistogram}
           >
             {METRICS_AGGREGATIONS.map((agg) => (
               <Dropdown.Item key={agg} onClick={() => setAggregation(agg)}>
@@ -200,13 +215,16 @@ export default function RuntimeMetricsChart({
             ))}
           </DropdownButton>
 
-          <span>y-Axis:</span>
+          <span className={isHistogram ? 'text-muted' : undefined}>
+            y-Axis:
+          </span>
           <Form.Check
             type="switch"
             id="y-axis-zero-switch"
             label="Always show zero"
             checked={alwaysShowZero}
             onChange={() => setAlwaysShowZero((state) => !state)}
+            disabled={isHistogram}
           />
         </div>
         {metricValues && (
@@ -214,10 +232,13 @@ export default function RuntimeMetricsChart({
             {(metricValues.pointKind === 'gauge' ||
               metricValues.pointKind === 'sum') && (
               <GaugeMetricChart
-                metric={metricValues}
+                values={metricValues}
                 window={window}
                 alwaysShowZero={alwaysShowZero}
               />
+            )}
+            {metricValues.pointKind === 'histogram' && (
+              <HistogramMetricChart values={metricValues} unit={metric.unit} />
             )}
           </>
         )}

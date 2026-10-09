@@ -18,19 +18,23 @@ const FOUR_HOURS_IN_MILLIS = 4 * ONE_HOUR_IN_MILLIS;
 const ONE_DAY_IN_MILLIS = 24 * ONE_HOUR_IN_MILLIS;
 
 interface GaugeMetricChartProps {
-  metric: GaugeMetricValues | SumMetricValues;
+  values: GaugeMetricValues | SumMetricValues;
   window: MetricsWindow;
   height?: number;
   alwaysShowZero?: boolean;
 }
 
+/**
+ * A bar chart for visualizing OpenTelemetry gauge or sum values.
+ * @see {@link GaugeMetricValues}, {@link SumMetricValues}
+ */
 export function GaugeMetricChart({
-  metric,
+  values,
   window,
   height = 300,
   alwaysShowZero = true,
 }: GaugeMetricChartProps) {
-  const data = metric.points.map((point) => ({
+  const data = values.points.map((point) => ({
     time: point.timeUnixMilli,
     value: point.value,
   }));
@@ -42,7 +46,7 @@ export function GaugeMetricChart({
       second: '2-digit',
     });
 
-  const domainEnd = metric.endUnixMilli;
+  const domainEnd = values.endUnixMilli;
   let domainStart;
   switch (window) {
     case '1h':
@@ -55,7 +59,7 @@ export function GaugeMetricChart({
       domainStart = domainEnd - ONE_DAY_IN_MILLIS;
       break;
     default:
-      domainStart = metric.startUnixMilli;
+      domainStart = values.startUnixMilli;
   }
 
   return (
