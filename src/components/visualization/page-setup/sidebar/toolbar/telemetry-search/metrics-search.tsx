@@ -144,6 +144,7 @@ export default function MetricsSearch() {
       setMetrics(null);
       setIsLoading(true);
       setAllItemsLoaded(false);
+      toolbarContext.searchMetrics(null); // Reset request to prevent repeated triggering
     }
     setPrevSearchRequest(searchRequest);
   }

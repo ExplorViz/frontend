@@ -25,9 +25,9 @@ export type ToolbarActions = {
   setShowSidebar(showSidebar: boolean): void;
   openTool(tool: ToolbarTool | null): void;
   setTelemetrySearchTab(tab: 'spans' | 'metrics' | 'logs'): void;
-  searchSpans(searchParams: SpanSearchParams): void;
-  searchMetrics(searchParams: MetricsSearchParams): void;
-  searchLogs(searchParams: LogSearchParams): void;
+  searchSpans(searchParams: SpanSearchParams | null): void;
+  searchMetrics(searchParams: MetricsSearchParams | null): void;
+  searchLogs(searchParams: LogSearchParams | null): void;
 };
 
 export type TelemetrySearchState = {

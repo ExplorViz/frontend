@@ -182,6 +182,7 @@ export default function LogSearch() {
       setLogs(null);
       setIsLoading(true);
       setAllItemsLoaded(false);
+      toolbarContext.searchLogs(null); // Reset request to prevent repeated triggering
     }
     setPrevSearchRequest(searchRequest);
   }
