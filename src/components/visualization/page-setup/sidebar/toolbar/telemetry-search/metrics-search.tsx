@@ -10,6 +10,7 @@ import {
   MetricOverview,
   MetricsPointKind,
 } from 'explorviz-frontend/src/utils/landscape-schemes/telemetry/metrics';
+import { pingByModelId } from 'explorviz-frontend/src/view-objects/3d/city/animated-ping-r3f';
 import React, { use, useCallback, useEffect, useState } from 'react';
 import {
   Accordion,
@@ -417,6 +418,16 @@ function MetricItem({
       ? metric.unit.slice(1, -1)
       : metric.unit;
 
+  const telemetryKeyToEntityId = useModelStore(
+    (state) => state.telemetryKeyToEntityId
+  );
+  const buildings = useModelStore((state) => state.buildings);
+  const buildingsWithMetric = metric.entities.flatMap((k) => {
+    const id = telemetryKeyToEntityId.get(k);
+    const building = id !== undefined ? buildings[id] : undefined;
+    return building === undefined ? [] : [building];
+  });
+
   const bottomBarContext = use(BottomBarContext);
   const toolbarContext = use(ToolbarContext);
 
@@ -425,6 +436,11 @@ function MetricItem({
     bottomBarContext.setSelectedChart('runtime-metrics');
     bottomBarContext.setSelectedMetric(metric);
     toolbarContext.setShowSidebar(false);
+  };
+
+  const handleEntitiesClick = (e: React.PointerEvent) => {
+    e.stopPropagation();
+    buildingsWithMetric.forEach((b) => pingByModelId(b.id));
   };
 
   return (
@@ -453,7 +469,23 @@ function MetricItem({
                   >
                     <span>{metric.services.length} Services</span>
                   </OverlayTrigger>{' '}
-                  &middot; {metric.entities.length} Entities
+                  &middot;{' '}
+                  <OverlayTrigger
+                    placement={'top'}
+                    trigger={['hover', 'focus']}
+                    overlay={
+                      <Tooltip>
+                        {buildingsWithMetric
+                          .map((b) => b.name)
+                          .toSorted()
+                          .join(', ')}
+                      </Tooltip>
+                    }
+                  >
+                    <span role="button" onClick={handleEntitiesClick}>
+                      {metric.entities.length} Entities
+                    </span>
+                  </OverlayTrigger>
                 </div>
               </small>
             </small>
