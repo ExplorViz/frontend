@@ -68,10 +68,7 @@ export function GaugeMetricChart({
 
   return (
     <ResponsiveContainer width="100%" height={height}>
-      <LineChart
-        data={data}
-        margin={{ top: 28, right: 10, left: 20, bottom: 10 }}
-      >
+      <LineChart data={data} margin={{ top: 28, right: 10, bottom: 10 }}>
         <CartesianGrid strokeDasharray="3 3" />
 
         <XAxis
@@ -84,13 +81,8 @@ export function GaugeMetricChart({
         <YAxis
           domain={alwaysShowZero ? undefined : ['auto', 'auto']}
           scale={isLogScale ? 'symlog' : 'linear'}
-          label={{
-            value:
-              unit.trim().length > 0 ? `Value (${unit.trim()})` : undefined,
-            position: 'top',
-            textAnchor: 'start',
-            offset: 15,
-          }}
+          width="auto"
+          tickFormatter={(v) => `${v}${unit}`}
         />
 
         <Tooltip
