@@ -77,6 +77,7 @@ export function GaugeMetricChart({
           dataKey="time"
           type="number"
           domain={[domainStart, domainEnd]}
+          tickMargin={10}
           tickFormatter={formatTime}
         />
 
@@ -85,6 +86,7 @@ export function GaugeMetricChart({
           scale={isLogScale ? 'symlog' : 'linear'}
           allowDecimals={hasDecimals}
           width="auto"
+          tickMargin={10}
           tickFormatter={(v) => `${v}${unit}`}
         />
 
