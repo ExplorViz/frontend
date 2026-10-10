@@ -12,6 +12,7 @@ import {
 interface HistogramMetricChartProps {
   values: HistogramMetricValues;
   unit?: string;
+  isLogScale?: boolean;
   height?: number;
 }
 
@@ -22,6 +23,7 @@ interface HistogramMetricChartProps {
 export default function HistogramMetricChart({
   values,
   unit = '',
+  isLogScale = false,
   height = 300,
 }: HistogramMetricChartProps) {
   const data = values.points.map((v, i) => {
@@ -59,6 +61,7 @@ export default function HistogramMetricChart({
         <YAxis
           dataKey="value"
           allowDecimals={false}
+          scale={isLogScale ? 'symlog' : 'linear'}
           label={{
             value: 'Frequency (Count)',
             angle: -90,

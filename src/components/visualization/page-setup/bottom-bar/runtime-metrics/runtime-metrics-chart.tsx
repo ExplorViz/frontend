@@ -61,6 +61,7 @@ export default function RuntimeMetricsChart({
     isSum || isHistogram ? 'sum' : 'avg'
   );
   const [alwaysShowZero, setAlwaysShowZero] = useState<boolean>(true);
+  const [isLogScale, setIsLogScale] = useState<boolean>(false);
 
   useEffect(() => {
     const fetchMetricValues = async () => {
@@ -236,17 +237,24 @@ export default function RuntimeMetricsChart({
             ))}
           </DropdownButton>
 
-          <span className={isHistogram ? 'text-muted' : undefined}>
-            y-Axis:
-          </span>
-          <Form.Check
-            type="switch"
-            id="y-axis-zero-switch"
-            label="Always show zero"
-            checked={alwaysShowZero}
-            onChange={() => setAlwaysShowZero((state) => !state)}
-            disabled={isHistogram}
-          />
+          <span className="align-self-start">y-Axis:</span>
+          <div>
+            <Form.Check
+              type="switch"
+              id="y-axis-log-switch"
+              label="Use logarithmic scale"
+              checked={isLogScale}
+              onChange={() => setIsLogScale((state) => !state)}
+            />
+            <Form.Check
+              type="switch"
+              id="y-axis-zero-switch"
+              label="Always show zero"
+              checked={alwaysShowZero}
+              onChange={() => setAlwaysShowZero((state) => !state)}
+              disabled={isHistogram}
+            />
+          </div>
         </div>
         {metricValues && (
           <>
@@ -257,12 +265,14 @@ export default function RuntimeMetricsChart({
                 window={window}
                 unit={formattedUnit}
                 alwaysShowZero={alwaysShowZero}
+                isLogScale={isLogScale}
               />
             )}
             {metricValues.pointKind === 'histogram' && (
               <HistogramMetricChart
                 values={metricValues}
                 unit={formattedUnit}
+                isLogScale={isLogScale}
               />
             )}
           </>

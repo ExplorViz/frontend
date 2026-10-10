@@ -22,6 +22,7 @@ interface GaugeMetricChartProps {
   window: MetricsWindow;
   unit?: string;
   alwaysShowZero?: boolean;
+  isLogScale?: boolean;
   height?: number;
 }
 
@@ -33,8 +34,9 @@ export function GaugeMetricChart({
   values,
   window,
   unit = '',
-  height = 300,
   alwaysShowZero = true,
+  isLogScale = false,
+  height = 300,
 }: GaugeMetricChartProps) {
   const data = values.points.map((point) => ({
     time: point.timeUnixMilli,
@@ -81,8 +83,10 @@ export function GaugeMetricChart({
 
         <YAxis
           domain={alwaysShowZero ? undefined : ['auto', 'auto']}
+          scale={isLogScale ? 'symlog' : 'linear'}
           label={{
-            value: `Value (${unit.trimStart()})`,
+            value:
+              unit.trim().length > 0 ? `Value (${unit.trim()})` : undefined,
             position: 'top',
             textAnchor: 'start',
             offset: 15,
