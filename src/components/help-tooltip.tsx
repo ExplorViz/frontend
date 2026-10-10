@@ -23,7 +23,6 @@ export default function HelpTooltip({
         style={{
           marginLeft: '0.25rem',
           marginRight: '0.25rem',
-          zIndex: 10000000000000,
         }}
       >
         <InfoIcon className="align-middle" size="small" fill="#777" />

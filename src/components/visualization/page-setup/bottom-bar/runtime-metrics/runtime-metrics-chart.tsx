@@ -1,3 +1,4 @@
+import HelpTooltip from 'explorviz-frontend/src/components/help-tooltip';
 import { useAuthStore } from 'explorviz-frontend/src/stores/auth';
 import { useLandscapeTokenStore } from 'explorviz-frontend/src/stores/landscape-token';
 import { useToastHandlerStore } from 'explorviz-frontend/src/stores/toast-handler';
@@ -225,17 +226,23 @@ export default function RuntimeMetricsChart({
           <span className={isSum || isHistogram ? 'text-muted' : undefined}>
             Aggregation:
           </span>
-          <DropdownButton
-            id="metric-window-dropdown"
-            title={getAggregationLabel(aggregation)}
-            disabled={isSum || isHistogram}
-          >
-            {METRICS_AGGREGATIONS.map((agg) => (
-              <Dropdown.Item key={agg} onClick={() => setAggregation(agg)}>
-                {getAggregationLabel(agg)}
-              </Dropdown.Item>
-            ))}
-          </DropdownButton>
+          <div className="d-flex align-items-center">
+            <DropdownButton
+              id="metric-window-dropdown"
+              title={getAggregationLabel(aggregation)}
+              disabled={isSum || isHistogram}
+            >
+              {METRICS_AGGREGATIONS.map((agg) => (
+                <Dropdown.Item key={agg} onClick={() => setAggregation(agg)}>
+                  {getAggregationLabel(agg)}
+                </Dropdown.Item>
+              ))}
+            </DropdownButton>
+            <HelpTooltip
+              title="Combines datapoints from multiple time series (e.g. service instances) into a single datapoint. Some aggregations may not be meaningful for all point kinds."
+              placement="top"
+            />
+          </div>
 
           <span className="align-self-start">y-Axis:</span>
           <div>
