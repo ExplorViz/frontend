@@ -43,6 +43,8 @@ export function GaugeMetricChart({
     value: point.value,
   }));
 
+  const hasDecimals = data.some((d) => !Number.isInteger(d.value));
+
   const formatTime = (timestamp: number) =>
     new Date(timestamp).toLocaleTimeString([], {
       hour: '2-digit',
@@ -81,6 +83,7 @@ export function GaugeMetricChart({
         <YAxis
           domain={alwaysShowZero ? undefined : ['auto', 'auto']}
           scale={isLogScale ? 'symlog' : 'linear'}
+          allowDecimals={hasDecimals}
           width="auto"
           tickFormatter={(v) => `${v}${unit}`}
         />
