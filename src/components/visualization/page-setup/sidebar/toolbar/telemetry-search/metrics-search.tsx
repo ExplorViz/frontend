@@ -329,7 +329,7 @@ export default function MetricsSearch() {
             <Form.Label>
               Sort by{' '}
               <HelpTooltip
-                title="Determines the order in which matching spans are retrieved and displayed."
+                title="Determines the order in which matching metrics are retrieved and displayed."
                 placement="top"
               />
             </Form.Label>
@@ -394,7 +394,7 @@ export default function MetricsSearch() {
               </Accordion>
             </>
           ) : (
-            <span>No spans found for the current search criteria.</span>
+            <span>No metrics found for the current search criteria.</span>
           )}
 
           {isLoading && <Spinner variant="primary" />}
@@ -438,7 +438,7 @@ function MetricItem({
     toolbarContext.setShowSidebar(false);
   };
 
-  const handleEntitiesClick = (e: React.PointerEvent) => {
+  const handleEntitiesClick = (e: React.MouseEvent) => {
     e.stopPropagation();
     buildingsWithMetric.forEach((b) => pingByModelId(b.id));
   };
