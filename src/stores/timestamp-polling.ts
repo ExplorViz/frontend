@@ -282,56 +282,55 @@ export const useTimestampPollingStore = create<TimestampPollingState>(
     },
 
     // private
-    _httpFetchTimestamps: (
+    _httpFetchTimestamps: async (
       commit?: SelectedCommit,
-      newestLocalTimestamp?: Timestamp,
-      oldestLocalTimestamp?: Timestamp
+      newestLocalTimestamp?: Timestamp
     ) => {
-      return new Promise<Timestamp[]>((resolve, reject) => {
-        if (!useLandscapeTokenStore.getState().token) {
-          reject(new Error('No landscape token selected'));
-          return;
-        }
+      const landscapeToken = useLandscapeTokenStore.getState().token;
+      if (!landscapeToken) {
+        throw new Error('No landscape token selected');
+      }
 
-        let url = `${traceService}/v3/landscapes/${useLandscapeTokenStore.getState().token!.value}/timestamps`;
+      let url = new URL(
+        `${traceService}/v3/landscapes/${landscapeToken.value}/timestamps`
+      );
 
-        let parameter = '?';
+      if (commit) {
+        url.searchParams.set('commit', commit.commitId);
+      }
 
-        if (commit) {
-          parameter += `commit=${commit.commitId}&`;
-        }
-        if (newestLocalTimestamp) {
-          parameter += `newest=${newestLocalTimestamp.epochNano}&`;
-        }
-        if (oldestLocalTimestamp) {
-          parameter += `oldest=${oldestLocalTimestamp.epochNano}&`;
-        }
-        parameter += `size=${get().bucketSize}&`;
-        parameter = parameter.slice(0, -1);
-        url += parameter;
+      if (newestLocalTimestamp) {
+        url.searchParams.set(
+          'newest',
+          newestLocalTimestamp.epochNano.toString()
+        );
+      }
 
-        fetch(url, {
-          headers: {
-            Authorization: `Bearer ${useAuthStore.getState().accessToken}`,
-            'Access-Control-Allow-Origin': '*',
-          },
-        })
-          .then(async (response: Response) => {
-            if (!response.ok) {
-              return reject(
-                new Error(`Non-ok response status ${response.status}`)
-              );
-            }
-            const timestamps = JSON.parse(await response.text(), (k, v) => {
-              return k === 'epochNano' ? BigInt(v) : v;
-            });
-            return Array.isArray(timestamps) && timestamps.every(isTimestamp)
-              ? resolve(timestamps)
-              : reject(new Error(`JSON fails type guard ${isTimestamp.name}`));
-          })
-          .catch((e) => reject(e));
+      url.searchParams.set('size', get().bucketSize.toString());
+
+      const response = await fetch(url, {
+        headers: {
+          Authorization: `Bearer ${useAuthStore.getState().accessToken}`,
+          'Access-Control-Allow-Origin': '*',
+        },
       });
+      if (!response.ok) {
+        throw new Error(`Non-ok response status ${response.status}`);
+      }
+
+      const receivedTimestamps = JSON.parse(await response.text(), (k, v) => {
+        return k === 'epochNano' ? BigInt(v) : v;
+      });
+      if (
+        !Array.isArray(receivedTimestamps) ||
+        !receivedTimestamps.every(isTimestamp)
+      ) {
+        throw new Error(`JSON fails type guard ${isTimestamp.name}`);
+      }
+
+      return receivedTimestamps;
     },
+
     _httpFetchDebugSnapshots: (newestLocalTimestamp?: Timestamp) => {
       return new Promise<DebugSnapshot[]>((resolve, reject) => {
         if (!useLandscapeTokenStore.getState().token) {
