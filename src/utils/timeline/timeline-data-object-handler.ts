@@ -112,7 +112,7 @@ export default class TimelineDataObjectHandler {
         selectedTimestamps.length === timelineData.selectedTimestamps.length &&
         selectedTimestamps.every(
           (ts, i) =>
-            ts.epochNano === timelineData.selectedTimestamps[i].epochNano
+            ts.fromUnixNano === timelineData.selectedTimestamps[i].fromUnixNano
         );
 
       if (isSameSelection) {

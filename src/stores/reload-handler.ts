@@ -57,13 +57,13 @@ export const useReloadHandlerStore = create<ReloadHandlerState>((set, get) => ({
 
       const timestampIndex1 = get().findLastIndexPolyfill(
         listOfAllTimestamps,
-        (timestamp) => timestamp.epochNano <= timestampFrom
+        (timestamp) => timestamp.fromUnixNano <= timestampFrom
       );
 
       const tenSecondBucketEpochNano =
         timestampIndex1 === -1
           ? 0n
-          : listOfAllTimestamps[timestampIndex1].epochNano;
+          : listOfAllTimestamps[timestampIndex1].fromUnixNano;
 
       start = tenSecondBucketEpochNano;
 
@@ -72,11 +72,11 @@ export const useReloadHandlerStore = create<ReloadHandlerState>((set, get) => ({
         .getTimestampsForCommitId('cross-commit', true);
 
       const timestampIndex2 = listOfAllTimestamps.findIndex(
-        (ts) => ts.epochNano > timestampFrom
+        (ts) => ts.fromUnixNano > timestampFrom
       );
 
       if (timestampIndex2 !== -1) {
-        end = listOfAllTimestamps[timestampIndex2].epochNano;
+        end = listOfAllTimestamps[timestampIndex2].fromUnixNano;
       }
     } catch (e) {
       console.error('Error calculating timestamps: ', e);

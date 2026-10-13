@@ -144,7 +144,7 @@ export const useTimestampRepositoryStore = create<TimestampRepositoryState>(
       }
 
       const index = values.findIndex(
-        (timestamp) => timestamp.epochNano === epochNano
+        (timestamp) => timestamp.fromUnixNano === epochNano
       );
 
       // Return the next timestamp if it exists, otherwise return the last timestamp
@@ -182,7 +182,7 @@ export const useTimestampRepositoryStore = create<TimestampRepositoryState>(
           ...timestampsForCommitId.values(),
           ...timestampsForDebugSnapshots,
         ].sort((a, b) => {
-          const diff = a.epochNano - b.epochNano;
+          const diff = a.fromUnixNano - b.fromUnixNano;
           return diff > 0n ? 1 : diff < 0n ? -1 : 0;
         });
       } else if (
@@ -233,12 +233,12 @@ export const useTimestampRepositoryStore = create<TimestampRepositoryState>(
         get().commitToTimestampMap.get(commitId) ??
         new Map<bigint, Timestamp>();
 
-      timestamps.set(timestamp.epochNano, timestamp);
+      timestamps.set(timestamp.fromUnixNano, timestamp);
       get().addCommitToTimestamp(commitId, timestamps);
     },
 
     addTimestampForDebugSnapshot: (timestamp: Timestamp) => {
-      get().timestampsForDebugSnapshots.set(timestamp.epochNano, timestamp);
+      get().timestampsForDebugSnapshots.set(timestamp.fromUnixNano, timestamp);
     },
 
     resetState: () => {

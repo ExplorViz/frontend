@@ -331,7 +331,9 @@ export const useRenderingServiceStore = create<RenderingServiceState>(
       ] of commitToSelectedTimestampMap.entries()) {
         commitToSelectedEpochMap.set(
           commitId,
-          selectedTimestampsForACommit.map((timestamp) => timestamp.epochNano)
+          selectedTimestampsForACommit.map(
+            (timestamp) => timestamp.fromUnixNano
+          )
         );
       }
       return commitToSelectedEpochMap;
@@ -358,14 +360,15 @@ export const useRenderingServiceStore = create<RenderingServiceState>(
         }
 
         const sortedTimestamps = [...timestampsToFetch].sort((a, b) => {
-          const diff = a.epochNano - b.epochNano;
+          const diff = a.fromUnixNano - b.fromUnixNano;
           return diff > 0n ? 1 : diff < 0n ? -1 : 0;
         });
 
-        const timestampFrom = sortedTimestamps[0].epochNano;
+        const timestampFrom = sortedTimestamps[0].fromUnixNano;
         let timestampTo = undefined;
         if (sortedTimestamps.length > 1) {
-          timestampTo = sortedTimestamps[sortedTimestamps.length - 1].epochNano;
+          timestampTo =
+            sortedTimestamps[sortedTimestamps.length - 1].fromUnixNano;
         }
 
         const [

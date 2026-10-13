@@ -39,7 +39,7 @@ export const useDebugSnapshotRepositoryStore =
       const snapshots =
         outerMap.get(landscapeToken) ?? new Map<bigint, DebugSnapshot>();
 
-      snapshots.set(debugSnapshot.timestamp.epochNano, debugSnapshot);
+      snapshots.set(debugSnapshot.timestamp.fromUnixNano, debugSnapshot);
       outerMap.set(landscapeToken, snapshots);
     },
   }));

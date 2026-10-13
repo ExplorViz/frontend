@@ -255,12 +255,12 @@ export default function PlotlyTimeline({
       ];
 
       const isAlreadySelected = selectedTimestampsForCommit.some(
-        (ts) => ts.epochNano === timestampId
+        (ts) => ts.fromUnixNano === timestampId
       );
 
       if (isAlreadySelected) {
         selectedTimestampsForCommit = selectedTimestampsForCommit.filter(
-          (ts) => ts.epochNano !== timestampId
+          (ts) => ts.fromUnixNano !== timestampId
         );
       } else {
         if (selectedTimestampsForCommit.length === MAX_TIMESTAMP_SELECTION) {
@@ -322,11 +322,11 @@ export default function PlotlyTimeline({
 
       // 1. Create markers for all timestamps
       for (const timestamp of timelineDataForCommit.timestamps) {
-        const tsId = timestamp.epochNano.toString();
+        const tsId = timestamp.fromUnixNano.toString();
 
         if (!markerStates[tsId]) {
           const isDebugTs = debugSnapshots?.some(
-            (ds) => ds.timestamp.epochNano === timestamp.epochNano
+            (ds) => ds.timestamp.fromUnixNano === timestamp.fromUnixNano
           );
           const defaultColor = isDebugTs
             ? debugSnapshotMarkerColor.current
@@ -340,7 +340,7 @@ export default function PlotlyTimeline({
           };
         } else {
           const isDebugTs = debugSnapshots?.some(
-            (ds) => ds.timestamp.epochNano === timestamp.epochNano
+            (ds) => ds.timestamp.fromUnixNano === timestamp.fromUnixNano
           );
           const defaultColor = isDebugTs
             ? debugSnapshotMarkerColor.current
@@ -355,7 +355,7 @@ export default function PlotlyTimeline({
       // 2. highlight selected timestamps
       timelineDataForCommit.selectedTimestamps.forEach(
         (selectedTimestamp, index) => {
-          const tsId = selectedTimestamp.epochNano.toString();
+          const tsId = selectedTimestamp.fromUnixNano.toString();
           const state = markerStates[tsId];
           if (state) {
             state.color = timelineDataForCommit.highlightedMarkerColor;
@@ -372,7 +372,7 @@ export default function PlotlyTimeline({
             timelineDataForCommit.timestamps.length - 1
           ];
         if (newestTimestamp) {
-          const state = markerStates[newestTimestamp.epochNano.toString()];
+          const state = markerStates[newestTimestamp.fromUnixNano.toString()];
           if (state) {
             state.color = defaultMarkerColor.current;
             state.text = '';
@@ -410,7 +410,7 @@ export default function PlotlyTimeline({
       const hasNewTimestamp = timelineDataForCommit.selectedTimestamps.some(
         (ts) =>
           !(selectedCommitTimestampsMap.current.get(commitId) ?? []).some(
-            (ts2) => ts2.epochNano === ts.epochNano
+            (ts2) => ts2.fromUnixNano === ts.fromUnixNano
           )
       );
 
@@ -675,7 +675,7 @@ export default function PlotlyTimeline({
 
     while (i < timestampsOfOneCommit.length) {
       const timestamp = timestampsOfOneCommit[i];
-      const timestampId = timestamp.epochNano;
+      const timestampId = timestamp.fromUnixNano;
 
       // Only add real timestamps and shapes in the data arrays
       let addCurrentTimestampToDataObject = false;
@@ -710,8 +710,8 @@ export default function PlotlyTimeline({
         addCurrentTimestampToDataObject = true;
         nextExpectedTimestamp = timestampId + TIMESTAMP_INTERVAL;
       } else if (
-        timestamp.epochNano === null ||
-        timestamp.epochNano === undefined
+        timestamp.fromUnixNano === null ||
+        timestamp.fromUnixNano === undefined
       ) {
         // Edge case if API will return null values in the future
         x.push(null);
@@ -731,7 +731,7 @@ export default function PlotlyTimeline({
           tempGapIndicator.y0 = y.filter((y) => y != null).at(-1)!;
         }
         nextExpectedTimestamp =
-          timestampsOfOneCommit[i].epochNano ||
+          timestampsOfOneCommit[i].fromUnixNano ||
           timestampId + TIMESTAMP_INTERVAL;
       }
 

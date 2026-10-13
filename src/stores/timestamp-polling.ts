@@ -127,7 +127,11 @@ export const useTimestampPollingStore = create<TimestampPollingState>(
       if (currentCommits && currentCallback) {
         // TIMESTAMP_POLLING_START_EVENT not send for manual polling
         // to avoid resetting the countdown timer in the loading screen
-        await get()._pollTimestamps(currentCommits, currentCallback);
+        try {
+          await get()._pollTimestamps(currentCommits, currentCallback);
+        } catch (error) {
+          console.error(error);
+        }
       }
     },
 
@@ -147,7 +151,11 @@ export const useTimestampPollingStore = create<TimestampPollingState>(
       const pollFunction = async () => {
         // Emit event to notify that polling is starting
         eventEmitter.emit(TIMESTAMP_POLLING_START_EVENT);
-        await get()._pollTimestamps(commits, callback);
+        try {
+          await get()._pollTimestamps(commits, callback);
+        } catch (error) {
+          console.error(error);
+        }
       };
 
       set({
@@ -202,7 +210,7 @@ export const useTimestampPollingStore = create<TimestampPollingState>(
             }
           })
           .catch((error: Error) => {
-            // console.error(`Error on fetch of timestamps: ${error}`);
+            console.error(`Error on fetch of timestamps: ${error}`);
             // useToastHandlerStore
             //   .getState()
             //   .showErrorToastMessage('No timestamp data could be fetched.');
@@ -270,7 +278,7 @@ export const useTimestampPollingStore = create<TimestampPollingState>(
               );
             })
             .catch((error: Error) => {
-              // console.error(`Error on fetch of timestamps: ${error}`);
+              console.error(`Error on fetch of timestamps: ${error}`);
               // useToastHandlerStore
               //   .getState()
               //   .showErrorToastMessage('No timestamp data could be fetched.');
@@ -302,7 +310,7 @@ export const useTimestampPollingStore = create<TimestampPollingState>(
       if (newestLocalTimestamp) {
         url.searchParams.set(
           'newest',
-          newestLocalTimestamp.epochNano.toString()
+          newestLocalTimestamp.fromUnixNano.toString()
         );
       }
 
@@ -319,7 +327,7 @@ export const useTimestampPollingStore = create<TimestampPollingState>(
       }
 
       const receivedTimestamps = JSON.parse(await response.text(), (k, v) => {
-        return k === 'epochNano' ? BigInt(v) : v;
+        return k === 'fromUnixNano' || k === 'toUnixNano' ? BigInt(v) : v;
       });
       if (
         !Array.isArray(receivedTimestamps) ||
@@ -340,7 +348,7 @@ export const useTimestampPollingStore = create<TimestampPollingState>(
         let url = `${vsCodeService}/savepoints/${useLandscapeTokenStore.getState().token!.value}`;
 
         if (newestLocalTimestamp) {
-          url += `?newest=${newestLocalTimestamp.epochNano}`;
+          url += `?newest=${newestLocalTimestamp.fromUnixNano}`;
         }
 
         fetch(url, {
