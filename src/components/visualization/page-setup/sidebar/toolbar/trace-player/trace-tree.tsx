@@ -1,4 +1,5 @@
 import {
+  AlertIcon,
   ArrowSwitchIcon,
   CodeIcon,
   DatabaseIcon,
@@ -10,7 +11,7 @@ import {
   Building,
   City,
 } from 'explorviz-frontend/src/utils/landscape-schemes/flat-landscape';
-import { Card } from 'react-bootstrap';
+import { Card, OverlayTrigger, Tooltip } from 'react-bootstrap';
 import { SpanTree } from './trace-details';
 
 interface TraceTreeProps {
@@ -88,6 +89,8 @@ function SpanTreeItem({
   }
 
   const isSelected = selectedSpanId === spanTree.data.spanId;
+  const invalidParent =
+    spanTree.parent === undefined && spanTree.data.parentSpanId !== undefined;
 
   return (
     <>
@@ -110,12 +113,27 @@ function SpanTreeItem({
         }}
       >
         {typeIcon}
+
         <div>
           {spanTree.data.serviceName}{' '}
           <small className={`${isSelected ? undefined : 'text-muted'}`}>
             {spanTree.data.name}
           </small>
         </div>
+
+        {invalidParent && (
+          <OverlayTrigger
+            placement={'top'}
+            trigger={['hover', 'focus']}
+            overlay={
+              <Tooltip>
+                Span specifies parent ID but parent span could not be found
+              </Tooltip>
+            }
+          >
+            <AlertIcon size={14} className="text-danger" />
+          </OverlayTrigger>
+        )}
       </div>
 
       {spanTree.children.map((child) => (

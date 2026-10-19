@@ -127,8 +127,8 @@ export function sortSpanArrayByTime(spanArray: Span[], copy = false) {
   if (copy) {
     sortedArray = [...sortedArray];
   }
-  return sortedArray.sort(
-    (span1, span2) => span1.startUnixNano - span2.startUnixNano
+  return sortedArray.sort((span1, span2) =>
+    Number(span1.startUnixNano - span2.startUnixNano)
   );
 }
 
