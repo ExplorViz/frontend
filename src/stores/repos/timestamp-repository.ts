@@ -78,7 +78,7 @@ export const useTimestampRepositoryStore = create<TimestampRepositoryState>(
         throw new Error('Timestamp Repository needs TimelineDataObjectHandler');
       }
 
-      const commitTimestampsToRenderMap = new Map();
+      const commitTimestampsToRenderMap = new Map<string, Timestamp[]>();
       const allNewTimestampsToRender: Timestamp[] = [];
 
       if (timestampsForDebugSnapshots) {
@@ -130,6 +130,10 @@ export const useTimestampRepositoryStore = create<TimestampRepositoryState>(
         useRenderingServiceStore
           .getState()
           .triggerRenderingForGivenTimestamps(commitTimestampsToRenderMap);
+
+        useTimestampStore
+          .getState()
+          .setAllSelectedTimestamps(commitTimestampsToRenderMap);
       }
     },
 

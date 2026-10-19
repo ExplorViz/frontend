@@ -1,6 +1,7 @@
 import { useLandscapeTokenStore } from 'explorviz-frontend/src/stores/landscape-token';
 import { useRenderingServiceStore } from 'explorviz-frontend/src/stores/rendering-service';
 import { useDebugSnapshotRepositoryStore } from 'explorviz-frontend/src/stores/repos/debug-snapshot-repository';
+import { useTimestampStore } from 'explorviz-frontend/src/stores/timestamp';
 import { useTimestampPollingStore } from 'explorviz-frontend/src/stores/timestamp-polling';
 import { nanosecondsToMilliseconds } from 'explorviz-frontend/src/utils/landscape-http-request-util';
 import { Timestamp } from 'explorviz-frontend/src/utils/landscape-schemes/timestamp';
@@ -52,8 +53,14 @@ export default function PlotlyTimeline({
   //#region Refs and Effects
 
   const markerStateMap = useRef<Map<string, IMarkerStates>>(new Map());
-  const selectedCommitTimestampsMap = useRef<Map<string, Timestamp[]>>(
-    new Map()
+  const commitToSelectedTimestamps = useTimestampStore(
+    (state) => state.commitToSelectedTimestamps
+  );
+  const setSelectedTimestamps = useTimestampStore(
+    (state) => state.setSelectedTimestamps
+  );
+  const resetSelectedTimestamps = useTimestampStore(
+    (state) => state.resetSelectedTimestamps
   );
 
   const oldPlotlySlidingWindow = useRef({ min: 0, max: 0 });
@@ -192,9 +199,9 @@ export default function PlotlyTimeline({
       // init inner representation of selected timestamps
       // timestamps might be selected upon first rendering
 
-      selectedCommitTimestampsMap.current.set(
-        gitCommitId,
-        timelineDataForCommit.selectedTimestamps
+      setSelectedTimestamps(
+        timelineDataForCommit.selectedTimestamps,
+        gitCommitId
       );
 
       const trace = buildPlotlyDataObjectForCommit(
@@ -251,7 +258,7 @@ export default function PlotlyTimeline({
       const timestampId = data.points[0].data.timestampId[pn];
 
       let selectedTimestampsForCommit = [
-        ...(selectedCommitTimestampsMap.current.get(commitId) || []),
+        ...(commitToSelectedTimestamps.get(commitId) || []),
       ];
 
       const isAlreadySelected = selectedTimestampsForCommit.some(
@@ -273,12 +280,14 @@ export default function PlotlyTimeline({
         );
       }
 
-      selectedCommitTimestampsMap.current.set(
-        commitId,
-        selectedTimestampsForCommit
-      );
+      setSelectedTimestamps(selectedTimestampsForCommit, commitId);
 
-      clicked(selectedCommitTimestampsMap.current);
+      clicked(
+        new Map(commitToSelectedTimestamps).set(
+          commitId,
+          selectedTimestampsForCommit
+        )
+      );
     });
 
     // double click
@@ -409,17 +418,18 @@ export default function PlotlyTimeline({
     ] of timelineDataObject.entries()) {
       const hasNewTimestamp = timelineDataForCommit.selectedTimestamps.some(
         (ts) =>
-          !(selectedCommitTimestampsMap.current.get(commitId) ?? []).some(
+          !(commitToSelectedTimestamps.get(commitId) ?? []).some(
             (ts2) => ts2.fromUnixNano === ts.fromUnixNano
           )
       );
 
       if (!renderingServiceVisualizationPaused && hasNewTimestamp) {
         // mark new incoming timestamp from polling as the only one selected
-        resetHighlightInStateObjects();
-        selectedCommitTimestampsMap.current.set(
-          commitId,
-          timelineDataForCommit.selectedTimestamps
+        resetSelectedTimestamps();
+        markerStateMap.current = new Map();
+        setSelectedTimestamps(
+          timelineDataForCommit.selectedTimestamps,
+          commitId
         );
       }
     }
@@ -800,11 +810,6 @@ export default function PlotlyTimeline({
       y: requests,
       commit: commit,
     };
-  };
-
-  const resetHighlightInStateObjects = () => {
-    selectedCommitTimestampsMap.current = new Map();
-    markerStateMap.current = new Map();
   };
 
   const getPlotlyOptionsObject = () => {

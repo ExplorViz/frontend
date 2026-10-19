@@ -8,14 +8,13 @@ import {
 import { useLayoutStore } from 'explorviz-frontend/src/stores/layout-store';
 import { useRenderingServiceStore } from 'explorviz-frontend/src/stores/rendering-service';
 import { useModelStore } from 'explorviz-frontend/src/stores/repos/model-repository';
-import { NEW_SELECTED_TIMESTAMP_EVENT } from 'explorviz-frontend/src/stores/timestamp';
+import { useTimestampStore } from 'explorviz-frontend/src/stores/timestamp';
 import { useVisualizationStore } from 'explorviz-frontend/src/stores/visualization-store';
 import {
   collectFilteredBuildings,
   compileBuildingFilter,
 } from 'explorviz-frontend/src/utils/city-rendering/building-filter';
 import { pruneFlatLandscapeByRemainingBuildings } from 'explorviz-frontend/src/utils/city-rendering/flat-landscape-filter';
-import eventEmitter from 'explorviz-frontend/src/utils/event-emitter';
 import {
   Building,
   FlatLandscape,
@@ -129,6 +128,9 @@ export default function EntityFilteringApplier({
   );
   const setFilterHiddenBuildingIds = useVisualizationStore(
     (state) => state.actions.setFilterHiddenBuildingIds
+  );
+  const commitToSelectedTimestamp = useTimestampStore(
+    (state) => state.commitToSelectedTimestamps
   );
 
   const {
@@ -345,22 +347,6 @@ export default function EntityFilteringApplier({
     }
   };
 
-  const resetForNewTimestamp = () => {
-    if (hiddenBuildingIdsByFilterRef.current.size > 0) {
-      setFilterHiddenBuildingIds([]);
-      hiddenBuildingIdsByFilterRef.current = new Set();
-    }
-    initialLandscapeData.current = latestLandscapeDataRef.current;
-    initialFlatLandscapeData.current = latestFlatLandscapeDataRef.current;
-    removeModePrunedRenderedRef.current = false;
-    updateBaseline(latestFlatLandscapeDataRef.current);
-    const defaultThresholds = getDefaultThresholds(
-      getMetricBounds(latestFlatLandscapeDataRef.current)
-    );
-    setMetricThresholds(defaultThresholds);
-    applyFilters(defaultThresholds);
-  };
-
   useEffect(() => {
     refreshFilterBaseline(landscapeData, flatLandscapeData);
     // Seed the filter baseline before filter/landscape effects run.
@@ -388,12 +374,24 @@ export default function EntityFilteringApplier({
     metricThresholds,
   ]);
 
-  useEffect(() => {
-    eventEmitter.on(NEW_SELECTED_TIMESTAMP_EVENT, resetForNewTimestamp);
-    return () => {
-      eventEmitter.off(NEW_SELECTED_TIMESTAMP_EVENT, resetForNewTimestamp);
-    };
-  }, []);
+  useEffect(
+    function resetForNewTimestamp() {
+      if (hiddenBuildingIdsByFilterRef.current.size > 0) {
+        setFilterHiddenBuildingIds([]);
+        hiddenBuildingIdsByFilterRef.current = new Set();
+      }
+      initialLandscapeData.current = latestLandscapeDataRef.current;
+      initialFlatLandscapeData.current = latestFlatLandscapeDataRef.current;
+      removeModePrunedRenderedRef.current = false;
+      updateBaseline(latestFlatLandscapeDataRef.current);
+      const defaultThresholds = getDefaultThresholds(
+        getMetricBounds(latestFlatLandscapeDataRef.current)
+      );
+      setMetricThresholds(defaultThresholds);
+      applyFilters(defaultThresholds);
+    },
+    [commitToSelectedTimestamp]
+  );
 
   return null;
 }
