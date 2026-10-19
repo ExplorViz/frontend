@@ -12,7 +12,7 @@ export function calculateDuration(span: Span): number;
  */
 export function calculateDuration(trace: Trace): number;
 export function calculateDuration(traceOrSpan: Trace | Span) {
-  return traceOrSpan.endUnixNano - traceOrSpan.startTimeUnixNano;
+  return traceOrSpan.endUnixNano - traceOrSpan.startUnixNano;
 }
 
 /**

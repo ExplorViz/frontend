@@ -67,6 +67,35 @@ export interface CommSpans {
   pairs: SpanPair[];
 }
 
+/** An information summary for an OpenTelemetry trace. */
+export interface TraceOverview {
+  traceId: string;
+
+  /** Name of the root span of the trace. */
+  name: string;
+
+  /**
+   * Minimum of the start times of all spans in the trace,
+   * given in nanoseconds since the Unix epoch.
+   */
+  startUnixNano: bigint;
+
+  /**
+   * Maximum of the end times of all spans in the trace,
+   * given in nanoseconds since the Unix epoch.
+   */
+  endUnixNano: bigint;
+
+  /** Number of spans in the trace. */
+  spanCount: number;
+
+  /** The names of all services involved in the trace. */
+  services: string[];
+
+  /** Name of the service that created the root span. */
+  entrypointService: string;
+}
+
 export function isTrace(x: any): x is Trace {
   return (
     x !== null &&
@@ -114,6 +143,19 @@ export function isCommSpans(x: any): x is CommSpans {
     Object.values(x.spans).every(isSpan) &&
     Array.isArray(x.pairs) &&
     x.pairs.every(isSpanPair)
+  );
+}
+
+export function isTraceOverview(x: any): x is TraceOverview {
+  const services = x.services;
+  return (
+    typeof x.name === 'string' &&
+    typeof x.spanCount === 'number' &&
+    typeof x.startUnixNano === 'bigint' &&
+    typeof x.endUnixNano === 'bigint' &&
+    Array.isArray(services) &&
+    services.every((v) => typeof v === 'string') &&
+    typeof x.entrypointService === 'string'
   );
 }
 

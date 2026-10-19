@@ -30,7 +30,6 @@ import {
   ToolbarState,
   ToolbarTool,
 } from 'explorviz-frontend/src/components/visualization/page-setup/sidebar/toolbar/toolbar-context';
-import TraceSelectionAndReplayer from 'explorviz-frontend/src/components/visualization/page-setup/sidebar/toolbar/trace-replayer/trace-selection-and-replayer';
 import CanvasWrapper from 'explorviz-frontend/src/components/visualization/rendering/canvas-wrapper';
 import { useIdeWebsocketStore } from 'explorviz-frontend/src/ide/ide-websocket';
 import { useAnnotationHandlerStore } from 'explorviz-frontend/src/stores/annotation-handler';
@@ -52,6 +51,7 @@ import {
 import CollaborationControls from '../../collaboration/visualization/page-setup/sidebar/customizationbar/collaboration/collaboration-controls';
 import ContextMenu from '../../context-menu';
 import { EditingProvider } from '../../editing/editing-context';
+import TracePlayer from '../page-setup/sidebar/toolbar/trace-player/trace-player';
 import AnnotationCoordinator from './annotations/annotation-coordinator';
 import Popups from './popups/popups';
 
@@ -413,14 +413,7 @@ export default function BrowserRendering({
                     },
                     {
                       value: ToolbarTool.TracePlayer,
-                      content: (
-                        <TraceSelectionAndReplayer
-                          highlightTrace={() => {}}
-                          removeHighlighting={() => {}}
-                          dynamicData={landscapeData.dynamicLandscapeData}
-                          flatData={landscapeData.flatLandscapeData}
-                        />
-                      ),
+                      content: <TracePlayer />,
                     },
                     {
                       value: ToolbarTool.TelemetrySearch,
