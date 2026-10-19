@@ -24,7 +24,7 @@ export interface LogSearchParams {
    */
   includeAttributeValues?: boolean;
 
-  /** Name of service / application that all matched logs must belong to */
+  /** Name of a service / application that all matched logs must belong to */
   serviceName?: string;
 
   /** Lookup key of a visualization entity to which all matched logs must belong */
@@ -49,12 +49,14 @@ export interface LogSearchParams {
 
   /**
    * Beginning of time range (inclusive) within which all matched logs must occur.
-   * Specified in nanoseconds since Unix epoch */
+   * Specified in nanoseconds since Unix epoch
+   */
   from?: bigint;
 
   /**
    * End of time range (exclusive) within which all matched logs must occur.
-   * Specified in nanoseconds since Unix epoch */
+   * Specified in nanoseconds since Unix epoch
+   */
   to?: bigint;
 
   /** Identifier of a trace that all matched logs must be associated with */

@@ -17,19 +17,19 @@ export interface MetricsSearchParams {
 
   /**
    * Whether to also search the metric description
-   * for the provided search string in {@link searchString}
+   * for the provided search string in {@link searchString}.
    */
   includeDescription?: boolean;
 
   /**
    * Whether to also search metric, scope and resource attribute keys
-   * for the provided search string in {@link searchString}
+   * for the provided search string in {@link searchString}.
    */
   includeAttributeKeys?: boolean;
 
   /**
    * Whether to also search metric, scope and resource attribute values
-   * for the provided search string in {@link searchString}
+   * for the provided search string in {@link searchString}.
    */
   includeAttributeValues?: boolean;
 
@@ -38,13 +38,13 @@ export interface MetricsSearchParams {
    */
   pointKind?: MetricsPointKind;
 
-  /** Name of service / application that all matched metrics must belong to */
+  /** Name of a service / application that all matched metrics must belong to. */
   serviceName?: string;
 
-  /** Lookup key of a visualization entity to which all matched metrics must belong */
+  /** Lookup key of a visualization entity to which all matched metrics must belong. */
   telemetryKey?: string;
 
-  /** The ordering in which matched metrics should be retrieved */
+  /** The ordering in which matched metrics should be retrieved. */
   sortBy?: MetricsSearchOrdering;
 
   /** How many metrics should be returned at most by the fetch. Useful for pagination. */
@@ -58,10 +58,10 @@ export type MetricsSearchOrdering = 'nameAsc' | 'nameDesc';
 
 /** Specifies the last known metric from a previous fetch, for use with pagination. */
 export interface MetricsSearchCursor {
-  /** Name of the last known metric */
+  /** Name of the last known metric. */
   cursorName: string;
 
-  /** Datapoint  */
+  /** Kind of datapoint of the last known metric. */
   cursorPointKind: string;
 }
 

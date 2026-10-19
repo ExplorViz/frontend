@@ -35,7 +35,7 @@ export interface SpanSearchParams {
   /** Identifier of a trace that all matched spans must be part of */
   traceId?: string;
 
-  /** Name of service / application that all matched spans must belong to */
+  /** Name of a service / application that all matched spans must belong to */
   serviceName?: string;
 
   /** Lookup key of a visualization entity to which all matched spans must belong */
