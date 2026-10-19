@@ -11,6 +11,7 @@ import {
   Building,
   City,
 } from 'explorviz-frontend/src/utils/landscape-schemes/flat-landscape';
+import React from 'react';
 import { Card, OverlayTrigger, Tooltip } from 'react-bootstrap';
 import { SpanTree } from './trace-details';
 
@@ -18,12 +19,16 @@ interface TraceTreeProps {
   spanTrees: SpanTree[];
   selectedSpanId?: string;
   onSpanClick(spanId: string): void;
+  onSelectPreviousSpan(spanId: string): void;
+  onSelectNextSpan(spanId: string): void;
 }
 
 export default function TraceTree({
   spanTrees,
   selectedSpanId,
   onSpanClick,
+  onSelectPreviousSpan,
+  onSelectNextSpan,
 }: TraceTreeProps) {
   return (
     <Card>
@@ -35,6 +40,8 @@ export default function TraceTree({
               spanTree={st}
               selectedSpanId={selectedSpanId}
               onClick={onSpanClick}
+              onSelectPrevious={onSelectPreviousSpan}
+              onSelectNext={onSelectNextSpan}
             />
           );
         })}
@@ -48,6 +55,8 @@ interface SpanTreeProps {
   selectedSpanId?: string;
   depth?: number;
   onClick(spanId: string): void;
+  onSelectPrevious(spanId: string): void;
+  onSelectNext(spanId: string): void;
 }
 
 function SpanTreeItem({
@@ -55,6 +64,8 @@ function SpanTreeItem({
   selectedSpanId,
   depth = 0,
   onClick,
+  onSelectPrevious,
+  onSelectNext,
 }: SpanTreeProps) {
   const buildings = useModelStore((state) => state.buildings);
   const cities = Object.values(useModelStore((state) => state.cities));
@@ -92,10 +103,24 @@ function SpanTreeItem({
   const invalidParent =
     spanTree.parent === undefined && spanTree.data.parentSpanId !== undefined;
 
+  const handleKeyDown = (event: React.KeyboardEvent) => {
+    event.stopPropagation();
+    event.preventDefault();
+
+    switch (event.key) {
+      case 'ArrowUp':
+        onSelectPrevious(spanTree.data.spanId);
+        break;
+      case 'ArrowDown':
+        onSelectNext(spanTree.data.spanId);
+        break;
+    }
+  };
+
   return (
     <>
       <div
-        className={`d-flex align-items-center gap-1 px-2 rounded text-nowrap user-select-none ${isSelected ? 'text-primary' : ''}`}
+        className={`d-flex align-items-center gap-1 px-2 rounded text-nowrap user-select-none focus-ring shadow-none ${isSelected ? 'text-primary' : ''}`}
         style={{
           marginLeft: `${1 * depth}em`,
           cursor: 'pointer',
@@ -103,14 +128,19 @@ function SpanTreeItem({
           background: isSelected ? 'var(--bs-gray-200)' : undefined,
         }}
         onClick={() => onClick(spanTree.data.spanId)}
+        onKeyDown={handleKeyDown}
         ref={(elem) => {
-          if (isSelected)
+          if (isSelected) {
             elem?.scrollIntoView({
               behavior: 'smooth',
               block: 'center',
               inline: 'nearest',
             });
+            elem?.focus();
+          }
         }}
+        role="button"
+        tabIndex={0}
       >
         {typeIcon}
 
@@ -143,6 +173,8 @@ function SpanTreeItem({
           selectedSpanId={selectedSpanId}
           depth={depth + 1}
           onClick={onClick}
+          onSelectPrevious={onSelectPrevious}
+          onSelectNext={onSelectNext}
         />
       ))}
     </>

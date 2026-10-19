@@ -247,6 +247,8 @@ export default function TraceDetails({
             spanTrees={spanData.tree}
             selectedSpanId={selectedSpan?.spanId}
             onSpanClick={handleSpanClick}
+            onSelectPreviousSpan={handleStepBackClick}
+            onSelectNextSpan={handleStepForwardClick}
           />
         )}
 
