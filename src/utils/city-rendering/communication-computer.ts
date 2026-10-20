@@ -8,6 +8,7 @@ import {
 import {
   FlatLandscape,
   isBuilding,
+  isCity,
   isDistrict,
 } from 'explorviz-frontend/src/utils/landscape-schemes/flat-landscape';
 
@@ -19,10 +20,17 @@ export function computeBuildingCommunication(
     !aggregatedFileCommunication ||
     !aggregatedFileCommunication.communications ||
     aggregatedFileCommunication.communications.length === 0
-  )
+  ) {
     return [];
+  }
 
   const telemetryKeyMap = useModelStore.getState().telemetryKeyToEntityId;
+
+  const models = {
+    ...flatLandscape.buildings,
+    ...flatLandscape.districts,
+    ...flatLandscape.cities,
+  };
 
   return aggregatedFileCommunication.communications.filter((comm) => {
     const sourceEntityId = telemetryKeyMap.get(comm.sourceEntityKey);
@@ -35,10 +43,10 @@ export function computeBuildingCommunication(
       return false;
     }
 
-    const sourceBuilding = flatLandscape.buildings[sourceEntityId];
-    const targetBuilding = flatLandscape.buildings[targetEntityId];
+    const sourceModel = models[sourceEntityId];
+    const targetModel = models[targetEntityId];
 
-    return !!sourceBuilding && !!targetBuilding;
+    return !!sourceModel && !!targetModel;
   });
 }
 
@@ -118,11 +126,19 @@ export function computeAggregatedCommunication(allCommunications: Comm[]) {
     } else {
       const sourceEntity = modelStore.getModel(effSourceId);
       const targetEntity = modelStore.getModel(effTargetId);
-      if (!isDistrict(sourceEntity) && !isBuilding(sourceEntity)) {
+      if (
+        !isBuilding(sourceEntity) &&
+        !isDistrict(sourceEntity) &&
+        !isCity(sourceEntity)
+      ) {
         console.error('No source entity for communication found.');
         return;
       }
-      if (!isDistrict(targetEntity) && !isBuilding(targetEntity)) {
+      if (
+        !isBuilding(sourceEntity) &&
+        !isDistrict(sourceEntity) &&
+        !isCity(sourceEntity)
+      ) {
         console.error('No target entity for communication found.');
         return;
       }

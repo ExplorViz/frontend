@@ -58,8 +58,8 @@ export default class AggregatedCommunication {
 
   constructor(
     id: string,
-    sourceEntity: District | Building,
-    targetEntity: District | Building,
+    sourceEntity: Building | District | City,
+    targetEntity: Building | District | City,
     fromUnixNano: bigint,
     toUnixNano: bigint,
     baseCommunications: Comm[] = []

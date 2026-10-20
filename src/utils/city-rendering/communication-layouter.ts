@@ -11,7 +11,6 @@ import {
 } from 'explorviz-frontend/src/utils/landscape-schemes/flat-landscape';
 import BoxLayout from 'explorviz-frontend/src/utils/layout/box-layout';
 import CommunicationLayout from 'explorviz-frontend/src/utils/layout/communication-layout';
-import * as THREE from 'three';
 
 export function calculateLineThickness(
   communication: AggregatedCommunication,
@@ -36,6 +35,10 @@ export function clamp(value: number, min: number, max: number) {
 
 export function findFirstEntityWithOpenedParent(entityId: string) {
   const entity = useModelStore.getState().getModel(entityId);
+  if (isCity(entity)) {
+    return entityId;
+  }
+
   if (!isDistrict(entity) && !isBuilding(entity)) {
     console.error('Provided entity has unexpected type:', entity);
     return entityId;
@@ -55,7 +58,6 @@ export function findFirstEntityWithOpenedParent(entityId: string) {
     return entityId;
   }
 
-  // Parent is closed, inspect parent entity
   const parentDistrict = useModelStore.getState().getDistrict(parentId);
   if (
     parentDistrict &&
@@ -64,6 +66,7 @@ export function findFirstEntityWithOpenedParent(entityId: string) {
       useVisualizationStore.getState().closedDistrictIds
     )
   ) {
+    // Parent is closed, inspect parent entity
     return findFirstEntityWithOpenedParent(parentId);
   } else {
     // Found entity with opened parent
@@ -114,13 +117,15 @@ export function computeCommunicationLayout(
     return;
   }
 
-  const startPosition = new THREE.Vector3()
-    .copy(sourceCityLayout.position)
-    .add(sourceEntityLayout.center);
+  const startPosition =
+    sourceEntityId !== sourceCity.id
+      ? sourceCityLayout.position.clone().add(sourceEntityLayout.center)
+      : sourceCityLayout.center.clone();
 
-  const endPosition = new THREE.Vector3()
-    .copy(targetCityLayout.position)
-    .add(targetEntityLayout.center);
+  const endPosition =
+    targetEntityId !== targetCity.id
+      ? targetCityLayout.position.clone().add(targetEntityLayout.center)
+      : targetCityLayout.center.clone();
 
   const commLayout = new CommunicationLayout(communication);
   commLayout.startPoint = startPosition;

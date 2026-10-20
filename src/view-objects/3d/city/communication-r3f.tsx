@@ -273,9 +273,17 @@ export default function CommunicationR3F({
   );
 
   // Detect if this is an inter-app communication
-  const isInterAppCommunication =
-    communicationModel.sourceEntity.parentCityId !==
-    communicationModel.targetEntity.parentCityId;
+  const sourceCityId =
+    'parentCityId' in communicationModel.sourceEntity
+      ? communicationModel.sourceEntity.parentCityId
+      : communicationModel.sourceEntity.id;
+
+  const targetCityId =
+    'parentCityId' in communicationModel.targetEntity
+      ? communicationModel.targetEntity.parentCityId
+      : communicationModel.targetEntity.id;
+
+  const isInterAppCommunication = sourceCityId !== targetCityId;
 
   const [updateTrigger, setUpdateTrigger] = useState(0);
 
@@ -926,9 +934,18 @@ export default function CommunicationR3F({
       updatedLayout.lineThickness = updatedLineThickness;
       return updatedLayout;
     }
-    const isInterApp =
-      communicationModel.sourceEntity.parentCityId !==
-      communicationModel.targetEntity.parentCityId;
+
+    const sourceCityId =
+      'parentCityId' in communicationModel.sourceEntity
+        ? communicationModel.sourceEntity.parentCityId
+        : communicationModel.sourceEntity.id;
+
+    const targetCityId =
+      'parentCityId' in communicationModel.targetEntity
+        ? communicationModel.targetEntity.parentCityId
+        : communicationModel.targetEntity.id;
+
+    const isInterApp = sourceCityId !== targetCityId;
 
     const shouldUse3DHAPForThisEdge = is3DHAPAlgorithm && !isInterApp;
     let shouldUseForceDirectedForThisEdge =
@@ -991,8 +1008,8 @@ export default function CommunicationR3F({
         endPoint,
         {
           type,
-          app1Id: communicationModel.sourceEntity.parentCityId,
-          app2Id: communicationModel.targetEntity.parentCityId,
+          app1Id: sourceCityId,
+          app2Id: targetCityId,
           sourceId: communicationModel.sourceEntity?.id,
           targetId: communicationModel.targetEntity?.id,
           use3DHAP: false,
@@ -2007,6 +2024,6 @@ export default function CommunicationR3F({
       beta={beta}
       use3DHAPAlgorithm={use3DHAPAlgorithm}
       scatterRadius={scatterRadius}
-    ></clazzCommunicationMesh>
+    />
   );
 }
