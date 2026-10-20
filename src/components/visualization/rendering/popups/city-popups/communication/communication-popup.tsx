@@ -16,26 +16,30 @@ export default function CommunicationPopup({
   popupData,
 }: CommunicationPopupProps) {
   const communication = popupData.entity as AggregatedCommunication;
-  const buildingComms = communication.getBuildingCommunications();
+  const baseComms = communication.baseCommunications;
 
   const buildings = useModelStore((state) => state.buildings);
+  const districts = useModelStore((state) => state.districts);
+  const cities = useModelStore((state) => state.cities);
+  const models = { ...buildings, ...districts, ...cities };
+
   const telemetryKeyToEntityId = useModelStore(
     (state) => state.telemetryKeyToEntityId
   );
 
-  const buildingTypes = new Set<ModelType>();
-  for (const c of buildingComms) {
+  const modelTypes = new Set<ModelType>();
+  for (const c of baseComms) {
     const targetId = telemetryKeyToEntityId.get(c.targetEntityKey);
-    const target = targetId ? buildings[targetId] : undefined;
-    if (target) {
-      buildingTypes.add(target.type);
+    const targetModel = targetId ? models[targetId] : undefined;
+    if (targetModel) {
+      modelTypes.add(targetModel.type);
     }
 
     if (c.isBidirectional) {
       const sourceId = telemetryKeyToEntityId.get(c.sourceEntityKey);
-      const source = sourceId ? buildings[sourceId] : undefined;
-      if (source) {
-        buildingTypes.add(source.type);
+      const sourceModel = sourceId ? models[sourceId] : undefined;
+      if (sourceModel) {
+        modelTypes.add(sourceModel.type);
       }
     }
   }
@@ -62,7 +66,7 @@ export default function CommunicationPopup({
           <Tab eventKey="spans" title="Spans" mountOnEnter={true}>
             <CommunicationSpansTab communication={communication} />
           </Tab>
-          {buildingTypes.has('code') && (
+          {modelTypes.has('code') && (
             <Tab eventKey="functions" title="Functions" mountOnEnter={true}>
               <FunctionsTab communication={communication} />
             </Tab>

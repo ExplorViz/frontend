@@ -7,7 +7,7 @@ import { useVisibilityServiceStore } from 'explorviz-frontend/src/stores/visibil
 import { useVisualizationStore } from 'explorviz-frontend/src/stores/visualization-store';
 import {
   calculateLineThickness,
-  computeCommunicationLayout
+  computeCommunicationLayout,
 } from 'explorviz-frontend/src/utils/city-rendering/communication-layouter';
 import AggregatedCommunication from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/aggregated-communication';
 import {
@@ -133,8 +133,8 @@ export default function CommunicationR3F({
       useShallow((state) => ({
         isHighlighted:
           state.highlightedEntityIds.has(communicationModel.id) ||
-          communicationModel.originalCommIds.some((id) =>
-            state.highlightedEntityIds.has(id)
+          communicationModel.baseCommunications.some((comm) =>
+            state.highlightedEntityIds.has(comm.id)
           ),
         isHovered: state.hoveredEntityId === communicationModel.id,
         setHoveredEntity: state.actions.setHoveredEntityId,
@@ -148,10 +148,7 @@ export default function CommunicationR3F({
   // This ensures the layout is recomputed when components in the hierarchy are opened/closed
   const communicationLayout = useMemo(() => {
     if (layoutMap) {
-      return computeCommunicationLayout(
-        communicationModel,
-        layoutMap
-      );
+      return computeCommunicationLayout(communicationModel, layoutMap);
     }
     return undefined;
     // closedComponentIds is intentionally included as a dependency even though it's not directly used
@@ -176,7 +173,6 @@ export default function CommunicationR3F({
       addPopup: state.addPopup,
     }))
   );
-
 
   const handleOnPointerOver = (event: any) => {
     event.stopPropagation();
@@ -251,7 +247,10 @@ export default function CommunicationR3F({
       }
 
       let appPosition = new THREE.Vector3(0, 0, 0);
-      if (resolvedCityElement && effectiveLayoutMap?.has(resolvedCityElement.id)) {
+      if (
+        resolvedCityElement &&
+        effectiveLayoutMap?.has(resolvedCityElement.id)
+      ) {
         appPosition = effectiveLayoutMap.get(resolvedCityElement.id)!.position;
       }
 
@@ -440,14 +439,14 @@ export default function CommunicationR3F({
           0 + level * 10, // Application (Level 2) = 20
           (Math.random() - 0.5) * 5
         );
-      } else if ((isDistrict(element)) && parent) {
+      } else if (isDistrict(element) && parent) {
         const parentPos = getPosition(parent);
         return new THREE.Vector3(
           parentPos.x + (Math.random() - 0.5) * 30,
           0 + level * 10, // Package (Level 1) = 10
           parentPos.z + (Math.random() - 0.5) * 30
         );
-      } else if ((isBuilding(element)) && parent) {
+      } else if (isBuilding(element) && parent) {
         const parentPos = getPosition(parent);
         return new THREE.Vector3(
           parentPos.x + (Math.random() - 0.5) * 10,
@@ -928,7 +927,8 @@ export default function CommunicationR3F({
       return updatedLayout;
     }
     const isInterApp =
-      communicationModel.sourceEntity.parentCityId !== communicationModel.targetEntity.parentCityId;
+      communicationModel.sourceEntity.parentCityId !==
+      communicationModel.targetEntity.parentCityId;
 
     const shouldUse3DHAPForThisEdge = is3DHAPAlgorithm && !isInterApp;
     let shouldUseForceDirectedForThisEdge =

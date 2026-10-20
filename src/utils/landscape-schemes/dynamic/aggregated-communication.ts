@@ -1,6 +1,6 @@
-import { useCommunicationStore } from 'explorviz-frontend/src/stores/communication-store';
 import {
   Building,
+  City,
   District,
 } from 'explorviz-frontend/src/utils/landscape-schemes/flat-landscape';
 import isObject from 'explorviz-frontend/src/utils/object-helpers';
@@ -18,16 +18,25 @@ export default class AggregatedCommunication {
 
   isBidirectional: boolean = false;
 
-  sourceEntity: District | Building;
+  sourceEntity: Building | District | City;
 
-  targetEntity: District | Building;
+  targetEntity: Building | District | City;
 
-  buildingCommunicationIds: string[] = [];
+  /**
+   * The fundamental entity communications from which this communication was aggregated.
+   */
+  baseCommunications: Comm[] = [];
 
-  originalCommIds: string[] = [];
-
+  /**
+   * The point in time at which this communication started (inclusive),
+   * given in nanoseconds since the Unix epoch.
+   */
   fromUnixNano: bigint;
 
+  /**
+   * The point in time at which this communication ends (inclusive),
+   * given in nanoseconds since the Unix epoch.
+   */
   toUnixNano: bigint;
 
   sourceCity?: any;
@@ -53,34 +62,14 @@ export default class AggregatedCommunication {
     targetEntity: District | Building,
     fromUnixNano: bigint,
     toUnixNano: bigint,
-    buildingCommunicationIds: string[] = [],
-    originalCommIds: string[] = []
+    baseCommunications: Comm[] = []
   ) {
     this.id = id;
     this.sourceEntity = sourceEntity;
     this.targetEntity = targetEntity;
     this.fromUnixNano = fromUnixNano;
     this.toUnixNano = toUnixNano;
-    this.buildingCommunicationIds = buildingCommunicationIds;
-    this.originalCommIds = originalCommIds.length > 0 ? originalCommIds : [id];
-  }
-
-  /**
-   * Retrieves the building communications from which this communication was aggregated.
-   * @returns An array of the underlying building communications
-   */
-  getBuildingCommunications(): Comm[] {
-    const allComms = useCommunicationStore.getState().communicationById;
-
-    return this.buildingCommunicationIds.reduce((res, key) => {
-      const comm = allComms.get(key);
-      if (comm) {
-        res.push(comm);
-      } else {
-        console.warn(`Could not find building communication with ID ${key}`);
-      }
-      return res;
-    }, [] as Comm[]);
+    this.baseCommunications = baseCommunications;
   }
 }
 
@@ -88,7 +77,6 @@ export function isAggregatedCommunication(
   x: any
 ): x is AggregatedCommunication {
   return (
-    isObject(x) &&
-    Object.prototype.hasOwnProperty.call(x, 'buildingCommunicationIds')
+    isObject(x) && Object.prototype.hasOwnProperty.call(x, 'baseCommunications')
   );
 }

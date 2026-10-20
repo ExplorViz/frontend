@@ -231,14 +231,13 @@ export async function requestCommunicationSpans(
     throw new Error('No landscape token selected');
   }
 
-  if (communication.buildingCommunicationIds.length === 0) {
-    throw new Error('No building communications provided');
+  if (communication.baseCommunications.length === 0) {
+    throw new Error('No base communications provided');
   }
 
-  const buildingComms = communication.getBuildingCommunications();
-  const sourceTargetPairs = buildingComms.map((buildingComm) => ({
-    source: buildingComm.sourceEntityKey,
-    target: buildingComm.targetEntityKey,
+  const sourceTargetPairs = communication.baseCommunications.map((comm) => ({
+    source: comm.sourceEntityKey,
+    target: comm.targetEntityKey,
   }));
 
   const from = communication.fromUnixNano;
@@ -283,18 +282,17 @@ export async function requestCommunicationFunctions(
     throw new Error('No landscape token selected');
   }
 
-  if (communication.buildingCommunicationIds.length === 0) {
+  if (communication.baseCommunications.length === 0) {
     throw new Error('No building communications provided');
   }
 
-  const buildingComms = communication.getBuildingCommunications();
   const telemetryKeyToEntityId =
     useModelStore.getState().telemetryKeyToEntityId;
 
-  const sourceTargetPairs = buildingComms
-    .map((buildingComm) => {
-      let srcKey = buildingComm.sourceEntityKey;
-      let tgtKey = buildingComm.targetEntityKey;
+  const sourceTargetPairs = communication.baseCommunications
+    .map((comm) => {
+      let srcKey = comm.sourceEntityKey;
+      let tgtKey = comm.targetEntityKey;
 
       if (communication.isBidirectional) {
         // Bidirectional communication may be aggregated from two oppositely facing uni-directional communications.

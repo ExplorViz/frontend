@@ -76,8 +76,8 @@ export default function GeneralTab({ communication }: GeneralTabProps) {
         <tr>
           <td className="fw-bold">Aggregated from</td>
           <td>
-            {communication.buildingCommunicationIds.length} building link
-            {communication.buildingCommunicationIds.length > 1 ? 's' : ''}
+            {communication.baseCommunications.length} building link
+            {communication.baseCommunications.length > 1 ? 's' : ''}
           </td>
         </tr>
 

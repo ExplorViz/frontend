@@ -98,8 +98,7 @@ export function computeAggregatedCommunication(allCommunications: Comm[]) {
       const knownCommIds = seenCommIds.get(key)!;
       if (!knownCommIds.has(comm.id)) {
         knownCommIds.add(comm.id);
-        existing.buildingCommunicationIds.push(comm.id);
-        existing.originalCommIds.push(comm.id);
+        existing.baseCommunications.push(comm);
       }
       existing.isBidirectional =
         existing.isBidirectional ||
@@ -134,8 +133,7 @@ export function computeAggregatedCommunication(allCommunications: Comm[]) {
         targetEntity,
         comm.fromUnixNano,
         comm.toUnixNano,
-        [comm.id],
-        [comm.id]
+        [comm]
       );
       newComm.metrics = { ...comm.metrics, normalizedRequestCount: 1 };
       newComm.isBidirectional = comm.isBidirectional;
