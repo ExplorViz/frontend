@@ -182,7 +182,6 @@ export default function LogSearch() {
       setLogs(null);
       setIsLoading(true);
       setAllItemsLoaded(false);
-      toolbarContext.searchLogs(null); // Reset request to prevent repeated triggering
     }
     setPrevSearchRequest(searchRequest);
   }
@@ -194,12 +193,13 @@ export default function LogSearch() {
       }
 
       const load = async () => {
-        loadLogs({ ...defaultSearchParams, ...searchRequest });
+        await loadLogs({ ...defaultSearchParams, ...searchRequest });
+        toolbarContext.searchLogs(null); // Reset request to prevent repeated triggering
       };
 
       load();
     },
-    [loadLogs, searchRequest]
+    [searchRequest, toolbarContext, loadLogs]
   );
 
   return (

@@ -120,7 +120,6 @@ export default function SpanSearch() {
       setSpans(null);
       setIsLoading(true);
       setAllItemsLoaded(false);
-      toolbarContext.searchSpans(null); // Reset request to prevent repeated triggering
     }
     setPrevSearchRequest(searchRequest);
   }
@@ -132,12 +131,13 @@ export default function SpanSearch() {
       }
 
       const load = async () => {
-        loadSpans({ ...defaultSearchParams, ...searchRequest });
+        await loadSpans({ ...defaultSearchParams, ...searchRequest });
+        toolbarContext.searchSpans(null); // Reset request to prevent repeated triggering
       };
 
       load();
     },
-    [loadSpans, searchRequest]
+    [searchRequest, toolbarContext, loadSpans]
   );
 
   return (

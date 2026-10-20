@@ -145,7 +145,6 @@ export default function MetricsSearch() {
       setMetrics(null);
       setIsLoading(true);
       setAllItemsLoaded(false);
-      toolbarContext.searchMetrics(null); // Reset request to prevent repeated triggering
     }
     setPrevSearchRequest(searchRequest);
   }
@@ -157,12 +156,13 @@ export default function MetricsSearch() {
       }
 
       const load = async () => {
-        loadMetrics({ ...defaultSearchParams, ...searchRequest });
+        await loadMetrics({ ...defaultSearchParams, ...searchRequest });
+        toolbarContext.searchMetrics(null); // Reset request to prevent repeated triggering
       };
 
       load();
     },
-    [loadMetrics, searchRequest]
+    [searchRequest, toolbarContext, loadMetrics]
   );
 
   return (
