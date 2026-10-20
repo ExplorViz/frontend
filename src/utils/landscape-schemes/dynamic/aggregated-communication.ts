@@ -70,7 +70,7 @@ export default class AggregatedCommunication {
    * @returns An array of the underlying building communications
    */
   getBuildingCommunications(): Comm[] {
-    const allComms = useCommunicationStore.getState().communications;
+    const allComms = useCommunicationStore.getState().communicationById;
 
     return this.buildingCommunicationIds.reduce((res, key) => {
       const comm = allComms.get(key);

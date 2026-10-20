@@ -6,25 +6,26 @@ import {
 import { create } from 'zustand';
 
 interface CommunicationState {
-  communications: Map<string, Comm>;
+  allCommunication: CommSummary | null;
+  communicationById: Map<string, Comm>;
   metrics: { [key: string]: MetricRange } | null;
-  setCommunications: (
-    aggregatedBuildingCommunication: CommSummary | null
-  ) => void;
+
+  setCommunications: (allCommunications: CommSummary | null) => void;
 }
 
 export const useCommunicationStore = create<CommunicationState>((set) => ({
-  communications: new Map(),
+  allCommunication: null,
+  communicationById: new Map(),
   metrics: null,
-  setCommunications: (allCommunications) => {
-    const communicationsMap = new Map<string, Comm>();
-    allCommunications?.communications.forEach((comm) => {
-      communicationsMap.set(comm.id, comm);
-    });
 
+  setCommunications: (allCommunications: CommSummary | null) =>
     set({
+      allCommunication: allCommunications,
+      communicationById: new Map<string, Comm>(
+        allCommunications?.communications.map(
+          (comm) => [comm.id, comm] as const
+        ) ?? []
+      ),
       metrics: allCommunications?.metrics ?? null,
-      communications: communicationsMap,
-    });
-  },
+    }),
 }));

@@ -1,14 +1,19 @@
 import { ChevronLeftIcon, ChevronRightIcon } from '@primer/octicons-react';
 import AttributesTable from 'explorviz-frontend/src/components/attributes-table';
 import SpanKindBadge from 'explorviz-frontend/src/components/badges/span-kind-badge';
+import useCommunicationFetch from 'explorviz-frontend/src/hooks/fetch/useCommunicationFetch';
 import useSpanFetch from 'explorviz-frontend/src/hooks/fetch/useSpanFetch';
 import { useCameraControlsStore } from 'explorviz-frontend/src/stores/camera-controls-store';
+import { useCommunicationStore } from 'explorviz-frontend/src/stores/communication-store';
+import { useRenderingServiceStore } from 'explorviz-frontend/src/stores/rendering-service';
 import { useModelStore } from 'explorviz-frontend/src/stores/repos/model-repository';
 import { useToastHandlerStore } from 'explorviz-frontend/src/stores/toast-handler';
 import {
   highlightById,
   removeAllHighlighting,
 } from 'explorviz-frontend/src/utils/city-rendering/highlighting';
+import { CROSS_COMMIT_IDENTIFIER } from 'explorviz-frontend/src/utils/evolution-schemes/evolution-data';
+import { CommSummary } from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/communication';
 import {
   Span,
   TraceOverview,
@@ -81,6 +86,12 @@ export default function TraceDetails({
     (state) => state.telemetryKeyToEntityId
   );
   const lookAtEntity = useCameraControlsStore((state) => state.lookAtEntity);
+  const setCommunications = useCommunicationStore(
+    (state) => state.setCommunications
+  );
+  const setVisualizationPaused = useRenderingServiceStore(
+    (state) => state.setVisualizationPaused
+  );
   const showErrorToastMessage = useToastHandlerStore(
     (state) => state.showErrorToastMessage
   );
@@ -92,8 +103,6 @@ export default function TraceDetails({
   const [selectedSpanIndex, setSelectedSpanIndex] = useState<number | null>(
     null
   );
-
-  const fetchSpans = useSpanFetch();
 
   const handleSpanChange = useCallback(
     (newSpan: Span, parent?: Span) => {
@@ -170,6 +179,9 @@ export default function TraceDetails({
     handleSpanChange(newSpan, parent);
   };
 
+  const fetchSpans = useSpanFetch();
+  const fetchCommunication = useCommunicationFetch();
+
   useEffect(() => {
     const fetchAndUpdate = async () => {
       try {
@@ -183,7 +195,7 @@ export default function TraceDetails({
         const selectedSpanIndex = receivedSpans.length > 0 ? 0 : null;
         setSelectedSpanIndex(selectedSpanIndex);
         if (selectedSpanIndex !== null) {
-          handleSpanChange(receivedSpans[selectedSpanIndex]);
+          handleSpanChange(flat[selectedSpanIndex]);
         }
       } catch (error) {
         console.error(error);
@@ -195,6 +207,92 @@ export default function TraceDetails({
 
     fetchAndUpdate();
   }, [traceOverview, fetchSpans, handleSpanChange, showErrorToastMessage]);
+
+  useEffect(() => {
+    let fetchedData: CommSummary | undefined;
+
+    const fetchCommunicationForSelectedTrace = async () => {
+      try {
+        const receivedComm = await fetchCommunication({
+          traceId: traceOverview.traceId,
+        });
+        fetchedData = receivedComm;
+
+        setCommunications(receivedComm);
+
+        useRenderingServiceStore.setState((state) => ({
+          _landscapeData: {
+            ...state._landscapeData!,
+            aggregatedFileCommunication: receivedComm,
+          },
+
+          currentRuntimeLandscapeData: new Map(
+            state.currentRuntimeLandscapeData
+          ).set(CROSS_COMMIT_IDENTIFIER, {
+            ...state.currentRuntimeLandscapeData.get(CROSS_COMMIT_IDENTIFIER)!,
+            aggregatedFileCommunication: receivedComm,
+          }),
+        }));
+
+        setVisualizationPaused(true);
+      } catch (error) {
+        console.error(error);
+        showErrorToastMessage('Failed to fetch communication for trace');
+      }
+    };
+
+    fetchCommunicationForSelectedTrace();
+
+    const prevComms = useCommunicationStore.getState().allCommunication;
+    const prevAggregatedFileCommunication =
+      useRenderingServiceStore.getState()._landscapeData!
+        .aggregatedFileCommunication;
+
+    return function restorePreviousCommunication() {
+      if (!fetchedData) {
+        return;
+      }
+
+      if (
+        Object.is(
+          useCommunicationStore.getState().allCommunication,
+          fetchedData
+        )
+      ) {
+        setCommunications(prevComms);
+      }
+
+      if (
+        Object.is(
+          useRenderingServiceStore.getState()._landscapeData
+            ?.aggregatedFileCommunication,
+          fetchedData
+        )
+      ) {
+        useRenderingServiceStore.setState((state) => ({
+          ...state,
+
+          _landscapeData: {
+            ...state._landscapeData!,
+            aggregatedFileCommunication: prevAggregatedFileCommunication,
+          },
+
+          currentRuntimeLandscapeData: new Map(
+            state.currentRuntimeLandscapeData
+          ).set(CROSS_COMMIT_IDENTIFIER, {
+            ...state.currentRuntimeLandscapeData.get(CROSS_COMMIT_IDENTIFIER)!,
+            aggregatedFileCommunication: prevAggregatedFileCommunication,
+          }),
+        }));
+      }
+    };
+  }, [
+    traceOverview,
+    fetchCommunication,
+    setCommunications,
+    setVisualizationPaused,
+    showErrorToastMessage,
+  ]);
 
   const selectedSpan = spanData?.flat[selectedSpanIndex ?? 0];
 
