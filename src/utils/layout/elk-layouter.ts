@@ -185,12 +185,32 @@ function getMinimumCitySize(city: City): { width: number; height: number } {
     return minimumSize;
   }
 
-  return getMinimumSizeForLabel(
+  const minimumLabelSize = getMinimumSizeForLabel(
     city.name,
     getCityLabelFontSize(CITY_LABEL_MARGIN),
     CITY_MARGIN,
     minimumSize
   );
+
+  // Geometry overrides can only be applied to empty cities
+  // since layouting of city contents relies on box layout
+  if (city.districtIds.length === 0 && city.buildingIds.length === 0) {
+    const geometryOverride =
+      useUserSettingsStore.getState().visualizationSettings
+        .cityGeometryOverrides.value.modelType[city.type];
+
+    if (geometryOverride === 'Cylinder') {
+      // Cylinder should always have a 1:1 aspect ratio,
+      // so we change the minimum size to reflect this
+      const edgeSize = Math.max(
+        minimumLabelSize.width,
+        minimumLabelSize.height
+      );
+      return { width: edgeSize, height: edgeSize };
+    }
+  }
+
+  return minimumLabelSize;
 }
 
 function getPaddingForLabelPlacement(
