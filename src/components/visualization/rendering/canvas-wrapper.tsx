@@ -35,6 +35,7 @@ import {
   useCameraControls,
 } from 'explorviz-frontend/src/stores/camera-controls-store';
 import { useConfigurationStore } from 'explorviz-frontend/src/stores/configuration';
+import { useImmersiveViewStore } from 'explorviz-frontend/src/stores/immersive-view-store';
 import { useLayoutStore } from 'explorviz-frontend/src/stores/layout-store';
 import { useModelStore } from 'explorviz-frontend/src/stores/repos/model-repository';
 import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
@@ -313,6 +314,9 @@ export default function CanvasWrapper({
   }, [layoutMap, allApplications, getHAPPosition, getLevel, hapSystemManager]);
 
   const cameraControlsRef = useRef<CameraControls>(null!);
+  const immersiveCameraLocked = useImmersiveViewStore(
+    (state) => state.cameraLocked
+  );
 
   // Initialize camera controls store
   useCameraControls(cameraControlsRef);
@@ -561,16 +565,29 @@ export default function CanvasWrapper({
                   ref={cameraControlsRef}
                   dollySpeed={0.3}
                   draggingSmoothTime={0.05}
-                  maxDistance={250}
-                  maxPolarAngle={0.5 * Math.PI}
+                  maxDistance={immersiveCameraLocked ? 0.01 : 250}
+                  maxPolarAngle={
+                    immersiveCameraLocked ? Math.PI : 0.5 * Math.PI
+                  }
                   makeDefault
-                  minDistance={1}
-                  mouseButtons={{
-                    left: getMouseMapping(leftMouseButtonAction) as any,
-                    middle: getMouseMapping(middleMouseButtonAction) as any,
-                    wheel: getMouseMapping(mouseWheelAction) as any,
-                    right: getMouseMapping(rightMouseButtonAction) as any,
-                  }}
+                  minDistance={immersiveCameraLocked ? 0 : 1}
+                  mouseButtons={
+                    immersiveCameraLocked
+                      ? {
+                          left: 1, // ROTATE
+                          middle: 0,
+                          wheel: 0,
+                          right: 1, // ROTATE
+                        }
+                      : {
+                          left: getMouseMapping(leftMouseButtonAction) as any,
+                          middle: getMouseMapping(
+                            middleMouseButtonAction
+                          ) as any,
+                          wheel: getMouseMapping(mouseWheelAction) as any,
+                          right: getMouseMapping(rightMouseButtonAction) as any,
+                        }
+                  }
                   smoothTime={0.5}
                 />
                 <PerspectiveCamera

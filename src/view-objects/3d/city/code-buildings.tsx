@@ -1,6 +1,7 @@
 import { extend, ThreeElement, ThreeEvent, useFrame } from '@react-three/fiber';
 import { InstancedMesh2 } from '@three.ez/instanced-mesh';
 import { useEvolutionAnimationStore } from 'explorviz-frontend/src/components/visualization/page-setup/bottom-bar/animation/evolution-animation-store';
+import { useImmersiveBuildingGrow } from 'explorviz-frontend/src/hooks/use-immersive-building-grow';
 import useClickPreventionOnDoubleClick from 'explorviz-frontend/src/hooks/useClickPreventionOnDoubleClick';
 import { useCommitTreeStateStore } from 'explorviz-frontend/src/stores/commit-tree-state';
 import {
@@ -45,7 +46,7 @@ import {
   BuildingGeometryType,
 } from 'explorviz-frontend/src/utils/settings/settings-schemas';
 import gsap from 'gsap';
-import { useEffect, useRef } from 'react';
+import { useCallback, useEffect, useRef } from 'react';
 import * as THREE from 'three';
 import {
   BoxGeometry,
@@ -241,6 +242,9 @@ const GeometryGroup: React.FC<GeometryGroupProps> = ({
   );
 
   const enterImmersive = useImmersiveViewStore((state) => state.enterImmersive);
+  const activeImmersiveMeshId = useImmersiveViewStore(
+    (state) => state.activeMeshId
+  );
 
   const sceneLayers = useVisualizationStore((state) => state.sceneLayers);
 
@@ -257,6 +261,31 @@ const GeometryGroup: React.FC<GeometryGroupProps> = ({
       metricBuckets
     );
   }
+
+  const getBuildingHeightById = useCallback(
+    (buildingId: string) => {
+      const building = useModelStore.getState().getBuilding(buildingId);
+      return building ? getBuildingHeight(building) : null;
+    },
+    // getBuildingHeight closes over these metric/layout inputs
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [
+      buildingFootprint,
+      buildingHeightMultiplier,
+      heightMetric,
+      metricMapping,
+      metricBuckets,
+      heightMetricBounds,
+    ]
+  );
+
+  useImmersiveBuildingGrow({
+    meshRef,
+    buildingIdToInstanceId: buildingIdToInstanceIdRef,
+    getBuildingHeight: getBuildingHeightById,
+    enableAnimations,
+    animationDuration,
+  });
 
   function resolveBuilding(buildingId: string) {
     return resolveBuildingForVisibility(
@@ -392,6 +421,11 @@ const GeometryGroup: React.FC<GeometryGroupProps> = ({
     const mesh = meshRef.current;
 
     buildingIdToInstanceIdRef.current.forEach((instanceId, buildingId) => {
+      // Immersive grow effect owns this building's height while active.
+      if (buildingId === activeImmersiveMeshId) {
+        return;
+      }
+
       const tempMatrix = new Matrix4();
       const pos = new Vector3();
       const quat = new Quaternion();
@@ -489,6 +523,7 @@ const GeometryGroup: React.FC<GeometryGroupProps> = ({
     enableAnimations,
     animationDuration,
     layoutMap,
+    activeImmersiveMeshId,
   ]);
 
   // Compute mesh instances or animate changes
@@ -521,6 +556,10 @@ const GeometryGroup: React.FC<GeometryGroupProps> = ({
 
         const mesh = meshRef.current;
         buildingIdToInstanceIdRef.current.forEach((instanceId, buildingId) => {
+          if (buildingId === activeImmersiveMeshId) {
+            return;
+          }
+
           const tempMatrix = new Matrix4();
           const pos = new Vector3();
           const quat = new Quaternion();
@@ -635,6 +674,7 @@ const GeometryGroup: React.FC<GeometryGroupProps> = ({
     animationDuration,
     geometry,
     layoutMap,
+    activeImmersiveMeshId,
   ]);
 
   // React on changes of color and visibility

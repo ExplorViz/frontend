@@ -13,21 +13,13 @@ interface Props {
 export default function ImmersiveCameraHandler({ controlsRef }: Props) {
   const targetPosition = useImmersiveViewStore((state) => state.targetPosition);
   const exitImmersive = useImmersiveViewStore((state) => state.exitImmersive);
+  const setCameraLocked = useImmersiveViewStore(
+    (state) => state.setCameraLocked
+  );
 
   const savedCameraState = useRef<{
     position: THREE.Vector3;
     target: THREE.Vector3;
-  } | null>(null);
-
-  const savedControlSettings = useRef<{
-    minDistance: number;
-    maxDistance: number;
-    mouseButtons: {
-      left: number;
-      middle: number;
-      right: number;
-      wheel: number;
-    };
   } | null>(null);
 
   useEffect(() => {
@@ -36,14 +28,6 @@ export default function ImmersiveCameraHandler({ controlsRef }: Props) {
 
     // Enter immersive view mode
     if (targetPosition) {
-      if (!savedControlSettings.current) {
-        savedControlSettings.current = {
-          minDistance: controls.minDistance,
-          maxDistance: controls.maxDistance,
-          mouseButtons: { ...controls.mouseButtons },
-        };
-      }
-
       if (!savedCameraState.current) {
         savedCameraState.current = {
           position: new THREE.Vector3().copy(controls.camera.position),
@@ -53,29 +37,27 @@ export default function ImmersiveCameraHandler({ controlsRef }: Props) {
         };
       }
 
-      // At first move the camera to the new target (building)
+      // At first move the camera to the new target (building).
+      // Look along -Z so the building name (SphereItem azimuth 0) is centered.
       controls
         .setLookAt(
           targetPosition.x,
           targetPosition.y,
           targetPosition.z,
-          targetPosition.x + 0.001,
+          targetPosition.x,
           targetPosition.y,
-          targetPosition.z,
+          targetPosition.z - 0.001,
           true
         )
         .then(() => {
-          // After the camera is moved, restrict it for immserive view
-          controls.minDistance = 0;
-          controls.maxDistance = 0.01;
-          controls.mouseButtons.left = 1; // Rotate
-          controls.mouseButtons.right = 1; // Rotate
-          controls.mouseButtons.middle = 0; // Disable
-          controls.mouseButtons.wheel = 0; // Disable
+          // Lock CameraControls props to immersive rotate-in-place mode
+          setCameraLocked(true);
         });
 
       // Close immersive view mode
-    } else if (savedCameraState.current && savedControlSettings.current) {
+    } else if (savedCameraState.current) {
+      setCameraLocked(false);
+
       const { position, target } = savedCameraState.current;
       controls.setLookAt(
         position.x,
@@ -87,19 +69,9 @@ export default function ImmersiveCameraHandler({ controlsRef }: Props) {
         true
       );
 
-      // Recover tthe original values
-      const orig = savedControlSettings.current;
-      controls.minDistance = orig.minDistance;
-      controls.maxDistance = orig.maxDistance;
-      controls.mouseButtons.left = orig.mouseButtons.left as any;
-      controls.mouseButtons.right = orig.mouseButtons.right as any;
-      controls.mouseButtons.middle = orig.mouseButtons.middle as any;
-      controls.mouseButtons.wheel = orig.mouseButtons.wheel as any;
-
       savedCameraState.current = null;
-      savedControlSettings.current = null;
     }
-  }, [targetPosition, controlsRef]);
+  }, [targetPosition, controlsRef, setCameraLocked]);
 
   // Listeners for the escape and mousewheel (to exit immersive view mode)
   useEffect(() => {

@@ -47,6 +47,15 @@ interface ImmersiveViewState {
   targetPosition: THREE.Vector3 | null;
   activeMetadata: ImmersiveInfo | null;
   fileDetailedData: FileDetailedDto | null;
+  /** True after the enter animation; keeps CameraControls props in immersive mode across re-renders. */
+  cameraLocked: boolean;
+  /**
+   * Building whose label should follow immersive height (stays set during
+   * restore after exit so the label can animate down with the building).
+   */
+  immersiveLabelBuildingId: string | null;
+  /** Target height for that label (grown while inside, normal height while restoring). */
+  immersiveBuildingHeight: number | null;
 
   enterImmersive: (
     id: string,
@@ -55,6 +64,11 @@ interface ImmersiveViewState {
     detailedData?: FileDetailedDto
   ) => void;
   exitImmersive: () => void;
+  setCameraLocked: (locked: boolean) => void;
+  setImmersiveBuildingHeight: (
+    buildingId: string | null,
+    height: number | null
+  ) => void;
 }
 
 export const useImmersiveViewStore = create<ImmersiveViewState>((set) => ({
@@ -62,6 +76,9 @@ export const useImmersiveViewStore = create<ImmersiveViewState>((set) => ({
   targetPosition: null,
   activeMetadata: null,
   fileDetailedData: null,
+  cameraLocked: false,
+  immersiveLabelBuildingId: null,
+  immersiveBuildingHeight: null,
 
   enterImmersive: (id, target, info, detailedData) =>
     set({
@@ -69,6 +86,10 @@ export const useImmersiveViewStore = create<ImmersiveViewState>((set) => ({
       targetPosition: target,
       activeMetadata: info || null,
       fileDetailedData: detailedData || null,
+      cameraLocked: false,
+      // Keep prior label follow until grow sets the new height; avoid clearing
+      // mid-restore if re-entering quickly.
+      immersiveLabelBuildingId: id,
     }),
 
   exitImmersive: () =>
@@ -77,5 +98,15 @@ export const useImmersiveViewStore = create<ImmersiveViewState>((set) => ({
       targetPosition: null,
       activeMetadata: null,
       fileDetailedData: null,
+      cameraLocked: false,
+      // Do not clear immersiveLabelBuildingId / immersiveBuildingHeight —
+      // the building restore animation drives the label back down.
+    }),
+
+  setCameraLocked: (locked) => set({ cameraLocked: locked }),
+  setImmersiveBuildingHeight: (buildingId, height) =>
+    set({
+      immersiveLabelBuildingId: buildingId,
+      immersiveBuildingHeight: height,
     }),
 }));

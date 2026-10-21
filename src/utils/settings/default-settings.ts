@@ -1557,8 +1557,8 @@ export const defaultVizSettings: VisualizationSettings = {
   },
   sphereRadius: {
     level: SettingLevel.DEFAULT,
-    value: 0.9,
-    range: { min: 0, max: 2, step: 0.1 },
+    value: 2.0,
+    range: { min: 0, max: 5, step: 0.1 },
     group: 'Immersive Building View',
     displayName: 'Immersive Sphere Radius',
     description: '',

@@ -1,10 +1,10 @@
 import { Sphere } from '@react-three/drei';
-import { getImmersiveBackgroundSphereRadius } from 'explorviz-frontend/src/utils/city-rendering/immersive-target-position';
 import { useImmersiveViewStore } from 'explorviz-frontend/src/stores/immersive-view-store';
 import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
+import { getImmersiveBackgroundSphereRadius } from 'explorviz-frontend/src/utils/city-rendering/immersive-target-position';
 import * as THREE from 'three';
 
-// This component creates the sphere fopr immersive view mode
+// This component creates the sphere for immersive view mode
 
 export default function ImmersiveSphere() {
     const { activeMeshId, targetPosition } = useImmersiveViewStore();
@@ -29,6 +29,7 @@ export default function ImmersiveSphere() {
         <group position={spherePosition}>
             <Sphere
                 args={[backgroundRadius, 32, 32]}
+                renderOrder={0}
                 onClick={(e) => e.stopPropagation()}
                 onDoubleClick={(e) => e.stopPropagation()}
                 onPointerOver={(e) => e.stopPropagation()}

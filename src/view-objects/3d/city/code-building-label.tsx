@@ -1,32 +1,25 @@
 import { Text } from '@react-three/drei';
 import { useClusterStore } from 'explorviz-frontend/src/stores/cluster-store';
+import { useImmersiveViewStore } from 'explorviz-frontend/src/stores/immersive-view-store';
 import { useLayoutStore } from 'explorviz-frontend/src/stores/layout-store';
 import { useModelStore } from 'explorviz-frontend/src/stores/repos/model-repository';
 import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
 import { useVisualizationStore } from 'explorviz-frontend/src/stores/visualization-store';
 import { getTruncatedDisplayName } from 'explorviz-frontend/src/utils/annotation-utils';
+import {
+  animateNumericProps,
+  createBuildingLabelPosition,
+  getImmersiveAnimationDuration,
+} from 'explorviz-frontend/src/utils/city-rendering/immersive-building-animation';
 import { Building } from 'explorviz-frontend/src/utils/landscape-schemes/flat-landscape';
 import BoxLayout from 'explorviz-frontend/src/utils/layout/box-layout';
 import {
   computeMappedBuildingHeight,
   getCachedBuildingMetricBounds,
 } from 'explorviz-frontend/src/utils/settings/building-metrics';
-import gsap from 'gsap';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import * as THREE from 'three';
 import { useShallow } from 'zustand/react/shallow';
-
-function createLabelPosition(
-  layout: BoxLayout,
-  labelOffset: number,
-  buildingHeight: number
-) {
-  return new THREE.Vector3(
-    layout.center.x,
-    layout.positionY + buildingHeight + labelOffset,
-    layout.center.z
-  );
-}
 
 export default function CodeBuildingLabel({
   buildingId,
@@ -66,7 +59,13 @@ export default function CodeBuildingLabel({
       }))
     );
 
+  // Stay visible while immersive and while the building/label restore after exit.
+  const isImmersiveLabelTarget = useImmersiveViewStore(
+    (state) => state.immersiveLabelBuildingId === buildingId
+  );
+
   const wantsToShowLabel =
+    isImmersiveLabelTarget ||
     showAllBuildingLabels ||
     isBuildingHovered ||
     isParentHovered ||
@@ -78,6 +77,9 @@ export default function CodeBuildingLabel({
   const threshold = labelDistanceThreshold * sizeMultiplier;
 
   const isWithinSemanticZoomDistance = useClusterStore((state) => {
+    if (isImmersiveLabelTarget) {
+      return true;
+    }
     if (!wantsToShowLabel) {
       return false;
     }
@@ -140,6 +142,11 @@ function CodeBuildingLabelContent({
   );
 
   const buildings = useModelStore((state) => state.buildings);
+  const immersiveBuildingHeight = useImmersiveViewStore((state) =>
+    state.immersiveLabelBuildingId === buildingId
+      ? state.immersiveBuildingHeight
+      : null
+  );
   const heightMetricBounds = getCachedBuildingMetricBounds(
     buildings,
     heightMetric
@@ -158,36 +165,46 @@ function CodeBuildingLabelContent({
   }
 
   const [labelPosition, setLabelPosition] = useState<THREE.Vector3>(() =>
-    createLabelPosition(layout, labelOffset, getBuildingHeight(building))
+    createBuildingLabelPosition(
+      layout.center.x,
+      layout.center.z,
+      layout.positionY,
+      getBuildingHeight(building),
+      labelOffset
+    )
+  );
+  const labelTweenRef = useRef<{ x: number; y: number; z: number } | null>(
+    null
   );
 
-  // Single effect drives position updates for both metric-driven height
-  // changes and offset/layout changes (previously duplicated across two
-  // near-identical effects, which produced two competing GSAP tweens).
   useEffect(() => {
-    const target = createLabelPosition(
-      layout,
-      labelOffset,
-      getBuildingHeight(building)
+    const targetHeight =
+      immersiveBuildingHeight ?? getBuildingHeight(building);
+    const target = createBuildingLabelPosition(
+      layout.center.x,
+      layout.center.z,
+      layout.positionY,
+      targetHeight,
+      labelOffset
     );
+    const duration =
+      immersiveBuildingHeight !== null
+        ? getImmersiveAnimationDuration(animationDuration)
+        : animationDuration;
 
-    if (enableAnimations) {
-      const values = {
+    animateNumericProps({
+      from: {
         x: labelPosition.x,
         y: labelPosition.y,
         z: labelPosition.z,
-      };
-      gsap.to(values, {
-        x: target.x,
-        y: target.y,
-        z: target.z,
-        duration: animationDuration,
-        onUpdate: () =>
-          setLabelPosition(new THREE.Vector3(values.x, values.y, values.z)),
-      });
-    } else if (!labelPosition.equals(target)) {
-      setLabelPosition(target);
-    }
+      },
+      to: { x: target.x, y: target.y, z: target.z },
+      duration,
+      animate: enableAnimations,
+      tweenRef: labelTweenRef,
+      onUpdate: (values) =>
+        setLabelPosition(new THREE.Vector3(values.x, values.y, values.z)),
+    });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     animationDuration,
@@ -197,6 +214,7 @@ function CodeBuildingLabelContent({
     buildings,
     enableAnimations,
     heightMetric,
+    immersiveBuildingHeight,
     labelOffset,
     layout,
     metricMapping,
