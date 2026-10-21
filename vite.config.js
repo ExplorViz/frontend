@@ -22,8 +22,11 @@ export default defineConfig(({ mode }) => {
     ],
     resolve: {
       alias: {
-        '~bootstrap': path.resolve(__dirname, 'node_modules/bootstrap'),
-        'explorviz-frontend': path.resolve(__dirname),
+        '~bootstrap': path.resolve(
+          import.meta.dirname,
+          'node_modules/bootstrap'
+        ),
+        'explorviz-frontend': path.resolve(import.meta.dirname),
       },
     },
     server: {

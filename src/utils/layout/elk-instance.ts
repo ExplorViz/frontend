@@ -1,4 +1,5 @@
 import ELKApi from 'elkjs/lib/elk-api.js';
+import elkWorkerUrl from 'elkjs/lib/elk-worker.min.js?url';
 
 /**
  * `elk.bundled.js` inlines the whole layout engine and, unless it is handed a
@@ -7,6 +8,10 @@ import ELKApi from 'elkjs/lib/elk-api.js';
  * milliseconds. Pointing the thin `elk-api` client at `elk-worker.min.js`
  * instead moves the layout into a real web worker and keeps the engine out of
  * the main bundle.
+ *
+ * The worker script is resolved from the `elkjs` dependency via Vite's `?url`
+ * import so it stays in sync with the installed package version (no copy in
+ * `public/`).
  */
 export type ElkLayouter = {
   layout: (graph: unknown) => Promise<any>;
@@ -17,18 +22,9 @@ type ProbeableElk = ElkLayouter & {
   terminateWorker?: () => void;
 };
 
-const WORKER_SCRIPT = 'elk-worker.min.js';
 const WORKER_PROBE_TIMEOUT_MS = 10000;
 
 let elkPromise: Promise<ElkLayouter> | null = null;
-
-function resolveWorkerUrl(): string {
-  const base = import.meta.env.BASE_URL ?? '/';
-  return new URL(
-    base.endsWith('/') ? base + WORKER_SCRIPT : `${base}/${WORKER_SCRIPT}`,
-    window.location.href
-  ).href;
-}
 
 function createWorkerBackedElk(): ProbeableElk | null {
   if (typeof Worker === 'undefined' || typeof window === 'undefined') {
@@ -39,7 +35,7 @@ function createWorkerBackedElk(): ProbeableElk | null {
     // ELK only derives a worker factory itself by `require`-ing the optional
     // `web-worker` package, which does not resolve in a browser bundle.
     return new (ELKApi as any)({
-      workerUrl: resolveWorkerUrl(),
+      workerUrl: elkWorkerUrl,
       workerFactory: (url: string) => new Worker(url),
     }) as ProbeableElk;
   } catch {

@@ -20,6 +20,9 @@
 # Ignore custom pre-commit hooks
 .husky/*
 
+# Cursor
+.cursor
+
 # Dev Container
 /.devcontainer*
 .github/dependabot.yml

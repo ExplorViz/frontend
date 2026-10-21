@@ -1,0 +1,7 @@
+allowBuilds:
+  '@parcel/watcher': true
+  '@scarf/scarf': true
+  esbuild: true
+overrides:
+  three: 0.186.1
+minimumReleaseAge: 0
