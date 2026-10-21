@@ -26,7 +26,8 @@ interface ClusterStoreState {
   // Actions
   setClusters: (
     entityToCluster: Map<string, number>,
-    centroids: Map<number, ClusterCentroid>
+    centroids: Map<number, ClusterCentroid>,
+    cameraPosition?: THREE.Vector3
   ) => void;
 
   getClusterId: (entityId: string) => number | undefined;
@@ -62,13 +63,24 @@ export const useClusterStore = create<ClusterStoreState>()((set, get) => ({
   clusterToEntities: new Map<number, string[]>(),
   centroidDistances: new Map<number, number>(),
 
-  setClusters: (entityToCluster, centroids) => {
+  setClusters: (entityToCluster, centroids, cameraPosition) => {
+    // When a camera position is provided, seed distances in the same update so
+    // semantic-zoom labels never see a frame with missing distances.
+    const centroidDistances = new Map<number, number>();
+    if (cameraPosition) {
+      centroids.forEach((centroid, clusterId) => {
+        centroidDistances.set(
+          clusterId,
+          cameraPosition.distanceTo(centroid.position)
+        );
+      });
+    }
+
     set({
       entityIdToCluster: entityToCluster,
       centroids,
       clusterToEntities: buildReverseIndex(entityToCluster),
-      // Reset distances when clusters change
-      centroidDistances: new Map<number, number>(),
+      centroidDistances,
     });
   },
 

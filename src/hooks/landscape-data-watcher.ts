@@ -11,6 +11,7 @@ import {
   computeBuildingCommunication,
 } from 'explorviz-frontend/src/utils/city-rendering/communication-computer';
 import { areArraysEqual } from 'explorviz-frontend/src/utils/helpers/array-helpers';
+import { CommSummary } from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/communication';
 import {
   FlatLandscape,
   getFlatLandscapeStructureSignature,
@@ -19,6 +20,19 @@ import { LandscapeData } from 'explorviz-frontend/src/utils/landscape-schemes/la
 import { DynamicLandscapeData } from 'explorviz-frontend/src/utils/landscape-schemes/telemetry/traces';
 import layoutLandscape from 'explorviz-frontend/src/utils/layout/elk-layouter';
 import { tryApplyPendingSerializedRoom } from 'explorviz-frontend/src/utils/snapshot/snapshot-helpers';
+
+function refreshBuildingCommunications(
+  flatLandscapeStructure: FlatLandscape,
+  aggregatedCommunication: CommSummary | undefined
+) {
+  const buildingCommunications = computeBuildingCommunication(
+    flatLandscapeStructure,
+    aggregatedCommunication
+  );
+
+  useModelStore.getState().setBuildingCommunications(buildingCommunications);
+  calculateAggregatedCommunications(buildingCommunications);
+}
 
 export default function useLandscapeDataWatcher(
   landscapeData: LandscapeData | null
@@ -46,6 +60,34 @@ export default function useLandscapeDataWatcher(
       lastSignature.current = getFlatLandscapeStructureSignature(flatLandscape);
     }
     return lastSignature.current;
+  };
+
+  /**
+   * Runtime timestamp switches usually keep the same city/district/building
+   * structure and only change dynamic/communication data. Relayouting in that
+   * case rebuilds BoxLayout identities, which cascades into cluster distance
+   * resets and briefly unmounts semantic-zoom labels.
+   */
+  const handleDynamicOnlyUpdate = () => {
+    log('handleDynamicOnlyUpdate');
+
+    const landscapeDataFromStore =
+      useRenderingServiceStore.getState()._landscapeData;
+    const flatLandscapeStructure =
+      landscapeDataFromStore?.flatLandscapeData ?? flatLandscapeData;
+    const aggregatedCommunication =
+      landscapeDataFromStore?.aggregatedFileCommunication ??
+      aggregatedFileCommunication;
+
+    if (!flatLandscapeStructure) {
+      return;
+    }
+
+    log('Refresh building communication only');
+    refreshBuildingCommunications(
+      flatLandscapeStructure,
+      aggregatedCommunication
+    );
   };
 
   const handleLandscapeUpdate = useCallback(async () => {
@@ -142,11 +184,16 @@ export default function useLandscapeDataWatcher(
     lastProcessedDynamicData.current = dynamicLandscapeData;
     lastProcessedFlatLandscapeSignature.current = currentFlatLandscapeSignature;
 
-    handleLandscapeUpdate();
+    if (flatChanged) {
+      handleLandscapeUpdate();
+    } else {
+      handleDynamicOnlyUpdate();
+    }
   }, [
     dynamicLandscapeData,
     aggregatedFileCommunication,
     flatLandscapeData,
     handleLandscapeUpdate,
+    handleDynamicOnlyUpdate,
   ]);
 }

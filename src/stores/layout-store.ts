@@ -28,9 +28,22 @@ interface LayoutStoreState {
   clearLayouts: () => void;
 }
 
+function areLayoutsGeometricallyEqual(a: BoxLayout, b: BoxLayout): boolean {
+  return (
+    a.positionX === b.positionX &&
+    a.positionY === b.positionY &&
+    a.positionZ === b.positionZ &&
+    a.width === b.width &&
+    a.height === b.height &&
+    a.depth === b.depth &&
+    a.level === b.level
+  );
+}
+
 /**
- * Layouts are never mutated in place once stored, so comparing entries by
- * identity is enough to tell whether a rebuilt map carries new information.
+ * ELK rebuilds BoxLayout instances even when geometry is unchanged. Compare by
+ * value so consumers keyed on map identity (instanced meshes, cluster
+ * centroids) are not forced to discard and rebuild on a no-op layout refresh.
  */
 function hasSameEntries(
   a: Map<string, BoxLayout>,
@@ -43,7 +56,8 @@ function hasSameEntries(
     return false;
   }
   for (const [entityId, layout] of a) {
-    if (b.get(entityId) !== layout) {
+    const other = b.get(entityId);
+    if (!other || !areLayoutsGeometricallyEqual(layout, other)) {
       return false;
     }
   }

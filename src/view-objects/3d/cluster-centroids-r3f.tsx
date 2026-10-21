@@ -1,10 +1,12 @@
 import { useFrame, useThree } from '@react-three/fiber';
-import { useClusterStore } from 'explorviz-frontend/src/stores/cluster-store';
+import {
+  ClusterCentroid,
+  useClusterStore,
+} from 'explorviz-frontend/src/stores/cluster-store';
 import { useLayoutStore } from 'explorviz-frontend/src/stores/layout-store';
 import { useModelStore } from 'explorviz-frontend/src/stores/repos/model-repository';
 import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
 import { clusterEntitiesAsync } from 'explorviz-frontend/src/utils/clustering/k-means';
-import { ClusterCentroid } from 'explorviz-frontend/src/stores/cluster-store';
 import { useCallback, useEffect, useRef } from 'react';
 import { useShallow } from 'zustand/react/shallow';
 
@@ -96,9 +98,10 @@ export default function ClusterCentroidsR3F() {
       .getState()
       .setClusters(
         clusteringResult.entityToCluster,
-        clusteringResult.centroids
+        clusteringResult.centroids,
+        camera.position
       );
-  }, [enableClustering, clusterCount]);
+  }, [enableClustering, clusterCount, camera]);
 
   useEffect(() => {
     computeClusters();
