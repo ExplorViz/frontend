@@ -62,6 +62,9 @@ export const BUILDING_GEOMETRY_OPTIONS = [
 ] as const;
 export type BuildingGeometryType = (typeof BUILDING_GEOMETRY_OPTIONS)[number];
 
+export const CITY_GEOMETRY_OPTIONS = ['Box', 'Cylinder'] as const;
+export type CityGeometryType = (typeof CITY_GEOMETRY_OPTIONS)[number];
+
 export type GeometrySettings = {
   buildingGeometry: SelectSetting<BuildingGeometryType>;
 };
@@ -82,6 +85,7 @@ export type ColorOverrideSettingsId = keyof ColorOverrideSettings;
 
 export type GeometryOverrideSettings = {
   buildingGeometryOverrides: Setting<AppearanceOverride<BuildingGeometryType>>;
+  cityGeometryOverrides: Setting<AppearanceOverride<CityGeometryType>>;
 };
 export type GeometryOverrideSettingsId = keyof GeometryOverrideSettings;
 

@@ -21,7 +21,7 @@ import { useEffect, useState } from 'react';
 import * as THREE from 'three';
 import { useShallow } from 'zustand/react/shallow';
 
-const DATABASE_HEIGHT_MULTIPLIER = 4;
+const CYLINDER_HEIGHT_MULTIPLIER = 4;
 
 export default function CityFoundation({
   city,
@@ -93,6 +93,7 @@ export default function CityFoundation({
     enableHoverEffects,
     foundationColor,
     cityColorOverrides,
+    cityGeometryOverrides,
     foundationTextColor,
     districtLabelPlacement,
     entityOpacity,
@@ -104,6 +105,7 @@ export default function CityFoundation({
       enableAnimations: state.visualizationSettings.enableAnimations.value,
       foundationColor: state.visualizationSettings.foundationColor.value,
       cityColorOverrides: state.visualizationSettings.cityColorOverrides,
+      cityGeometryOverrides: state.visualizationSettings.cityGeometryOverrides,
       enableHoverEffects: state.visualizationSettings.enableHoverEffects.value,
       foundationTextColor:
         state.visualizationSettings.foundationTextColor.value,
@@ -179,20 +181,28 @@ export default function CityFoundation({
     layout.depth,
   ];
 
-  if (city.type === 'database') {
-    // Round primitives default to radius 1 (diameter 2); multiply by 0.5 to match BoxGeometry's 1x1 footprint.
+  const isEmpty =
+    city.districtIds.length === 0 && city.buildingIds.length === 0;
+
+  // Geometry overrides should only be applied to empty cities since internal city layout relies on box layout
+  const geometryOverride = isEmpty
+    ? cityGeometryOverrides.value.modelType[city.type]
+    : undefined;
+
+  if (geometryOverride === 'Cylinder') {
+    // Round primitives default to radius 1 (diameter 2); multiply by 0.5 to match BoxGeometry's 1x1 footprint
     meshScale[0] *= 0.5;
-    meshScale[1] *= DATABASE_HEIGHT_MULTIPLIER;
+    meshScale[1] *= CYLINDER_HEIGHT_MULTIPLIER;
     meshScale[2] *= 0.5;
 
     // Match base position of scaled cylinder to base of regular foundations
-    meshPosition.y += layout.height * (DATABASE_HEIGHT_MULTIPLIER * 0.5 - 0.5);
+    meshPosition.y += layout.height * (CYLINDER_HEIGHT_MULTIPLIER * 0.5 - 0.5);
   }
 
   // The label is a child of the foundation mesh, so it is removed together with
   // it. The mesh can be scaled non-uniformly, which would distort the label.
   // Therefore, the label is wrapped in a group with the inverse of the final
-  // mesh scale (i.e., after the database adjustments above), and its position
+  // mesh scale (i.e., after the geometry adjustments above), and its position
   // is given in unscaled world units relative to the center of the mesh.
   const inverseScale: [number, number, number] = [
     meshScale[0] === 0 ? 1 : 1 / meshScale[0],
@@ -235,7 +245,7 @@ export default function CityFoundation({
         onPointerOut: handleOnPointerOut,
       })}
     >
-      {city.type === 'database' ? (
+      {geometryOverride === 'Cylinder' ? (
         <meshStandardMaterial
           color={computeColor()}
           transparent={entityOpacity < 1.0}
@@ -248,7 +258,7 @@ export default function CityFoundation({
           opacity={entityOpacity}
         />
       )}
-      {city.type === 'database' ? <cylinderGeometry /> : <boxGeometry />}
+      {geometryOverride === 'Cylinder' ? <cylinderGeometry /> : <boxGeometry />}
       {cityLabelMargin > MIN_CITY_LABEL_MARGIN && (
         <group scale={inverseScale}>
           <Text

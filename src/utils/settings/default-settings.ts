@@ -1132,6 +1132,18 @@ export const defaultVizSettings: VisualizationSettings = {
     displayName: 'Building Geometry Overrides',
     description: 'Geometry overrides for specific building groups',
   },
+  cityGeometryOverrides: {
+    level: SettingLevel.EXTENDED,
+    value: {
+      modelType: {
+        database: 'Cylinder',
+      },
+      language: {},
+    },
+    group: 'Colors',
+    displayName: 'City Geometry Overrides',
+    description: 'Geometry overrides for specific city groups',
+  },
 
   // VR Settings
   autoEnterVr: {
