@@ -1,5 +1,5 @@
 import { LogSearchParams } from 'explorviz-frontend/src/hooks/fetch/useLogFetch';
-import { MetricsSearchParams } from 'explorviz-frontend/src/hooks/fetch/useMetricsFetch';
+import { MetricsSearchParams } from 'explorviz-frontend/src/hooks/fetch/useRuntimeMetricsFetch';
 import { SpanSearchParams } from 'explorviz-frontend/src/hooks/fetch/useSpanFetch';
 import { createContext } from 'react';
 
@@ -22,11 +22,12 @@ export type ToolbarState = {
 };
 
 export type ToolbarActions = {
+  setShowSidebar(showSidebar: boolean): void;
   openTool(tool: ToolbarTool | null): void;
   setTelemetrySearchTab(tab: 'spans' | 'metrics' | 'logs'): void;
-  searchSpans(searchParams: SpanSearchParams): void;
-  searchMetrics(searchParams: MetricsSearchParams): void;
-  searchLogs(searchParams: LogSearchParams): void;
+  searchSpans(searchParams: SpanSearchParams | null): void;
+  searchMetrics(searchParams: MetricsSearchParams | null): void;
+  searchLogs(searchParams: LogSearchParams | null): void;
 };
 
 export type TelemetrySearchState = {
@@ -49,6 +50,7 @@ export const defaultToolbarState: ToolbarState = {
 
 export const ToolbarContext = createContext<ToolbarState & ToolbarActions>({
   ...defaultToolbarState,
+  setShowSidebar: () => console.error('Toolbar context provider missing'),
   openTool: () => console.error('Toolbar context provider missing'),
   setTelemetrySearchTab: () =>
     console.error('Toolbar context provider missing'),

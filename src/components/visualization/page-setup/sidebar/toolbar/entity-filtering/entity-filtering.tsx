@@ -1,4 +1,4 @@
-import { forwardRef, Ref, useEffect, useImperativeHandle, useRef } from 'react';
+import { forwardRef, Ref, useImperativeHandle, useRef } from 'react';
 
 import { EntityFilteringController } from 'explorviz-frontend/src/components/chatbot/chatbot-context';
 import FqnFiltering from 'explorviz-frontend/src/components/visualization/page-setup/sidebar/toolbar/entity-filtering/fqn-filtering/fqn-filtering';
@@ -8,8 +8,6 @@ import {
   EntityFilterMode,
   useEntityFilteringStore,
 } from 'explorviz-frontend/src/stores/entity-filtering-store';
-import { NEW_SELECTED_TIMESTAMP_EVENT } from 'explorviz-frontend/src/stores/timestamp';
-import eventEmitter from 'explorviz-frontend/src/utils/event-emitter';
 import { LandscapeData } from 'explorviz-frontend/src/utils/landscape-schemes/landscape-data';
 import Button from 'react-bootstrap/Button';
 import { useShallow } from 'zustand/react/shallow';
@@ -27,7 +25,6 @@ const EntityFiltering = forwardRef<
   { landscapeData }: EntityFilteringProps,
   ref: Ref<EntityFilteringController>
 ) {
-  const initialLandscapeData = useRef<LandscapeData>(landscapeData);
   const structureFilteringRef = useRef<StructureFilteringHandle>(null);
 
   const {
@@ -62,17 +59,6 @@ const EntityFiltering = forwardRef<
       resetFilters();
     },
   }));
-
-  const resetState = () => {
-    initialLandscapeData.current = landscapeData;
-  };
-
-  useEffect(() => {
-    eventEmitter.on(NEW_SELECTED_TIMESTAMP_EVENT, resetState);
-    return () => {
-      eventEmitter.off(NEW_SELECTED_TIMESTAMP_EVENT, resetState);
-    };
-  }, []);
 
   return (
     <>

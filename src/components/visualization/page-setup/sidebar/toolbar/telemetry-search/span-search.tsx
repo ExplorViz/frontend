@@ -120,6 +120,7 @@ export default function SpanSearch() {
       setSpans(null);
       setIsLoading(true);
       setAllItemsLoaded(false);
+      toolbarContext.searchSpans(null); // Reset request to prevent repeated triggering
     }
     setPrevSearchRequest(searchRequest);
   }

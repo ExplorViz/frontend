@@ -1,30 +1,33 @@
-import { useSocialMetricsStore } from 'explorviz-frontend/src/stores/social-metrics';
+import { InfoIcon } from '@primer/octicons-react';
 import HelpTooltip from 'explorviz-frontend/src/components/help-tooltip';
+import { useSocialMetricsStore } from 'explorviz-frontend/src/stores/social-metrics';
+import { useState } from 'react';
 import Button from 'react-bootstrap/Button';
 import Form from 'react-bootstrap/Form';
 import { useShallow } from 'zustand/react/shallow';
-import { useState } from 'react';
 
 const DAY = 24 * 60 * 60 * 1000;
 
 const PRESETS = [
-  {key: 'all', label: 'All', days: null as number | null},
-  {key: '30d', label: '30d', days: 30 },
-  {key: '90d', label: '90d', days: 90 },
-  {key: '1y', label: '1y', days: 365 },
+  { key: 'all', label: 'All', days: null as number | null },
+  { key: '30d', label: '30d', days: 30 },
+  { key: '90d', label: '90d', days: 90 },
+  { key: '1y', label: '1y', days: 365 },
 ];
 
-const toISO   = (epochMs: number) => new Date(epochMs).toISOString().slice(0, 10);
-const fromISO = (str: string)     => Date.parse(str);
-const fromISOEnd = (str: string ) => Date.parse(str) + DAY - 1; // stretch to end of day
+const toISO = (epochMs: number) => new Date(epochMs).toISOString().slice(0, 10);
+const fromISO = (str: string) => Date.parse(str);
+const fromISOEnd = (str: string) => Date.parse(str) + DAY - 1; // stretch to end of day
 
 export default function TimeRangeSelection() {
   const { availableTimeRange, selectedTimeRange, setSelectedTimeRange } =
-    useSocialMetricsStore(useShallow((s) => ({
-    availableTimeRange: s.availableTimeRange,
-    selectedTimeRange: s.selectedTimeRange,
-    setSelectedTimeRange: s.setSelectedTimeRange,
-  })));
+    useSocialMetricsStore(
+      useShallow((s) => ({
+        availableTimeRange: s.availableTimeRange,
+        selectedTimeRange: s.selectedTimeRange,
+        setSelectedTimeRange: s.setSelectedTimeRange,
+      }))
+    );
   const [showCustom, setShowCustom] = useState(false);
   if (!availableTimeRange) return null;
 
@@ -33,50 +36,84 @@ export default function TimeRangeSelection() {
     if (days === null) return setSelectedTimeRange(null);
     const to = availableTimeRange.to;
     const from = Math.max(availableTimeRange.from, to - days * DAY);
-    setSelectedTimeRange({ from , to })
+    setSelectedTimeRange({ from, to });
   };
-
 
   return (
     <div className="social-metrics-control-block">
-      <span className="social-metrics-control-label">Time frame
-        <HelpTooltip title="Restrict commit-based metrics to the selected time window. Does not apply to pull-request- and issue-based metrics by design." placement="top" />
+      <span className="social-metrics-control-label">
+        Time frame
+        <HelpTooltip
+          title="Restrict commit-based metrics to the selected time window. Does not apply to pull-request- and issue-based metrics by design."
+          placement="top"
+        />
       </span>
       <span className="social-metrics-control-sublabel">Presets</span>
       <div className="social-metrics-preset-group">
         {PRESETS.map((p) => (
-          <Button key={p.key} size="sm" variant="outline-secondary"
-            onClick={() => applyPreset(p.days)}>{p.label}</Button>
+          <Button
+            key={p.key}
+            size="sm"
+            variant="outline-secondary"
+            onClick={() => applyPreset(p.days)}
+          >
+            {p.label}
+          </Button>
         ))}
       </div>
       <div className="social-metrics-custom-range">
         <span className="social-metrics-control-sublabel">Custom</span>
-         <Form.Control  type="date" size="sm"
-         min={toISO(availableTimeRange.from)}
-         max={toISO(availableTimeRange.to)}
-         value={toISO(selectedTimeRange?.from ?? availableTimeRange.from)}
-         onChange={(e) => setSelectedTimeRange(
-            { from: fromISO(e.target.value), to: selectedTimeRange?.to ?? availableTimeRange.to })}
-         />
-         <Form.Control  type="date" size="sm"
-         min={toISO(availableTimeRange.from)}
-         max={toISO(availableTimeRange.to)}
-         value={toISO(selectedTimeRange?.to ?? availableTimeRange.to)}
-         onChange={(e) => setSelectedTimeRange(
-            { from: selectedTimeRange?.from ?? availableTimeRange.from, to:fromISOEnd(e.target.value) })}
-         />
+        <Form.Control
+          type="date"
+          size="sm"
+          min={toISO(availableTimeRange.from)}
+          max={toISO(availableTimeRange.to)}
+          value={toISO(selectedTimeRange?.from ?? availableTimeRange.from)}
+          onChange={(e) =>
+            setSelectedTimeRange({
+              from: fromISO(e.target.value),
+              to: selectedTimeRange?.to ?? availableTimeRange.to,
+            })
+          }
+        />
+        <Form.Control
+          type="date"
+          size="sm"
+          min={toISO(availableTimeRange.from)}
+          max={toISO(availableTimeRange.to)}
+          value={toISO(selectedTimeRange?.to ?? availableTimeRange.to)}
+          onChange={(e) =>
+            setSelectedTimeRange({
+              from: selectedTimeRange?.from ?? availableTimeRange.from,
+              to: fromISOEnd(e.target.value),
+            })
+          }
+        />
       </div>
       <div className="social-metrics-note text-muted small py-2">
-        <div className="social-metrics-note-line">
-          <HelpTooltip title="" placement="top" />
-          This setting does <strong>not</strong> apply to the following metrics:
-          reviewFriction,
-          issueActivity.
+        <div className="d-flex">
+          <InfoIcon className="info-icon" />
+          <span>
+            This setting does <strong>not</strong> apply to the following
+            metrics:{' '}
+            <ul className="mb-0">
+              <li>reviewFriction</li>
+              <li>issueActivity</li>
+            </ul>
+          </span>
+          <style>
+            {`
+              .info-icon {
+                transform: translateY(0.2em);
+              }
+            `}
+          </style>
         </div>
       </div>
     </div>
-  )
+  );
 }
 
-
-        {/* <Button size="sm" variant='outline-secondary' onClick={() => setShowCustom((v) => !v)}>Custom</Button> */}
+{
+  /* <Button size="sm" variant='outline-secondary' onClick={() => setShowCustom((v) => !v)}>Custom</Button> */
+}

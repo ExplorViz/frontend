@@ -183,6 +183,9 @@ export default function BrowserRendering({
     useState<ToolbarState>(defaultToolbarState);
 
   const toolbarActions: ToolbarActions = {
+    setShowSidebar: (showSidebar) =>
+      setToolbarState((state) => ({ ...state, showSidebar: false })),
+
     openTool: (tool) =>
       setToolbarState((state) => ({
         ...state,
@@ -377,84 +380,77 @@ export default function BrowserRendering({
                 ))}
               </div>
             </div>
-            {showToolsSidebar && (
-              <div className="sidebar left" id="toolselection">
-                <div
-                  className="mt-6 d-flex flex-row w-100"
-                  style={{ zIndex: 90 }}
-                >
-                  <ToolSelection
-                    closeToolSelection={() => setShowToolsSidebar(false)}
-                  >
-                    <ComponentTabs
-                      activeTab={selectedToolbarTool}
-                      onChange={setSelectedToolbarTool}
-                      tabs={[
-                        {
-                          value: ToolbarTool.Filter,
-                          content: (
-                            <>
-                              <h5 className="text-center">Filter</h5>
-                              <EntityFiltering
-                                ref={entityFilteringRef}
-                                landscapeData={landscapeData}
-                              />
-                            </>
-                          ),
-                        },
-                        {
-                          value: ToolbarTool.EntitySearch,
-                          content: (
-                            <>
-                              <h5 className="text-center">Search</h5>
-                              <EntitySearch ref={entitySearchRef} />
-                            </>
-                          ),
-                        },
-                        {
-                          value: ToolbarTool.TracePlayer,
-                          content: (
-                            <TraceSelectionAndReplayer
-                              highlightTrace={() => {}}
-                              removeHighlighting={() => {}}
-                              dynamicData={landscapeData.dynamicLandscapeData}
-                              flatData={landscapeData.flatLandscapeData}
-                            />
-                          ),
-                        },
-                        {
-                          value: ToolbarTool.TelemetrySearch,
-                          content: <TelemetrySearch />,
-                        },
-                        {
-                          value: ToolbarTool.RepositoryAnalysis,
-                          content: (
-                            <>
-                              <h5 className="text-center">
-                                Git Repository Analysis
-                              </h5>
-                              <CodeAnalysisSection
-                                landscapeToken={landscapeToken?.value}
-                              />
-                            </>
-                          ),
-                        },
-                        {
-                          value: ToolbarTool.KubernetesDiagrams,
-                          content: (
-                            <>
-                              <h5 className="text-center">
-                                Kubernetes Diagrams
-                              </h5>
-                              <KubernetesDiagrams />
-                            </>
-                          ),
-                        },
-                      ]}
-                    />
-                  </ToolSelection>
-                </div>
-              </div>
+
+            {landscapeData && (
+              <ToolSelection
+                show={showToolsSidebar}
+                closeToolSelection={() => setShowToolsSidebar(false)}
+              >
+                <ComponentTabs
+                  activeTab={selectedToolbarTool}
+                  onChange={setSelectedToolbarTool}
+                  tabs={[
+                    {
+                      value: ToolbarTool.Filter,
+                      content: (
+                        <>
+                          <h5 className="text-center">Filter</h5>
+                          <EntityFiltering
+                            ref={entityFilteringRef}
+                            landscapeData={landscapeData}
+                          />
+                        </>
+                      ),
+                    },
+                    {
+                      value: ToolbarTool.EntitySearch,
+                      content: (
+                        <>
+                          <h5 className="text-center">Search</h5>
+                          <EntitySearch ref={entitySearchRef} />
+                        </>
+                      ),
+                    },
+                    {
+                      value: ToolbarTool.TracePlayer,
+                      content: (
+                        <TraceSelectionAndReplayer
+                          highlightTrace={() => {}}
+                          removeHighlighting={() => {}}
+                          dynamicData={landscapeData.dynamicLandscapeData}
+                          flatData={landscapeData.flatLandscapeData}
+                        />
+                      ),
+                    },
+                    {
+                      value: ToolbarTool.TelemetrySearch,
+                      content: <TelemetrySearch />,
+                    },
+                    {
+                      value: ToolbarTool.RepositoryAnalysis,
+                      content: (
+                        <>
+                          <h5 className="text-center">
+                            Git Repository Analysis
+                          </h5>
+                          <CodeAnalysisSection
+                            landscapeToken={landscapeToken?.value}
+                          />
+                        </>
+                      ),
+                    },
+                    {
+                      value: ToolbarTool.KubernetesDiagrams,
+                      content: (
+                        <>
+                          <h5 className="text-center">Kubernetes Diagrams</h5>
+                          <KubernetesDiagrams />
+                        </>
+                      ),
+                    },
+                  ]}
+                />
+              </ToolSelection>
             )}
 
             {showSettingsSidebar && (

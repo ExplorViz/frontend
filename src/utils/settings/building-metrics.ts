@@ -97,9 +97,8 @@ let cachedDiffMode = false;
  * on the identity of the underlying store state.
  */
 export function isCommitComparisonDiffMode(): boolean {
-  const repositoryName = useCommitTreeStateStore
-    .getState()
-    .getCurrentSelectedRepositoryName();
+  const repositoryName =
+    useCommitTreeStateStore.getState()._currentSelectedRepositoryName;
   const selectedCommits = useCommitTreeStateStore
     .getState()
     .getSelectedCommits();

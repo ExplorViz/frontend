@@ -21,7 +21,7 @@ import MethodPopup from 'explorviz-frontend/src/components/visualization/renderi
 
 import PopupData from 'explorviz-frontend/src/components/visualization/rendering/popups/popup-data';
 import { LogSearchParams } from 'explorviz-frontend/src/hooks/fetch/useLogFetch';
-import { MetricsSearchParams } from 'explorviz-frontend/src/hooks/fetch/useMetricsFetch';
+import { MetricsSearchParams } from 'explorviz-frontend/src/hooks/fetch/useRuntimeMetricsFetch';
 import { SpanSearchParams } from 'explorviz-frontend/src/hooks/fetch/useSpanFetch';
 import { usePlayroomConnectionStore } from 'explorviz-frontend/src/stores/collaboration/playroom-connection-store';
 import { useLandscapeRestructureStore } from 'explorviz-frontend/src/stores/landscape-restructure';

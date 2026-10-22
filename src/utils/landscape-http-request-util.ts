@@ -26,8 +26,7 @@ import {
 /** Base URL for landscape API. Empty string uses same-origin (Vite dev proxy in development). */
 export function getLandscapeServiceUrl(): string {
   const configured = import.meta.env.VITE_LANDSCAPE_SERV_URL as
-    | string
-    | undefined;
+    string | undefined;
   if (configured === undefined || configured === '') {
     return '';
   }
@@ -37,6 +36,15 @@ export function getLandscapeServiceUrl(): string {
 /** Base URL for trace API. Empty string uses same-origin (Vite dev proxy in development). */
 export function getTraceServiceUrl(): string {
   const configured = import.meta.env.VITE_TRACE_SERV_URL as string | undefined;
+  if (configured === undefined || configured === '') {
+    return '';
+  }
+  return configured.replace(/\/$/, '');
+}
+
+export function getMetricsServiceUrl(): string {
+  const configured = import.meta.env.VITE_METRICS_SERV_URL as
+    string | undefined;
   if (configured === undefined || configured === '') {
     return '';
   }

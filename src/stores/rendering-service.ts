@@ -233,9 +233,8 @@ export const useRenderingServiceStore = create<RenderingServiceState>(
     _applyEvolutionLayoutFilter: (
       flatLandscape: FlatLandscape
     ): FlatLandscape => {
-      const repositoryName = useCommitTreeStateStore
-        .getState()
-        .getCurrentSelectedRepositoryName();
+      const repositoryName =
+        useCommitTreeStateStore.getState()._currentSelectedRepositoryName;
       const selectedCommits = useCommitTreeStateStore
         .getState()
         .getSelectedCommits();
@@ -268,9 +267,8 @@ export const useRenderingServiceStore = create<RenderingServiceState>(
         return;
       }
 
-      const repositoryName = useCommitTreeStateStore
-        .getState()
-        .getCurrentSelectedRepositoryName();
+      const repositoryName =
+        useCommitTreeStateStore.getState()._currentSelectedRepositoryName;
       const evolutionLandscapeMap = useEvolutionDataRepositoryStore
         .getState()
         .getRepoNameToFlatLandscapeMap();
@@ -302,9 +300,8 @@ export const useRenderingServiceStore = create<RenderingServiceState>(
       try {
         const repoNameToSelectedCommits: Map<string, SelectedCommit[]> =
           useCommitTreeStateStore.getState().getSelectedCommits();
-        const currentSelectedRepo = useCommitTreeStateStore
-          .getState()
-          .getCurrentSelectedRepositoryName();
+        const currentSelectedRepo =
+          useCommitTreeStateStore.getState()._currentSelectedRepositoryName;
 
         // Always pause when the selected commits change
         get().pauseVisualizationUpdating(false);
@@ -334,7 +331,9 @@ export const useRenderingServiceStore = create<RenderingServiceState>(
       ] of commitToSelectedTimestampMap.entries()) {
         commitToSelectedEpochMap.set(
           commitId,
-          selectedTimestampsForACommit.map((timestamp) => timestamp.epochNano)
+          selectedTimestampsForACommit.map(
+            (timestamp) => timestamp.fromUnixNano
+          )
         );
       }
       return commitToSelectedEpochMap;
@@ -361,14 +360,15 @@ export const useRenderingServiceStore = create<RenderingServiceState>(
         }
 
         const sortedTimestamps = [...timestampsToFetch].sort((a, b) => {
-          const diff = a.epochNano - b.epochNano;
+          const diff = a.fromUnixNano - b.fromUnixNano;
           return diff > 0n ? 1 : diff < 0n ? -1 : 0;
         });
 
-        const timestampFrom = sortedTimestamps[0].epochNano;
+        const timestampFrom = sortedTimestamps[0].fromUnixNano;
         let timestampTo = undefined;
         if (sortedTimestamps.length > 1) {
-          timestampTo = sortedTimestamps[sortedTimestamps.length - 1].epochNano;
+          timestampTo =
+            sortedTimestamps[sortedTimestamps.length - 1].fromUnixNano;
         }
 
         const [

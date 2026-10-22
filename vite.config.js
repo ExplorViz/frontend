@@ -45,8 +45,12 @@ export default defineConfig(({ mode }) => {
             target: traceTarget,
             changeOrigin: true,
           },
-        '^/v3/landscapes/[^/]+/entities/[^/]+/spans(?:/.*|\\?[^/]+|$)': {
+        '^/v3/landscapes/[^/]+/spans(?:/.*|\\?[^/]+|$)': {
           target: traceTarget,
+          changeOrigin: true,
+        },
+        '^/v3/landscapes/[^/]+/metrics(?:/.*|\\?[^/]+|$)': {
+          target: metricsTarget,
           changeOrigin: true,
         },
         '^/v3/landscapes/[^/]+/logs(?:/.*|\\?[^/]+|$)': {

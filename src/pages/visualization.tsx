@@ -1,14 +1,5 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 
-import { ChevronUpIcon, SyncIcon } from '@primer/octicons-react';
-import BottomBarChartDropdown, {
-  type BottomBarChartView,
-} from 'explorviz-frontend/src/components/visualization/page-setup/bottom-bar/bottom-bar-chart-dropdown';
-import CommitTreeRepositorySelection from 'explorviz-frontend/src/components/visualization/page-setup/bottom-bar/evolution/commit-tree-repository-selection';
-import EvolutionRenderingButtons from 'explorviz-frontend/src/components/visualization/page-setup/bottom-bar/evolution/evolution-rendering-buttons';
-import PlotlyCommitTree from 'explorviz-frontend/src/components/visualization/page-setup/bottom-bar/evolution/plotly-commit-tree';
-import PlotlyTimeline from 'explorviz-frontend/src/components/visualization/page-setup/bottom-bar/runtime/plotly-timeline';
-import SocialMetricsPanel from 'explorviz-frontend/src/components/visualization/page-setup/bottom-bar/social-metrics/social-metrics-panel';
 import BrowserRendering from 'explorviz-frontend/src/components/visualization/rendering/browser-rendering';
 import PlayPauseButton from 'explorviz-frontend/src/components/visualization/rendering/play-pause-button';
 import XrRendering from 'explorviz-frontend/src/components/visualization/rendering/xr-rendering';
@@ -18,9 +9,7 @@ import { useCommitTreeStateStore } from 'explorviz-frontend/src/stores/commit-tr
 import { useEntityFilteringStore } from 'explorviz-frontend/src/stores/entity-filtering-store';
 import { useLandscapeTokenStore } from 'explorviz-frontend/src/stores/landscape-token';
 import { useLayoutStore } from 'explorviz-frontend/src/stores/layout-store';
-import { useReloadHandlerStore } from 'explorviz-frontend/src/stores/reload-handler';
 import {
-  AnalysisMode,
   EvolutionModeRenderingConfiguration,
   useRenderingServiceStore,
 } from 'explorviz-frontend/src/stores/rendering-service';
@@ -55,10 +44,15 @@ import globalBundlingService from 'explorviz-frontend/src/view-objects/3d/city/g
 import { HAPSystemManager } from 'explorviz-frontend/src/view-objects/3d/city/hap-system-manager';
 import { Button } from 'react-bootstrap';
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
+import BottomBar from '../components/visualization/page-setup/bottom-bar/bottom-bar';
+import {
+  BottomBarActions,
+  BottomBarContext,
+  BottomBarState,
+} from '../components/visualization/page-setup/bottom-bar/bottom-bar-context';
 import { useImmersiveViewStore } from '../stores/immersive-view-store';
 import { useLandscapeRestructureStore } from '../stores/landscape-restructure';
 import { usePopupHandlerStore } from '../stores/popup-handler';
-import { useDebugSnapshotRepositoryStore } from '../stores/repos/debug-snapshot-repository';
 import { FlatLandscape } from '../utils/landscape-schemes/flat-landscape';
 
 const RUNTIME_VISUALIZATION_DEFAULTS: EvolutionModeRenderingConfiguration = {
@@ -99,7 +93,6 @@ function resetVisualizationSessionState(options?: { clearModels?: boolean }) {
 }
 
 export default function Visualization() {
-  const bottomBar = useRef<AnalysisMode | undefined | null>(undefined);
   const navigate = useNavigate();
 
   const [searchParams] = useSearchParams();
@@ -113,19 +106,27 @@ export default function Visualization() {
   const [timelineDataObjectHandler] = useState<TimelineDataObjectHandler>(
     () => new TimelineDataObjectHandler()
   );
-  const timelineUpdateVersion = useRenderingServiceStore(
-    (state) => state.timelineUpdateVersion
-  );
-  const [isBottomBarMaximized, setIsBottomBarMaximized] =
-    useState<boolean>(true);
-  const [isRuntimeTimelineSelected, setIsRuntimeTimelineSelected] =
-    useState<boolean>(false);
-  const [isCommitTreeSelected, setIsCommitTreeSelected] =
-    useState<boolean>(true);
-  const [isSocialMetricsSelected, setIsSocialMetricsSelected] =
-    useState<boolean>(false);
-  const [isCommitTreeRefreshing, setIsCommitTreeRefreshing] =
-    useState<boolean>(false);
+
+  const [bottomBarState, setBottomBarState] = useState<BottomBarState>({
+    isExpanded: true,
+    selectedChart: 'commit-chart',
+    selectedMetric: null,
+  });
+
+  const bottomBarActions: BottomBarActions = {
+    setIsExpanded: (isExpanded) =>
+      setBottomBarState((state) => ({ ...state, isExpanded: isExpanded })),
+
+    setSelectedChart: (selectedChart) =>
+      setBottomBarState((state) => ({
+        ...state,
+        selectedChart: selectedChart,
+      })),
+
+    setSelectedMetric: (metric) =>
+      setBottomBarState((state) => ({ ...state, selectedMetric: metric })),
+  };
+
   const [countdown, setCountdown] = useState<number>(10);
 
   // # endregion
@@ -166,40 +167,11 @@ export default function Visualization() {
   const manualPollTimestamps = useTimestampPollingStore(
     (state) => state.manuallyPollTimestamps
   );
-  const repoNameCommitTreeMapEvolutionDataRepository =
-    useEvolutionDataRepositoryStore((state) => state._repoNameCommitTreeMap);
   const fetchAndStoreRepositoryCommitTrees = useEvolutionDataRepositoryStore(
     (state) => state.fetchAndStoreRepositoryCommitTrees
   );
-  const getCurrentSelectedRepositoryName = useCommitTreeStateStore(
-    (state) => state.getCurrentSelectedRepositoryName
-  );
-  const selectedCommits = useCommitTreeStateStore(
-    (state) => state._selectedCommits
-  );
-  const setSelectedCommits = useCommitTreeStateStore(
-    (state) => state.setSelectedCommits
-  );
   const setDefaultState = useCommitTreeStateStore(
     (state) => state.setDefaultState
-  );
-  const getCloneOfRepoNameAndBranchNameToColorMap = useCommitTreeStateStore(
-    (state) => state.getCloneOfRepoNameAndBranchNameToColorMap
-  );
-  const setRepoNameAndBranchNameToColorMap = useCommitTreeStateStore(
-    (state) => state.setRepoNameAndBranchNameToColorMap
-  );
-  const resetSelectedCommits = useCommitTreeStateStore(
-    (state) => state.resetSelectedCommits
-  );
-  const loadLandscapeByTimestamp = useReloadHandlerStore(
-    (state) => state.loadLandscapeByTimestamp
-  );
-  const showInfoToastMessage = useToastHandlerStore(
-    (state) => state.showInfoToastMessage
-  );
-  const showErrorToastMessage = useToastHandlerStore(
-    (state) => state.showErrorToastMessage
   );
   const snapshotToken = useSnapshotTokenStore((state) => state.snapshotToken);
   const landscapeTokenServiceToken = useLandscapeTokenStore(
@@ -210,10 +182,6 @@ export default function Visualization() {
   );
   const snapshotSelected = useSnapshotTokenStore(
     (state) => state.snapshotSelected
-  );
-
-  const currentSelectedRepositoryName = useCommitTreeStateStore(
-    (state) => state._currentSelectedRepositoryName
   );
 
   // # endregion
@@ -245,12 +213,6 @@ export default function Visualization() {
     !showVR &&
     !isSingleLandscapeMode &&
     spectateUserSpectateConfigurationId !== 'arena-2';
-
-  const bottomChartView: BottomBarChartView = isRuntimeTimelineSelected
-    ? 'runtime-chart'
-    : isSocialMetricsSelected
-      ? 'social-metrics'
-      : 'commit-chart';
 
   // # endregion
 
@@ -416,7 +378,7 @@ export default function Visualization() {
 
       const updatedCommitTreeState = useCommitTreeStateStore.getState();
       const selectedRepo =
-        updatedCommitTreeState.getCurrentSelectedRepositoryName();
+        updatedCommitTreeState._currentSelectedRepositoryName;
       const selectedCommitsForCurrentSelectedRepo = updatedCommitTreeState
         .getSelectedCommits()
         .get(selectedRepo);
@@ -441,14 +403,7 @@ export default function Visualization() {
           initialCommit2
         );
 
-        // Check which bottom bar should be displayed by default
-        if (bottomBar.current === 'runtime') {
-          setIsRuntimeTimelineSelected(true);
-          setIsCommitTreeSelected(false);
-        } else {
-          setIsRuntimeTimelineSelected(false);
-          setIsCommitTreeSelected(true);
-        }
+        bottomBarActions.setSelectedChart('commit-chart');
       }
 
       if (showEvolutionVisualization) {
@@ -504,54 +459,6 @@ export default function Visualization() {
 
   // #endregion
 
-  // #region Event Handlers
-
-  const refreshCommitTreeData = async () => {
-    if (isCommitTreeRefreshing) {
-      return;
-    }
-
-    setIsCommitTreeRefreshing(true);
-    try {
-      resetSelectedCommits();
-      setRepoNameAndBranchNameToColorMap(new Map());
-      const refreshed = await fetchAndStoreRepositoryCommitTrees();
-
-      if (refreshed) {
-        showInfoToastMessage('Commit chart data refreshed');
-      } else {
-        showErrorToastMessage('Could not refresh commit chart data');
-      }
-    } catch (error) {
-      showErrorToastMessage('Could not refresh commit chart data');
-    } finally {
-      setIsCommitTreeRefreshing(false);
-    }
-  };
-
-  const selectBottomBarChartView = (view: BottomBarChartView) => {
-    switch (view) {
-      case 'runtime-chart':
-        setIsRuntimeTimelineSelected(true);
-        setIsCommitTreeSelected(false);
-        setIsSocialMetricsSelected(false);
-        break;
-      case 'social-metrics':
-        setIsRuntimeTimelineSelected(false);
-        setIsCommitTreeSelected(true);
-        setIsSocialMetricsSelected(true);
-        break;
-      case 'commit-chart':
-      default:
-        setIsRuntimeTimelineSelected(false);
-        setIsCommitTreeSelected(true);
-        setIsSocialMetricsSelected(false);
-        break;
-    }
-  };
-
-  // #endregion
-
   // #region Rendering
 
   // Use minimal setup for AR/VR
@@ -568,7 +475,7 @@ export default function Visualization() {
 
   // Browser mode
   return (
-    <>
+    <BottomBarContext value={{ ...bottomBarState, ...bottomBarActions }}>
       <div id="vizspace">
         {/* Loading screen  */}
         {!allLandscapeDataExistsAndNotEmpty && (
@@ -613,126 +520,12 @@ export default function Visualization() {
         />
       </div>
 
-      {/* ! Bottom Bar */}
       {shouldDisplayBottomBar && (
-        <div id="bottom-bar-container">
-          <>
-            {/* ! Toggle Bottom Bar Button */}
-            <Button
-              onClick={() => setIsBottomBarMaximized((state) => !state)}
-              variant="secondary"
-              className="bottom-bar-toggle-btn"
-              title={
-                isBottomBarMaximized ? 'Hide Bottom Bar' : 'Show Bottom Bar'
-              }
-            >
-              {!isBottomBarMaximized && (
-                <span className="pr-1">Bottom Bar</span>
-              )}
-              <ChevronUpIcon
-                size="small"
-                className={
-                  isBottomBarMaximized
-                    ? 'align-middle hide-bottom-bar-icon-down'
-                    : 'align-middle'
-                }
-              />
-            </Button>
-
-            {/* ! Runtime / Code Charts */}
-            <div
-              id="bottom-bar-chart-container"
-              className={`bottom-bar-chart
-                ${isCommitTreeSelected && isBottomBarMaximized ? 'bottom-bar-chart-commitTree' : ''}
-                ${!isBottomBarMaximized ? 'bottom-bar-chart-hide' : ''}`}
-            >
-              <BottomBarChartDropdown
-                selectedView={bottomChartView}
-                onSelectView={selectBottomBarChartView}
-              />
-
-              {isRuntimeTimelineSelected && (
-                <>
-                  <PlotlyTimeline
-                    timelineDataObject={
-                      timelineDataObjectHandler.timelineDataObject!
-                    }
-                    debugSnapshots={useDebugSnapshotRepositoryStore
-                      .getState()
-                      .getDebugSnapshotsByLandscapeToken(
-                        landscapeTokenServiceToken?.value ?? ''
-                      )}
-                    timelineUpdateVersion={timelineUpdateVersion}
-                    clicked={timelineDataObjectHandler.timelineClicked}
-                  />
-                </>
-              )}
-
-              {isCommitTreeSelected && (
-                <>
-                  <Button
-                    className="commit-tree-refresh-button"
-                    variant="outline-secondary"
-                    onClick={refreshCommitTreeData}
-                    disabled={isCommitTreeRefreshing}
-                    title={
-                      isCommitTreeRefreshing
-                        ? 'Refreshing...'
-                        : 'Refresh commit data'
-                    }
-                  >
-                    <SyncIcon
-                      size="small"
-                      className={isCommitTreeRefreshing ? 'spinning' : ''}
-                    />
-                  </Button>
-                  <EvolutionRenderingButtons
-                    repoNameCommitTreeMap={
-                      repoNameCommitTreeMapEvolutionDataRepository
-                    }
-                  />
-                  {!isSocialMetricsSelected && (
-                    <>
-                      <div className="row justify-content-center w-100 mx-0">
-                        <div className="col-12">
-                          <CommitTreeRepositorySelection
-                            repoNameCommitTreeMap={
-                              repoNameCommitTreeMapEvolutionDataRepository
-                            }
-                            selectedRepoName={currentSelectedRepositoryName}
-                          />
-                        </div>
-                      </div>
-                      <PlotlyCommitTree
-                        repoNameCommitTreeMap={
-                          repoNameCommitTreeMapEvolutionDataRepository
-                        }
-                        triggerVizRenderingForSelectedCommits={
-                          renderingServiceTriggerRenderingForSelectedCommits
-                        }
-                        selectedRepoName={currentSelectedRepositoryName}
-                        selectedCommits={selectedCommits}
-                        setSelectedCommits={setSelectedCommits}
-                        getCloneOfRepoNameAndBranchNameToColorMap={
-                          getCloneOfRepoNameAndBranchNameToColorMap
-                        }
-                        setRepoNameAndBranchNameToColorMap={
-                          setRepoNameAndBranchNameToColorMap
-                        }
-                      />
-                    </>
-                  )}
-
-                  {isSocialMetricsSelected && <SocialMetricsPanel />}
-                </>
-              )}
-            </div>
-          </>
-        </div>
+        <BottomBar timelineDataObjectHandler={timelineDataObjectHandler} />
       )}
 
       <PlayPauseButton />
-    </>
+    </BottomBarContext>
   );
 
   // #endregion

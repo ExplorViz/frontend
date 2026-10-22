@@ -3,6 +3,7 @@ import { use } from 'react';
 import { Tab, Tabs } from 'react-bootstrap';
 import { ToolbarContext } from '../toolbar-context';
 import LogSearch from './log-search';
+import MetricsSearch from './metrics-search';
 import SpanSearch from './span-search';
 
 export default function TelemetrySearch() {
@@ -49,7 +50,7 @@ export default function TelemetrySearch() {
           className="border border-top-0 p-3"
           tabClassName="text-dark"
         >
-          Not implemented yet
+          <MetricsSearch />
         </Tab>
         <Tab
           eventKey="logs"
