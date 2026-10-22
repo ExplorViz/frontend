@@ -1361,6 +1361,19 @@ export const defaultVizSettings: VisualizationSettings = {
     },
     isRangeSetting: true,
   },
+  minimapMarkerSize: {
+    level: SettingLevel.DEFAULT,
+    value: 5,
+    range: { min: 0.5, max: 20, step: 0.5 },
+    group: 'Minimap',
+    displayName: 'User Marker Size',
+    description: 'Size of the local user position marker on the minimap',
+    dependsOn: {
+      settingId: 'isMinimapEnabled',
+      value: true,
+    },
+    isRangeSetting: true,
+  },
   minimapShape: {
     level: SettingLevel.DEFAULT,
     value: 'round',

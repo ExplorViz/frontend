@@ -1,6 +1,8 @@
-import { CameraControls, OrthographicCamera } from '@react-three/drei';
+import { CameraControls } from '@react-three/drei';
 import { useFrame, useThree } from '@react-three/fiber';
-import LocalUserMarker from 'explorviz-frontend/src/components/visualization/rendering/minimap-user-marker';
+import LocalUserMarker, {
+  MinimapMarkerAnchor,
+} from 'explorviz-frontend/src/components/visualization/rendering/minimap-user-marker';
 import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
 import { useVisualizationStore } from 'explorviz-frontend/src/stores/visualization-store';
 import { LandscapeData } from 'explorviz-frontend/src/utils/landscape-schemes/landscape-data';
@@ -20,18 +22,103 @@ const FALLBACK_BOUNDS = new THREE.Box3(
   new THREE.Vector3(100, 0, 100)
 );
 
+const _size = new THREE.Vector2();
+const _clearColor = new THREE.Color();
+
+/**
+ * Restore full-canvas GL state so R3F's next pass is not clipped to the minimap rect.
+ * Three.js setViewport/setScissor take *logical* (CSS) pixels and multiply by DPR
+ * internally — never pass canvas.width/height (device pixels) here.
+ */
+function resetMainViewport(gl: THREE.WebGLRenderer) {
+  gl.getSize(_size);
+  gl.setScissorTest(false);
+  gl.setViewport(0, 0, _size.width, _size.height);
+  gl.autoClear = true;
+}
+
+function createMinimapCamera() {
+  const cam = new THREE.OrthographicCamera(-1, 1, 1, -1, 0.1, 1000);
+  cam.position.set(0, MINIMAP_HEIGHT, 0);
+  cam.up.set(0, 0, -1);
+  cam.lookAt(0, 0, 0);
+  cam.layers.enableAll();
+  return cam;
+}
+
+function createMinimapOverrideMaterial() {
+  // Unlit material that still reads each mesh's color/map so Lambert/Standard
+  // city meshes are visible from the ortho camera without light coupling.
+  // Communication edges with enableEdgeColoring use vertexColors + white base —
+  // that flag must be copied or lines stay white on the minimap.
+  const mat = new THREE.MeshBasicMaterial({
+    toneMapped: false,
+    side: THREE.DoubleSide,
+  });
+  mat.onBeforeRender = (_renderer, _scene, _camera, _geometry, object) => {
+    const mesh = object as THREE.Mesh;
+    const src = mesh.material;
+    const srcMat = Array.isArray(src) ? src[0] : src;
+    const useVertexColors = Boolean(
+      srcMat &&
+      'vertexColors' in srcMat &&
+      (srcMat as THREE.Material & { vertexColors?: boolean }).vertexColors
+    );
+
+    if (mat.vertexColors !== useVertexColors) {
+      mat.vertexColors = useVertexColors;
+      mat.needsUpdate = true;
+    }
+
+    if (srcMat && 'color' in srcMat && srcMat.color instanceof THREE.Color) {
+      mat.color.copy(srcMat.color);
+    } else {
+      mat.color.set(0x888888);
+    }
+    if (srcMat && 'map' in srcMat) {
+      mat.map = (srcMat as THREE.MeshBasicMaterial).map ?? null;
+    } else {
+      mat.map = null;
+    }
+    if (srcMat && 'transparent' in srcMat) {
+      mat.transparent = Boolean((srcMat as THREE.Material).transparent);
+      mat.opacity =
+        'opacity' in srcMat ? Number((srcMat as THREE.Material).opacity) : 1;
+    } else {
+      mat.transparent = false;
+      mat.opacity = 1;
+    }
+  };
+  return mat;
+}
+
 export default function MinimapView({
   mainCameraControls,
   landscapeData,
 }: MinimapViewProps) {
-  // Get the scene and cameras etc.
-  const orthoRef = useRef<THREE.OrthographicCamera>(null);
-  // We can just pick the one we need in the render loop.
-  const { scene: mainScene, gl, camera: mainCamera } = useThree(); // mainCamera
+  // Own the camera in a ref — drei's <OrthographicCamera> ref is unreliable
+  // (useImperativeHandle with [] deps can stick on null). Mutated only in
+  // useFrame / event handlers so React Compiler immutability rules stay happy.
+  const minimapCamRef = useRef<THREE.OrthographicCamera | null>(null);
+  const getMinimapCam = () => {
+    if (!minimapCamRef.current) {
+      minimapCamRef.current = createMinimapCamera();
+    }
+    return minimapCamRef.current;
+  };
+
+  const [minimapOverrideMaterial] = useState(createMinimapOverrideMaterial);
+  // Stable scene identity for the marker portal (not a ref — must be readable in render)
+  const [minimapScene] = useState(() => new THREE.Scene());
+
+  const { gl, invalidate } = useThree();
 
   // Get the minimap corner, padding, size and shape
   const zoom = useUserSettingsStore(
     (state) => state.visualizationSettings.minimapZoom
+  );
+  const minimapMarkerSize = useUserSettingsStore(
+    (state) => state.visualizationSettings.minimapMarkerSize.value
   );
   const minimap_minimapBgColor = useUserSettingsStore(
     (state) => state.visualizationSettings.minimapBgColor
@@ -81,42 +168,18 @@ export default function MinimapView({
   );
 
   const [isFullscreen, setIsFullscreen] = useState(false);
-  // Stores physical WebGL coordinates of the minimap
-  const minimapRectRef = useRef<{
-    x: number;
-    y: number;
-    w: number;
-    h: number;
-    fbo?: THREE.WebGLRenderTarget;
-  }>({ x: 0, y: 0, w: 0, h: 0 });
+  // Logical (CSS) pixel rect — same space as gl.setViewport / pointer events
+  const minimapRectRef = useRef({ x: 0, y: 0, w: 0, h: 0 });
 
-  // For round minimap
-  const stencilScene = useRef(new THREE.Scene()).current;
-  useEffect(() => {
-    let geometry: THREE.BufferGeometry;
-
-    if (minimapShape === 'round' && !isFullscreen) {
-      geometry = new THREE.CircleGeometry(1, 64);
-    } else {
-      geometry = new THREE.PlaneGeometry(2, 2);
-    }
-
-    const material = new THREE.MeshBasicMaterial();
-    const mesh = new THREE.Mesh(geometry, material);
-    stencilScene.add(mesh);
-    return () => {
-      stencilScene.clear();
-      geometry.dispose();
-      material.dispose();
-    };
-  }, [stencilScene, minimapShape, isFullscreen]);
-
-  const stencilCamera = useRef(
-    new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1)
-  ).current;
-
-  // A scene to store the user marker (only minimap cam will be rendered with it)
-  const minimapScene = useRef(new THREE.Scene()).current;
+  const markerAnchorRef = useRef<MinimapMarkerAnchor>({
+    x: 0,
+    y: 1,
+    z: 0,
+    scale: 0.25,
+    facingX: 0,
+    facingZ: -1,
+    rotateWithView: false,
+  });
 
   // the bounds of the (loaded) landscape (used so that the minimap does not go out of the bounds, even if the user does)
   const landscapeBoundsRef = useRef<THREE.Box3>(FALLBACK_BOUNDS.clone());
@@ -124,15 +187,17 @@ export default function MinimapView({
 
   // Important vectors that should not be re-instantiated in every pass of useFrame
   // instead only the value is changed when necessary
-  const scratch = useRef({
+  const scratchRef = useRef({
     userTarget: new THREE.Vector3(),
     clampedPos: new THREE.Vector3(),
     size: new THREE.Vector3(),
     center: new THREE.Vector3(),
     box: new THREE.Box3(),
-  }).current;
+    lookTarget: new THREE.Vector3(),
+    facing: new THREE.Vector3(),
+  });
 
-  // Disable the cmareaControls for the main camera when minimap is in fullscreen mode
+  // Disable the cameraControls for the main camera when minimap is in fullscreen mode
   useEffect(() => {
     if (mainCameraControls.current) {
       // eslint-disable-next-line
@@ -148,11 +213,10 @@ export default function MinimapView({
     // When clicked on small minimap make full size
     // When clicked on full size minimap teleport to click target
     const handlePointerDown = (event: PointerEvent) => {
-      // At first check wether the click was inside the minimap
-      const pixelRatio = gl.getPixelRatio();
+      // Minimap rect is stored in logical (CSS) pixels to match setViewport.
       const rect = canvas.getBoundingClientRect();
-      const clientX = (event.clientX - rect.left) * pixelRatio;
-      const clientY = (rect.height - (event.clientY - rect.top)) * pixelRatio;
+      const clientX = event.clientX - rect.left;
+      const clientY = rect.height - (event.clientY - rect.top);
 
       const { x, y, w, h } = minimapRectRef.current;
 
@@ -178,26 +242,21 @@ export default function MinimapView({
         } else {
           event.stopPropagation();
 
-          if (orthoRef.current && mainCameraControls.current) {
-            const minimapCam = orthoRef.current!;
+          if (mainCameraControls.current) {
             const controls = mainCameraControls.current;
+            const minimapCam = getMinimapCam();
 
             // Calculate Destination
             const u = (clientX - x) / w;
             const v = (clientY - y) / h;
 
-            let worldX = 0;
-            let worldZ = 0;
+            const localX =
+              minimapCam.left + u * (minimapCam.right - minimapCam.left);
+            const localY =
+              minimapCam.bottom + v * (minimapCam.top - minimapCam.bottom);
 
-            if (minimapCam instanceof THREE.OrthographicCamera) {
-              const localX =
-                minimapCam.left + u * (minimapCam.right - minimapCam.left);
-              const localY =
-                minimapCam.bottom + v * (minimapCam.top - minimapCam.bottom);
-
-              worldX = minimapCam.position.x + localX;
-              worldZ = minimapCam.position.z - localY;
-            }
+            const worldX = minimapCam.position.x + localX;
+            const worldZ = minimapCam.position.z - localY;
 
             // Get Current State
             const currentTarget = new THREE.Vector3();
@@ -240,11 +299,9 @@ export default function MinimapView({
     // Handle Wheel event
     // When scroll over the small minimap zoom in or out
     const handleWheel = (event: WheelEvent) => {
-      // At first check wether the click was inside the minimap
-      const pixelRatio = gl.getPixelRatio();
       const rect = canvas.getBoundingClientRect();
-      const clientX = (event.clientX - rect.left) * pixelRatio;
-      const clientY = (rect.height - (event.clientY - rect.top)) * pixelRatio;
+      const clientX = event.clientX - rect.left;
+      const clientY = rect.height - (event.clientY - rect.top);
 
       const { x, y, w, h } = minimapRectRef.current;
 
@@ -287,8 +344,7 @@ export default function MinimapView({
     return () => {
       canvas.removeEventListener('pointerdown', handlePointerDown);
       canvas.removeEventListener('wheel', handleWheel);
-      gl.setScissorTest(false);
-      gl.setViewport(0, 0, canvas.width, canvas.height);
+      resetMainViewport(gl);
     };
   }, [gl, isFullscreen, mainCameraControls, minimapShape, minimapRotate]);
 
@@ -297,36 +353,29 @@ export default function MinimapView({
     boundsReady.current = false;
   }, [landscapeData]);
 
-  // Whenever the settings for layer visibility change, update the camera settings
-  useEffect(() => {
-    if (orthoRef.current) {
-      const cam = orthoRef.current;
-      const toggleLayer = (layerId: number, isEnabled: boolean) => {
-        if (isEnabled) cam.layers.enable(layerId);
-        else cam.layers.disable(layerId);
-      };
-
-      toggleLayer(sceneLayers.Foundation, showFoundation);
-      toggleLayer(sceneLayers.District, showDistricts);
-      toggleLayer(sceneLayers.Building, showBuildings);
-      toggleLayer(sceneLayers.Communication, showCommunication);
-      toggleLayer(sceneLayers.Label, showLabels);
-    }
-  }, [
-    showFoundation,
-    showDistricts,
-    showBuildings,
-    showCommunication,
-    showLabels,
-    sceneLayers,
-  ]);
+  // Cities/districts/buildings use dedicated layers (1–6). Start from enableAll so
+  // nothing is missed, then honour the minimap visibility toggles.
+  const syncMinimapLayers = (cam: THREE.Camera) => {
+    cam.layers.enableAll();
+    if (!showFoundation) cam.layers.disable(sceneLayers.Foundation);
+    if (!showDistricts) cam.layers.disable(sceneLayers.District);
+    if (!showBuildings) cam.layers.disable(sceneLayers.Building);
+    if (!showCommunication) cam.layers.disable(sceneLayers.Communication);
+    if (!showLabels) cam.layers.disable(sceneLayers.Label);
+  };
 
   // RENDER LOOP (Manual rendering overwrites default R3F rendering)
-  useFrame(() => {
-    const minimapCam = orthoRef.current;
+  // Priority > 0 takes over R3F's automatic render — we must draw the main scene ourselves.
+  // Read gl/scene/camera from the frame state so mutations are not treated as
+  // illegal changes to useThree() hook return values.
+  useFrame((state) => {
+    const { gl: frameGl, scene: mainScene, camera: mainCamera } = state;
+    if (!mainCameraControls.current || frameGl.xr.isPresenting) return;
 
-    if (!minimapCam || !mainCameraControls.current || gl.xr.isPresenting)
-      return;
+    const minimapCam = getMinimapCam();
+    const scratch = scratchRef.current;
+
+    syncMinimapLayers(minimapCam);
 
     if (minimapMode === 'target') {
       mainCameraControls.current.getTarget(scratch.userTarget);
@@ -346,23 +395,26 @@ export default function MinimapView({
       }
     }
 
-    // Compute the minimap size values
-    const { width: totalWidth, height: totalHeight } = gl.domElement;
-    const pixelRatio = gl.getPixelRatio();
-    let viewX, viewY, viewW, viewH;
+    // Logical (CSS) pixels — required by gl.setViewport / setScissor (they apply DPR).
+    // Using canvas.width or multiplying by getPixelRatio() double-scales on Retina /
+    // Mac scaled displays and only shifts the main view instead of drawing a minimap.
+    const totalWidth = state.size.width;
+    const totalHeight = state.size.height;
+    let viewX: number;
+    let viewY: number;
+    let viewW: number;
+    let viewH: number;
     if (isFullscreen) {
       const dim = Math.min(totalWidth, totalHeight) * 0.9;
-      viewW = dim;
-      viewH = dim;
-      viewX = (totalWidth - viewW) / 2;
-      viewY = (totalHeight - viewH) / 2;
+      viewW = Math.round(dim);
+      viewH = Math.round(dim);
+      viewX = Math.round((totalWidth - viewW) / 2);
+      viewY = Math.round((totalHeight - viewH) / 2);
     } else {
-      const w = minimapWidth * pixelRatio;
-      const h = minimapHeight * pixelRatio;
-      const padX = minimapPaddingX.value * pixelRatio;
-      const padY = minimapPaddingY.value * pixelRatio;
-      viewW = w;
-      viewH = h;
+      viewW = Math.round(minimapWidth);
+      viewH = Math.round(minimapHeight);
+      const padX = Math.round(minimapPaddingX.value);
+      const padY = Math.round(minimapPaddingY.value);
 
       switch (minimapCorner) {
         case 'top-left':
@@ -370,7 +422,7 @@ export default function MinimapView({
           viewY = totalHeight - viewH - padY;
           break;
         case 'top-middle':
-          viewX = (totalWidth - viewW) / 2;
+          viewX = Math.round((totalWidth - viewW) / 2);
           viewY = totalHeight - viewH - padY;
           break;
         case 'top-right':
@@ -379,14 +431,14 @@ export default function MinimapView({
           break;
         case 'middle-right':
           viewX = totalWidth - viewW - padX;
-          viewY = (totalHeight - viewH) / 2;
+          viewY = Math.round((totalHeight - viewH) / 2);
           break;
         case 'bottom-left':
           viewX = padX;
           viewY = padY;
           break;
         case 'bottom-middle':
-          viewX = (totalWidth - viewW) / 2;
+          viewX = Math.round((totalWidth - viewW) / 2);
           viewY = padY;
           break;
         case 'bottom-right':
@@ -395,7 +447,7 @@ export default function MinimapView({
           break;
         case 'middle-left':
           viewX = padX;
-          viewY = (totalHeight - viewH) / 2;
+          viewY = Math.round((totalHeight - viewH) / 2);
           break;
         default:
           viewX = totalWidth - viewW - padX;
@@ -425,156 +477,162 @@ export default function MinimapView({
       bounds.getCenter(scratch.clampedPos);
     }
 
-    // Zoom / Size
+    // Zoom / Size — match the original square ortho frustum
     bounds.getSize(scratch.size);
     const maxDim = Math.max(scratch.size.x, scratch.size.z);
     const validMaxDim = maxDim > 0 ? maxDim : 200;
 
-    const aspect = viewW / viewH;
     const dist = isFullscreen ? 1 : zoom.value || 1;
+    const cameraViewRadius =
+      (isFullscreen ? validMaxDim * 1.1 : validMaxDim) / 2 / dist;
 
-    let viewSize = validMaxDim / dist;
+    bounds.getCenter(scratch.center);
+    // Sit above the landscape AABB — layout Y is often not 0
+    const camY = bounds.max.y + MINIMAP_HEIGHT;
+    const targetY = scratch.center.y;
 
-    if (isFullscreen) {
-      viewSize = validMaxDim * 1.1;
+    minimapCam.left = -cameraViewRadius;
+    minimapCam.right = cameraViewRadius;
+    minimapCam.top = cameraViewRadius;
+    minimapCam.bottom = -cameraViewRadius;
+    minimapCam.near = 0.1;
+    minimapCam.far = Math.max(camY - bounds.min.y + 50, MINIMAP_HEIGHT * 2);
+    minimapCam.updateProjectionMatrix();
+
+    // When rotate is on, always pivot around the user so orientation matches the
+    // main view. Otherwise: follow user when zoomed, landscape center at zoom=1.
+    const pivotOnUser =
+      !isFullscreen &&
+      (minimapRotate || (dist !== 1 && minimapMode !== 'landscape'));
+    if (pivotOnUser) {
+      minimapCam.position.set(scratch.clampedPos.x, camY, scratch.clampedPos.z);
+    } else {
+      minimapCam.position.set(scratch.center.x, camY, scratch.center.z);
     }
 
-    // We set top/bottom/left/right to match aspect ratio
-    if (minimapCam instanceof THREE.OrthographicCamera) {
-      minimapCam.left = (-viewSize * aspect) / 2;
-      minimapCam.right = (viewSize * aspect) / 2;
-      minimapCam.top = viewSize / 2;
-      minimapCam.bottom = -viewSize / 2;
-      minimapCam.updateProjectionMatrix();
-
-      minimapCam.position.set(
-        scratch.clampedPos.x,
-        MINIMAP_HEIGHT,
-        scratch.clampedPos.z
+    // Screen-up = horizontal look direction of the main camera (camera → target
+    // on XZ). That keeps minimap rotation aligned with the normal view.
+    const rotateWithView = !isFullscreen && minimapRotate;
+    if (rotateWithView) {
+      mainCameraControls.current.getTarget(scratch.lookTarget);
+      scratch.facing.set(
+        scratch.lookTarget.x - mainCamera.position.x,
+        0,
+        scratch.lookTarget.z - mainCamera.position.z
       );
+      if (scratch.facing.lengthSq() < 1e-8) {
+        // Looking nearly straight down — fall back to azimuth
+        const az = mainCameraControls.current.azimuthAngle;
+        scratch.facing.set(-Math.sin(az), 0, -Math.cos(az));
+      } else {
+        scratch.facing.normalize();
+      }
+      minimapCam.up.copy(scratch.facing);
+    } else {
+      minimapCam.up.set(0, 0, -1); // north-up
+      scratch.facing.set(0, 0, -1);
     }
-
-    // Standard rotation: look down (-PI/2 around X)
-    minimapCam.rotation.set(-Math.PI / 2, 0, 0);
-
-    if (!isFullscreen && minimapRotate) {
-      minimapCam.rotation.z = mainCameraControls.current.azimuthAngle;
-    }
+    minimapCam.lookAt(minimapCam.position.x, targetY, minimapCam.position.z);
     minimapCam.updateMatrixWorld();
 
-    // End Camera Update
+    // Keep the user marker just under the ortho camera and sized relative to the
+    // view so it stays visible after cam height follows landscape bounds.
+    // Base factor 0.03; setting default 5 matches the previous hard-coded size.
+    const markerSizeFactor = Math.max(minimapMarkerSize, 0.1) * 0.03;
+    const markerScale = Math.max(cameraViewRadius * markerSizeFactor, 0.15);
+    markerAnchorRef.current.y = camY - 1;
+    markerAnchorRef.current.scale = markerScale;
+    markerAnchorRef.current.facingX = scratch.facing.x;
+    markerAnchorRef.current.facingZ = scratch.facing.z;
+    markerAnchorRef.current.rotateWithView = rotateWithView;
 
-    //Rendering
-
-    // Render main scene
-    gl.setViewport(0, 0, totalWidth, totalHeight);
-    gl.setScissorTest(false);
-    // eslint-disable-next-line
-    gl.autoClear = true;
-    gl.render(mainScene, mainCamera);
-
-    // Render minimap with main scene
-
-    gl.autoClear = false;
-    gl.setViewport(viewX, viewY, viewW, viewH);
-    gl.setScissor(viewX, viewY, viewW, viewH);
-    gl.setScissorTest(true);
-
-    const originalClearColor = new THREE.Color();
-    gl.getClearColor(originalClearColor);
-    const originalClearAlpha = gl.getClearAlpha();
-
-    // --- FBO Handling for Round Minimap ---
-    // We use a lazy-initialized FBO (render target) attached to the component instance via a ref
-    // to avoid re-creating it every frame.
-    if (!minimapRectRef.current.fbo) {
-      minimapRectRef.current.fbo = new THREE.WebGLRenderTarget(viewW, viewH, {
-        minFilter: THREE.LinearFilter,
-        magFilter: THREE.LinearFilter,
-        format: THREE.RGBAFormat,
-      });
-    }
-    const fbo = minimapRectRef.current.fbo;
-
-    // Resize FBO if necessary
-    if (fbo.width !== viewW || fbo.height !== viewH) {
-      fbo.setSize(viewW, viewH);
+    // Marker useFrame (priority 0) runs before this pass — apply height/scale /
+    // facing here so they match the camera used for this frame's render.
+    const marker = minimapScene.getObjectByName('minimap-user-marker');
+    if (marker) {
+      marker.position.y = camY - 1;
+      marker.scale.set(markerScale, markerScale, markerScale);
+      if (rotateWithView) {
+        marker.rotation.set(
+          -Math.PI / 2,
+          Math.atan2(-scratch.facing.x, -scratch.facing.z),
+          0,
+          'YXZ'
+        );
+      }
     }
 
-    // 1. Render content into FBO
-    gl.setRenderTarget(fbo);
-    gl.setViewport(0, 0, viewW, viewH); // Render to full FBO
-    gl.setScissorTest(false);
+    // --- Rendering ---
+    // Main view, then minimap drawn directly into a scissored sub-rect (same
+    // approach as the original working minimap before the FBO pass).
 
-    // Clear FBO with background color
-    gl.setClearColor(minimap_minimapBgColor.value, 1);
-    gl.clear(true, true, true);
+    frameGl.setRenderTarget(null);
+    frameGl.setViewport(0, 0, totalWidth, totalHeight);
+    frameGl.setScissorTest(false);
+    frameGl.autoClear = true;
+    frameGl.render(mainScene, mainCamera);
 
-    // Render Main Scene
-    gl.render(mainScene, minimapCam);
+    frameGl.getClearColor(_clearColor);
+    const originalClearAlpha = frameGl.getClearAlpha();
 
-    // Render User Marker
-    gl.clearDepth();
-    gl.render(minimapScene, minimapCam);
+    frameGl.autoClear = false;
+    frameGl.setViewport(viewX, viewY, viewW, viewH);
+    frameGl.setScissor(viewX, viewY, viewW, viewH);
+    frameGl.setScissorTest(true);
 
-    // 2. Render FBO texture marked by Circle to Screen
-    gl.setRenderTarget(null); // Back to screen
-    gl.setViewport(viewX, viewY, viewW, viewH);
-    gl.setScissor(viewX, viewY, viewW, viewH);
-    gl.setScissorTest(true);
+    frameGl.setClearColor(minimap_minimapBgColor.value, 1);
+    frameGl.clear(true, true);
 
-    // Prepare Mesh to show FBO texture
-    const mesh = stencilScene.children[0] as THREE.Mesh;
-    if (mesh && mesh.material instanceof THREE.MeshBasicMaterial) {
-      mesh.material.map = fbo.texture;
-      mesh.material.color.set(0xffffff); // White so texture colors show
-      fbo.texture.colorSpace = gl.outputColorSpace; // Match encoding
+    // Pass 1: city geometry with unlit override.
+    // Skip Label (troika SDF) and Communication (already MeshBasicMaterial with
+    // vertexColors / arrow colors — override forces them white).
+    syncMinimapLayers(minimapCam);
+    minimapCam.layers.disable(sceneLayers.Label);
+    minimapCam.layers.disable(sceneLayers.Communication);
+    const prevOverride = mainScene.overrideMaterial;
+    mainScene.overrideMaterial = minimapOverrideMaterial;
+    frameGl.render(mainScene, minimapCam);
+    mainScene.overrideMaterial = prevOverride;
+
+    // Pass 2: communication lines + arrows with native materials
+    if (showCommunication) {
+      frameGl.clearDepth();
+      minimapCam.layers.disableAll();
+      minimapCam.layers.enable(sceneLayers.Communication);
+      frameGl.render(mainScene, minimapCam);
     }
 
-    gl.clearDepth(); // Clear depth of the scissor area so overlay is on top
+    // Pass 3: labels with native troika materials
+    if (showLabels) {
+      frameGl.clearDepth();
+      minimapCam.layers.disableAll();
+      minimapCam.layers.enable(sceneLayers.Label);
+      frameGl.render(mainScene, minimapCam);
+    }
 
-    gl.render(stencilScene, stencilCamera);
+    frameGl.clearDepth();
+    syncMinimapLayers(minimapCam); // restore for marker (default layer)
+    frameGl.render(minimapScene, minimapCam);
 
-    gl.setClearColor(originalClearColor, originalClearAlpha);
-    gl.setScissorTest(false);
+    frameGl.setClearColor(_clearColor, originalClearAlpha);
+    resetMainViewport(frameGl);
   }, 1);
 
-  // Clean up FBO and GL state on unmount
+  // Reset GL state when minimap is disabled so R3F auto-render resumes cleanly
   useEffect(() => {
     return () => {
-      // Dispose FBO
-      if (minimapRectRef.current.fbo) {
-        minimapRectRef.current.fbo.dispose();
-        minimapRectRef.current.fbo = undefined;
-      }
-
-      // Clear scenes
-      stencilScene.clear();
       minimapScene.clear();
-
-      // Ensure GL state is fully reset
-      gl.setScissorTest(false);
-      const canvas = gl.domElement;
-      gl.setViewport(0, 0, canvas.width, canvas.height);
-      gl.autoClear = true;
+      minimapOverrideMaterial.dispose();
+      resetMainViewport(gl);
+      invalidate();
     };
-  }, [gl, stencilScene, minimapScene]);
+  }, [gl, minimapScene, minimapOverrideMaterial, invalidate]);
 
   return (
-    <>
-      <OrthographicCamera
-        ref={orthoRef}
-        makeDefault={false}
-        position={[0, MINIMAP_HEIGHT, 0]}
-        rotation={[-Math.PI / 2, 0, 0]}
-        near={0.1}
-        far={1000}
-        manual
-      />
-      <LocalUserMarker
-        minimapScene={minimapScene}
-        mainCameraControls={mainCameraControls}
-      />
-    </>
+    <LocalUserMarker
+      minimapScene={minimapScene}
+      mainCameraControls={mainCameraControls}
+      markerAnchorRef={markerAnchorRef}
+    />
   );
 }

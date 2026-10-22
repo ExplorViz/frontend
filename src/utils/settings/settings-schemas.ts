@@ -206,6 +206,7 @@ export type MinimapSettings = {
   isMinimapEnabled: FlagSetting;
   minimapBgColor: ColorSetting;
   minimapZoom: RangeSetting;
+  minimapMarkerSize: RangeSetting;
   minimapMode: SelectSetting<string>;
   minimapCorner: SelectSetting<string>;
   minimapMarginX: RangeSetting;
