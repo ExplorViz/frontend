@@ -435,3 +435,34 @@ export function requestFileHistory(
       .catch(reject);
   });
 }
+
+/**
+ * Persists a new display name for a city foundation in the landscape service / Neo4j.
+ */
+export async function requestRenameCity(
+  cityId: string,
+  name: string
+): Promise<{ id: string; name: string }> {
+  const token = useLandscapeTokenStore.getState().token;
+  if (token === null) {
+    throw new Error('No landscape token selected');
+  }
+
+  const response = await fetch(
+    `${landscapeService}/v3/landscapes/${token.value}/structure/cities/${encodeURIComponent(cityId)}`,
+    {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${useAuthStore.getState().accessToken}`,
+      },
+      body: JSON.stringify({ name }),
+    }
+  );
+
+  if (!response.ok) {
+    throw new Error(`Failed to rename city - Status ${response.status}`);
+  }
+
+  return (await response.json()) as { id: string; name: string };
+}

@@ -5,6 +5,7 @@ import React, {
   useMemo,
   useState,
 } from 'react';
+import { Button, Form, Modal } from 'react-bootstrap';
 
 import useLongPress, {
   type LongPressPosition,
@@ -14,7 +15,9 @@ import { useCameraControlsStore } from 'explorviz-frontend/src/stores/camera-con
 import { useLocalUserStore } from 'explorviz-frontend/src/stores/collaboration/local-user';
 import { useConfigurationStore } from 'explorviz-frontend/src/stores/configuration';
 import { usePopupHandlerStore } from 'explorviz-frontend/src/stores/popup-handler';
+import { useRenderingServiceStore } from 'explorviz-frontend/src/stores/rendering-service';
 import { useModelStore } from 'explorviz-frontend/src/stores/repos/model-repository';
+import { useToastHandlerStore } from 'explorviz-frontend/src/stores/toast-handler';
 import { useVisualizationStore } from 'explorviz-frontend/src/stores/visualization-store';
 import { Position2D } from 'explorviz-frontend/src/types/pointer-types';
 import {
@@ -32,6 +35,7 @@ import {
   type ContextMenuHitEntity,
   contextMenuPickAt,
 } from 'explorviz-frontend/src/utils/context-menu-world-pick';
+import { requestRenameCity } from 'explorviz-frontend/src/utils/landscape-http-request-util';
 import { pingByModelId } from 'explorviz-frontend/src/view-objects/3d/city/animated-ping-r3f';
 
 export type ContextMenuItem = {
@@ -50,6 +54,9 @@ export default function ContextMenu({ children }: ContextMenuProps) {
   const [hitEntity, setHitEntity] = useState<ContextMenuHitEntity>({
     kind: 'empty',
   });
+  const [renameCityId, setRenameCityId] = useState<string | null>(null);
+  const [renameCityName, setRenameCityName] = useState('');
+  const [isRenaming, setIsRenaming] = useState(false);
 
   const closedDistrictIds = useVisualizationStore(
     (state) => state.closedDistrictIds
@@ -62,6 +69,63 @@ export default function ContextMenu({ children }: ContextMenuProps) {
   }, []);
 
   const reveal = () => setVisible(true);
+
+  const openRenameCityDialog = useCallback((cityId: string) => {
+    const city = useModelStore.getState().getCity(cityId);
+    if (!city) {
+      return;
+    }
+    setRenameCityId(cityId);
+    setRenameCityName(city.name);
+  }, []);
+
+  const closeRenameCityDialog = useCallback(() => {
+    if (isRenaming) {
+      return;
+    }
+    setRenameCityId(null);
+    setRenameCityName('');
+  }, [isRenaming]);
+
+  const confirmRenameCity = useCallback(async () => {
+    if (!renameCityId) {
+      return;
+    }
+    const trimmedName = renameCityName.trim();
+    if (!trimmedName) {
+      useToastHandlerStore
+        .getState()
+        .showErrorToastMessage('City name cannot be empty.');
+      return;
+    }
+
+    const currentName = useModelStore.getState().getCity(renameCityId)?.name;
+    if (currentName === trimmedName) {
+      setRenameCityId(null);
+      setRenameCityName('');
+      return;
+    }
+
+    setIsRenaming(true);
+    try {
+      const result = await requestRenameCity(renameCityId, trimmedName);
+      useModelStore.getState().updateCityName(renameCityId, result.name);
+      useRenderingServiceStore
+        .getState()
+        .updateCityName(renameCityId, result.name);
+      useToastHandlerStore
+        .getState()
+        .showSuccessToastMessage('City renamed successfully.');
+      setRenameCityId(null);
+      setRenameCityName('');
+    } catch {
+      useToastHandlerStore
+        .getState()
+        .showErrorToastMessage('Failed to rename city.');
+    } finally {
+      setIsRenaming(false);
+    }
+  }, [renameCityId, renameCityName]);
 
   const pingAnnotations = useCallback(() => {
     const annotationHandlerStore = useAnnotationHandlerStore.getState();
@@ -162,6 +226,11 @@ export default function ContextMenu({ children }: ContextMenuProps) {
       .getState()
       .highlightedEntityIds.has(city.id);
     return [
+      {
+        id: `city-rename-${cityId}`,
+        title: 'Rename City',
+        action: () => openRenameCityDialog(cityId),
+      },
       {
         id: `city-open-close-districts-${cityId}`,
         title: cityHasClosedDistrict
@@ -280,7 +349,7 @@ export default function ContextMenu({ children }: ContextMenuProps) {
     }
 
     return menuItems;
-  }, [hitEntity, backgroundMenuItems, closedDistrictIds]);
+  }, [hitEntity, backgroundMenuItems, closedDistrictIds, openRenameCityDialog]);
 
   const handleLongPress = (pos: LongPressPosition) => {
     setHitEntity(contextMenuPickAt(pos.clientX, pos.clientY));
@@ -340,6 +409,50 @@ export default function ContextMenu({ children }: ContextMenuProps) {
           ))}
         </ul>
       )}
+      <Modal
+        show={renameCityId !== null}
+        onHide={closeRenameCityDialog}
+        centered
+      >
+        <Modal.Header closeButton>
+          <Modal.Title>Rename City</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          <Form
+            onSubmit={(event) => {
+              event.preventDefault();
+              void confirmRenameCity();
+            }}
+          >
+            <Form.Group controlId="rename-city-name">
+              <Form.Label>Name</Form.Label>
+              <Form.Control
+                type="text"
+                value={renameCityName}
+                autoFocus
+                disabled={isRenaming}
+                onChange={(event) => setRenameCityName(event.target.value)}
+              />
+            </Form.Group>
+          </Form>
+        </Modal.Body>
+        <Modal.Footer>
+          <Button
+            variant="secondary"
+            onClick={closeRenameCityDialog}
+            disabled={isRenaming}
+          >
+            Cancel
+          </Button>
+          <Button
+            variant="primary"
+            onClick={() => void confirmRenameCity()}
+            disabled={isRenaming || !renameCityName.trim()}
+          >
+            {isRenaming ? 'Saving…' : 'Rename'}
+          </Button>
+        </Modal.Footer>
+      </Modal>
       {children}
     </div>
   );

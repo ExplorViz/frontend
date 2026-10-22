@@ -8,11 +8,7 @@ import {
 import { create } from 'zustand';
 
 export type EntityType =
-  | 'city'
-  | 'district'
-  | 'building'
-  | 'communication'
-  | null;
+  'city' | 'district' | 'building' | 'communication' | null;
 
 interface ModelRepositoryState {
   cities: Record<string, City>;
@@ -49,6 +45,9 @@ interface ModelRepositoryState {
   addDistrict: (id: string, district: District) => void;
   addBuilding: (id: string, building: Building) => void;
   addBuildingCommunication: (id: string, communication: Comm) => void;
+
+  /** Updates the display name of an existing city. No-op if the city is missing. */
+  updateCityName: (id: string, name: string) => void;
 
   // Actions for setting (overwriting) models
   setCities: (cities: City[]) => void;
@@ -175,6 +174,20 @@ export const useModelStore = create<ModelRepositoryState>((set, get) => ({
         [id]: communication,
       },
     })),
+
+  updateCityName: (id, name) =>
+    set((state) => {
+      const city = state.cities[id];
+      if (!city) {
+        return state;
+      }
+      return {
+        cities: {
+          ...state.cities,
+          [id]: { ...city, name },
+        },
+      };
+    }),
 
   // Set multiple models (normalized inside the store)
   setCities: (cities) =>

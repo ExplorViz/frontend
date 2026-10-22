@@ -28,10 +28,7 @@ import TimelineDataObjectHandler from 'explorviz-frontend/src/utils/timeline/tim
 import { create } from 'zustand';
 
 export type AnalysisMode =
-  | 'evolution'
-  | 'runtime'
-  | 'evolution+runtime'
-  | 'evolution comparison';
+  'evolution' | 'runtime' | 'evolution+runtime' | 'evolution comparison';
 
 export type EvolutionModeRenderingConfiguration = {
   renderDynamic: boolean;
@@ -97,6 +94,8 @@ interface RenderingServiceState {
   pauseVisualizationUpdating: (forceTimelineUpdate?: boolean) => void;
   resetAllRenderingStates: () => void;
   setLandscapeData: (data: LandscapeData | null) => void;
+  /** Updates a city's name in the currently rendered flat landscape snapshot. */
+  updateCityName: (cityId: string, name: string) => void;
   setVisualizationPaused: (data: boolean) => void;
 }
 
@@ -113,6 +112,26 @@ export const useRenderingServiceStore = create<RenderingServiceState>(
 
     setLandscapeData: (data: LandscapeData | null) => {
       set({ _landscapeData: data });
+    },
+
+    updateCityName: (cityId, name) => {
+      const landscapeData = get()._landscapeData;
+      const city = landscapeData?.flatLandscapeData?.cities[cityId];
+      if (!landscapeData?.flatLandscapeData || !city) {
+        return;
+      }
+      set({
+        _landscapeData: {
+          ...landscapeData,
+          flatLandscapeData: {
+            ...landscapeData.flatLandscapeData,
+            cities: {
+              ...landscapeData.flatLandscapeData.cities,
+              [cityId]: { ...city, name },
+            },
+          },
+        },
+      });
     },
 
     setVisualizationPaused: (data: boolean) => {

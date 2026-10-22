@@ -28,7 +28,7 @@ import * as THREE from 'three';
 import { useShallow } from 'zustand/react/shallow';
 
 export default function CodeCity({ cityId }: { cityId: string }) {
-  const city = useModelStore((state) => state.getCity(cityId))!;
+  const city = useModelStore((state) => state.cities[cityId])!;
   const districtLayouts = useLayoutStore((state) => state.districtLayouts);
   const cityLayout = useLayoutStore((state) => state.cityLayouts.get(cityId));
   const visibilityContext = useSharedEntityVisibilityContext();
