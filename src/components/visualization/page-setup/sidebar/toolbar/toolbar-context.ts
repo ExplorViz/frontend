@@ -12,6 +12,9 @@ export enum ToolbarTool {
   KubernetesDiagrams = 'Kubernetes Diagrams',
 }
 
+/** Dispatched after Cmd/Ctrl+F so Entity Search can focus its input. */
+export const FOCUS_ENTITY_SEARCH_EVENT = 'explorviz:focus-entity-search';
+
 export type ToolbarState = {
   showSidebar: boolean;
   selectedTool: ToolbarTool | null;

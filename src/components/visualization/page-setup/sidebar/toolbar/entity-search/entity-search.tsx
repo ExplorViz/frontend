@@ -1,11 +1,16 @@
-import { useImperativeHandle, useMemo, useState } from 'react';
+import { useEffect, useImperativeHandle, useMemo, useRef, useState } from 'react';
 
+import { FOCUS_ENTITY_SEARCH_EVENT } from 'explorviz-frontend/src/components/visualization/page-setup/sidebar/toolbar/toolbar-context';
 import { useCameraControlsStore } from 'explorviz-frontend/src/stores/camera-controls-store';
 import { highlightById } from 'explorviz-frontend/src/utils/city-rendering/highlighting';
 import getPossibleEntityNames from 'explorviz-frontend/src/utils/search-logic';
 import { pingByModelId } from 'explorviz-frontend/src/view-objects/3d/city/animated-ping-r3f';
 import Button from 'react-bootstrap/Button';
-import Select, { MultiValue, MultiValueGenericProps } from 'react-select';
+import Select, {
+  MultiValue,
+  MultiValueGenericProps,
+  SelectInstance,
+} from 'react-select';
 
 interface EntitySearchEntry {
   modelId: string;
@@ -22,6 +27,19 @@ const EntitySearch = function EntitySearch({ ref, ..._ }) {
   const [selected, setSelected] = useState<any[]>([]);
   const [entityNames, setEntityNames] = useState<any[]>([]);
   const [menuOpen, setMenuOpen] = useState(false);
+  const selectRef = useRef<SelectInstance<EntitySearchEntry, true>>(null);
+
+  useEffect(() => {
+    const focusSearch = () => {
+      selectRef.current?.focus();
+    };
+    // Focus immediately when opened via hotkey (or tab switch + delayed event).
+    focusSearch();
+    window.addEventListener(FOCUS_ENTITY_SEARCH_EVENT, focusSearch);
+    return () => {
+      window.removeEventListener(FOCUS_ENTITY_SEARCH_EVENT, focusSearch);
+    };
+  }, []);
 
   const formatEntry = (selectOption: EntitySearchEntry) => {
     const fqnStr = selectOption?.fqn;
@@ -127,6 +145,8 @@ const EntitySearch = function EntitySearch({ ref, ..._ }) {
   return (
     <>
       <Select
+        ref={selectRef}
+        autoFocus
         isMulti
         isSearchable
         inputValue={searchString}

@@ -1,15 +1,22 @@
+import {
+  FOCUS_ENTITY_SEARCH_EVENT,
+  ToolbarContext,
+  ToolbarTool,
+} from 'explorviz-frontend/src/components/visualization/page-setup/sidebar/toolbar/toolbar-context';
 import { useCameraControlsStore } from 'explorviz-frontend/src/stores/camera-controls-store';
 import { useConfigurationStore } from 'explorviz-frontend/src/stores/configuration';
 import { useToastHandlerStore } from 'explorviz-frontend/src/stores/toast-handler';
 import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
 import { useVisualizationStore } from 'explorviz-frontend/src/stores/visualization-store';
-import { useEffect } from 'react';
+import { use, useEffect } from 'react';
 import { useShallow } from 'zustand/react/shallow';
 
 /**
  * Component responsible for handling global keyboard hotkeys to quickly change settings.
  */
 export default function HotkeyHandler() {
+  const { openTool } = use(ToolbarContext);
+
   const { updateSetting, visualizationSettings } = useUserSettingsStore(
     useShallow((state) => ({
       updateSetting: state.updateSetting,
@@ -44,16 +51,32 @@ export default function HotkeyHandler() {
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
-      // Ignore if typing in an input field
-      if (
-        event.target instanceof HTMLInputElement ||
-        event.target instanceof HTMLTextAreaElement ||
-        (event.target as HTMLElement).isContentEditable
-      ) {
+      const key = event.key.toLowerCase();
+      const hasModKey = event.metaKey || event.ctrlKey;
+
+      // Cmd+F (macOS) / Ctrl+F (other) opens entity search instead of browser find
+      // or the plain "f" FPS-counter toggle.
+      if (hasModKey && key === 'f' && !event.altKey && !event.shiftKey) {
+        event.preventDefault();
+        openTool(ToolbarTool.EntitySearch);
+        // Delay so Entity Search can mount before focusing its input.
+        setTimeout(() => {
+          window.dispatchEvent(new Event(FOCUS_ENTITY_SEARCH_EVENT));
+        }, 0);
         return;
       }
 
-      const key = event.key.toLowerCase();
+      // Ignore letter hotkeys while typing or when modifiers are held
+      // (e.g. Ctrl/Cmd+F must not toggle the FPS counter).
+      if (
+        event.target instanceof HTMLInputElement ||
+        event.target instanceof HTMLTextAreaElement ||
+        (event.target as HTMLElement).isContentEditable ||
+        hasModKey ||
+        event.altKey
+      ) {
+        return;
+      }
 
       switch (key) {
         case 'a': {
@@ -127,6 +150,7 @@ export default function HotkeyHandler() {
     resetVisualizationState,
     resetCamera,
     showInfoToastMessage,
+    openTool,
   ]);
 
   return null;
