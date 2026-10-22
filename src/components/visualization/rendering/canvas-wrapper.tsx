@@ -105,6 +105,11 @@ export default function CanvasWrapper({
 }) {
   const layoutMap = useLayoutStore((state) => state.fullLayoutMap);
   const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
+  // Stable store: createXRStore() during render leaked WebGL contexts via IWER.
+  const [desktopXrStore] = useState(() =>
+    createXRStore({ offerSession: false, emulate: false })
+  );
+  const resolvedXrStore = xrStore ?? desktopXrStore;
 
   const floorTexture = useLoader(
     THREE.TextureLoader,
@@ -628,7 +633,7 @@ export default function CanvasWrapper({
                 <CollaborationCameraSync />
               </>
             )}
-            <XR store={xrStore || createXRStore({ offerSession: false })}>
+            <XR store={resolvedXrStore}>
               <IfInSessionMode allow={['immersive-ar', 'immersive-vr']}>
                 <XROrigin position={position}>
                   <ControllerMenu handedness="left" />
