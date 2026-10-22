@@ -60,6 +60,8 @@ server {
     proxy_set_header Host $host;
   }
 
+  # END trace-service
+
   # BEGIN metrics-service
 
   location ~ ^/v3/landscapes/[^/]+/metrics(?:/.*|$) {
@@ -70,8 +72,6 @@ server {
   }
 
   # END metrics-service
-
-  # END trace-service
 
   # BEGIN log-service
 
