@@ -201,6 +201,71 @@
   padding: 0.75rem;
 }
 
+.building-config-dimension-link-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  border: 1px solid transparent;
+  border-radius: 0.65rem;
+  padding: 0;
+  transition:
+    border-color 0.15s ease,
+    background-color 0.15s ease,
+    box-shadow 0.15s ease;
+}
+
+.building-config-dimension-link-group > .building-config-metric-card {
+  margin: 0;
+}
+
+.building-config-dimension-link-group--linked {
+  background: rgba(13, 110, 253, 0.04);
+  border-color: rgba(13, 110, 253, 0.35);
+  box-shadow: inset 0 0 0 1px rgba(13, 110, 253, 0.08);
+  gap: 0;
+  padding: 0.5rem;
+}
+
+.building-config-dimension-link-group--linked > .building-config-metric-card {
+  background: rgba(255, 255, 255, 0.85);
+  border-color: rgba(13, 110, 253, 0.18);
+}
+
+.building-config-dimension-link {
+  align-items: center;
+  display: flex;
+  gap: 0.5rem;
+  justify-content: center;
+  margin: -0.15rem 0;
+  padding: 0 0.75rem;
+  position: relative;
+  z-index: 1;
+}
+
+.building-config-dimension-link-line {
+  background: rgba(0, 0, 0, 0.18);
+  flex: 1 1 auto;
+  height: 1px;
+  max-width: 2.5rem;
+}
+
+.building-config-dimension-link-group--linked .building-config-dimension-link-line {
+  background: rgba(13, 110, 253, 0.45);
+}
+
+.building-config-dimension-link-button {
+  align-items: center;
+  display: inline-flex;
+  gap: 0.35rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  line-height: 1;
+  min-width: 5.75rem;
+  padding: 0.3rem 0.65rem;
+  text-transform: uppercase;
+}
+
 .building-config-dimension-header {
   display: flex;
   flex-direction: column;
