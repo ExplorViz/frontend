@@ -109,12 +109,19 @@ export default function HotkeyHandler() {
           showInfoToastMessage(`Heatmap ${newValue ? 'enabled' : 'disabled'}`);
           break;
         }
-        case 'm': {
+        // Use L for lens since m is reserved to toggle the mini map
+        case 'l': {
           const newValue = !visualizationSettings.isMagnifierActive.value;
           updateSetting('isMagnifierActive', newValue);
           showInfoToastMessage(
             `Magnifier ${newValue ? 'enabled' : 'disabled'}`
           );
+          break;
+        }
+        case 'm': {
+          const newValue = !visualizationSettings.isMinimapEnabled.value;
+          updateSetting('isMinimapEnabled', newValue);
+          showInfoToastMessage(`Mini Map ${newValue ? 'enabled' : 'disabled'}`);
           break;
         }
         case 'o':
