@@ -9,7 +9,6 @@ import {
 import { defaultVizSettings } from 'explorviz-frontend/src/utils/settings/default-settings';
 import {
   ColorSettingId,
-  ColorSettings,
   isColorSetting,
   VisualizationSettingId,
   VisualizationSettings,
@@ -146,12 +145,21 @@ export const useUserSettingsStore = create<UserSettingsState>()(
             break;
         }
 
-        let settingId: keyof ColorSettings;
-        for (settingId in get().colors) {
-          let newVisualizationSettings = { ...get().visualizationSettings };
-          newVisualizationSettings[settingId].value = scheme[settingId];
-          set({ visualizationSettings: newVisualizationSettings });
+        // Only apply keys present on the scheme. `colors` also holds unrelated
+        // color settings (e.g. minimapBgColor); assigning scheme[id] for those
+        // writes undefined and turns the minimap background black.
+        const newVisualizationSettings = { ...get().visualizationSettings };
+        for (const settingId of Object.keys(
+          scheme
+        ) as (keyof typeof scheme)[]) {
+          const current = newVisualizationSettings[settingId];
+          if (!current || !isColorSetting(current)) continue;
+          newVisualizationSettings[settingId] = {
+            ...JSON.parse(JSON.stringify(current)),
+            value: scheme[settingId],
+          };
         }
+        set({ visualizationSettings: newVisualizationSettings });
         get().setColorsFromSettings();
       },
 
@@ -159,13 +167,12 @@ export const useUserSettingsStore = create<UserSettingsState>()(
         const visualizationSettings = get().visualizationSettings;
         const colors = {} as ExplorVizColors;
 
-        let settingId: keyof VisualizationSettings;
-        for (settingId in visualizationSettings) {
+        // Only city/scene ColorSettingIds — not minimap/magnifier/immersive colors
+        let settingId: ColorSettingId;
+        for (settingId in defaultColors) {
           const setting = visualizationSettings[settingId];
           if (isColorSetting(setting)) {
-            colors[settingId as ColorSettingId] = new THREE.Color(
-              setting.value
-            );
+            colors[settingId] = new THREE.Color(setting.value);
           }
         }
 
