@@ -97,21 +97,23 @@ export const useVisualizationStore = create<VisualizationStoreState>(
         set({ hoveredEntityId: id });
       },
       setHighlightedEntityId: (id: string, isHighlighted: boolean) => {
-        if (isHighlighted) {
-          set({
-            highlightedEntityIds: get().highlightedEntityIds.add(id),
-          });
-        } else {
-          set((prevState) => {
-            const updatedHighlightedEntityIds = new Set(
-              prevState.highlightedEntityIds
-            );
+        set((prevState) => {
+          const alreadyHighlighted = prevState.highlightedEntityIds.has(id);
+          if (isHighlighted === alreadyHighlighted) {
+            return prevState;
+          }
+          const updatedHighlightedEntityIds = new Set(
+            prevState.highlightedEntityIds
+          );
+          if (isHighlighted) {
+            updatedHighlightedEntityIds.add(id);
+          } else {
             updatedHighlightedEntityIds.delete(id);
-            return {
-              highlightedEntityIds: updatedHighlightedEntityIds,
-            };
-          });
-        }
+          }
+          return {
+            highlightedEntityIds: updatedHighlightedEntityIds,
+          };
+        });
       },
       setHighlightedEntityIds: (ids: string[], areHighlighted: boolean) => {
         if (areHighlighted) {
