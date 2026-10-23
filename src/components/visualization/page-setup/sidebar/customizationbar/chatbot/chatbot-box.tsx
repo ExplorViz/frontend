@@ -16,12 +16,11 @@ export default function ChatbotBox() {
     providersError,
     isLoadingProviders,
     reloadProviders,
-    providers,
-    selectedModel,
+    isCopilotRuntimeReady,
+    copilotRuntimeError,
   } = use(ChatbotContext);
 
-  const isReady =
-    providers.length > 0 && Boolean(selectedModel.id) && !providersError;
+  const statusMessage = copilotRuntimeError ?? providersError;
 
   return (
     <>
@@ -29,14 +28,18 @@ export default function ChatbotBox() {
         <div className="chatbox-button-area">
           <EditingBackButton />
           <EditingForwardButton />
-          <ResetButton />
-          <StudyDownloadButton />
-          <ProviderDropdown />
-          <ModelDropdown />
+          {isCopilotRuntimeReady && (
+            <>
+              <ResetButton />
+              <StudyDownloadButton />
+              <ProviderDropdown />
+              <ModelDropdown />
+            </>
+          )}
         </div>
-        {providersError && (
+        {statusMessage && (
           <Alert variant="warning" className="m-3 mb-0">
-            <div>{providersError}</div>
+            <div>{statusMessage}</div>
             <Button
               size="sm"
               variant="outline-dark"
@@ -48,12 +51,12 @@ export default function ChatbotBox() {
             </Button>
           </Alert>
         )}
-        {!providersError && isLoadingProviders && (
+        {!statusMessage && !isCopilotRuntimeReady && (
           <Alert variant="info" className="m-3 mb-0">
             Connecting to the AI chat service…
           </Alert>
         )}
-        {isReady && <ChatbotChat />}
+        {isCopilotRuntimeReady && <ChatbotChat />}
       </div>
       <div className="bg" />
     </>
