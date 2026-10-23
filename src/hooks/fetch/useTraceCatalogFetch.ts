@@ -1,5 +1,4 @@
 import { useAuthStore } from 'explorviz-frontend/src/stores/auth';
-import { useLandscapeTokenStore } from 'explorviz-frontend/src/stores/landscape-token';
 import { getTraceServiceUrl } from 'explorviz-frontend/src/utils/landscape-http-request-util';
 import {
   isTraceOverview,
@@ -8,6 +7,11 @@ import {
 import { useCallback } from 'react';
 
 export interface TraceSearchParams {
+  /**
+   * Identifier of the landscape for which to fetch communication.
+   */
+  landscapeTokenId?: string;
+
   /**
    * Beginning of time range (inclusive) within which to search for traces.
    * Specified in nanoseconds since Unix epoch.
@@ -39,12 +43,11 @@ export interface TraceSearchParams {
 export type TraceSearchOrdering = 'newest' | 'oldest';
 
 /**
- * Provides a fetch function to search for available traces belonging to the current landscape,
+ * Provides a fetch function to search for available traces belonging to a landscape,
  * with various search parameters available via {@link TraceSearchParams}.
  * @returns an asynchronous function for fetching available traces
  */
 export default function useTraceCatalogFetch() {
-  const landscapeToken = useLandscapeTokenStore((state) => state.token);
   const accessToken = useAuthStore((state) => state.accessToken);
 
   const fetchTraceCatalog = useCallback(
@@ -54,12 +57,8 @@ export default function useTraceCatalogFetch() {
         throw new Error('Trace service URL not configured');
       }
 
-      if (!landscapeToken) {
-        throw new Error('No landscape token selected');
-      }
-
       const requestUrl = new URL(
-        `${traceServiceUrl}/v3/landscapes/${landscapeToken.value}/traces`
+        `${traceServiceUrl}/v3/landscapes/${params.landscapeTokenId}/traces`
       );
 
       for (const [key, value] of Object.entries(params)) {
@@ -111,7 +110,7 @@ export default function useTraceCatalogFetch() {
 
       return receivedTraces;
     },
-    [accessToken, landscapeToken]
+    [accessToken]
   );
 
   return fetchTraceCatalog;

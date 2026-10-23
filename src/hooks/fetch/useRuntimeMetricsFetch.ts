@@ -1,5 +1,4 @@
 import { useAuthStore } from 'explorviz-frontend/src/stores/auth';
-import { useLandscapeTokenStore } from 'explorviz-frontend/src/stores/landscape-token';
 import { getMetricsServiceUrl } from 'explorviz-frontend/src/utils/landscape-http-request-util';
 import {
   isMetricOverview,
@@ -8,6 +7,11 @@ import {
 import { useCallback } from 'react';
 
 export interface MetricsSearchParams {
+  /**
+   * Identifier of the landscape for which to fetch communication.
+   */
+  landscapeTokenId?: string;
+
   /**
    * Search tokens which must be present in the metric.
    * By default, only the metric name is searched. This can be changed via
@@ -66,13 +70,12 @@ export interface MetricsSearchCursor {
 }
 
 /**
- * Provides a fetch function to search for available metrics belonging to the current landscape,
+ * Provides a fetch function to search for available metrics belonging to a landscape,
  * with various search parameters available via {@link MetricsSearchParams}. Note that the fetch
  * does not return the metric values themselves, but rather an overview of metrics that can be visualized.
  * @returns an asynchronous function for fetching available metrics
  */
 export default function useRuntimeMetricsFetch() {
-  const landscapeToken = useLandscapeTokenStore((state) => state.token);
   const accessToken = useAuthStore((state) => state.accessToken);
 
   const fetchMetrics = useCallback(
@@ -82,12 +85,8 @@ export default function useRuntimeMetricsFetch() {
         throw new Error('Metrics service URL not configured');
       }
 
-      if (!landscapeToken) {
-        throw new Error('No landscape token selected');
-      }
-
       const requestUrl = new URL(
-        `${metricsServiceUrl}/v3/landscapes/${landscapeToken.value}/metrics`
+        `${metricsServiceUrl}/v3/landscapes/${params.landscapeTokenId}/metrics`
       );
 
       const queryParams = new URLSearchParams();
@@ -140,7 +139,7 @@ export default function useRuntimeMetricsFetch() {
 
       return receivedMetrics;
     },
-    [accessToken, landscapeToken]
+    [accessToken]
   );
 
   return fetchMetrics;

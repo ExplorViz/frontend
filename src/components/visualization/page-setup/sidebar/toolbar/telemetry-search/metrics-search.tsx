@@ -4,6 +4,7 @@ import HelpTooltip from 'explorviz-frontend/src/components/help-tooltip';
 import useRuntimeMetricsFetch, {
   MetricsSearchParams,
 } from 'explorviz-frontend/src/hooks/fetch/useRuntimeMetricsFetch';
+import { useLandscapeTokenStore } from 'explorviz-frontend/src/stores/landscape-token';
 import { useModelStore } from 'explorviz-frontend/src/stores/repos/model-repository';
 import { useToastHandlerStore } from 'explorviz-frontend/src/stores/toast-handler';
 import {
@@ -55,6 +56,7 @@ export default function MetricsSearch() {
   const cities = Object.values(useModelStore((state) => state.cities)).toSorted(
     (a, b) => a.name.localeCompare(b.name)
   );
+  const landscapeToken = useLandscapeTokenStore((state) => state.token);
   const showErrorToastMessage = useToastHandlerStore(
     (state) => state.showErrorToastMessage
   );
@@ -80,9 +82,14 @@ export default function MetricsSearch() {
 
   const loadMetrics = useCallback(
     async (params: MetricsSearchParams) => {
+      if (!landscapeToken) {
+        return;
+      }
+
       try {
         const receivedMetrics = await fetchMetrics({
           ...params,
+          landscapeTokenId: landscapeToken.value,
           limit: PAGINATION_SIZE,
         });
 
@@ -101,7 +108,7 @@ export default function MetricsSearch() {
         );
       }
     },
-    [fetchMetrics, showErrorToastMessage]
+    [landscapeToken, fetchMetrics, showErrorToastMessage]
   );
 
   const onRowsRendered = useInfiniteLoader({

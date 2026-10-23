@@ -1,6 +1,7 @@
 import { SortAscIcon, SortDescIcon } from '@primer/octicons-react';
 import useTraceCatalogFetch from 'explorviz-frontend/src/hooks/fetch/useTraceCatalogFetch';
 import { useCommitTreeStateStore } from 'explorviz-frontend/src/stores/commit-tree-state';
+import { useLandscapeTokenStore } from 'explorviz-frontend/src/stores/landscape-token';
 import { useTimestampStore } from 'explorviz-frontend/src/stores/timestamp';
 import { useToastHandlerStore } from 'explorviz-frontend/src/stores/toast-handler';
 import { CROSS_COMMIT_IDENTIFIER } from 'explorviz-frontend/src/utils/evolution-schemes/evolution-data';
@@ -24,6 +25,7 @@ export default function TracePlayer() {
   const repositoryToSelectedCommits = useCommitTreeStateStore(
     (state) => state._selectedCommits
   );
+  const landscapeToken = useLandscapeTokenStore((state) => state.token);
   const showErrorToastMessage = useToastHandlerStore(
     (state) => state.showErrorToastMessage
   );
@@ -47,9 +49,17 @@ export default function TracePlayer() {
   const fetchTraceCatalog = useTraceCatalogFetch();
 
   useEffect(() => {
+    if (!landscapeToken) {
+      return;
+    }
+
     const fetchTraces = async () => {
       try {
-        const traceOverview = await fetchTraceCatalog({ from: from, to: to });
+        const traceOverview = await fetchTraceCatalog({
+          landscapeTokenId: landscapeToken.value,
+          from: from,
+          to: to,
+        });
         setTraces(traceOverview);
       } catch (error) {
         console.error(error);
@@ -60,7 +70,7 @@ export default function TracePlayer() {
     };
 
     fetchTraces();
-  }, [from, to, fetchTraceCatalog, showErrorToastMessage]);
+  }, [from, to, landscapeToken, fetchTraceCatalog, showErrorToastMessage]);
 
   if (selectedCommits && selectedCommits.length > 1) {
     return <>Multiple commits are selected, no traces available</>;

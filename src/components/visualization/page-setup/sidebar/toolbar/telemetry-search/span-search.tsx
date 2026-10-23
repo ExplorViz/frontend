@@ -6,6 +6,7 @@ import SpanDetailsCard from 'explorviz-frontend/src/components/visualization/ren
 import useSpanFetch, {
   SpanSearchParams,
 } from 'explorviz-frontend/src/hooks/fetch/useSpanFetch';
+import { useLandscapeTokenStore } from 'explorviz-frontend/src/stores/landscape-token';
 import { useModelStore } from 'explorviz-frontend/src/stores/repos/model-repository';
 import { useToastHandlerStore } from 'explorviz-frontend/src/stores/toast-handler';
 import {
@@ -30,6 +31,7 @@ export default function SpanSearch() {
   const cities = Object.values(useModelStore((state) => state.cities)).toSorted(
     (a, b) => a.name.localeCompare(b.name)
   );
+  const landscapeToken = useLandscapeTokenStore((state) => state.token);
   const showErrorToastMessage = useToastHandlerStore(
     (state) => state.showErrorToastMessage
   );
@@ -54,9 +56,13 @@ export default function SpanSearch() {
 
   const loadSpans = useCallback(
     async (params: SpanSearchParams) => {
+      if (!landscapeToken) {
+        return;
+      }
       try {
         const receivedSpans = await fetchSpans({
           ...params,
+          landscapeTokenId: landscapeToken.value,
           limit: PAGINATION_SIZE,
         });
 
@@ -75,7 +81,7 @@ export default function SpanSearch() {
         );
       }
     },
-    [fetchSpans, showErrorToastMessage]
+    [landscapeToken, fetchSpans, showErrorToastMessage]
   );
 
   const onRowsRendered = useInfiniteLoader({

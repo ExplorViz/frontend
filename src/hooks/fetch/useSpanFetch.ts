@@ -1,5 +1,4 @@
 import { useAuthStore } from 'explorviz-frontend/src/stores/auth';
-import { useLandscapeTokenStore } from 'explorviz-frontend/src/stores/landscape-token';
 import { getTraceServiceUrl } from 'explorviz-frontend/src/utils/landscape-http-request-util';
 import {
   isSpan,
@@ -8,6 +7,11 @@ import {
 import { useCallback } from 'react';
 
 export interface SpanSearchParams {
+  /**
+   * Identifier of the landscape for which to fetch communication.
+   */
+  landscapeTokenId?: string;
+
   /**
    * Search tokens which must be present in the span.
    * By default, only the span name is searched. This can be changed via
@@ -76,12 +80,11 @@ export interface SpanSearchCursor {
 }
 
 /**
- * Provides a fetch function to search for spans belonging to the current landscape,
+ * Provides a fetch function to search for spans belonging to a landscape,
  * with various search parameters available via {@link SpanSearchParams}.
  * @returns an asynchronous function for fetching spans
  */
 export default function useSpanFetch() {
-  const landscapeToken = useLandscapeTokenStore((state) => state.token);
   const accessToken = useAuthStore((state) => state.accessToken);
 
   const fetchSpans = useCallback(
@@ -91,12 +94,8 @@ export default function useSpanFetch() {
         throw new Error('Trace service URL not configured');
       }
 
-      if (!landscapeToken) {
-        throw new Error('No landscape token selected');
-      }
-
       const requestUrl = new URL(
-        `${traceServiceUrl}/v3/landscapes/${landscapeToken.value}/spans`
+        `${traceServiceUrl}/v3/landscapes/${params.landscapeTokenId}/spans`
       );
 
       const queryParams = new URLSearchParams();
@@ -142,7 +141,7 @@ export default function useSpanFetch() {
 
       return receivedSpans;
     },
-    [accessToken, landscapeToken]
+    [accessToken]
   );
 
   return fetchSpans;
