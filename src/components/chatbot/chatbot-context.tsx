@@ -5,6 +5,7 @@ import {
   createContext,
   PropsWithChildren,
   RefObject,
+  use,
   useEffect,
   useState,
 } from 'react';
@@ -70,6 +71,10 @@ interface Context {
   reloadProviders: () => void;
   isCopilotRuntimeReady: boolean;
   copilotRuntimeError: string | null;
+  copilotRuntimeUrl: string | undefined;
+  copilotRuntimeHeaders: Record<string, string>;
+  copilotRuntimeKey: string;
+  reportCopilotCrash: (error: Error) => void;
 }
 
 const defaultContext: Context = {
@@ -95,6 +100,10 @@ const defaultContext: Context = {
   reloadProviders: () => {},
   isCopilotRuntimeReady: false,
   copilotRuntimeError: null,
+  copilotRuntimeUrl: undefined,
+  copilotRuntimeHeaders: {},
+  copilotRuntimeKey: 'none:none',
+  reportCopilotCrash: () => {},
 };
 
 export const ChatbotContext = createContext(defaultContext);
@@ -170,8 +179,6 @@ export function ChatbotProvider({
     }
   }
 
-  const cities = Object.values(landscapeData?.flatLandscapeData?.cities ?? {});
-
   function pingScreenAtPoint(x: number, y: number) {
     setActivePing({ x, y });
     setTimeout(() => {
@@ -182,18 +189,6 @@ export function ChatbotProvider({
   function reloadProviders() {
     setCopilotRuntimeError(null);
     setReloadCounter((value) => value + 1);
-  }
-
-  function handleCopilotError(errorEvent: {
-    message?: string;
-    error?: unknown;
-  }) {
-    const message =
-      errorEvent.message ??
-      (errorEvent.error instanceof Error
-        ? errorEvent.error.message
-        : 'CopilotKit reported an error.');
-    console.warn('[CopilotKit]', message, errorEvent);
   }
 
   function handleCopilotCrash(error: Error) {
@@ -346,37 +341,70 @@ export function ChatbotProvider({
     reloadProviders,
     isCopilotRuntimeReady,
     copilotRuntimeError,
+    copilotRuntimeUrl,
+    copilotRuntimeHeaders: copilotHeaders,
+    copilotRuntimeKey,
+    reportCopilotCrash: handleCopilotCrash,
   };
-
-  const copilotRuntime = (
-    <CopilotKit
-      key={copilotRuntimeKey}
-      enableInspector={false}
-      showDevConsole={false}
-      runtimeUrl={copilotRuntimeUrl}
-      headers={copilotHeaders}
-      onError={handleCopilotError}
-    >
-      <CopilotResources cities={cities} />
-      <CopilotTools />
-      {children}
-      {activePing && <PingIndicator x={activePing.x} y={activePing.y} />}
-    </CopilotKit>
-  );
 
   return (
     <ChatbotContext value={chatbotContextValue}>
-      {isCopilotRuntimeReady ? (
-        <CopilotErrorBoundary
-          fallback={children}
-          resetKey={copilotRuntimeKey}
-          onError={handleCopilotCrash}
-        >
-          {copilotRuntime}
-        </CopilotErrorBoundary>
-      ) : (
-        children
-      )}
+      {children}
+      {activePing && <PingIndicator x={activePing.x} y={activePing.y} />}
     </ChatbotContext>
+  );
+}
+
+function handleCopilotKitError(errorEvent: {
+  message?: string;
+  error?: unknown;
+}) {
+  const message =
+    errorEvent.message ??
+    (errorEvent.error instanceof Error
+      ? errorEvent.error.message
+      : 'CopilotKit reported an error.');
+  console.warn('[CopilotKit]', message, errorEvent);
+}
+
+/**
+ * CopilotKit runtime scoped to chat UI only so opening/closing the chatbot
+ * does not remount the 3D visualization.
+ */
+export function CopilotRuntime({ children }: PropsWithChildren) {
+  const {
+    isCopilotRuntimeReady,
+    copilotRuntimeUrl,
+    copilotRuntimeHeaders,
+    copilotRuntimeKey,
+    reportCopilotCrash,
+    landscapeData,
+  } = use(ChatbotContext);
+
+  if (!isCopilotRuntimeReady || !copilotRuntimeUrl) {
+    return children;
+  }
+
+  const cities = Object.values(landscapeData?.flatLandscapeData?.cities ?? {});
+
+  return (
+    <CopilotErrorBoundary
+      fallback={children}
+      resetKey={copilotRuntimeKey}
+      onError={reportCopilotCrash}
+    >
+      <CopilotKit
+        key={copilotRuntimeKey}
+        enableInspector={false}
+        showDevConsole={false}
+        runtimeUrl={copilotRuntimeUrl}
+        headers={copilotRuntimeHeaders}
+        onError={handleCopilotKitError}
+      >
+        <CopilotResources cities={cities} />
+        <CopilotTools />
+        {children}
+      </CopilotKit>
+    </CopilotErrorBoundary>
   );
 }

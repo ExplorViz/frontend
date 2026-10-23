@@ -1,6 +1,9 @@
 import '@copilotkit/react-ui/styles.css';
 import { ChatbotChat } from 'explorviz-frontend/src/components/chatbot/chatbot-chat';
-import { ChatbotContext } from 'explorviz-frontend/src/components/chatbot/chatbot-context';
+import {
+  ChatbotContext,
+  CopilotRuntime,
+} from 'explorviz-frontend/src/components/chatbot/chatbot-context';
 import { ModelDropdown } from 'explorviz-frontend/src/components/chatbot/model-dropdown';
 import { ProviderDropdown } from 'explorviz-frontend/src/components/chatbot/provider-dropdown';
 import { ResetButton } from 'explorviz-frontend/src/components/chatbot/reset-button';
@@ -24,40 +27,42 @@ export default function ChatbotBox() {
 
   return (
     <>
-      <div className="chatbot">
-        <div className="chatbox-button-area">
-          <EditingBackButton />
-          <EditingForwardButton />
-          {isCopilotRuntimeReady && (
-            <>
-              <ResetButton />
-              <StudyDownloadButton />
-              <ProviderDropdown />
-              <ModelDropdown />
-            </>
+      <CopilotRuntime>
+        <div className="chatbot">
+          <div className="chatbox-button-area">
+            <EditingBackButton />
+            <EditingForwardButton />
+            {isCopilotRuntimeReady && (
+              <>
+                <ResetButton />
+                <StudyDownloadButton />
+                <ProviderDropdown />
+                <ModelDropdown />
+              </>
+            )}
+          </div>
+          {statusMessage && (
+            <Alert variant="warning" className="m-3 mb-0">
+              <div>{statusMessage}</div>
+              <Button
+                size="sm"
+                variant="outline-dark"
+                className="mt-2"
+                disabled={isLoadingProviders}
+                onClick={() => reloadProviders()}
+              >
+                {isLoadingProviders ? 'Reloading…' : 'Retry'}
+              </Button>
+            </Alert>
           )}
+          {!statusMessage && !isCopilotRuntimeReady && (
+            <Alert variant="info" className="m-3 mb-0">
+              Connecting to the AI chat service…
+            </Alert>
+          )}
+          {isCopilotRuntimeReady && <ChatbotChat />}
         </div>
-        {statusMessage && (
-          <Alert variant="warning" className="m-3 mb-0">
-            <div>{statusMessage}</div>
-            <Button
-              size="sm"
-              variant="outline-dark"
-              className="mt-2"
-              disabled={isLoadingProviders}
-              onClick={() => reloadProviders()}
-            >
-              {isLoadingProviders ? 'Reloading…' : 'Retry'}
-            </Button>
-          </Alert>
-        )}
-        {!statusMessage && !isCopilotRuntimeReady && (
-          <Alert variant="info" className="m-3 mb-0">
-            Connecting to the AI chat service…
-          </Alert>
-        )}
-        {isCopilotRuntimeReady && <ChatbotChat />}
-      </div>
+      </CopilotRuntime>
       <div className="bg" />
     </>
   );

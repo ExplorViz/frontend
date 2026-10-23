@@ -23,6 +23,7 @@ import { use } from 'react';
 import { z } from 'zod';
 import { EditingContext } from '../editing/editing-context';
 import { ChatbotContext } from './chatbot-context';
+import { copilotToolComponentIds } from './copilot-sidebar-map';
 
 const SCREENSHOT_MAX_WIDTH = 1280;
 const SCREENSHOT_MAX_HEIGHT = 720;
@@ -371,8 +372,7 @@ export function CopilotTools() {
 
   useFrontendTool({
     name: 'open-close-tools-component',
-    description:
-      'Opens or closes a component inside the tools sidebar. Opening the component will also open the sidebar. Allowed component ids: entity-filtering, entity-search, Trace-Replayer.',
+    description: `Opens or closes a component inside the tools sidebar. Opening the component will also open the sidebar. Allowed component ids: ${copilotToolComponentIds.join(', ')}.`,
     parameters: z.object({
       id: z.string(),
       open: z.boolean(),

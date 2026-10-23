@@ -49,6 +49,10 @@ import {
   EntityFilteringController,
   EntitySearchController,
 } from '../../chatbot/chatbot-context';
+import {
+  copilotSettingComponentToTab,
+  copilotToolComponentToToolbarTool,
+} from '../../chatbot/copilot-sidebar-map';
 import CollaborationControls from '../../collaboration/visualization/page-setup/sidebar/customizationbar/collaboration/collaboration-controls';
 import ContextMenu from '../../context-menu';
 import { EditingProvider } from '../../editing/editing-context';
@@ -194,15 +198,19 @@ export default function BrowserRendering({
     useState<ToolbarState>(defaultToolbarState);
 
   const toolbarActions: ToolbarActions = {
-    setShowSidebar: (showSidebar) =>
-      setToolbarState((state) => ({ ...state, showSidebar: false })),
+    setShowSidebar: (showSidebar) => {
+      setShowToolsSidebar(showSidebar);
+      setToolbarState((state) => ({ ...state, showSidebar }));
+    },
 
-    openTool: (tool) =>
+    openTool: (tool) => {
+      setShowToolsSidebar(true);
       setToolbarState((state) => ({
         ...state,
         showSidebar: true,
         selectedTool: tool,
-      })),
+      }));
+    },
 
     setTelemetrySearchTab: (tab) =>
       setToolbarState((state) => ({
@@ -213,7 +221,8 @@ export default function BrowserRendering({
         },
       })),
 
-    searchSpans: (searchParams) =>
+    searchSpans: (searchParams) => {
+      setShowToolsSidebar(true);
       setToolbarState((state) => ({
         ...state,
         showSidebar: true,
@@ -223,9 +232,11 @@ export default function BrowserRendering({
           selectedTab: 'spans',
           spanSearchRequest: searchParams,
         },
-      })),
+      }));
+    },
 
     searchMetrics: (searchParams) => {
+      setShowToolsSidebar(true);
       setToolbarState((state) => ({
         ...state,
         showSidebar: true,
@@ -238,7 +249,8 @@ export default function BrowserRendering({
       }));
     },
 
-    searchLogs: (searchParams) =>
+    searchLogs: (searchParams) => {
+      setShowToolsSidebar(true);
       setToolbarState((state) => ({
         ...state,
         showSidebar: true,
@@ -248,7 +260,8 @@ export default function BrowserRendering({
           selectedTab: 'logs',
           logSearchRequest: searchParams,
         },
-      })),
+      }));
+    },
   };
 
   const selectedToolbarTool = toolbarState.selectedTool;
@@ -299,6 +312,44 @@ export default function BrowserRendering({
       closeConnection();
     };
   }, []);
+
+  // Copilot tools drive openedToolComponent / openedSettingComponent strings;
+  // sync those to ComponentTabs selection in the tabbed sidebars.
+  useEffect(() => {
+    if (!openedToolComponent) {
+      setToolbarState((state) =>
+        state.selectedTool === null ? state : { ...state, selectedTool: null }
+      );
+      return;
+    }
+
+    const tool = copilotToolComponentToToolbarTool[openedToolComponent];
+    if (!tool) {
+      return;
+    }
+
+    setToolbarState((state) =>
+      state.selectedTool === tool ? state : { ...state, selectedTool: tool }
+    );
+  }, [openedToolComponent]);
+
+  useEffect(() => {
+    if (!openedSettingComponent) {
+      setSettingsSidebarState((state) =>
+        state.selectedTab === null ? state : { ...state, selectedTab: null }
+      );
+      return;
+    }
+
+    const tab = copilotSettingComponentToTab[openedSettingComponent];
+    if (!tab) {
+      return;
+    }
+
+    setSettingsSidebarState((state) =>
+      state.selectedTab === tab ? state : { ...state, selectedTab: tab }
+    );
+  }, [openedSettingComponent]);
 
   // Close the sidebar, when the connection menu is opened (so ot does not overlap)
   const isConnected = usePlayroomConnectionStore((state) => state.isConnected);
