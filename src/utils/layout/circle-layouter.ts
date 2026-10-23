@@ -10,7 +10,7 @@ import {
 import BoxLayout from 'explorviz-frontend/src/utils/layout/box-layout';
 
 let CITY_LABEL_MARGIN: number;
-let CITY_MARGIN: number;
+let CITY_PADDING: number;
 let BUILDING_FOOTPRINT: number;
 let WIDTH_METRIC: string;
 let WIDTH_METRIC_MULTIPLIER: number;
@@ -29,7 +29,7 @@ export function setCircleLayoutSettings() {
   DEPTH_METRIC = vs.buildingDepthMetric.value;
   DEPTH_METRIC_MULTIPLIER = vs.buildingDepthMultiplier.value;
   CITY_LABEL_MARGIN = vs.cityLabelMargin.value;
-  CITY_MARGIN = vs.cityMargin.value;
+  CITY_PADDING = vs.cityPadding.value;
   DISTRICT_HEIGHT = vs.openedDistrictHeight.value;
 }
 
@@ -89,7 +89,7 @@ export function applyCircleLayoutToClasses(
     const radius =
       Math.min(appWidth, appDepth) * 0.5 -
       BUILDING_FOOTPRINT / 2 -
-      Math.max(CITY_LABEL_MARGIN, CITY_MARGIN);
+      Math.max(CITY_LABEL_MARGIN, CITY_PADDING);
 
     // Arrange buildings in a circle with equal angular spacing
     const angleStep = (2 * Math.PI) / buildings.length;
@@ -103,7 +103,7 @@ export function applyCircleLayoutToClasses(
       classLayout.positionY = DISTRICT_HEIGHT * 2; // Place directly on foundation
 
       // As Label and regular margin can differ, we offset by half the label margin difference
-      const zMarginOffset = -CITY_LABEL_MARGIN / 2 + CITY_MARGIN / 2;
+      const zMarginOffset = -CITY_LABEL_MARGIN / 2 + CITY_PADDING / 2;
 
       if (buildings.length === 1) {
         // If there is only one building, place it at the center of the city

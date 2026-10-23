@@ -139,7 +139,7 @@ function CityDistrictLabelContent({
     closedDistrictHeight,
     openedDistrictHeight,
     districtLabelMargin,
-    districtMargin,
+    districtPadding,
     enableAnimations,
     animationDuration,
     districtLabelPlacement,
@@ -153,7 +153,7 @@ function CityDistrictLabelContent({
         state.visualizationSettings.openedDistrictHeight.value,
       districtLabelMargin:
         state.visualizationSettings.districtLabelMargin.value,
-      districtMargin: state.visualizationSettings.districtMargin.value,
+      districtPadding: state.visualizationSettings.districtPadding.value,
       enableAnimations: state.visualizationSettings.enableAnimations.value,
       animationDuration: state.visualizationSettings.animationDuration.value,
       districtLabelPlacement:
@@ -236,7 +236,7 @@ function CityDistrictLabelContent({
     (districtLabelPlacement === 'left' || districtLabelPlacement === 'right'
       ? layout.depth
       : layout.width) -
-    2 * districtMargin;
+    2 * districtPadding;
   const displayName = getEntityDisplayName(district.name, district.id);
   // Everything after the name (e.g., annotation icon) is always kept
   const labelSuffix = displayName.substring(district.name.length);

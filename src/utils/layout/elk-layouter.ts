@@ -60,9 +60,10 @@ let DEPTH_METRIC_BOUNDS: MetricBounds;
 let METRIC_MAPPING: BuildingMetricMapping;
 let BUILDING_MARGIN: number;
 let CITY_LABEL_MARGIN: number;
+let CITY_PADDING: number;
 let CITY_MARGIN: number;
 let DISTRICT_LABEL_MARGIN: number;
-let DISTRICT_MARGIN: number;
+let DISTRICT_PADDING: number;
 let DISTRICT_HEIGHT: number;
 let DISTRICT_LABEL_PLACEMENT: string;
 let METRIC_BUCKETS: number;
@@ -138,9 +139,10 @@ function setVisualizationSettings() {
   METRIC_BUCKETS = vs.buildingMetricBuckets.value;
   BUILDING_MARGIN = vs.buildingMargin.value;
   CITY_LABEL_MARGIN = vs.cityLabelMargin.value;
+  CITY_PADDING = vs.cityPadding.value;
   CITY_MARGIN = vs.cityMargin.value;
   DISTRICT_LABEL_MARGIN = vs.districtLabelMargin.value;
-  DISTRICT_MARGIN = vs.districtMargin.value;
+  DISTRICT_PADDING = vs.districtPadding.value;
   DISTRICT_HEIGHT = vs.openedDistrictHeight.value;
   DISTRICT_LABEL_PLACEMENT = vs.districtLabelPlacement.value;
 }
@@ -188,7 +190,7 @@ function getMinimumCitySize(city: City): { width: number; height: number } {
   const minimumLabelSize = getMinimumSizeForLabel(
     city.name,
     getCityLabelFontSize(CITY_LABEL_MARGIN),
-    CITY_MARGIN,
+    CITY_PADDING,
     minimumSize
   );
 
@@ -320,10 +322,13 @@ async function computeLayout(
     layoutOptions: {
       algorithm: CITY_ALGORITHM,
       desiredEdgeLength: DESIRED_EDGE_LENGTH,
+      ...(CITY_MARGIN_ALGORITHMS.has(CITY_ALGORITHM)
+        ? { 'spacing.nodeNode': CITY_MARGIN }
+        : {}),
       'elk.padding': getPaddingForLabelPlacement(
         DISTRICT_LABEL_PLACEMENT,
         CITY_LABEL_MARGIN,
-        CITY_MARGIN
+        CITY_PADDING
       ),
     },
   };
@@ -406,7 +411,7 @@ function createCityGraph(
       'elk.padding': getPaddingForLabelPlacement(
         DISTRICT_LABEL_PLACEMENT,
         CITY_LABEL_MARGIN,
-        CITY_MARGIN
+        CITY_PADDING
       ),
     },
   };
@@ -431,7 +436,7 @@ function createdFixedSizeCity(
       'elk.padding': getPaddingForLabelPlacement(
         DISTRICT_LABEL_PLACEMENT,
         CITY_LABEL_MARGIN,
-        CITY_MARGIN
+        CITY_PADDING
       ),
     },
   };
@@ -466,7 +471,7 @@ function populateCityGraph(
         'elk.padding': getPaddingForLabelPlacement(
           DISTRICT_LABEL_PLACEMENT,
           DISTRICT_LABEL_MARGIN,
-          DISTRICT_MARGIN
+          DISTRICT_PADDING
         ),
       },
     };
@@ -526,7 +531,7 @@ function populateDistrict(
         'elk.padding': getPaddingForLabelPlacement(
           DISTRICT_LABEL_PLACEMENT,
           DISTRICT_LABEL_MARGIN,
-          DISTRICT_MARGIN
+          DISTRICT_PADDING
         ),
       },
     };
@@ -604,6 +609,13 @@ function createBuildingNode(building: Building) {
 // `force`, `stress` and `layered` do react to them and are therefore excluded.
 const EDGE_AGNOSTIC_CITY_ALGORITHMS = new Set([
   'box',
+  'rectpacking',
+  'sporeOverlap',
+]);
+
+const CITY_MARGIN_ALGORITHMS = new Set([
+  'box',
+  'random',
   'rectpacking',
   'sporeOverlap',
 ]);

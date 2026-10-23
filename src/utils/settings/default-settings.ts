@@ -656,11 +656,26 @@ export const defaultVizSettings: VisualizationSettings = {
   },
   cityMargin: {
     level: SettingLevel.DEFAULT,
+    value: 25.0,
+    range: { min: 0.0, max: 100.0, step: 1.0 },
+    group: 'Layout',
+    displayName: 'City Margin',
+    description:
+      'Minimum spacing between cities (ELK spacing.nodeNode on the landscape)',
+    dependsOn: {
+      settingId: 'cityLayoutAlgorithm',
+      values: ['box', 'random', 'rectpacking', 'sporeOverlap'],
+    },
+    isRangeSetting: true,
+  },
+  cityPadding: {
+    level: SettingLevel.DEFAULT,
     value: 6.0,
     range: { min: 0.0, max: 20.0, step: 0.5 },
     group: 'Layout',
-    displayName: 'City Margin',
-    description: 'Determines margin of cities',
+    displayName: 'City Padding',
+    description:
+      'Inner padding around city contents (ELK padding inside each city node)',
     isRangeSetting: true,
   },
   districtLayoutAlgorithm: {
@@ -672,13 +687,14 @@ export const defaultVizSettings: VisualizationSettings = {
     description: 'Determines the layout algorithm for districts',
     isSelectSetting: true,
   },
-  districtMargin: {
+  districtPadding: {
     level: SettingLevel.DEFAULT,
     value: 6.0,
     range: { min: 0.0, max: 20.0, step: 0.5 },
     group: 'Layout',
-    displayName: 'District Margin',
-    description: 'Determines margin of districts',
+    displayName: 'District Padding',
+    description:
+      'Inner padding around district contents (ELK padding inside each district node)',
     isRangeSetting: true,
   },
   openedDistrictHeight: {

@@ -188,7 +188,8 @@ export type LayoutSettings = {
   cityDistance: RangeSetting;
   cityAspectRatio: RangeSetting;
   cityMargin: RangeSetting;
-  districtMargin: RangeSetting;
+  cityPadding: RangeSetting;
+  districtPadding: RangeSetting;
   buildingFootprint: RangeSetting;
   buildingMetricMapping: SelectSetting<BuildingMetricMapping>;
   buildingMetricBuckets: RangeSetting;

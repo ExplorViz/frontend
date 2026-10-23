@@ -150,7 +150,7 @@ export function applySpiralLayoutToClasses(
   const BUILDING_MARGIN = vs.buildingMargin.value;
   const DISTRICT_HEIGHT = vs.openedDistrictHeight.value;
   const CITY_LABEL_MARGIN = vs.cityLabelMargin.value;
-  const CITY_MARGIN = vs.cityMargin.value;
+  const CITY_PADDING = vs.cityPadding.value;
   const SPIRAL_CENTER_OFFSET = vs.spiralCenterOffset.value;
   const SPIRAL_GAP = vs.spiralGap.value;
 
@@ -176,8 +176,8 @@ export function applySpiralLayoutToClasses(
         SPIRAL_GAP,
         SPIRAL_CENTER_OFFSET
       ) +
-      2 * CITY_MARGIN;
-    const spiralDepth = spiralWidth - CITY_MARGIN + CITY_LABEL_MARGIN;
+      2 * CITY_PADDING;
+    const spiralDepth = spiralWidth - CITY_PADDING + CITY_LABEL_MARGIN;
 
     // The ELK layout already respects the minimum size required by the city
     // label, which must not be undercut by the spiral size.
@@ -188,7 +188,7 @@ export function applySpiralLayoutToClasses(
     const spacing = BUILDING_FOOTPRINT + BUILDING_MARGIN;
 
     // As Label and regular margin can differ, we offset by half the label margin difference
-    const zMarginOffset = -CITY_LABEL_MARGIN / 2 + CITY_MARGIN / 2;
+    const zMarginOffset = -CITY_LABEL_MARGIN / 2 + CITY_PADDING / 2;
 
     if (buildings.length === 1) {
       // If there is only one building, place it at the center of the city

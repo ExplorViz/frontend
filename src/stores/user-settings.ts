@@ -288,7 +288,7 @@ export const useUserSettingsStore = create<UserSettingsState>()(
     }),
     {
       name: 'ExplorVizSettings',
-      version: 32, // increment to overwrite existing storage (if needed)
+      version: 33, // increment to overwrite existing storage (if needed)
       partialize: (state) =>
         Object.fromEntries(
           Object.entries(state).filter(
