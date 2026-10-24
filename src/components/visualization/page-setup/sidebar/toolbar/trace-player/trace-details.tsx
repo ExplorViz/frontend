@@ -344,7 +344,7 @@ export default function TraceDetails({
               <ChevronLeftIcon />
             </Button>
             <span className="user-select-none">
-              {selectedSpanIndex + 1} / {traceOverview.spanCount}
+              {selectedSpanIndex + 1} / {spanData.flat.length}
             </span>
             <Button
               variant="white"
