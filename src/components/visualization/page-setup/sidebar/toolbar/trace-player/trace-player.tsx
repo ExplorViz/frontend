@@ -6,9 +6,10 @@ import { useTimestampStore } from 'explorviz-frontend/src/stores/timestamp';
 import { useToastHandlerStore } from 'explorviz-frontend/src/stores/toast-handler';
 import { CROSS_COMMIT_IDENTIFIER } from 'explorviz-frontend/src/utils/evolution-schemes/evolution-data';
 import { TraceOverview } from 'explorviz-frontend/src/utils/landscape-schemes/telemetry/traces';
-import { useEffect, useState } from 'react';
 import { Timestamp } from 'explorviz-frontend/src/utils/landscape-schemes/timestamp';
+import { use, useEffect, useState } from 'react';
 import { Spinner, Table } from 'react-bootstrap';
+import { BottomBarContext } from '../../../bottom-bar/bottom-bar-context';
 import TraceDetails from './trace-details';
 
 export default function TracePlayer() {
@@ -41,6 +42,7 @@ export default function TracePlayer() {
     selectedCommits?.[0].commitId ?? CROSS_COMMIT_IDENTIFIER
   );
 
+  const bottomBarContext = use(BottomBarContext);
 
   const fetchTraceCatalog = useTraceCatalogFetch();
 
@@ -89,6 +91,11 @@ export default function TracePlayer() {
     setSelectedTrace(trace);
   };
 
+  const handleNoTimestampSelectedClick = () => {
+    bottomBarContext.setIsExpanded(true);
+    bottomBarContext.setSelectedChart('runtime-chart');
+  };
+
   return (
     <>
       <h5 className="text-center">Trace Player</h5>
@@ -99,7 +106,13 @@ export default function TracePlayer() {
       {selectedCommits && selectedCommits.length > 1 ? (
         <>Multiple commits are selected, no traces available</>
       ) : !selectedTimestamps || selectedTimestamps.length === 0 ? (
-        <span>Select a timestamp to show available traces</span>
+        <span>
+          Select a{' '}
+          <a href="#" onClick={handleNoTimestampSelectedClick}>
+            timestamp
+          </a>{' '}
+          to show available traces
+        </span>
       ) : traceData === null || traceData.timestamps !== selectedTimestamps ? (
         <div className="inline">
           <Spinner size="sm" /> Loading traces for timestamp &hellip;
