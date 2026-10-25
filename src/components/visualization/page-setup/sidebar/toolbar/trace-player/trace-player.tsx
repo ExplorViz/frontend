@@ -32,26 +32,29 @@ export default function TracePlayer() {
 
   const selectedCommits = repositoryToSelectedCommits.get(selectedRepository);
 
-  const selectedTimestamps = Array.from(
-    commitToSelectedTimestamps
-      .get(selectedCommits?.[0].commitId ?? CROSS_COMMIT_IDENTIFIER)
-      ?.values() ?? []
+  const selectedTimestamps = commitToSelectedTimestamps.get(
+    selectedCommits?.[0].commitId ?? CROSS_COMMIT_IDENTIFIER
   );
 
-  let [from, to] = selectedTimestamps.reduce(
-    ([min, max], ts) => [
-      min <= ts.fromUnixNano ? min : ts.fromUnixNano,
-      max >= ts.toUnixNano ? max : ts.toUnixNano,
-    ],
-    [selectedTimestamps[0]?.fromUnixNano, selectedTimestamps[0]?.toUnixNano]
-  );
 
   const fetchTraceCatalog = useTraceCatalogFetch();
 
   useEffect(() => {
-    if (!landscapeToken) {
+    if (
+      !landscapeToken ||
+      !selectedTimestamps ||
+      selectedTimestamps.length === 0
+    ) {
       return;
     }
+
+    const [from, to] = selectedTimestamps.reduce(
+      ([min, max], ts) => [
+        min <= ts.fromUnixNano ? min : ts.fromUnixNano,
+        max >= ts.toUnixNano ? max : ts.toUnixNano,
+      ],
+      [selectedTimestamps[0]?.fromUnixNano, selectedTimestamps[0]?.toUnixNano]
+    );
 
     const fetchTraces = async () => {
       try {
@@ -70,7 +73,12 @@ export default function TracePlayer() {
     };
 
     fetchTraces();
-  }, [from, to, landscapeToken, fetchTraceCatalog, showErrorToastMessage]);
+  }, [
+    selectedTimestamps,
+    landscapeToken,
+    fetchTraceCatalog,
+    showErrorToastMessage,
+  ]);
 
   if (selectedCommits && selectedCommits.length > 1) {
     return <>Multiple commits are selected, no traces available</>;
