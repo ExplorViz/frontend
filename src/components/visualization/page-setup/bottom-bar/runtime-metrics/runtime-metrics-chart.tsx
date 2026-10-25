@@ -1,8 +1,15 @@
 import HelpTooltip from 'explorviz-frontend/src/components/help-tooltip';
+import NestedDropdownButton from 'explorviz-frontend/src/components/nested-dropdown-button';
 import { useAuthStore } from 'explorviz-frontend/src/stores/auth';
 import { useLandscapeTokenStore } from 'explorviz-frontend/src/stores/landscape-token';
+import { useModelStore } from 'explorviz-frontend/src/stores/repos/model-repository';
 import { useToastHandlerStore } from 'explorviz-frontend/src/stores/toast-handler';
 import { getMetricsServiceUrl } from 'explorviz-frontend/src/utils/landscape-http-request-util';
+import {
+  Building,
+  City,
+  isCity,
+} from 'explorviz-frontend/src/utils/landscape-schemes/flat-landscape';
 import {
   isMetricValues,
   MetricOverview,
@@ -40,11 +47,15 @@ interface RuntimeMetricsChartProps {
 export default function RuntimeMetricsChart({
   metric,
 }: RuntimeMetricsChartProps) {
-  const services = metric?.services.toSorted();
   const isSum = metric?.pointKind === 'sum';
   const isHistogram =
     metric?.pointKind === 'histogram' || metric?.pointKind === 'exp_histogram';
 
+  const cities = useModelStore((state) => state.cities);
+  const buildings = useModelStore((state) => state.buildings);
+  const telemetryKeyToEntityId = useModelStore(
+    (state) => state.telemetryKeyToEntityId
+  );
   const landscapeToken = useLandscapeTokenStore((state) => state.token);
   const accessToken = useAuthStore((state) => state.accessToken);
   const showErrorToastMessage = useToastHandlerStore(
@@ -54,8 +65,8 @@ export default function RuntimeMetricsChart({
   const [metricValues, setMetricValues] = useState<
     MetricValues | null | undefined
   >(undefined);
-  const [selectedService, setSelectedService] = useState<string | null>(
-    services?.[0] ?? null
+  const [selectedEntity, setSelectedEntity] = useState<Building | City | null>(
+    null
   );
   const [window, setWindow] = useState<MetricsWindow>('1h');
   const [aggregation, setAggregation] = useState<MetricsAggregation>(
@@ -63,6 +74,25 @@ export default function RuntimeMetricsChart({
   );
   const [alwaysShowZero, setAlwaysShowZero] = useState<boolean>(true);
   const [isLogScale, setIsLogScale] = useState<boolean>(false);
+
+  const services = metric?.services
+    .toSorted()
+    .map((name) => Object.values(cities).find((c) => c.name === name))
+    .filter((c) => c !== undefined);
+
+  const entities = (
+    metric?.entities
+      .map((telemetryKey) => {
+        const entityId = telemetryKeyToEntityId.get(telemetryKey);
+        return entityId ? buildings[entityId] : undefined;
+      })
+      .filter((e) => e !== undefined) ?? []
+  ).sort((a, b) => (a.fqn ?? a.name).localeCompare(b.fqn ?? b.name));
+
+  const entitiesByServiceName = Map.groupBy(
+    entities,
+    (entity) => cities[entity.parentCityId].name
+  );
 
   useEffect(() => {
     const fetchMetricValues = async () => {
@@ -94,8 +124,14 @@ export default function RuntimeMetricsChart({
       queryParams.set('pointKind', metric.pointKind);
       queryParams.set('window', window);
       queryParams.set('aggregation', aggregation);
-      if (selectedService) {
-        queryParams.set('service', selectedService);
+      if (selectedEntity) {
+        if (isCity(selectedEntity)) {
+          queryParams.set('service', selectedEntity.name);
+        } else if (selectedEntity.telemetryKey) {
+          queryParams.set('telemetryKey', selectedEntity.telemetryKey);
+        } else {
+          console.warn('Selected entity does not have telemetry key');
+        }
       }
 
       requestUrl.search = queryParams.toString();
@@ -138,7 +174,7 @@ export default function RuntimeMetricsChart({
     fetchMetricValues();
   }, [
     metric,
-    selectedService,
+    selectedEntity,
     window,
     aggregation,
     landscapeToken,
@@ -146,82 +182,12 @@ export default function RuntimeMetricsChart({
     showErrorToastMessage,
   ]);
 
-  useEffect(() => {
-    const fetchMetricValues = async () => {
-      if (!metric) {
-        showErrorToastMessage('No metric is currently selected');
-        return;
-      }
-
-      const metricsServiceUrl = getMetricsServiceUrl();
-      if (metricsServiceUrl === '') {
-        showErrorToastMessage('Metrics service URL not configured');
-        return;
-      }
-
-      if (!landscapeToken) {
-        showErrorToastMessage('No landscape token selected');
-        return;
-      }
-
-      const requestUrl = new URL(
-        `${metricsServiceUrl}/v3/landscapes/${landscapeToken.value}/metric`
-      );
-
-      const queryParams = new URLSearchParams();
-      queryParams.set('name', metric.name);
-      queryParams.set('pointKind', metric.pointKind);
-      queryParams.set('window', window);
-      queryParams.set('aggregation', aggregation);
-      if (selectedService) {
-        queryParams.set('service', selectedService);
-      }
-
-      requestUrl.search = queryParams.toString();
-
-      let response: Response;
-      try {
-        response = await fetch(requestUrl, {
-          headers: {
-            Authorization: `Bearer ${accessToken}`,
-            'Access-Control-Allow-Origin': '*',
-          },
-        });
-      } catch (error) {
-        console.error(error);
-        showErrorToastMessage('A network error has occurred');
-        return;
-      }
-
-      if (!response.ok) {
-        showErrorToastMessage(
-          `Received non-ok response status ${response.status}`
-        );
-        return;
-      }
-
-      const receivedMetricValues = JSON.parse(await response.text(), (k, v) => {
-        return k === 'startUnixNano' || k === 'endUnixNano' ? BigInt(v) : v;
-      });
-      if (!isMetricValues(receivedMetricValues)) {
-        console.error(`JSON fails type guard ${isMetricValues.name}`);
-        showErrorToastMessage('Received invalid response');
-        return;
-      }
-
-      setMetricValues(receivedMetricValues);
-    };
-
-    fetchMetricValues();
-  }, [
-    metric,
-    selectedService,
-    window,
-    aggregation,
-    landscapeToken,
-    accessToken,
-    showErrorToastMessage,
-  ]);
+  const handleEntitySelect = (selectedEntityId: string | null) => {
+    const entity =
+      entities.find((e) => e.id === selectedEntityId) ??
+      services?.find((s) => s.id === selectedEntityId);
+    setSelectedEntity(entity ?? null);
+  };
 
   if (!metric) {
     return (
@@ -273,17 +239,23 @@ export default function RuntimeMetricsChart({
         >
           {services && services.length > 0 && (
             <>
-              <span>Service:</span>
-              <DropdownButton
-                id="metric-service-dropdown"
-                title={selectedService ?? 'Service'}
-              >
-                {services.map((s) => (
-                  <Dropdown.Item key={s} onClick={() => setSelectedService(s)}>
-                    {s}
-                  </Dropdown.Item>
-                ))}
-              </DropdownButton>
+              <span>Entity:</span>
+              <NestedDropdownButton
+                options={services.map((service) => {
+                  const entities = entitiesByServiceName.get(service.name);
+                  return {
+                    id: service.id,
+                    label: service.name,
+                    children: entities?.map((e) => ({
+                      id: e.id,
+                      label: e.name,
+                    })),
+                  };
+                })}
+                selectedOptionId={selectedEntity?.id}
+                placeholder="All"
+                onSelect={handleEntitySelect}
+              />
             </>
           )}
 
