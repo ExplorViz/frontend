@@ -122,7 +122,7 @@ function TraceSelection({ traces, onTraceClick }: TraceSelectionProps) {
     return <span>No traces available for current timestamp</span>;
   }
 
-  const sortedTraces = traces.sort((a, b) => {
+  const sortedTraces = traces.toSorted((a, b) => {
     let res: number;
     switch (sorting) {
       case 'name':
