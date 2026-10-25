@@ -7,11 +7,16 @@ import { useToastHandlerStore } from 'explorviz-frontend/src/stores/toast-handle
 import { CROSS_COMMIT_IDENTIFIER } from 'explorviz-frontend/src/utils/evolution-schemes/evolution-data';
 import { TraceOverview } from 'explorviz-frontend/src/utils/landscape-schemes/telemetry/traces';
 import { useEffect, useState } from 'react';
+import { Timestamp } from 'explorviz-frontend/src/utils/landscape-schemes/timestamp';
 import { Spinner, Table } from 'react-bootstrap';
 import TraceDetails from './trace-details';
 
 export default function TracePlayer() {
-  const [traces, setTraces] = useState<TraceOverview[] | null>(null);
+  const [traceData, setTraceData] = useState<{
+    traces: TraceOverview[];
+    timestamps: Timestamp[];
+  } | null>(null);
+
   const [selectedTrace, setSelectedTrace] = useState<TraceOverview | null>(
     null
   );
@@ -63,11 +68,11 @@ export default function TracePlayer() {
           from: from,
           to: to,
         });
-        setTraces(traceOverview);
+        setTraceData({ traces: traceOverview, timestamps: selectedTimestamps });
       } catch (error) {
         console.error(error);
         showErrorToastMessage('Failed to fetch traces for timestamp');
-        setTraces([]);
+        setTraceData({ traces: [], timestamps: selectedTimestamps });
       }
       setSelectedTrace(null);
     };
@@ -80,14 +85,6 @@ export default function TracePlayer() {
     showErrorToastMessage,
   ]);
 
-  if (selectedCommits && selectedCommits.length > 1) {
-    return <>Multiple commits are selected, no traces available</>;
-  }
-
-  if (selectedTimestamps.length === 0) {
-    return <>Select a timestamp first</>;
-  }
-
   const handleTraceClick = (trace: TraceOverview) => {
     setSelectedTrace(trace);
   };
@@ -99,7 +96,11 @@ export default function TracePlayer() {
         Follow traces for the current timestamp step-by-step.
       </p>
 
-      {traces === null ? (
+      {selectedCommits && selectedCommits.length > 1 ? (
+        <>Multiple commits are selected, no traces available</>
+      ) : !selectedTimestamps || selectedTimestamps.length === 0 ? (
+        <span>Select a timestamp to show available traces</span>
+      ) : traceData === null || traceData.timestamps !== selectedTimestamps ? (
         <div className="inline">
           <Spinner size="sm" /> Loading traces for timestamp &hellip;
         </div>
@@ -109,7 +110,10 @@ export default function TracePlayer() {
           onBackClick={() => setSelectedTrace(null)}
         />
       ) : (
-        <TraceSelection traces={traces} onTraceClick={handleTraceClick} />
+        <TraceSelection
+          traces={traceData.traces}
+          onTraceClick={handleTraceClick}
+        />
       )}
     </>
   );
