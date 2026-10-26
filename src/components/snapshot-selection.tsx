@@ -108,14 +108,14 @@ export default function SnapshotSelection({
     setDisplayName(false);
   };
 
-  const updateName = (event: React.FormEvent) => {
-    const target: HTMLInputElement = event.target as HTMLInputElement;
+  const updateName = (event: React.InputEvent<HTMLInputElement>) => {
+    const target: HTMLInputElement = event.currentTarget;
     setName(target.value);
     canSaveSnapshot();
   };
 
-  const updateFile = (event: React.FormEvent) => {
-    const target = event.target as HTMLInputElement;
+  const updateFile = (event: React.InputEvent<HTMLInputElement>) => {
+    const target = event.currentTarget;
     if (target.files !== null) {
       const fileReader = new FileReader();
 

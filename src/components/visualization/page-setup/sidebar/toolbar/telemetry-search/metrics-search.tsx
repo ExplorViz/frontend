@@ -140,7 +140,7 @@ export default function MetricsSearch() {
     defaultRowHeight: 50,
   });
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.SubmitEvent) => {
     e.preventDefault();
     setMetrics(null);
     setIsLoading(true);

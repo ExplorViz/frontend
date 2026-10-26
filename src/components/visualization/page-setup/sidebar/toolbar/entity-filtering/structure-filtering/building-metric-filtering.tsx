@@ -36,7 +36,7 @@ const BuildingMetricFiltering = forwardRef<
   );
 
   const onInput = (
-    event: React.FormEvent<HTMLInputElement>,
+    event: React.InputEvent<HTMLInputElement>,
     metricName: string
   ) => {
     const newValue = Number(event.currentTarget.value);
@@ -81,7 +81,7 @@ const BuildingMetricFiltering = forwardRef<
   };
 
   const onValueInput = (
-    event: React.FormEvent<HTMLInputElement>,
+    event: React.ChangeEvent<HTMLInputElement>,
     metricName: string
   ) => {
     const newValue = Number(event.currentTarget.value);

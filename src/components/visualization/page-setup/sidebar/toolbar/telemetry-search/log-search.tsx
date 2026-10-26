@@ -156,7 +156,7 @@ export default function LogSearch() {
     defaultRowHeight: 50,
   });
 
-  const handleSubmit: React.FormEventHandler<HTMLFormElement> = async (e) => {
+  const handleSubmit: React.SubmitEventHandler<HTMLFormElement> = async (e) => {
     e.preventDefault();
     setLogs(null);
     setIsLoading(true);
