@@ -5,19 +5,15 @@ import { useLandscapeTokenStore } from 'explorviz-frontend/src/stores/landscape-
 import { useModelStore } from 'explorviz-frontend/src/stores/repos/model-repository';
 import { useToastHandlerStore } from 'explorviz-frontend/src/stores/toast-handler';
 import { getMetricsServiceUrl } from 'explorviz-frontend/src/utils/landscape-http-request-util';
-import {
-  Building,
-  City,
-  isCity,
-} from 'explorviz-frontend/src/utils/landscape-schemes/flat-landscape';
+import { isCity } from 'explorviz-frontend/src/utils/landscape-schemes/flat-landscape';
 import {
   isMetricValues,
-  MetricOverview,
   MetricValues,
 } from 'explorviz-frontend/src/utils/landscape-schemes/telemetry/metrics';
 import pluralize from 'pluralize';
-import { useEffect, useState } from 'react';
+import { use, useEffect, useState } from 'react';
 import { Dropdown, DropdownButton, Form } from 'react-bootstrap';
+import { BottomBarContext } from '../bottom-bar-context';
 import { GaugeMetricChart } from './gauge-metric-chart';
 import HistogramMetricChart from './histogram-metric-chart';
 
@@ -39,14 +35,13 @@ function getAggregationLabel(aggregation: MetricsAggregation): string {
   }
 }
 
-interface RuntimeMetricsChartProps {
-  metric: MetricOverview | null;
-}
-
 /** A panel with a chart and visualiziation options for visualizing an OpenTelemetry metric. */
-export default function RuntimeMetricsChart({
-  metric,
-}: RuntimeMetricsChartProps) {
+export default function RuntimeMetricsChart() {
+  const bottomBarContext = use(BottomBarContext);
+  const metric = bottomBarContext.runtimeMetricsState.selectedMetric;
+  const selectedEntity = bottomBarContext.runtimeMetricsState.selectedEntity;
+  const setSelectedEntity = bottomBarContext.setSelectedMetricEntity;
+
   const isSum = metric?.pointKind === 'sum';
   const isHistogram =
     metric?.pointKind === 'histogram' || metric?.pointKind === 'exp_histogram';
@@ -65,9 +60,6 @@ export default function RuntimeMetricsChart({
   const [metricValues, setMetricValues] = useState<
     MetricValues | null | undefined
   >(undefined);
-  const [selectedEntity, setSelectedEntity] = useState<Building | City | null>(
-    null
-  );
   const [window, setWindow] = useState<MetricsWindow>('1h');
   const [aggregation, setAggregation] = useState<MetricsAggregation>(
     isSum || isHistogram ? 'sum' : 'avg'
@@ -75,10 +67,11 @@ export default function RuntimeMetricsChart({
   const [alwaysShowZero, setAlwaysShowZero] = useState<boolean>(true);
   const [isLogScale, setIsLogScale] = useState<boolean>(false);
 
-  const services = metric?.services
-    .toSorted()
-    .map((name) => Object.values(cities).find((c) => c.name === name))
-    .filter((c) => c !== undefined);
+  const services =
+    metric?.services
+      .toSorted()
+      .map((name) => Object.values(cities).find((c) => c.name === name))
+      .filter((c) => c !== undefined) ?? [];
 
   const entities = (
     metric?.entities
@@ -185,7 +178,7 @@ export default function RuntimeMetricsChart({
   const handleEntitySelect = (selectedEntityId: string | null) => {
     const entity =
       entities.find((e) => e.id === selectedEntityId) ??
-      services?.find((s) => s.id === selectedEntityId);
+      services.find((s) => s.id === selectedEntityId);
     setSelectedEntity(entity ?? null);
   };
 
@@ -237,10 +230,11 @@ export default function RuntimeMetricsChart({
             gridTemplateColumns: 'max-content auto',
           }}
         >
-          {services && services.length > 0 && (
+          {services.length > 0 && (
             <>
               <span>Entity:</span>
               <NestedDropdownButton
+                key={metric?.name}
                 options={services.map((service) => {
                   const entities = entitiesByServiceName.get(service.name);
                   return {
