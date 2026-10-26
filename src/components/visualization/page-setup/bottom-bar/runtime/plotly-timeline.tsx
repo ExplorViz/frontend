@@ -53,9 +53,6 @@ export default function PlotlyTimeline({
   //#region Refs and Effects
 
   const markerStateMap = useRef<Map<string, IMarkerStates>>(new Map());
-  const commitToSelectedTimestamps = useTimestampStore(
-    (state) => state.commitToSelectedTimestamps
-  );
   const setSelectedTimestamps = useTimestampStore(
     (state) => state.setSelectedTimestamps
   );
@@ -257,6 +254,9 @@ export default function PlotlyTimeline({
 
       const timestampId = data.points[0].data.timestampId[pn];
 
+      const commitToSelectedTimestamps =
+        useTimestampStore.getState().commitToSelectedTimestamps;
+
       let selectedTimestampsForCommit = [
         ...(commitToSelectedTimestamps.get(commitId) || []),
       ];
@@ -411,6 +411,9 @@ export default function PlotlyTimeline({
     if (!timelineDiv.current) {
       return;
     }
+
+    const commitToSelectedTimestamps =
+      useTimestampStore.getState().commitToSelectedTimestamps;
 
     for (const [
       commitId,

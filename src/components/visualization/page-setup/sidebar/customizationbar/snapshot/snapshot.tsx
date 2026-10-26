@@ -1,14 +1,12 @@
 import React, { useState } from 'react';
 
-import Button from 'react-bootstrap/Button';
-import { useAuthStore } from 'explorviz-frontend/src/stores/auth';
-import {
-  useSnapshotTokenStore,
-} from 'explorviz-frontend/src/stores/snapshot-token';
-import { LandscapeToken } from 'explorviz-frontend/src/stores/landscape-token';
 import AnnotationData from 'explorviz-frontend/src/components/visualization/rendering/annotations/annotation-data';
+import { useAuthStore } from 'explorviz-frontend/src/stores/auth';
+import { LandscapeToken } from 'explorviz-frontend/src/stores/landscape-token';
+import { useSnapshotTokenStore } from 'explorviz-frontend/src/stores/snapshot-token';
 import { LandscapeData } from 'explorviz-frontend/src/utils/landscape-schemes/landscape-data';
 import { buildSnapshotToken } from 'explorviz-frontend/src/utils/snapshot/snapshot-helpers';
+import Button from 'react-bootstrap/Button';
 
 interface SnapshotProps {
   landscapeData: LandscapeData;
@@ -36,8 +34,8 @@ export default function Snapshot({
     setSaveSnaphotBtnDisabled(true);
   };
 
-  const updateName = (event: React.FormEvent<HTMLInputElement>) => {
-    const target: HTMLInputElement = event.currentTarget as HTMLInputElement;
+  const updateName = (event: React.InputEvent<HTMLInputElement>) => {
+    const target: HTMLInputElement = event.currentTarget;
     const newSnapshotName = target.value;
     setSnapshotName(newSnapshotName);
     setSaveSnaphotBtnDisabled(newSnapshotName === '');

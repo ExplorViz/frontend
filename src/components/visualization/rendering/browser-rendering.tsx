@@ -48,11 +48,8 @@ import {
   ChatbotProvider,
   EntityFilteringController,
   EntitySearchController,
+  SidebarSelectionOptions,
 } from '../../chatbot/chatbot-context';
-import {
-  copilotSettingComponentToTab,
-  copilotToolComponentToToolbarTool,
-} from '../../chatbot/copilot-sidebar-map';
 import CollaborationControls from '../../collaboration/visualization/page-setup/sidebar/customizationbar/collaboration/collaboration-controls';
 import ContextMenu from '../../context-menu';
 import { EditingProvider } from '../../editing/editing-context';
@@ -122,16 +119,6 @@ export default function BrowserRendering({
     (state) => state.closeConnection
   );
 
-  const [showToolsSidebar, setShowToolsSidebar] = useState<boolean>(false);
-  const [showSettingsSidebar, setShowSettingsSidebar] =
-    useState<boolean>(false);
-  const [openedToolComponent, setOpenedToolComponent] = useState<string | null>(
-    null
-  );
-  const [openedSettingComponent, setOpenedSettingComponent] = useState<
-    string | null
-  >(null);
-
   // MARK: Event handlers
 
   const removeAnnotation = (annotationId: number) => {
@@ -197,20 +184,38 @@ export default function BrowserRendering({
   const [toolbarState, setToolbarState] =
     useState<ToolbarState>(defaultToolbarState);
 
+  const showToolsSidebar = toolbarState.showSidebar;
+  const setShowToolsSidebar = (isShow: boolean) =>
+    setToolbarState((state) => ({ ...state, showSidebar: isShow }));
+
+  const selectedToolbarTool = toolbarState.selectedTool;
+  const setSelectedToolbarTool = (
+    tool: ToolbarTool | null,
+    options?: SidebarSelectionOptions
+  ) =>
+    setToolbarState((state) => ({
+      ...state,
+      showSidebar: options?.showSidebar ?? state.showSidebar,
+      selectedTool: tool,
+    }));
+
+  const onToolbarTabChange = (tool: ToolbarTool | null) => {
+    if (tool === null) {
+      setSelectedToolbarTool(null);
+      return;
+    }
+    setSelectedToolbarTool(selectedToolbarTool === tool ? null : tool, {
+      showSidebar: true,
+    });
+  };
+
   const toolbarActions: ToolbarActions = {
     setShowSidebar: (showSidebar) => {
       setShowToolsSidebar(showSidebar);
       setToolbarState((state) => ({ ...state, showSidebar }));
     },
 
-    openTool: (tool) => {
-      setShowToolsSidebar(true);
-      setToolbarState((state) => ({
-        ...state,
-        showSidebar: true,
-        selectedTool: tool,
-      }));
-    },
+    openTool: (tool) => setSelectedToolbarTool(tool, { showSidebar: true }),
 
     setTelemetrySearchTab: (tab) =>
       setToolbarState((state) => ({
@@ -222,7 +227,6 @@ export default function BrowserRendering({
       })),
 
     searchSpans: (searchParams) => {
-      setShowToolsSidebar(true);
       setToolbarState((state) => ({
         ...state,
         showSidebar: true,
@@ -236,7 +240,6 @@ export default function BrowserRendering({
     },
 
     searchMetrics: (searchParams) => {
-      setShowToolsSidebar(true);
       setToolbarState((state) => ({
         ...state,
         showSidebar: true,
@@ -250,7 +253,6 @@ export default function BrowserRendering({
     },
 
     searchLogs: (searchParams) => {
-      setShowToolsSidebar(true);
       setToolbarState((state) => ({
         ...state,
         showSidebar: true,
@@ -264,31 +266,42 @@ export default function BrowserRendering({
     },
   };
 
-  const selectedToolbarTool = toolbarState.selectedTool;
-  const setSelectedToolbarTool = (tool: ToolbarTool) =>
-    setToolbarState((state) => ({
-      ...state,
-      selectedTool: tool === selectedToolbarTool ? null : tool,
-    }));
-
   const [settingsSidebarState, setSettingsSidebarState] =
     useState<SettingsSidebarState>(defaultSettingsSidebarState);
 
-  const settingsSidebarActions: SettingsSidebarActions = {
-    openSettingsSidebarTab: (tab) =>
-      setSettingsSidebarState((state) => ({
-        ...state,
-        showSidebar: true,
-        selectedTab: tab,
-      })),
-  };
-
-  const selectedSettingsSidebarTab = settingsSidebarState.selectedTab;
-  const setSelectedSettingsSidebarTab = (tab: SettingsSidebarTab | null) =>
+  const showSettingsSidebar = settingsSidebarState.showSidebar;
+  const setShowSettingsSidebar = (isShow: boolean) =>
     setSettingsSidebarState((state) => ({
       ...state,
-      selectedTab: tab === selectedSettingsSidebarTab ? null : tab,
+      showSidebar: isShow,
     }));
+
+  const selectedSettingsSidebarTab = settingsSidebarState.selectedTab;
+  const setSelectedSettingsSidebarTab = (
+    tab: SettingsSidebarTab | null,
+    options?: SidebarSelectionOptions
+  ) =>
+    setSettingsSidebarState((state) => ({
+      ...state,
+      showSidebar: options?.showSidebar ?? state.showSidebar,
+      selectedTab: tab,
+    }));
+
+  const onSettingsTabChange = (tab: SettingsSidebarTab | null) => {
+    if (tab === null) {
+      setSelectedSettingsSidebarTab(null);
+      return;
+    }
+    setSelectedSettingsSidebarTab(
+      selectedSettingsSidebarTab === tab ? null : tab,
+      { showSidebar: true }
+    );
+  };
+
+  const settingsSidebarActions: SettingsSidebarActions = {
+    openSettingsSidebarTab: (tab) =>
+      setSelectedSettingsSidebarTab(tab, { showSidebar: true }),
+  };
 
   // MARK: Refs
 
@@ -313,44 +326,6 @@ export default function BrowserRendering({
     };
   }, []);
 
-  // Copilot tools drive openedToolComponent / openedSettingComponent strings;
-  // sync those to ComponentTabs selection in the tabbed sidebars.
-  useEffect(() => {
-    if (!openedToolComponent) {
-      setToolbarState((state) =>
-        state.selectedTool === null ? state : { ...state, selectedTool: null }
-      );
-      return;
-    }
-
-    const tool = copilotToolComponentToToolbarTool[openedToolComponent];
-    if (!tool) {
-      return;
-    }
-
-    setToolbarState((state) =>
-      state.selectedTool === tool ? state : { ...state, selectedTool: tool }
-    );
-  }, [openedToolComponent]);
-
-  useEffect(() => {
-    if (!openedSettingComponent) {
-      setSettingsSidebarState((state) =>
-        state.selectedTab === null ? state : { ...state, selectedTab: null }
-      );
-      return;
-    }
-
-    const tab = copilotSettingComponentToTab[openedSettingComponent];
-    if (!tab) {
-      return;
-    }
-
-    setSettingsSidebarState((state) =>
-      state.selectedTab === tab ? state : { ...state, selectedTab: tab }
-    );
-  }, [openedSettingComponent]);
-
   // Close the sidebar, when the connection menu is opened (so ot does not overlap)
   const isConnected = usePlayroomConnectionStore((state) => state.isConnected);
   const isLobbyOpen = usePlayroomConnectionStore((state) => state.isLobbyOpen);
@@ -374,10 +349,10 @@ export default function BrowserRendering({
         setShowToolsSidebar={setShowToolsSidebar}
         showSettingsSidebar={showSettingsSidebar}
         setShowSettingsSidebar={setShowSettingsSidebar}
-        openedToolComponent={openedToolComponent}
-        setOpenedToolComponent={setOpenedToolComponent}
-        openedSettingComponent={openedSettingComponent}
-        setOpenedSettingComponent={setOpenedSettingComponent}
+        selectedToolbarTool={selectedToolbarTool}
+        setSelectedToolbarTool={setSelectedToolbarTool}
+        selectedSettingsSidebarTab={selectedSettingsSidebarTab}
+        setSelectedSettingsSidebarTab={setSelectedSettingsSidebarTab}
         entityFilteringControllerRef={entityFilteringRef}
         entitySearchControllerRef={entitySearchRef}
       >
@@ -448,7 +423,7 @@ export default function BrowserRendering({
                 >
                   <ComponentTabs
                     activeTab={selectedToolbarTool}
-                    onChange={setSelectedToolbarTool}
+                    onChange={onToolbarTabChange}
                     tabs={[
                       {
                         value: ToolbarTool.Filter,
@@ -517,7 +492,7 @@ export default function BrowserRendering({
                     >
                       <ComponentTabs
                         activeTab={selectedSettingsSidebarTab}
-                        onChange={setSelectedSettingsSidebarTab}
+                        onChange={onSettingsTabChange}
                         tabs={[
                           {
                             value: SettingsSidebarTab.EntityConfig,

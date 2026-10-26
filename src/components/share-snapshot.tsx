@@ -29,8 +29,8 @@ export default function ShareSnapshot(args: ShareSnapshotArgs) {
     setExpDate(null);
   };
 
-  const updateExpDate = (event: React.FormEvent) => {
-    const target: HTMLInputElement = event.target as HTMLInputElement;
+  const updateExpDate = (event: React.InputEvent<HTMLInputElement>) => {
+    const target: HTMLInputElement = event.currentTarget;
     const date = convertDate(target.value);
     setExpDate(date);
   };

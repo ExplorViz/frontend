@@ -62,6 +62,7 @@ export default function HistogramMetricChart({
           dataKey="value"
           allowDecimals={false}
           scale={isLogScale ? 'symlog' : 'linear'}
+          width="auto"
           label={{
             value: 'Frequency (Count)',
             angle: -90,

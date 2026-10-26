@@ -1,10 +1,14 @@
 import { useAuthStore } from 'explorviz-frontend/src/stores/auth';
-import { useLandscapeTokenStore } from 'explorviz-frontend/src/stores/landscape-token';
 import { getLogServiceUrl } from 'explorviz-frontend/src/utils/landscape-http-request-util';
 import { isLog } from 'explorviz-frontend/src/utils/landscape-schemes/telemetry/logs';
 import { useCallback } from 'react';
 
 export interface LogSearchParams {
+  /**
+   * Identifier of the landscape for which to fetch communication.
+   */
+  landscapeTokenId?: string;
+
   /**
    * Search tokens which must be present in matched logs.
    * By default, only the log message body is searched. This can be changed
@@ -90,12 +94,11 @@ export interface LogSearchCursor {
 }
 
 /**
- * Provides a fetch function to search for logs belonging to the current landscape,
+ * Provides a fetch function to search for logs belonging to a landscape,
  * with various search parameters available via {@link LogSearchParams}.
  * @returns an asynchronous function for fetching logs
  */
 export default function useLogFetch() {
-  const landscapeToken = useLandscapeTokenStore((state) => state.token);
   const accessToken = useAuthStore((state) => state.accessToken);
 
   const fetchLogs = useCallback(
@@ -105,12 +108,8 @@ export default function useLogFetch() {
         throw new Error('Log service URL not configured');
       }
 
-      if (!landscapeToken) {
-        throw new Error('No landscape token selected');
-      }
-
       const requestUrl = new URL(
-        `${logServiceUrl}/v3/landscapes/${landscapeToken.value}/logs`
+        `${logServiceUrl}/v3/landscapes/${params.landscapeTokenId}/logs`
       );
 
       const queryParams = new URLSearchParams();
@@ -156,7 +155,7 @@ export default function useLogFetch() {
 
       return receivedLogs;
     },
-    [accessToken, landscapeToken]
+    [accessToken]
   );
 
   return fetchLogs;

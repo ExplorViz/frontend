@@ -8,6 +8,7 @@ import useLogFetch, {
 } from 'explorviz-frontend/src/hooks/fetch/useLogFetch';
 import useLogSeverityFetch from 'explorviz-frontend/src/hooks/fetch/useLogSeverityFetch';
 import { useCameraControlsStore } from 'explorviz-frontend/src/stores/camera-controls-store';
+import { useLandscapeTokenStore } from 'explorviz-frontend/src/stores/landscape-token';
 import { useModelStore } from 'explorviz-frontend/src/stores/repos/model-repository';
 import { useToastHandlerStore } from 'explorviz-frontend/src/stores/toast-handler';
 import {
@@ -70,6 +71,7 @@ export default function LogSearch() {
   const cities = Object.values(useModelStore((state) => state.cities)).toSorted(
     (a, b) => a.name.localeCompare(b.name)
   );
+  const landscapeToken = useLandscapeTokenStore((state) => state.token);
   const showErrorToastMessage = useToastHandlerStore(
     (state) => state.showErrorToastMessage
   );
@@ -99,9 +101,14 @@ export default function LogSearch() {
 
   const loadLogs = useCallback(
     async (params: LogSearchParams) => {
+      if (!landscapeToken) {
+        return;
+      }
+
       try {
         const receivedLogs = await fetchLogs({
           ...params,
+          landscapeTokenId: landscapeToken.value,
           limit: PAGINATION_SIZE,
         });
 
@@ -121,7 +128,7 @@ export default function LogSearch() {
         );
       }
     },
-    [fetchLogs, showErrorToastMessage]
+    [landscapeToken, fetchLogs, showErrorToastMessage]
   );
 
   const onRowsRendered = useInfiniteLoader({
@@ -149,7 +156,7 @@ export default function LogSearch() {
     defaultRowHeight: 50,
   });
 
-  const handleSubmit: React.FormEventHandler<HTMLFormElement> = async (e) => {
+  const handleSubmit: React.SubmitEventHandler<HTMLFormElement> = async (e) => {
     e.preventDefault();
     setLogs(null);
     setIsLoading(true);
@@ -159,12 +166,15 @@ export default function LogSearch() {
   };
 
   const handleSeverityTextSelectFocus: React.FocusEventHandler = async () => {
-    if (severityTextValues !== null && severityTextValues.length > 0) {
+    if (
+      !landscapeToken ||
+      (severityTextValues !== null && severityTextValues.length > 0)
+    ) {
       return;
     }
 
     try {
-      const receivedSeverities = await fetchLogSeverities();
+      const receivedSeverities = await fetchLogSeverities(landscapeToken.value);
       setSeverityTextValues(receivedSeverities);
     } catch (error) {
       setSeverityTextValues([]);

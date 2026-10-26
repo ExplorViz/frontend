@@ -92,26 +92,26 @@ export default function ApiTokenSelection({
     setHostUrl('');
   };
 
-  const updateName = (event: React.FormEvent) => {
+  const updateName = (event: React.InputEvent<HTMLInputElement>) => {
     const target: HTMLInputElement = event.target as HTMLInputElement;
     setName(target.value);
     canSaveToken();
   };
 
-  const updateToken = (event: React.FormEvent) => {
-    const target: HTMLInputElement = event.target as HTMLInputElement;
+  const updateToken = (event: React.InputEvent<HTMLInputElement>) => {
+    const target: HTMLInputElement = event.currentTarget;
     setToken(target.value);
     canSaveToken();
   };
 
-  const updateHostUrl = (event: React.FormEvent) => {
-    const target: HTMLInputElement = event.target as HTMLInputElement;
+  const updateHostUrl = (event: React.InputEvent<HTMLInputElement>) => {
+    const target: HTMLInputElement = event.currentTarget;
     setHostUrl(target.value);
     canSaveToken();
   };
 
-  const updateExpDate = (event: React.FormEvent) => {
-    const target: HTMLInputElement = event.target as HTMLInputElement;
+  const updateExpDate = (event: React.InputEvent<HTMLInputElement>) => {
+    const target: HTMLInputElement = event.currentTarget;
     const date = convertDate(target.value);
     setExpDate(date);
   };

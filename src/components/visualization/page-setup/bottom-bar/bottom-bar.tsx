@@ -138,12 +138,7 @@ export default function BottomBar({
           </>
         )}
 
-        {selectedChart === 'runtime-metrics' && (
-          <RuntimeMetricsChart
-            key={`${bottomBarContext.selectedMetric?.pointKind}_${bottomBarContext.selectedMetric?.name}`}
-            metric={bottomBarContext.selectedMetric}
-          />
-        )}
+        {selectedChart === 'runtime-metrics' && <RuntimeMetricsChart />}
 
         {selectedChart === 'social-metrics' && (
           <>

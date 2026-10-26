@@ -4,8 +4,13 @@ import HelpTooltip from 'explorviz-frontend/src/components/help-tooltip';
 import useRuntimeMetricsFetch, {
   MetricsSearchParams,
 } from 'explorviz-frontend/src/hooks/fetch/useRuntimeMetricsFetch';
+import { useLandscapeTokenStore } from 'explorviz-frontend/src/stores/landscape-token';
 import { useModelStore } from 'explorviz-frontend/src/stores/repos/model-repository';
 import { useToastHandlerStore } from 'explorviz-frontend/src/stores/toast-handler';
+import {
+  Building,
+  City,
+} from 'explorviz-frontend/src/utils/landscape-schemes/flat-landscape';
 import {
   MetricOverview,
   MetricsPointKind,
@@ -55,11 +60,13 @@ export default function MetricsSearch() {
   const cities = Object.values(useModelStore((state) => state.cities)).toSorted(
     (a, b) => a.name.localeCompare(b.name)
   );
+  const landscapeToken = useLandscapeTokenStore((state) => state.token);
   const showErrorToastMessage = useToastHandlerStore(
     (state) => state.showErrorToastMessage
   );
 
   const toolbarContext = use(ToolbarContext);
+  const bottomBarContext = use(BottomBarContext);
   const searchRequest =
     toolbarContext.telemetrySearchState.metricsSearchRequest;
 
@@ -80,9 +87,14 @@ export default function MetricsSearch() {
 
   const loadMetrics = useCallback(
     async (params: MetricsSearchParams) => {
+      if (!landscapeToken) {
+        return;
+      }
+
       try {
         const receivedMetrics = await fetchMetrics({
           ...params,
+          landscapeTokenId: landscapeToken.value,
           limit: PAGINATION_SIZE,
         });
 
@@ -101,7 +113,7 @@ export default function MetricsSearch() {
         );
       }
     },
-    [fetchMetrics, showErrorToastMessage]
+    [landscapeToken, fetchMetrics, showErrorToastMessage]
   );
 
   const onRowsRendered = useInfiniteLoader({
@@ -128,13 +140,42 @@ export default function MetricsSearch() {
     defaultRowHeight: 50,
   });
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.SubmitEvent) => {
     e.preventDefault();
     setMetrics(null);
     setIsLoading(true);
     setAllItemsLoaded(false);
     loadMetrics(searchParams);
     setLastSubmittedParams(searchParams);
+  };
+
+  const handleMetricSelect = (metric: MetricOverview) => {
+    toolbarContext.setShowSidebar(false);
+    bottomBarContext.setIsExpanded(true);
+    bottomBarContext.setSelectedChart('runtime-metrics');
+
+    // If the user searched for a specific service or entity,
+    // then the data for that service / entity should be shown
+    // upon selecting the metric.
+    let entity: Building | City | null = null;
+
+    const telemetryKeyToEntityId =
+      useModelStore.getState().telemetryKeyToEntityId;
+    const buildings = useModelStore.getState().buildings;
+    const cities = useModelStore.getState().cities;
+
+    const params = lastSubmittedParams ?? searchParams;
+    if (params.telemetryKey) {
+      const entityId = telemetryKeyToEntityId.get(params.telemetryKey);
+      entity = entityId ? buildings[entityId] : null;
+    }
+    if (entity === null && params.serviceName) {
+      entity =
+        Object.values(cities).find((s) => s.name === params.serviceName) ??
+        null;
+    }
+
+    bottomBarContext.setSelectedMetric(metric, entity);
   };
 
   if (searchRequest !== prevSearchRequest) {
@@ -381,7 +422,7 @@ export default function MetricsSearch() {
                   rowComponent={MetricItem}
                   rowCount={metrics.length}
                   rowHeight={rowHeight}
-                  rowProps={{ metrics: metrics }}
+                  rowProps={{ metrics: metrics, onSelect: handleMetricSelect }}
                   rowKey={(index, { metrics }) =>
                     `${metrics[index].pointKind}_${metrics[index].name}`
                   }
@@ -408,8 +449,10 @@ function MetricItem({
   index,
   metrics,
   style,
+  onSelect,
 }: RowComponentProps<{
   metrics: MetricOverview[];
+  onSelect(metric: MetricOverview): void;
 }>) {
   const metric = metrics[index];
 
@@ -428,16 +471,6 @@ function MetricItem({
     return building === undefined ? [] : [building];
   });
 
-  const bottomBarContext = use(BottomBarContext);
-  const toolbarContext = use(ToolbarContext);
-
-  const handleMetricSelect = () => {
-    bottomBarContext.setIsExpanded(true);
-    bottomBarContext.setSelectedChart('runtime-metrics');
-    bottomBarContext.setSelectedMetric(metric);
-    toolbarContext.setShowSidebar(false);
-  };
-
   const handleEntitiesClick = (e: React.MouseEvent) => {
     e.stopPropagation();
     buildingsWithMetric.forEach((b) => pingByModelId(b.id));
@@ -445,7 +478,7 @@ function MetricItem({
 
   return (
     <div className="pe-2 pb-2" style={style}>
-      <Card className="metrics-search-card" onClick={handleMetricSelect}>
+      <Card className="metrics-search-card" onClick={() => onSelect(metric)}>
         <Card.Body>
           <Card.Title className="text-break mb-1">
             <code>{metric.name}</code>

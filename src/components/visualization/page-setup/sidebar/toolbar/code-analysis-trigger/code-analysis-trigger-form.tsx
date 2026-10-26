@@ -428,7 +428,7 @@ export default function CodeAnalysisTriggerForm({
     setApplications([createApplicationRow()]);
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.SubmitEvent) => {
     e.preventDefault();
 
     const requestBody = buildPayload(
@@ -1039,7 +1039,8 @@ export default function CodeAnalysisTriggerForm({
                   Sync Social Window
                   <HelpTooltip
                     title="When enabled, the social data fetch window is derived from the date range of the analyzed commits instead of the fixed end date time frame above."
-                    placement="top" />
+                    placement="top"
+                  />
                 </span>
               }
               checked={formData.syncSocialWindow}

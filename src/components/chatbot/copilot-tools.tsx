@@ -22,8 +22,15 @@ import * as htmlToImage from 'html-to-image';
 import { use } from 'react';
 import { z } from 'zod';
 import { EditingContext } from '../editing/editing-context';
+import { SettingsSidebarTab } from '../visualization/page-setup/sidebar/customizationbar/settings-sidebar-context';
+import { ToolbarTool } from '../visualization/page-setup/sidebar/toolbar/toolbar-context';
 import { ChatbotContext } from './chatbot-context';
-import { copilotToolComponentIds } from './copilot-sidebar-map';
+import {
+  copilotSettingComponentIds,
+  copilotToolComponentIds,
+  resolveCopilotSettingsTab,
+  resolveCopilotToolbarTool,
+} from './copilot-sidebar-map';
 
 const SCREENSHOT_MAX_WIDTH = 1280;
 const SCREENSHOT_MAX_HEIGHT = 720;
@@ -151,10 +158,10 @@ export function CopilotTools() {
     setShowToolsSidebar,
     showSettingsSidebar,
     setShowSettingsSidebar,
-    openedToolComponent,
-    setOpenedToolComponent,
-    openedSettingComponent,
-    setOpenedSettingComponent,
+    selectedToolbarTool,
+    setSelectedToolbarTool,
+    selectedSettingsSidebarTab,
+    setSelectedSettingsSidebarTab,
     entityFilteringControllerRef,
     entitySearchControllerRef,
   } = use(ChatbotContext);
@@ -380,11 +387,14 @@ export function CopilotTools() {
     // @ts-ignore
     _isRenderAndWait: true,
     handler: async ({ id, open }) => {
+      const tool = resolveCopilotToolbarTool(id);
+      if (!tool) {
+        return;
+      }
       if (open) {
-        setShowToolsSidebar(true);
-        setOpenedToolComponent(id);
-      } else if (openedToolComponent === id) {
-        setOpenedToolComponent(null);
+        setSelectedToolbarTool(tool, { showSidebar: true });
+      } else if (selectedToolbarTool === tool) {
+        setSelectedToolbarTool(null);
       }
     },
     render: ({ args, status }) => (
@@ -398,8 +408,7 @@ export function CopilotTools() {
 
   useFrontendTool({
     name: 'open-close-settings-component',
-    description:
-      'Opens or closes a component inside the settings sidebar. Opening the component will also open the sidebar. Allowed component ids: Collaboration, Chatbot, VSCode-Extension-Settings, Restructure-Landscape, Persist-Landscape, Building-Config, Settings.',
+    description: `Opens or closes a component inside the settings sidebar. Opening the component will also open the sidebar. Allowed component ids: ${copilotSettingComponentIds.join(', ')}.`,
     parameters: z.object({
       id: z.string(),
       open: z.boolean(),
@@ -407,11 +416,14 @@ export function CopilotTools() {
     // @ts-ignore
     _isRenderAndWait: true,
     handler: async ({ id, open }) => {
+      const tab = resolveCopilotSettingsTab(id);
+      if (!tab) {
+        return;
+      }
       if (open) {
-        setShowSettingsSidebar(true);
-        setOpenedSettingComponent(id);
-      } else if (openedSettingComponent === id) {
-        setOpenedSettingComponent(null);
+        setSelectedSettingsSidebarTab(tab, { showSidebar: true });
+      } else if (selectedSettingsSidebarTab === tab) {
+        setSelectedSettingsSidebarTab(null);
       }
     },
     render: ({ args, status }) => (
@@ -433,8 +445,7 @@ export function CopilotTools() {
     // @ts-ignore
     _isRenderAndWait: true,
     handler: async ({ minClassMethodCount }) => {
-      setShowToolsSidebar(true);
-      setOpenedToolComponent('entity-filtering');
+      setSelectedToolbarTool(ToolbarTool.Filter, { showSidebar: true });
       setTimeout(() => {
         entityFilteringControllerRef?.current?.applyFilters({
           minClassMethodCount,
@@ -504,8 +515,9 @@ export function CopilotTools() {
         status={status}
         action={'updateSettings'}
         onClick={() => {
-          setShowSettingsSidebar(true);
-          setOpenedSettingComponent('Settings');
+          setSelectedSettingsSidebarTab(SettingsSidebarTab.Settings, {
+            showSidebar: true,
+          });
         }}
       />
     ),
@@ -522,8 +534,7 @@ export function CopilotTools() {
     // @ts-ignore
     _isRenderAndWait: true,
     handler: async ({ query, selectAll }) => {
-      setShowToolsSidebar(true);
-      setOpenedToolComponent('entity-search');
+      setSelectedToolbarTool(ToolbarTool.EntitySearch, { showSidebar: true });
       setTimeout(() => {
         entitySearchControllerRef?.current?.search({
           query,

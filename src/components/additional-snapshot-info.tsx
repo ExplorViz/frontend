@@ -22,7 +22,7 @@ export default function AdditionalSnapshotInfo(
   const user = useAuthStore((state) => state.user);
   const [focusedClicks, setFocusedClicks] = useState<number>(0);
 
-  const hidePopover = (event: React.FormEvent) => {
+  const hidePopover = (event: React.FocusEvent) => {
     if (isMouseOnPopover()) {
       return;
     }
@@ -45,7 +45,7 @@ export default function AdditionalSnapshotInfo(
     return false;
   };
 
-  const onClick = (event: React.FormEvent) => {
+  const onClick = (event: React.MouseEvent) => {
     setFocusedClicks(focusedClicks + 1);
     // Prevent click on table row which would trigger to open the visualization
     event.stopPropagation();

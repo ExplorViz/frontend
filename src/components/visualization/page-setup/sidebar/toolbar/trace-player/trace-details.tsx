@@ -5,6 +5,7 @@ import useCommunicationFetch from 'explorviz-frontend/src/hooks/fetch/useCommuni
 import useSpanFetch from 'explorviz-frontend/src/hooks/fetch/useSpanFetch';
 import { useCameraControlsStore } from 'explorviz-frontend/src/stores/camera-controls-store';
 import { useCommunicationStore } from 'explorviz-frontend/src/stores/communication-store';
+import { useLandscapeTokenStore } from 'explorviz-frontend/src/stores/landscape-token';
 import { useRenderingServiceStore } from 'explorviz-frontend/src/stores/rendering-service';
 import { useModelStore } from 'explorviz-frontend/src/stores/repos/model-repository';
 import { useToastHandlerStore } from 'explorviz-frontend/src/stores/toast-handler';
@@ -85,6 +86,7 @@ export default function TraceDetails({
   const telemetryKeyToEntityId = useModelStore(
     (state) => state.telemetryKeyToEntityId
   );
+  const landscapeToken = useLandscapeTokenStore((state) => state.token);
   const lookAtEntity = useCameraControlsStore((state) => state.lookAtEntity);
   const setCommunications = useCommunicationStore(
     (state) => state.setCommunications
@@ -183,9 +185,14 @@ export default function TraceDetails({
   const fetchCommunication = useCommunicationFetch();
 
   useEffect(() => {
+    if (!landscapeToken) {
+      return;
+    }
+
     const fetchAndUpdate = async () => {
       try {
         const receivedSpans = await fetchSpans({
+          landscapeTokenId: landscapeToken.value,
           traceId: traceOverview.traceId,
           sortBy: 'oldest',
         });
@@ -206,14 +213,25 @@ export default function TraceDetails({
     };
 
     fetchAndUpdate();
-  }, [traceOverview, fetchSpans, handleSpanChange, showErrorToastMessage]);
+  }, [
+    traceOverview,
+    landscapeToken,
+    fetchSpans,
+    handleSpanChange,
+    showErrorToastMessage,
+  ]);
 
   useEffect(() => {
+    if (!landscapeToken) {
+      return;
+    }
+
     let fetchedData: CommSummary | undefined;
 
     const fetchCommunicationForSelectedTrace = async () => {
       try {
         const receivedComm = await fetchCommunication({
+          landscapeTokenId: landscapeToken.value,
           traceId: traceOverview.traceId,
         });
         fetchedData = receivedComm;
@@ -288,6 +306,7 @@ export default function TraceDetails({
     };
   }, [
     traceOverview,
+    landscapeToken,
     fetchCommunication,
     setCommunications,
     setVisualizationPaused,
@@ -325,7 +344,7 @@ export default function TraceDetails({
               <ChevronLeftIcon />
             </Button>
             <span className="user-select-none">
-              {selectedSpanIndex + 1} / {traceOverview.spanCount}
+              {selectedSpanIndex + 1} / {spanData.flat.length}
             </span>
             <Button
               variant="white"

@@ -38,8 +38,8 @@ export function StudyDownloadButton() {
     landscapeData,
     showToolsSidebar,
     showSettingsSidebar,
-    openedToolComponent,
-    openedSettingComponent,
+    selectedToolbarTool,
+    selectedSettingsSidebarTab,
   } = use(ChatbotContext);
   const { canGoBack, canGoForward } = use(EditingContext);
   const visualizationSettings = useUserSettingsStore(
@@ -70,8 +70,8 @@ export function StudyDownloadButton() {
         canGoForward,
         showToolsSidebar,
         showSettingsSidebar,
-        openedToolComponent,
-        openedSettingComponent,
+        openedToolComponent: selectedToolbarTool,
+        openedSettingComponent: selectedSettingsSidebarTab,
         visualizationSettings: flattenSettings(visualizationSettings),
         defaultVisualizationSettings: flattenSettings(defaultVizSettings),
       },

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { Button, Form, Modal } from 'react-bootstrap';
 
 export type LandscapeTokenCreateParams = {
@@ -27,15 +27,17 @@ export default function TokenCreationModal({
   const [formState, setFormState] =
     useState<LandscapeTokenCreateParams>(emptyFormState);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [prevShow, setPrevShow] = useState(show);
 
-  useEffect(() => {
+  if (show !== prevShow) {
     if (!show) {
       setFormState(emptyFormState());
       setIsSubmitting(false);
     }
-  }, [show]);
+    setPrevShow(show);
+  }
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.SubmitEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
 

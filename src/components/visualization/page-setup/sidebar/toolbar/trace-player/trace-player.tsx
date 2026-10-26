@@ -1,16 +1,23 @@
 import { SortAscIcon, SortDescIcon } from '@primer/octicons-react';
 import useTraceCatalogFetch from 'explorviz-frontend/src/hooks/fetch/useTraceCatalogFetch';
 import { useCommitTreeStateStore } from 'explorviz-frontend/src/stores/commit-tree-state';
+import { useLandscapeTokenStore } from 'explorviz-frontend/src/stores/landscape-token';
 import { useTimestampStore } from 'explorviz-frontend/src/stores/timestamp';
 import { useToastHandlerStore } from 'explorviz-frontend/src/stores/toast-handler';
 import { CROSS_COMMIT_IDENTIFIER } from 'explorviz-frontend/src/utils/evolution-schemes/evolution-data';
 import { TraceOverview } from 'explorviz-frontend/src/utils/landscape-schemes/telemetry/traces';
-import { useEffect, useState } from 'react';
+import { Timestamp } from 'explorviz-frontend/src/utils/landscape-schemes/timestamp';
+import { use, useEffect, useState } from 'react';
 import { Spinner, Table } from 'react-bootstrap';
+import { BottomBarContext } from '../../../bottom-bar/bottom-bar-context';
 import TraceDetails from './trace-details';
 
 export default function TracePlayer() {
-  const [traces, setTraces] = useState<TraceOverview[] | null>(null);
+  const [traceData, setTraceData] = useState<{
+    traces: TraceOverview[];
+    timestamps: Timestamp[];
+  } | null>(null);
+
   const [selectedTrace, setSelectedTrace] = useState<TraceOverview | null>(
     null
   );
@@ -24,54 +31,69 @@ export default function TracePlayer() {
   const repositoryToSelectedCommits = useCommitTreeStateStore(
     (state) => state._selectedCommits
   );
+  const landscapeToken = useLandscapeTokenStore((state) => state.token);
   const showErrorToastMessage = useToastHandlerStore(
     (state) => state.showErrorToastMessage
   );
 
   const selectedCommits = repositoryToSelectedCommits.get(selectedRepository);
 
-  const selectedTimestamps = Array.from(
-    commitToSelectedTimestamps
-      .get(selectedCommits?.[0].commitId ?? CROSS_COMMIT_IDENTIFIER)
-      ?.values() ?? []
+  const selectedTimestamps = commitToSelectedTimestamps.get(
+    selectedCommits?.[0].commitId ?? CROSS_COMMIT_IDENTIFIER
   );
 
-  let [from, to] = selectedTimestamps.reduce(
-    ([min, max], ts) => [
-      min <= ts.fromUnixNano ? min : ts.fromUnixNano,
-      max >= ts.toUnixNano ? max : ts.toUnixNano,
-    ],
-    [selectedTimestamps[0]?.fromUnixNano, selectedTimestamps[0]?.toUnixNano]
-  );
+  const bottomBarContext = use(BottomBarContext);
 
   const fetchTraceCatalog = useTraceCatalogFetch();
 
   useEffect(() => {
+    if (
+      !landscapeToken ||
+      !selectedTimestamps ||
+      selectedTimestamps.length === 0
+    ) {
+      return;
+    }
+
+    const [from, to] = selectedTimestamps.reduce(
+      ([min, max], ts) => [
+        min <= ts.fromUnixNano ? min : ts.fromUnixNano,
+        max >= ts.toUnixNano ? max : ts.toUnixNano,
+      ],
+      [selectedTimestamps[0]?.fromUnixNano, selectedTimestamps[0]?.toUnixNano]
+    );
+
     const fetchTraces = async () => {
       try {
-        const traceOverview = await fetchTraceCatalog({ from: from, to: to });
-        setTraces(traceOverview);
+        const traceOverview = await fetchTraceCatalog({
+          landscapeTokenId: landscapeToken.value,
+          from: from,
+          to: to,
+        });
+        setTraceData({ traces: traceOverview, timestamps: selectedTimestamps });
       } catch (error) {
         console.error(error);
         showErrorToastMessage('Failed to fetch traces for timestamp');
-        setTraces([]);
+        setTraceData({ traces: [], timestamps: selectedTimestamps });
       }
       setSelectedTrace(null);
     };
 
     fetchTraces();
-  }, [from, to, fetchTraceCatalog, showErrorToastMessage]);
-
-  if (selectedCommits && selectedCommits.length > 1) {
-    return <>Multiple commits are selected, no traces available</>;
-  }
-
-  if (selectedTimestamps.length === 0) {
-    return <>Select a timestamp first</>;
-  }
+  }, [
+    selectedTimestamps,
+    landscapeToken,
+    fetchTraceCatalog,
+    showErrorToastMessage,
+  ]);
 
   const handleTraceClick = (trace: TraceOverview) => {
     setSelectedTrace(trace);
+  };
+
+  const handleNoTimestampSelectedClick = () => {
+    bottomBarContext.setIsExpanded(true);
+    bottomBarContext.setSelectedChart('runtime-chart');
   };
 
   return (
@@ -81,7 +103,17 @@ export default function TracePlayer() {
         Follow traces for the current timestamp step-by-step.
       </p>
 
-      {traces === null ? (
+      {selectedCommits && selectedCommits.length > 1 ? (
+        <>Multiple commits are selected, no traces available</>
+      ) : !selectedTimestamps || selectedTimestamps.length === 0 ? (
+        <span>
+          Select a{' '}
+          <a href="#" onClick={handleNoTimestampSelectedClick}>
+            timestamp
+          </a>{' '}
+          to show available traces
+        </span>
+      ) : traceData === null || traceData.timestamps !== selectedTimestamps ? (
         <div className="inline">
           <Spinner size="sm" /> Loading traces for timestamp &hellip;
         </div>
@@ -91,7 +123,10 @@ export default function TracePlayer() {
           onBackClick={() => setSelectedTrace(null)}
         />
       ) : (
-        <TraceSelection traces={traces} onTraceClick={handleTraceClick} />
+        <TraceSelection
+          traces={traceData.traces}
+          onTraceClick={handleTraceClick}
+        />
       )}
     </>
   );
@@ -112,7 +147,7 @@ function TraceSelection({ traces, onTraceClick }: TraceSelectionProps) {
     return <span>No traces available for current timestamp</span>;
   }
 
-  const sortedTraces = traces.sort((a, b) => {
+  const sortedTraces = traces.toSorted((a, b) => {
     let res: number;
     switch (sorting) {
       case 'name':

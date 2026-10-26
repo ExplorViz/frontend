@@ -15,6 +15,24 @@ export const copilotToolComponentIds = Object.keys(
   copilotToolComponentToToolbarTool
 );
 
+/** Resolves a copilot tools-component id (or tab label) to a toolbar tool. */
+export function resolveCopilotToolbarTool(id: string): ToolbarTool | undefined {
+  const trimmed = id.trim();
+  const mapped = copilotToolComponentToToolbarTool[trimmed];
+  if (mapped) {
+    return mapped;
+  }
+  const lower = trimmed.toLowerCase();
+  for (const [key, tool] of Object.entries(copilotToolComponentToToolbarTool)) {
+    if (key.toLowerCase() === lower) {
+      return tool;
+    }
+  }
+  return Object.values(ToolbarTool).find(
+    (tool) => tool.toLowerCase() === lower || tool === trimmed
+  );
+}
+
 /** Copilot setting ids -> settings sidebar tab (see open-close-settings-component). */
 export const copilotSettingComponentToTab: Record<string, SettingsSidebarTab> =
   {
@@ -26,3 +44,27 @@ export const copilotSettingComponentToTab: Record<string, SettingsSidebarTab> =
     'Building-Config': SettingsSidebarTab.EntityConfig,
     Settings: SettingsSidebarTab.Settings,
   };
+
+export const copilotSettingComponentIds = Object.keys(
+  copilotSettingComponentToTab
+);
+
+/** Resolves a copilot settings-component id (or tab label) to a settings tab. */
+export function resolveCopilotSettingsTab(
+  id: string
+): SettingsSidebarTab | undefined {
+  const trimmed = id.trim();
+  const mapped = copilotSettingComponentToTab[trimmed];
+  if (mapped) {
+    return mapped;
+  }
+  const lower = trimmed.toLowerCase();
+  for (const [key, tab] of Object.entries(copilotSettingComponentToTab)) {
+    if (key.toLowerCase() === lower) {
+      return tab;
+    }
+  }
+  return Object.values(SettingsSidebarTab).find(
+    (tab) => tab.toLowerCase() === lower || tab === trimmed
+  );
+}

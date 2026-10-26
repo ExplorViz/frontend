@@ -280,20 +280,20 @@ export default function Restructure({
     setCreateAppBtnDisabled(appName === '' || language === '');
   };
 
-  const updateNewAppName = (event: React.FormEvent<HTMLInputElement>) => {
-    const target = event.currentTarget as HTMLInputElement;
+  const updateNewAppName = (event: React.InputEvent<HTMLInputElement>) => {
+    const target = event.currentTarget;
     setAppName(target.value);
     canCreateApplication();
   };
 
-  const updateLanguage = (event: React.FormEvent<HTMLInputElement>) => {
-    const target = event.currentTarget as HTMLInputElement;
+  const updateLanguage = (event: React.InputEvent<HTMLInputElement>) => {
+    const target = event.currentTarget;
     setLanguage(target.value);
     canCreateApplication();
   };
 
-  const updateMethodName = (event: React.FormEvent<HTMLInputElement>) => {
-    const target = event.currentTarget as HTMLInputElement;
+  const updateMethodName = (event: React.InputEvent<HTMLInputElement>) => {
+    const target = event.currentTarget;
     setMethodName(target.value);
   };
 
@@ -347,14 +347,14 @@ export default function Restructure({
     });
   };
 
-  const updateIssueURL = (event: React.FormEvent<HTMLInputElement>) => {
-    const target = event.currentTarget as HTMLInputElement;
+  const updateIssueURL = (event: React.InputEvent<HTMLInputElement>) => {
+    const target = event.currentTarget;
     setIssueURL(target.value);
     canSaveCredentials();
   };
 
-  const updateUploadURL = (event: React.FormEvent<HTMLInputElement>) => {
-    const target = event.currentTarget as HTMLInputElement;
+  const updateUploadURL = (event: React.InputEvent<HTMLInputElement>) => {
+    const target = event.currentTarget;
     setUploadURL(target.value);
     canSaveCredentials();
   };
@@ -385,9 +385,9 @@ export default function Restructure({
 
   const updateIssueTitle = (
     indexToUpdate: number,
-    event: React.FormEvent<HTMLInputElement>
+    event: React.InputEvent<HTMLInputElement>
   ) => {
-    const target = event.currentTarget as HTMLInputElement;
+    const target = event.currentTarget;
     setIssues((prev) =>
       prev.map((issue, index) =>
         index === indexToUpdate ? { ...issue, title: target.value } : issue
@@ -397,9 +397,9 @@ export default function Restructure({
 
   const updateIssueContent = (
     indexToUpdate: number,
-    event: React.FormEvent<HTMLTextAreaElement>
+    event: React.InputEvent<HTMLTextAreaElement>
   ) => {
-    const target = event.currentTarget as HTMLTextAreaElement;
+    const target = event.currentTarget;
     setIssues((prev) =>
       prev.map((issue, index) =>
         index === indexToUpdate ? { ...issue, content: target.value } : issue
@@ -474,8 +474,8 @@ export default function Restructure({
     setCreatePersonalSnapshot(false);
   };
 
-  const updateName = (event: React.FormEvent<HTMLInputElement>) => {
-    const target = event.currentTarget as HTMLInputElement;
+  const updateName = (event: React.InputEvent<HTMLInputElement>) => {
+    const target = event.currentTarget;
     setSnapshotName(target.value);
     canSaveSnapShot();
   };
@@ -484,8 +484,8 @@ export default function Restructure({
     setSaveSnaphotBtnDisabled(snapshotName === '');
   };
 
-  const updateExpDate = (event: React.FormEvent<HTMLInputElement>) => {
-    const target = event.currentTarget as HTMLInputElement;
+  const updateExpDate = (event: React.InputEvent<HTMLInputElement>) => {
+    const target = event.currentTarget;
     const date = convertDate(target.value);
     setExpDate(date);
   };

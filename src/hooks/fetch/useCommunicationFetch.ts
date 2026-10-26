@@ -1,5 +1,4 @@
 import { useAuthStore } from 'explorviz-frontend/src/stores/auth';
-import { useLandscapeTokenStore } from 'explorviz-frontend/src/stores/landscape-token';
 import { getTraceServiceUrl } from 'explorviz-frontend/src/utils/landscape-http-request-util';
 import {
   CommSummary,
@@ -8,6 +7,11 @@ import {
 import { useCallback } from 'react';
 
 export interface CommunicationSearchParams {
+  /**
+   * Identifier of the landscape for which to fetch communication.
+   */
+  landscapeTokenId: string;
+
   /**
    * Beginning of time range (inclusive) within which to search for communication.
    * Specified in nanoseconds since Unix epoch.
@@ -32,12 +36,11 @@ export interface CommunicationSearchParams {
 }
 
 /**
- * Provides a fetch function to search for communication (dynamic data) belonging to the
- * current landscape, with search parameters available via {@link CommunicationSearchParams}.
+ * Provides a fetch function to search for communication (dynamic data) belonging to
+ * a landscape, with search parameters available via {@link CommunicationSearchParams}.
  * @returns an asynchronous function for fetching communication data for a landscape
  */
 export default function useCommunicationFetch() {
-  const landscapeToken = useLandscapeTokenStore((state) => state.token);
   const accessToken = useAuthStore((state) => state.accessToken);
 
   const fetchCommunication = useCallback(
@@ -47,12 +50,8 @@ export default function useCommunicationFetch() {
         throw new Error('Trace service URL not configured');
       }
 
-      if (!landscapeToken) {
-        throw new Error('No landscape token selected');
-      }
-
       const requestUrl = new URL(
-        `${traceServiceUrl}/v3/landscapes/${landscapeToken.value}/communication`
+        `${traceServiceUrl}/v3/landscapes/${params.landscapeTokenId}/communication`
       );
 
       for (const [key, value] of Object.entries(params)) {
@@ -89,7 +88,7 @@ export default function useCommunicationFetch() {
 
       return receivedCommSummary;
     },
-    [accessToken, landscapeToken]
+    [accessToken]
   );
 
   return fetchCommunication;
