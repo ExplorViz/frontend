@@ -8,6 +8,8 @@ import {
   useEffect,
   useState,
 } from 'react';
+import { SettingsSidebarTab } from '../visualization/page-setup/sidebar/customizationbar/settings-sidebar-context';
+import { ToolbarTool } from '../visualization/page-setup/sidebar/toolbar/toolbar-context';
 import { CopilotResources } from './copilot-resources';
 import { CopilotTools } from './copilot-tools';
 import { PingIndicator } from './ping-indicator';
@@ -59,10 +61,10 @@ interface Context {
   setShowToolsSidebar: (open: boolean) => void;
   showSettingsSidebar: boolean;
   setShowSettingsSidebar: (open: boolean) => void;
-  openedToolComponent: string | null;
-  setOpenedToolComponent: (component: string | null) => void;
-  openedSettingComponent: string | null;
-  setOpenedSettingComponent: (component: string | null) => void;
+  selectedToolbarTool: ToolbarTool | null;
+  setSelectedToolbarTool: (tool: ToolbarTool | null) => void;
+  selectedSettingsSidebarTab: string | null;
+  setSelectedSettingsSidebarTab: (tab: SettingsSidebarTab | null) => void;
   entityFilteringControllerRef: RefObject<EntityFilteringController | null> | null;
   entitySearchControllerRef: RefObject<EntitySearchController | null> | null;
   providersError: string | null;
@@ -84,10 +86,10 @@ const defaultContext: Context = {
   setShowToolsSidebar: () => {},
   showSettingsSidebar: false,
   setShowSettingsSidebar: () => {},
-  openedToolComponent: null,
-  setOpenedToolComponent: () => {},
-  openedSettingComponent: null,
-  setOpenedSettingComponent: () => {},
+  selectedToolbarTool: null,
+  setSelectedToolbarTool: () => {},
+  selectedSettingsSidebarTab: null,
+  setSelectedSettingsSidebarTab: () => {},
   entityFilteringControllerRef: null,
   entitySearchControllerRef: null,
   providersError: null,
@@ -113,10 +115,10 @@ interface ChatbotProviderProps extends PropsWithChildren {
   setShowToolsSidebar: (open: boolean) => void;
   showSettingsSidebar: boolean;
   setShowSettingsSidebar: (open: boolean) => void;
-  openedToolComponent: string | null;
-  setOpenedToolComponent: (component: string | null) => void;
-  openedSettingComponent: string | null;
-  setOpenedSettingComponent: (component: string | null) => void;
+  selectedToolbarTool: ToolbarTool | null;
+  setSelectedToolbarTool: (tool: ToolbarTool | null) => void;
+  selectedSettingsSidebarTab: string | null;
+  setSelectedSettingsSidebarTab: (tab: SettingsSidebarTab | null) => void;
   entityFilteringControllerRef: RefObject<EntityFilteringController | null> | null;
   entitySearchControllerRef: RefObject<EntitySearchController | null> | null;
 }
@@ -129,10 +131,10 @@ export function ChatbotProvider({
   setShowToolsSidebar,
   showSettingsSidebar,
   setShowSettingsSidebar,
-  openedToolComponent,
-  setOpenedToolComponent,
-  openedSettingComponent,
-  setOpenedSettingComponent,
+  selectedToolbarTool,
+  setSelectedToolbarTool,
+  selectedSettingsSidebarTab,
+  setSelectedSettingsSidebarTab,
   entityFilteringControllerRef,
   entitySearchControllerRef,
 }: ChatbotProviderProps) {
@@ -323,7 +325,7 @@ export function ChatbotProvider({
     Boolean(copilotRuntimeUrl) &&
     !copilotRuntimeError;
 
-  const chatbotContextValue = {
+  const chatbotContextValue: Context = {
     providers,
     selectedProvider,
     setSelectedProvider: setSelectedProviderPersistent,
@@ -335,10 +337,10 @@ export function ChatbotProvider({
     setShowToolsSidebar,
     showSettingsSidebar,
     setShowSettingsSidebar,
-    openedToolComponent,
-    setOpenedToolComponent,
-    openedSettingComponent,
-    setOpenedSettingComponent,
+    selectedToolbarTool,
+    setSelectedToolbarTool,
+    selectedSettingsSidebarTab,
+    setSelectedSettingsSidebarTab,
     entityFilteringControllerRef,
     entitySearchControllerRef,
     providersError,

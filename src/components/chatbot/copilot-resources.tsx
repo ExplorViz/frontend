@@ -76,8 +76,8 @@ export function CopilotResources({ cities }: CopilotResourcesProps) {
   const {
     showToolsSidebar,
     showSettingsSidebar,
-    openedToolComponent,
-    openedSettingComponent,
+    selectedToolbarTool,
+    selectedSettingsSidebarTab,
   } = use(ChatbotContext);
 
   useCopilotReadable({
@@ -139,12 +139,12 @@ export function CopilotResources({ cities }: CopilotResourcesProps) {
   useCopilotReadable({
     description:
       'Gets the identifier of the currently opened component in the tools sidebar, or null if none is open.',
-    value: JSON.stringify(openedToolComponent),
+    value: JSON.stringify(selectedToolbarTool),
   });
   useCopilotReadable({
     description:
       'Gets the identifier of the currently opened component in the settings sidebar, or null if none is open.',
-    value: JSON.stringify(openedSettingComponent),
+    value: JSON.stringify(selectedSettingsSidebarTab),
   });
   return null;
 }

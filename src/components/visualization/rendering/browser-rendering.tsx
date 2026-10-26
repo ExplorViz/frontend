@@ -118,16 +118,6 @@ export default function BrowserRendering({
     (state) => state.closeConnection
   );
 
-  const [showToolsSidebar, setShowToolsSidebar] = useState<boolean>(false);
-  const [showSettingsSidebar, setShowSettingsSidebar] =
-    useState<boolean>(false);
-  const [openedToolComponent, setOpenedToolComponent] = useState<string | null>(
-    null
-  );
-  const [openedSettingComponent, setOpenedSettingComponent] = useState<
-    string | null
-  >(null);
-
   // MARK: Event handlers
 
   const removeAnnotation = (annotationId: number) => {
@@ -195,7 +185,7 @@ export default function BrowserRendering({
 
   const toolbarActions: ToolbarActions = {
     setShowSidebar: (showSidebar) =>
-      setToolbarState((state) => ({ ...state, showSidebar: false })),
+      setToolbarState((state) => ({ ...state, showSidebar: showSidebar })),
 
     openTool: (tool) =>
       setToolbarState((state) => ({
@@ -251,8 +241,12 @@ export default function BrowserRendering({
       })),
   };
 
+  const showToolsSidebar = toolbarState.showSidebar;
+  const setShowToolsSidebar = (isShow: boolean) =>
+    setToolbarState({ ...toolbarState, showSidebar: isShow });
+
   const selectedToolbarTool = toolbarState.selectedTool;
-  const setSelectedToolbarTool = (tool: ToolbarTool) =>
+  const setSelectedToolbarTool = (tool: ToolbarTool | null) =>
     setToolbarState((state) => ({
       ...state,
       selectedTool: tool === selectedToolbarTool ? null : tool,
@@ -270,6 +264,12 @@ export default function BrowserRendering({
       })),
   };
 
+  const showSettingsSidebar = settingsSidebarState.showSidebar;
+  const setShowSettingsSidebar = (isShow: boolean) =>
+    setSettingsSidebarState((state) => ({
+      ...state,
+      showSidebar: isShow,
+    }));
   const selectedSettingsSidebarTab = settingsSidebarState.selectedTab;
   const setSelectedSettingsSidebarTab = (tab: SettingsSidebarTab | null) =>
     setSettingsSidebarState((state) => ({
@@ -323,10 +323,10 @@ export default function BrowserRendering({
         setShowToolsSidebar={setShowToolsSidebar}
         showSettingsSidebar={showSettingsSidebar}
         setShowSettingsSidebar={setShowSettingsSidebar}
-        openedToolComponent={openedToolComponent}
-        setOpenedToolComponent={setOpenedToolComponent}
-        openedSettingComponent={openedSettingComponent}
-        setOpenedSettingComponent={setOpenedSettingComponent}
+        selectedToolbarTool={selectedToolbarTool}
+        setSelectedToolbarTool={setSelectedToolbarTool}
+        selectedSettingsSidebarTab={selectedSettingsSidebarTab}
+        setSelectedSettingsSidebarTab={setSelectedSettingsSidebarTab}
         entityFilteringControllerRef={entityFilteringRef}
         entitySearchControllerRef={entitySearchRef}
       >
