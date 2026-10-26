@@ -79,6 +79,14 @@ export function computeAggregatedCommunication(allCommunications: Comm[]) {
       );
       return;
     }
+    if (!modelStore.getModel(sourceEntityId)) {
+      console.error('Could not find model for ID', sourceEntityId);
+      return;
+    }
+    if (!modelStore.getModel(targetEntityId)) {
+      console.error('Could not find model for ID', targetEntityId);
+      return;
+    }
 
     const effSourceId = resolveOpenedParent(sourceEntityId);
     const effTargetId = resolveOpenedParent(targetEntityId);
@@ -135,9 +143,9 @@ export function computeAggregatedCommunication(allCommunications: Comm[]) {
         return;
       }
       if (
-        !isBuilding(sourceEntity) &&
-        !isDistrict(sourceEntity) &&
-        !isCity(sourceEntity)
+        !isBuilding(targetEntity) &&
+        !isDistrict(targetEntity) &&
+        !isCity(targetEntity)
       ) {
         console.error('No target entity for communication found.');
         return;
@@ -179,7 +187,17 @@ export function calculateAggregatedCommunications(
     return;
   }
 
-  const aggregatedCommunications = computeAggregatedCommunication(comms);
+  const getModel = useModelStore.getState().getModel;
+  const telemetryKeyToEntityId =
+    useModelStore.getState().telemetryKeyToEntityId;
+
+  const visibleComms = comms.filter((c) => {
+    const sourceId = telemetryKeyToEntityId.get(c.sourceEntityKey);
+    const targetId = telemetryKeyToEntityId.get(c.targetEntityKey);
+    return sourceId && targetId && getModel(sourceId) && getModel(targetId);
+  });
+
+  const aggregatedCommunications = computeAggregatedCommunication(visibleComms);
   useModelStore
     .getState()
     .setAggregatedCommunications(aggregatedCommunications);
