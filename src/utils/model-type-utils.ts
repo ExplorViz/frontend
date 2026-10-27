@@ -7,6 +7,7 @@ const MODEL_TYPE_TO_LABEL = new Map<ModelType, string>([
   ['database', 'Database'],
   ['rpc', 'RPC'],
   ['http', 'HTTP'],
+  ['messaging', 'Messaging'],
   ['unknown', 'Unknown'],
 ]);
 

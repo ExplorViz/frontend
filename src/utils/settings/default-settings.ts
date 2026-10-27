@@ -207,6 +207,7 @@ export const defaultVizSettings: VisualizationSettings = {
         unknown: '#808080',
         rpc: '#ff80ff',
         http: '#ffc040',
+        messaging: '#5599ff',
       },
       language: {},
     },
