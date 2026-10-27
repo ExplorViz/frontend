@@ -40,7 +40,10 @@ export function findFirstEntityWithOpenedParent(entityId: string) {
   }
 
   if (!isDistrict(entity) && !isBuilding(entity)) {
-    console.error('Provided entity has unexpected type:', entity);
+    console.error(
+      `Provided entity with ID ${entityId} has unexpected type:`,
+      entity
+    );
     return entityId;
   }
   const parentId = entity.parentDistrictId ?? entity.parentCityId;
