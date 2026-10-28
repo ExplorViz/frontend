@@ -64,6 +64,7 @@ export const MODEL_TYPES = [
   'database',
   'rpc',
   'http',
+  'messaging',
 ] as const;
 
 export type ModelType = (typeof MODEL_TYPES)[number];
