@@ -1142,6 +1142,7 @@ export const defaultVizSettings: VisualizationSettings = {
       modelType: {
         unknown: 'Sphere',
         http: 'Cylinder',
+        messaging: 'Cone',
       },
       language: {},
     },
