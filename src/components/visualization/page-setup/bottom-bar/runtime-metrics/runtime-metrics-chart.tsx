@@ -1,6 +1,7 @@
 import HelpTooltip from 'explorviz-frontend/src/components/help-tooltip';
 import NestedDropdownButton from 'explorviz-frontend/src/components/nested-dropdown-button';
 import { useAuthStore } from 'explorviz-frontend/src/stores/auth';
+import { useCameraControlsStore } from 'explorviz-frontend/src/stores/camera-controls-store';
 import { useLandscapeTokenStore } from 'explorviz-frontend/src/stores/landscape-token';
 import { useModelStore } from 'explorviz-frontend/src/stores/repos/model-repository';
 import { useToastHandlerStore } from 'explorviz-frontend/src/stores/toast-handler';
@@ -10,6 +11,7 @@ import {
   isMetricValues,
   MetricValues,
 } from 'explorviz-frontend/src/utils/landscape-schemes/telemetry/metrics';
+import { pingByModelId } from 'explorviz-frontend/src/view-objects/3d/city/animated-ping-r3f';
 import pluralize from 'pluralize';
 import { use, useEffect, useState } from 'react';
 import { Dropdown, DropdownButton, Form } from 'react-bootstrap';
@@ -53,6 +55,7 @@ export default function RuntimeMetricsChart() {
   );
   const landscapeToken = useLandscapeTokenStore((state) => state.token);
   const accessToken = useAuthStore((state) => state.accessToken);
+  const lookAtEntity = useCameraControlsStore((state) => state.lookAtEntity);
   const showErrorToastMessage = useToastHandlerStore(
     (state) => state.showErrorToastMessage
   );
@@ -180,6 +183,11 @@ export default function RuntimeMetricsChart() {
       entities.find((e) => e.id === selectedEntityId) ??
       services.find((s) => s.id === selectedEntityId);
     setSelectedEntity(entity ?? null);
+
+    if (entity) {
+      lookAtEntity(entity.id);
+      pingByModelId(entity.id);
+    }
   };
 
   if (!metric) {
