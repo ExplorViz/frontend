@@ -1,6 +1,7 @@
 import {
   AlertIcon,
   ArrowSwitchIcon,
+  ChatIcon,
   CodeIcon,
   DatabaseIcon,
   GlobeIcon,
@@ -94,6 +95,9 @@ function SpanTreeItem({
       break;
     case 'rpc':
       typeIcon = <ArrowSwitchIcon />;
+      break;
+    case 'messaging':
+      typeIcon = <ChatIcon />;
       break;
     default:
       typeIcon = <QuestionIcon />;
