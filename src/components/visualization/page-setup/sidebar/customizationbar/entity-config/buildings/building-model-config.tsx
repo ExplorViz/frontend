@@ -1,4 +1,5 @@
 import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
+import { defaultVizSettings } from 'explorviz-frontend/src/utils/settings/default-settings';
 import {
   AppearanceOverrideGroupKey,
   BUILDING_GEOMETRY_OPTIONS,
@@ -73,22 +74,7 @@ function BuildingModelConfigItem({
   const selectedGeometry =
     buildingGeometryOverrides.value[overrideGroupKey][value];
 
-  const handleResetColor = () => {
-    updateSetting('buildingColorOverrides', {
-      ...buildingColorOverrides.value,
-      [overrideGroupKey]: {
-        ...buildingColorOverrides.value[overrideGroupKey],
-        [value]: undefined,
-      },
-    });
-  };
-
-  const handleChangeColor = (newColor: string | null) => {
-    if (newColor === null) {
-      handleResetColor();
-      return;
-    }
-
+  const handleChangeColor = (newColor: string | undefined) => {
     updateSetting('buildingColorOverrides', {
       ...buildingColorOverrides.value,
       [overrideGroupKey]: {
@@ -98,7 +84,15 @@ function BuildingModelConfigItem({
     });
   };
 
-  const handleChangeGeometry = (newGeometry: BuildingGeometryType) => {
+  const handleResetColor = () => {
+    const defaultValue =
+      defaultVizSettings.buildingColorOverrides.value[overrideGroupKey][value];
+    handleChangeColor(defaultValue);
+  };
+
+  const handleChangeGeometry = (
+    newGeometry: BuildingGeometryType | undefined
+  ) => {
     updateSetting('buildingGeometryOverrides', {
       ...buildingGeometryOverrides.value,
       [overrideGroupKey]: {
@@ -109,12 +103,11 @@ function BuildingModelConfigItem({
   };
 
   const handleResetGeometry = () => {
-    const { [value]: _, ...without } =
-      buildingGeometryOverrides.value[overrideGroupKey];
-    updateSetting('buildingGeometryOverrides', {
-      ...buildingGeometryOverrides.value,
-      [overrideGroupKey]: without,
-    });
+    const defaultValue =
+      defaultVizSettings.buildingGeometryOverrides.value[overrideGroupKey][
+        value
+      ];
+    handleChangeGeometry(defaultValue);
   };
 
   return (
@@ -125,7 +118,9 @@ function BuildingModelConfigItem({
           label="Building color"
           initialValue={null}
           value={selectedColor}
-          onChange={handleChangeColor}
+          onChange={(v) =>
+            v !== null ? handleChangeColor(v) : handleResetColor()
+          }
         />
       </div>
       <div className="building-config-control-block">

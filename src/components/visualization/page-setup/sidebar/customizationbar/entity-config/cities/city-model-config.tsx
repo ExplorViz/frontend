@@ -1,5 +1,6 @@
 import { AlertIcon } from '@primer/octicons-react';
 import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
+import { defaultVizSettings } from 'explorviz-frontend/src/utils/settings/default-settings';
 import {
   AppearanceOverrideGroupKey,
   CITY_GEOMETRY_OPTIONS,
@@ -78,22 +79,7 @@ function CityModelConfigItem({
   const selectedColor = cityColorOverrides.value[overrideGroupKey][value];
   const selectedGeometry = cityGeometryOverrides.value[overrideGroupKey][value];
 
-  const handleResetColor = () => {
-    updateSetting('cityColorOverrides', {
-      ...cityColorOverrides.value,
-      [overrideGroupKey]: {
-        ...cityColorOverrides.value[overrideGroupKey],
-        [value]: undefined,
-      },
-    });
-  };
-
-  const handleChangeColor = (newColor: string | null) => {
-    if (newColor === null) {
-      handleResetColor();
-      return;
-    }
-
+  const handleChangeColor = (newColor: string | undefined) => {
     updateSetting('cityColorOverrides', {
       ...cityColorOverrides.value,
       [overrideGroupKey]: {
@@ -103,7 +89,13 @@ function CityModelConfigItem({
     });
   };
 
-  const handleChangeGeometry = (newGeometry: CityGeometryType) => {
+  const handleResetColor = () => {
+    const defaultValue =
+      defaultVizSettings.cityColorOverrides.value[overrideGroupKey][value];
+    handleChangeColor(defaultValue);
+  };
+
+  const handleChangeGeometry = (newGeometry: CityGeometryType | undefined) => {
     updateSetting('cityGeometryOverrides', {
       ...cityGeometryOverrides.value,
       [overrideGroupKey]: {
@@ -114,12 +106,9 @@ function CityModelConfigItem({
   };
 
   const handleResetGeometry = () => {
-    const { [value]: _, ...without } =
-      cityGeometryOverrides.value[overrideGroupKey];
-    updateSetting('cityGeometryOverrides', {
-      ...cityGeometryOverrides.value,
-      [overrideGroupKey]: without,
-    });
+    const defaultValue =
+      defaultVizSettings.cityGeometryOverrides.value[overrideGroupKey][value];
+    handleChangeGeometry(defaultValue);
   };
 
   return (
@@ -130,7 +119,9 @@ function CityModelConfigItem({
           label="City color"
           initialValue={null}
           value={selectedColor}
-          onChange={handleChangeColor}
+          onChange={(v) =>
+            v !== null ? handleChangeColor(v) : handleResetColor()
+          }
         />
       </div>
 

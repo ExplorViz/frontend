@@ -1,4 +1,5 @@
 import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
+import { defaultVizSettings } from 'explorviz-frontend/src/utils/settings/default-settings';
 import { AppearanceOverrideGroupKey } from 'explorviz-frontend/src/utils/settings/settings-schemas';
 import { Accordion } from 'react-bootstrap';
 import ColorPicker from '../../settings/color-picker';
@@ -64,22 +65,7 @@ function DistrictModelConfigItem({
 
   const selectedColor = districtColorOverrides.value[overrideGroupKey][value];
 
-  const handleResetColor = () => {
-    updateSetting('districtColorOverrides', {
-      ...districtColorOverrides.value,
-      [overrideGroupKey]: {
-        ...districtColorOverrides.value[overrideGroupKey],
-        [value]: undefined,
-      },
-    });
-  };
-
-  const handleChangeColor = (newColor: string | null) => {
-    if (newColor === null) {
-      handleResetColor();
-      return;
-    }
-
+  const handleChangeColor = (newColor: string | undefined) => {
     updateSetting('districtColorOverrides', {
       ...districtColorOverrides.value,
       [overrideGroupKey]: {
@@ -87,6 +73,12 @@ function DistrictModelConfigItem({
         [value]: newColor,
       },
     });
+  };
+
+  const handleResetColor = () => {
+    const defaultValue =
+      defaultVizSettings.districtColorOverrides.value[overrideGroupKey][value];
+    handleChangeColor(defaultValue);
   };
 
   return (
@@ -97,7 +89,9 @@ function DistrictModelConfigItem({
           label="District color"
           initialValue={null}
           value={selectedColor}
-          onChange={handleChangeColor}
+          onChange={(v) =>
+            v !== null ? handleChangeColor(v) : handleResetColor()
+          }
         />
       </div>
     </div>
