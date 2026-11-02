@@ -8,6 +8,7 @@ import { FlatLandscape } from 'explorviz-frontend/src/utils/landscape-schemes/fl
 import { StructureLandscapeData } from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
 import { DynamicLandscapeData } from 'explorviz-frontend/src/utils/landscape-schemes/telemetry/traces';
 import { Timestamp } from 'explorviz-frontend/src/utils/landscape-schemes/timestamp';
+import { getResponseErrorMessage } from 'explorviz-frontend/src/utils/response-error';
 import { reject } from 'rsvp';
 import { create } from 'zustand';
 
@@ -134,7 +135,12 @@ export const useSnapshotTokenStore = create<SnapshotTokenState>((set, get) => ({
             });
             useToastHandlerStore
               .getState()
-              .showErrorToastMessage('Snapshots could not be loaded.');
+              .showErrorToastMessage(
+                await getResponseErrorMessage(
+                  response,
+                  'Snapshots could not be loaded.'
+                )
+              );
           }
         })
         .catch(async () => {
@@ -174,7 +180,12 @@ export const useSnapshotTokenStore = create<SnapshotTokenState>((set, get) => ({
             reject();
             useToastHandlerStore
               .getState()
-              .showErrorToastMessage('Snapshot could not be loaded.');
+              .showErrorToastMessage(
+                await getResponseErrorMessage(
+                  response,
+                  'Snapshot could not be loaded.'
+                )
+              );
           }
         })
         .catch(async () => {
@@ -208,12 +219,20 @@ export const useSnapshotTokenStore = create<SnapshotTokenState>((set, get) => ({
         } else if (response.status === 422) {
           useToastHandlerStore
             .getState()
-            .showErrorToastMessage('Snapshot already exists.');
+            .showErrorToastMessage(
+              await getResponseErrorMessage(
+                response,
+                'Snapshot already exists.'
+              )
+            );
         } else {
           useToastHandlerStore
             .getState()
             .showErrorToastMessage(
-              'Something went wrong. Snapshot could not be saved.'
+              await getResponseErrorMessage(
+                response,
+                'Something went wrong. Snapshot could not be saved.'
+              )
             );
         }
       })
@@ -235,7 +254,9 @@ export const useSnapshotTokenStore = create<SnapshotTokenState>((set, get) => ({
         if (!response.ok) {
           useToastHandlerStore
             .getState()
-            .showErrorToastMessage('Something went wrong.');
+            .showErrorToastMessage(
+              await getResponseErrorMessage(response, 'Something went wrong.')
+            );
         }
       })
       .catch(async () => {
@@ -278,7 +299,10 @@ export const useSnapshotTokenStore = create<SnapshotTokenState>((set, get) => ({
           useToastHandlerStore
             .getState()
             .showErrorToastMessage(
-              'Something went wrong. Snapshot could not be shared.'
+              await getResponseErrorMessage(
+                response,
+                'Something went wrong. Snapshot could not be shared.'
+              )
             );
         }
       })
@@ -304,7 +328,12 @@ export const useSnapshotTokenStore = create<SnapshotTokenState>((set, get) => ({
         if (!response.ok) {
           useToastHandlerStore
             .getState()
-            .showErrorToastMessage('Subscribed Snapshot could not be deleted.');
+            .showErrorToastMessage(
+              await getResponseErrorMessage(
+                response,
+                'Subscribed Snapshot could not be deleted.'
+              )
+            );
         } else {
           useToastHandlerStore
             .getState()
@@ -329,7 +358,10 @@ export const useSnapshotTokenStore = create<SnapshotTokenState>((set, get) => ({
             useToastHandlerStore
               .getState()
               .showErrorToastMessage(
-                'Something went wrong. Snapshot could not be deleted.'
+                await getResponseErrorMessage(
+                  response,
+                  'Something went wrong. Snapshot could not be deleted.'
+                )
               );
           }
         })

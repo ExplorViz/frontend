@@ -1,5 +1,6 @@
 import { useAuthStore } from 'explorviz-frontend/src/stores/auth';
 import { useToastHandlerStore } from 'explorviz-frontend/src/stores/toast-handler';
+import { getResponseErrorMessage } from 'explorviz-frontend/src/utils/response-error';
 import { create } from 'zustand';
 
 const collaborationServiceApi = import.meta.env.VITE_COLLAB_SERV_URL;
@@ -74,7 +75,10 @@ export const useSpectateConfigurationStore = create<SpectateConfigurationState>(
             useToastHandlerStore
               .getState()
               .showErrorToastMessage(
-                'Something went wrong. Spectate configuration could not be saved.'
+                await getResponseErrorMessage(
+                  response,
+                  'Something went wrong. Spectate configuration could not be saved.'
+                )
               );
           }
         })
@@ -120,7 +124,10 @@ export const useSpectateConfigurationStore = create<SpectateConfigurationState>(
             useToastHandlerStore
               .getState()
               .showErrorToastMessage(
-                'Something went wrong. Spectate configuration could not be updated.'
+                await getResponseErrorMessage(
+                  response,
+                  'Something went wrong. Spectate configuration could not be updated.'
+                )
               );
           }
         })
@@ -166,7 +173,10 @@ export const useSpectateConfigurationStore = create<SpectateConfigurationState>(
             useToastHandlerStore
               .getState()
               .showErrorToastMessage(
-                'Something went wrong. Spectate configuration could not be deleted.'
+                await getResponseErrorMessage(
+                  response,
+                  'Something went wrong. Spectate configuration could not be deleted.'
+                )
               );
           }
         })

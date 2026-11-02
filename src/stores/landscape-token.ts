@@ -1,5 +1,6 @@
 import { useAuthStore } from 'explorviz-frontend/src/stores/auth';
 import { useToastHandlerStore } from 'explorviz-frontend/src/stores/toast-handler';
+import { getResponseErrorMessage } from 'explorviz-frontend/src/utils/response-error';
 import { create } from 'zustand';
 
 const userService = import.meta.env.VITE_USER_SERV_URL;
@@ -166,7 +167,12 @@ export const useLandscapeTokenStore = create<LandscapeTokenState>(
       });
 
       if (!response.ok) {
-        throw new Error('Failed to create landscape token');
+        throw new Error(
+          await getResponseErrorMessage(
+            response,
+            'Failed to create landscape token'
+          )
+        );
       }
 
       const token = (await response.json()) as LandscapeToken;
@@ -185,7 +191,10 @@ export const useLandscapeTokenStore = create<LandscapeTokenState>(
 
       if (!response.ok) {
         throw new Error(
-          'Failed to update landscape token alias - Status' + response.status
+          await getResponseErrorMessage(
+            response,
+            'Failed to update landscape token alias'
+          )
         );
       }
     },

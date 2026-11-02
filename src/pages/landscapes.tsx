@@ -1,3 +1,4 @@
+import { getResponseErrorMessage } from 'explorviz-frontend/src/utils/response-error';
 import SnapshotSelection from 'explorviz-frontend/src/components/snapshot-selection';
 import TokenCreationModal, {
   LandscapeTokenCreateParams,
@@ -197,7 +198,7 @@ export default function Landscapes() {
             const token = await response.json();
             resolve(token);
           } else {
-            reject(new Error('Something went wrong'));
+            reject(new Error(await getResponseErrorMessage(response)));
           }
         })
         .catch((e) => reject(e));
@@ -220,9 +221,13 @@ export default function Landscapes() {
           if (response.ok) {
             resolve(undefined);
           } else if (response.status === 404) {
-            reject(new Error('Token not found'));
+            reject(
+              new Error(
+                await getResponseErrorMessage(response, 'Token not found')
+              )
+            );
           } else {
-            reject(new Error('Something went wrong'));
+            reject(new Error(await getResponseErrorMessage(response)));
           }
         })
         .catch((e) => reject(e));

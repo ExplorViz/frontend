@@ -13,6 +13,7 @@ import {
   FlatLandscape,
   isFlatLandscape,
 } from 'explorviz-frontend/src/utils/landscape-schemes/flat-landscape';
+import { getResponseErrorMessage } from 'explorviz-frontend/src/utils/response-error';
 import { useModelStore } from '../stores/repos/model-repository';
 import { findFirstEntityWithOpenedParent } from './city-rendering/communication-layouter';
 import AggregatedCommunication from './landscape-schemes/dynamic/aggregated-communication';
@@ -108,7 +109,7 @@ export function requestStructureData() {
     )
       .then(async (response: Response) => {
         if (!response.ok) {
-          return reject(new Error(`Non-ok response status ${response.status}`));
+          return reject(new Error(await getResponseErrorMessage(response)));
         }
         const structureData = await response.json();
         return isFlatLandscape(structureData)
@@ -142,7 +143,7 @@ export function requestDynamicData(fromTimestamp: bigint, toTimestamp: bigint) {
     )
       .then(async (response: Response) => {
         if (!response.ok) {
-          return reject(new Error(`Non-ok response status ${response.status}`));
+          return reject(new Error(await getResponseErrorMessage(response)));
         }
         const dynamicData = JSON.parse(await response.text(), (k, v) => {
           return k === 'fromUnixNano' || k === 'toUnixNano' ? BigInt(v) : v;
@@ -172,8 +173,14 @@ export function deleteTraceData(): Promise<void> {
     )
       .then(async (response: Response) => {
         if (!response.ok) {
-          const errorText = await response.text();
-          return reject(new Error(`Failed to delete trace data: ${errorText}`));
+          return reject(
+            new Error(
+              await getResponseErrorMessage(
+                response,
+                'Failed to delete trace data'
+              )
+            )
+          );
         }
         return resolve();
       })
@@ -205,7 +212,7 @@ export async function requestEntitySpans(
     },
   });
   if (!response.ok) {
-    throw new Error(`Non-ok response status ${response.status}`);
+    throw new Error(await getResponseErrorMessage(response));
   }
 
   const spans = JSON.parse(await response.text(), (k, v) => {
@@ -255,7 +262,7 @@ export async function requestCommunicationSpans(
     }
   );
   if (!response.ok) {
-    throw new Error(`Non-ok response status ${response.status}`);
+    throw new Error(await getResponseErrorMessage(response));
   }
 
   const commSpans = JSON.parse(await response.text(), (k, v) => {
@@ -339,7 +346,7 @@ export async function requestCommunicationFunctions(
     }
   );
   if (!response.ok) {
-    throw new Error(`Non-ok response status ${response.status}`);
+    throw new Error(await getResponseErrorMessage(response));
   }
 
   const commFuncs = await response.json();
@@ -381,7 +388,10 @@ export function requestFileDetailedData(
         if (!response.ok) {
           return reject(
             new Error(
-              `Failed to fetch file detailed data: ${response.statusText}`
+              await getResponseErrorMessage(
+                response,
+                'Failed to fetch file detailed data'
+              )
             )
           );
         }
@@ -436,7 +446,15 @@ export function requestFileHistory(
     })
       .then(async (response) => {
         if (response.ok) resolve((await response.json()) as FileHistory[]);
-        else reject();
+        else
+          reject(
+            new Error(
+              await getResponseErrorMessage(
+                response,
+                'Failed to fetch file history'
+              )
+            )
+          );
       })
       .catch(reject);
   });
@@ -467,7 +485,9 @@ export async function requestRenameCity(
   );
 
   if (!response.ok) {
-    throw new Error(`Failed to rename city - Status ${response.status}`);
+    throw new Error(
+      await getResponseErrorMessage(response, 'Failed to rename city')
+    );
   }
 
   return (await response.json()) as { id: string; name: string };

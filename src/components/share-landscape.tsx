@@ -8,6 +8,7 @@ import {
 import { useAuthStore } from 'explorviz-frontend/src/stores/auth';
 import { LandscapeToken } from 'explorviz-frontend/src/stores/landscape-token';
 import { useToastHandlerStore } from 'explorviz-frontend/src/stores/toast-handler';
+import { getResponseErrorMessage } from 'explorviz-frontend/src/utils/response-error';
 import React, { useState } from 'react';
 import { OverlayTrigger, Popover, Tooltip } from 'react-bootstrap';
 
@@ -92,9 +93,13 @@ export default function ShareLandscape(args: ShareLandscapeArgs) {
           if (response.ok) {
             resolve(undefined);
           } else if (response.status === 404) {
-            reject(new Error('Token not found'));
+            reject(
+              new Error(
+                await getResponseErrorMessage(response, 'Token not found')
+              )
+            );
           } else {
-            reject(new Error('Something went wrong'));
+            reject(new Error(await getResponseErrorMessage(response)));
           }
         })
         .catch((e) => reject(e));
