@@ -24,21 +24,21 @@ import {
   Span,
 } from './landscape-schemes/telemetry/traces';
 
-/** Base URL for landscape API. Empty string uses same-origin (Vite dev proxy in development). */
+/** Base URL for landscape API. Uses the browser origin when unset (Vite dev proxy in development). */
 export function getLandscapeServiceUrl(): string {
   const configured = import.meta.env.VITE_LANDSCAPE_SERV_URL as
     string | undefined;
   if (configured === undefined || configured === '') {
-    return '';
+    return window.location.origin;
   }
   return configured.replace(/\/$/, '');
 }
 
-/** Base URL for trace API. Empty string uses same-origin (Vite dev proxy in development). */
+/** Base URL for trace API. Uses the browser origin when unset (Vite dev proxy in development). */
 export function getTraceServiceUrl(): string {
   const configured = import.meta.env.VITE_TRACE_SERV_URL as string | undefined;
   if (configured === undefined || configured === '') {
-    return '';
+    return window.location.origin;
   }
   return configured.replace(/\/$/, '');
 }
@@ -47,16 +47,16 @@ export function getMetricsServiceUrl(): string {
   const configured = import.meta.env.VITE_METRICS_SERV_URL as
     string | undefined;
   if (configured === undefined || configured === '') {
-    return '';
+    return window.location.origin;
   }
   return configured.replace(/\/$/, '');
 }
 
-/** Base URL for log API. Empty string uses same-origin (Vite dev proxy in development). */
+/** Base URL for log API. Uses the browser origin when unset (Vite dev proxy in development). */
 export function getLogServiceUrl(): string {
   const configured = import.meta.env.VITE_LOG_SERV_URL as string | undefined;
   if (configured === undefined || configured === '') {
-    return '';
+    return window.location.origin;
   }
   return configured.replace(/\/$/, '');
 }

@@ -5,12 +5,24 @@ import { defineConfig, loadEnv } from 'vite';
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), '');
   const landscapeTarget =
-    env.VITE_LANDSCAPE_SERV_URL || 'http://localhost:8085';
+    env.LANDSCAPE_SERV_URL ||
+    env.VITE_LANDSCAPE_SERV_URL ||
+    'http://localhost:8085';
   const codeAnalyzerTarget =
-    env.VITE_CODE_ANALYZER_URL || 'http://localhost:8078';
-  const traceTarget = env.VITE_TRACE_SERV_URL || 'http://localhost:8081';
-  const metricsTarget = env.VITE_METRICS_SERV_URL || 'http://localhost:8082';
-  const logTarget = env.VITE_LOG_SERV_URL || 'http://localhost:8083';
+    env.CODE_ANALYZER_URL ||
+    env.VITE_CODE_ANALYZER_URL ||
+    'http://localhost:8078';
+  const traceTarget =
+    env.TRACE_SERV_URL || env.VITE_TRACE_SERV_URL || 'http://localhost:8081';
+  const metricsTarget =
+    env.METRICS_SERV_URL ||
+    env.VITE_METRICS_SERV_URL ||
+    'http://localhost:8082';
+  const logTarget =
+    env.LOG_SERV_URL || env.VITE_LOG_SERV_URL || 'http://localhost:8083';
+
+  const userTarget =
+    env.USER_SERV_URL || env.VITE_USER_SERV_URL || 'http://localhost:8084';
 
   return {
     plugins: [
@@ -63,6 +75,18 @@ export default defineConfig(({ mode }) => {
         },
         '^/v3/landscapes/[^/]+/entities/[^/]+/logs(?:/.*|\\?[^/]+|$)': {
           target: logTarget,
+          changeOrigin: true,
+        },
+        '^/(?:user|token|snapshot|userapi)(?:/|\\?|$)': {
+          target: userTarget,
+          changeOrigin: true,
+        },
+        '/v2/code': {
+          target: landscapeTarget,
+          changeOrigin: true,
+        },
+        '/v2/landscapes': {
+          target: landscapeTarget,
           changeOrigin: true,
         },
         '/v3/landscapes': {

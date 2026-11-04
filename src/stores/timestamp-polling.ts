@@ -17,13 +17,14 @@ import {
 } from 'explorviz-frontend/src/utils/code-analysis-reload';
 import eventEmitter from 'explorviz-frontend/src/utils/event-emitter';
 import { CROSS_COMMIT_IDENTIFIER } from 'explorviz-frontend/src/utils/evolution-schemes/evolution-data';
+import { getTraceServiceUrl } from 'explorviz-frontend/src/utils/landscape-http-request-util';
 import {
   isTimestamp,
   Timestamp,
 } from 'explorviz-frontend/src/utils/landscape-schemes/timestamp';
 import { create } from 'zustand';
 
-const traceService = import.meta.env.VITE_TRACE_SERV_URL;
+const traceService = getTraceServiceUrl();
 const vsCodeService = import.meta.env.VITE_VSCODE_SERV_URL;
 
 export const TIMESTAMP_POLLING_START_EVENT = 'timestamp_polling_start';
