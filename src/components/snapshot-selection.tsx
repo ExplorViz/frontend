@@ -19,7 +19,8 @@ interface SnapshotSelectionArgs {
   reload(): void;
 }
 
-const shareSnapshot = import.meta.env.VITE_SHARE_SNAPSHOT_URL;
+const shareSnapshot =
+  import.meta.env.VITE_SHARE_SNAPSHOT_URL || `${window.location.origin}/`;
 
 export default function SnapshotSelection({
   snapshotInfo,

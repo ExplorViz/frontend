@@ -84,7 +84,6 @@ export default function useTraceCatalogFetch() {
         response = await fetch(requestUrl, {
           headers: {
             Authorization: `Bearer ${accessToken}`,
-            'Access-Control-Allow-Origin': '*',
           },
         });
       } catch (error) {

@@ -135,7 +135,6 @@ export const useEvolutionAnimationFetchServiceStore =
       const response = await fetch(url, {
         headers: {
           Authorization: `Bearer ${useAuthStore.getState().accessToken}`,
-          'Access-Control-Allow-Origin': '*',
         },
       });
 

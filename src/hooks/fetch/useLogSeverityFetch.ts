@@ -10,43 +10,45 @@ import { useCallback } from 'react';
 export default function useLogSeverityFetch() {
   const accessToken = useAuthStore((state) => state.accessToken);
 
-  const fetchLogSeverities = useCallback(async (landscapeTokenId: string) => {
-    const logServiceUrl = getLogServiceUrl();
-    if (logServiceUrl === '') {
-      throw new Error('Log service URL not configured');
-    }
+  const fetchLogSeverities = useCallback(
+    async (landscapeTokenId: string) => {
+      const logServiceUrl = getLogServiceUrl();
+      if (logServiceUrl === '') {
+        throw new Error('Log service URL not configured');
+      }
 
-    const requestUrl = new URL(
-      `${logServiceUrl}/v3/landscapes/${landscapeTokenId}/log-levels`
-    );
+      const requestUrl = new URL(
+        `${logServiceUrl}/v3/landscapes/${landscapeTokenId}/log-levels`
+      );
 
-    let response: Response;
-    try {
-      response = await fetch(requestUrl, {
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-          'Access-Control-Allow-Origin': '*',
-        },
-      });
-    } catch (error) {
-      throw new Error('A network error has occurred', { cause: error });
-    }
+      let response: Response;
+      try {
+        response = await fetch(requestUrl, {
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+          },
+        });
+      } catch (error) {
+        throw new Error('A network error has occurred', { cause: error });
+      }
 
-    if (!response.ok) {
-      throw new Error(`Received non-ok response status ${response.status}`);
-    }
+      if (!response.ok) {
+        throw new Error(`Received non-ok response status ${response.status}`);
+      }
 
-    const receivedSeverities = await response.json();
-    if (
-      !Array.isArray(receivedSeverities) ||
-      !receivedSeverities.every((v) => typeof v === 'string')
-    ) {
-      console.error(`JSON is not string array`);
-      throw new Error('Received invalid response');
-    }
+      const receivedSeverities = await response.json();
+      if (
+        !Array.isArray(receivedSeverities) ||
+        !receivedSeverities.every((v) => typeof v === 'string')
+      ) {
+        console.error(`JSON is not string array`);
+        throw new Error('Received invalid response');
+      }
 
-    return receivedSeverities;
-  }, [accessToken]);
+      return receivedSeverities;
+    },
+    [accessToken]
+  );
 
   return fetchLogSeverities;
 }

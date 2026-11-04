@@ -32,7 +32,8 @@ import Select from 'react-select';
 import AsyncSelect from 'react-select/async';
 import { useShallow } from 'zustand/react/shallow';
 
-const shareSnapshot = import.meta.env.VITE_SHARE_SNAPSHOT_URL;
+const shareSnapshot =
+  import.meta.env.VITE_SHARE_SNAPSHOT_URL || `${window.location.origin}/`;
 const gitlabApi = import.meta.env.VITE_GIT_FACADE_SERV_URL;
 
 type Issue = { title: string; content: string; screenshots: string[] };

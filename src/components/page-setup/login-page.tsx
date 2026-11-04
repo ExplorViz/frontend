@@ -1,5 +1,6 @@
 import { useAuthStore } from 'explorviz-frontend/src/stores/auth';
 import { useLandscapeTokenStore } from 'explorviz-frontend/src/stores/landscape-token';
+import { isLoginSkipped } from 'explorviz-frontend/src/utils/auth-config';
 import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 
@@ -14,8 +15,7 @@ export default function LoginPage() {
   const isDevLoginEnabled = import.meta.env.VITE_ENABLE_DEV_LOGIN === 'true';
 
   // Check if automatic skip login is enabled via environment variable
-  const isAutoSkipLoginEnabled =
-    import.meta.env.VITE_ENABLE_SKIP_LOGIN === 'true';
+  const isAutoSkipLoginEnabled = isLoginSkipped();
 
   const handleSkipLogin = () => {
     skipLogin();

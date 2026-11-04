@@ -37,8 +37,7 @@ interface TimestampPollingState {
 
   newestCommitAutoSelectedForLandscapeToken: string | null;
   currentCallback:
-    | ((commitToTimestampMap: Map<string, Timestamp[]>) => void)
-    | null;
+    ((commitToTimestampMap: Map<string, Timestamp[]>) => void) | null;
   initTimestampPollingWithCallback: (
     commits: SelectedCommit[],
     callback: (
@@ -319,7 +318,6 @@ export const useTimestampPollingStore = create<TimestampPollingState>(
       const response = await fetch(url, {
         headers: {
           Authorization: `Bearer ${useAuthStore.getState().accessToken}`,
-          'Access-Control-Allow-Origin': '*',
         },
       });
       if (!response.ok) {
@@ -354,7 +352,6 @@ export const useTimestampPollingStore = create<TimestampPollingState>(
         fetch(url, {
           headers: {
             Authorization: `Bearer ${useAuthStore.getState().accessToken}`,
-            'Access-Control-Allow-Origin': '*',
           },
         })
           .then(async (response: Response) => {

@@ -65,7 +65,6 @@ export default function useCommunicationFetch() {
         response = await fetch(requestUrl, {
           headers: {
             Authorization: `Bearer ${accessToken}`,
-            'Access-Control-Allow-Origin': '*',
           },
         });
       } catch (error) {

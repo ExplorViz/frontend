@@ -57,7 +57,8 @@ export type SnapshotInfo = {
 };
 
 const userService = import.meta.env.VITE_USER_SERV_URL;
-const shareSnapshot = import.meta.env.VITE_SHARE_SNAPSHOT_URL;
+const shareSnapshot =
+  import.meta.env.VITE_SHARE_SNAPSHOT_URL || `${window.location.origin}/`;
 
 function snapshotAuthHeaders(
   contentType = 'application/json; charset=UTF-8'

@@ -1,3 +1,4 @@
+import { isLoginSkipped } from 'explorviz-frontend/src/utils/auth-config';
 import Keycloak from 'keycloak-js';
 import { create } from 'zustand';
 
@@ -20,7 +21,7 @@ interface AuthState {
 }
 
 // Check if skip login is enabled via environment variable
-const isSkipLoginEnabled = import.meta.env.VITE_ENABLE_SKIP_LOGIN === 'true';
+const isSkipLoginEnabled = isLoginSkipped();
 
 // Default development user credentials from environment variables
 const getDefaultUser = (): AuthenticatedUser => ({
@@ -33,7 +34,7 @@ const getDefaultAccessToken = (): string =>
   import.meta.env.VITE_DEV_ACCESS_TOKEN || 'dev-token';
 
 export const keycloak = new Keycloak({
-  url: import.meta.env.VITE_KEYCLOAK_URL,
+  url: import.meta.env.VITE_KEYCLOAK_URL || window.location.origin,
   realm: import.meta.env.VITE_KEYCLOAK_REALM,
   clientId: import.meta.env.VITE_KEYCLOAK_CLIENT_ID,
 });
@@ -48,7 +49,9 @@ export const useAuthStore = create<AuthState>((set) => ({
     set({ user: undefined, accessToken: undefined });
     if (!isSkipLoginEnabled) {
       keycloak.logout({
-        redirectUri: import.meta.env.VITE_KEYCLOAK_REDIRECT_URI,
+        redirectUri:
+          import.meta.env.VITE_KEYCLOAK_REDIRECT_URI ||
+          `${window.location.origin}/`,
       });
     }
   },

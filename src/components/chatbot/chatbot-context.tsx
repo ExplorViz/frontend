@@ -16,7 +16,8 @@ import { CopilotTools } from './copilot-tools';
 import { PingIndicator } from './ping-indicator';
 
 const copilotUrl: string =
-  (import.meta.env.VITE_COPILOT_SERV_URL as string | undefined) ?? '';
+  (import.meta.env.VITE_COPILOT_SERV_URL as string | undefined) ||
+  (import.meta.env.PROD ? window.location.origin : '');
 
 const PROVIDER_STORAGE_KEY = 'explorviz-copilot-provider';
 const MODEL_STORAGE_KEY = 'explorviz-copilot-model';

@@ -5,6 +5,7 @@ import { useAuthStore } from 'explorviz-frontend/src/stores/auth';
 import { useLandscapeTokenStore } from 'explorviz-frontend/src/stores/landscape-token';
 import { useSnapshotTokenStore } from 'explorviz-frontend/src/stores/snapshot-token';
 import { useInitNavigation } from 'explorviz-frontend/src/stores/store-router';
+import { isLoginSkipped } from 'explorviz-frontend/src/utils/auth-config';
 import { useEffect, useState } from 'react';
 import {
   createSearchParams,
@@ -33,8 +34,7 @@ export default function Application() {
 
   // Handle skip login token setup
   useEffect(() => {
-    const isSkipLoginEnabled =
-      import.meta.env.VITE_ENABLE_SKIP_LOGIN === 'true';
+    const isSkipLoginEnabled = isLoginSkipped();
 
     if (isSkipLoginEnabled && user) {
       // Set default token if available

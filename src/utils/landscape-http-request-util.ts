@@ -103,7 +103,6 @@ export function requestStructureData() {
       {
         headers: {
           Authorization: `Bearer ${useAuthStore.getState().accessToken}`,
-          'Access-Control-Allow-Origin': '*',
         },
       }
     )
@@ -137,7 +136,6 @@ export function requestDynamicData(fromTimestamp: bigint, toTimestamp: bigint) {
       {
         headers: {
           Authorization: `Bearer ${useAuthStore.getState().accessToken}`,
-          'Access-Control-Allow-Origin': '*',
         },
       }
     )
@@ -167,7 +165,6 @@ export function deleteTraceData(): Promise<void> {
         method: 'DELETE',
         headers: {
           Authorization: `Bearer ${useAuthStore.getState().accessToken}`,
-          'Access-Control-Allow-Origin': '*',
         },
       }
     )
@@ -208,7 +205,6 @@ export async function requestEntitySpans(
   const response = await fetch(url, {
     headers: {
       Authorization: `Bearer ${useAuthStore.getState().accessToken}`,
-      'Access-Control-Allow-Origin': '*',
     },
   });
   if (!response.ok) {
@@ -257,7 +253,6 @@ export async function requestCommunicationSpans(
       body: JSON.stringify(sourceTargetPairs),
       headers: {
         Authorization: `Bearer ${useAuthStore.getState().accessToken}`,
-        'Access-Control-Allow-Origin': '*',
       },
     }
   );
@@ -341,7 +336,6 @@ export async function requestCommunicationFunctions(
       body: JSON.stringify(sourceTargetPairs),
       headers: {
         Authorization: `Bearer ${useAuthStore.getState().accessToken}`,
-        'Access-Control-Allow-Origin': '*',
       },
     }
   );
@@ -381,7 +375,6 @@ export function requestFileDetailedData(
     fetch(url, {
       headers: {
         Authorization: `Bearer ${useAuthStore.getState().accessToken}`,
-        'Access-Control-Allow-Origin': '*',
       },
     })
       .then(async (response: Response) => {
@@ -441,7 +434,6 @@ export function requestFileHistory(
     fetch(url, {
       headers: {
         Authorization: `Bearer ${useAuthStore.getState().accessToken}`,
-        'Access-Control-Allow-Origin': '*',
       },
     })
       .then(async (response) => {

@@ -106,7 +106,6 @@ export default function TokenSelection({
       {
         headers: {
           Authorization: `Bearer ${useAuthStore.getState().accessToken}`,
-          'Access-Control-Allow-Origin': '*',
         },
       }
     );
@@ -121,7 +120,6 @@ export default function TokenSelection({
         {
           headers: {
             Authorization: `Bearer ${useAuthStore.getState().accessToken}`,
-            'Access-Control-Allow-Origin': '*',
           },
         }
       );
@@ -236,7 +234,6 @@ export default function TokenSelection({
       const response = await fetch(url, {
         headers: {
           Authorization: `Bearer ${useAuthStore.getState().accessToken}`,
-          'Access-Control-Allow-Origin': '*',
         },
       });
 

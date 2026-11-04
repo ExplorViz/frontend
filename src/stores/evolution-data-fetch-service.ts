@@ -153,7 +153,6 @@ export const useEvolutionDataFetchServiceStore =
       const response = await fetch(url, {
         headers: {
           Authorization: `Bearer ${useAuthStore.getState().accessToken}`,
-          'Access-Control-Allow-Origin': '*',
         },
       });
 
@@ -170,7 +169,6 @@ export const useEvolutionDataFetchServiceStore =
         method: 'POST',
         headers: {
           Authorization: `Bearer ${useAuthStore.getState().accessToken}`,
-          'Access-Control-Allow-Origin': '*',
           'Content-Type': 'application/json',
         },
         body: JSON.stringify(body),

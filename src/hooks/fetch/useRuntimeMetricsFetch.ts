@@ -111,7 +111,6 @@ export default function useRuntimeMetricsFetch() {
         response = await fetch(requestUrl, {
           headers: {
             Authorization: `Bearer ${accessToken}`,
-            'Access-Control-Allow-Origin': '*',
           },
         });
       } catch (error) {
