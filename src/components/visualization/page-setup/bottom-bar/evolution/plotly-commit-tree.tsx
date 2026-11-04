@@ -369,6 +369,7 @@ export default function PlotlyCommitTree() {
   const selectedBranchName =
     repoNameToSelectedBranchNameMap.get(selectedRepoName) ?? '';
   const [selectedMetric, setSelectedMetric] = useState(NONE_METRIC);
+  const hasInitializedMetricRef = useRef(false);
   const [appliedMetricChangeThreshold, setAppliedMetricChangeThreshold] =
     useState(DEFAULT_METRIC_CHANGE_THRESHOLD);
   const [showFiltersRow, setShowFiltersRow] = useState(false);
@@ -447,13 +448,7 @@ export default function PlotlyCommitTree() {
 
     const branch = getFirstBranchWithCommits(commitTreeForRepo);
     if (branch) {
-      // Branch is repository-specific; only set a default metric on first
-      // selection. Keep the user's metric when switching repositories.
-      const isInitialBranchSelection = selectedBranchName === '';
       setSelectedBranchNameForRepo(selectedRepoName, branch.name);
-      if (isInitialBranchSelection) {
-        setSelectedMetric(getDefaultMetricName(branch));
-      }
     } else {
       setSelectedBranchNameForRepo(selectedRepoName, '');
       setSelectedMetric(NONE_METRIC);
@@ -464,6 +459,15 @@ export default function PlotlyCommitTree() {
     selectedBranchName,
     setSelectedBranchNameForRepo,
   ]);
+
+  useEffect(() => {
+    if (hasInitializedMetricRef.current || !selectedBranch) {
+      return;
+    }
+
+    setSelectedMetric(getDefaultMetricName(selectedBranch));
+    hasInitializedMetricRef.current = true;
+  }, [selectedBranch]);
 
   useEffect(() => {
     if (!selectedBranch) {
