@@ -152,7 +152,9 @@ export const useEntityFilteringStore = create<EntityFilteringStoreState>((set) =
     setBaselineLanguageStats: (stats) => set({ baselineLanguageStats: stats }),
     setBaselineLanguageFileExtensionStats: (stats) => set({ baselineLanguageFileExtensionStats: stats }),
     resetFilters: () => {
-      useVisualizationStore.getState().actions.resetLanguageFilter();
+      const visualizationActions = useVisualizationStore.getState().actions;
+      visualizationActions.resetModelTypeFilter();
+      visualizationActions.resetLanguageFilter();
       set({
         filterMode: 'Remove',
         inclusionExpressions: [],

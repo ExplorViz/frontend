@@ -377,60 +377,62 @@ export default function BrowserRendering({ userApiTokens, visualizationPaused }:
                 </div>
               </div>
 
-              {landscapeData && (
-                <ToolSelection show={showToolsSidebar} closeToolSelection={() => setShowToolsSidebar(false)}>
-                  <ComponentTabs
-                    activeTab={selectedToolbarTool}
-                    onChange={onToolbarTabChange}
-                    tabs={[
-                      {
-                        value: ToolbarTool.Filter,
-                        content: (
-                          <>
-                            <h5 className="text-center">Filter</h5>
+              <ToolSelection show={showToolsSidebar} closeToolSelection={() => setShowToolsSidebar(false)}>
+                <ComponentTabs
+                  activeTab={selectedToolbarTool}
+                  onChange={onToolbarTabChange}
+                  tabs={[
+                    {
+                      value: ToolbarTool.Filter,
+                      content: (
+                        <>
+                          <h5 className="text-center">Filter</h5>
+                          {landscapeData ? (
                             <EntityFiltering ref={entityFilteringRef} landscapeData={landscapeData} />
-                          </>
-                        ),
-                      },
-                      {
-                        value: ToolbarTool.EntitySearch,
-                        content: (
-                          <>
-                            <h5 className="text-center">Search</h5>
-                            <EntitySearch ref={entitySearchRef} />
-                          </>
-                        ),
-                      },
-                      {
-                        value: ToolbarTool.TracePlayer,
-                        content: <TracePlayer />,
-                      },
-                      {
-                        value: ToolbarTool.TelemetrySearch,
-                        content: <TelemetrySearch />,
-                      },
-                      {
-                        value: ToolbarTool.RepositoryAnalysis,
-                        content: (
-                          <>
-                            <h5 className="text-center">Git Repository Analysis</h5>
-                            <CodeAnalysisSection landscapeToken={landscapeToken?.value} />
-                          </>
-                        ),
-                      },
-                      {
-                        value: ToolbarTool.KubernetesDiagrams,
-                        content: (
-                          <>
-                            <h5 className="text-center">Kubernetes Diagrams</h5>
-                            <KubernetesDiagrams />
-                          </>
-                        ),
-                      },
-                    ]}
-                  />
-                </ToolSelection>
-              )}
+                          ) : (
+                            <p className="text-muted text-center mb-0">Load a landscape to use filters.</p>
+                          )}
+                        </>
+                      ),
+                    },
+                    {
+                      value: ToolbarTool.EntitySearch,
+                      content: (
+                        <>
+                          <h5 className="text-center">Search</h5>
+                          <EntitySearch ref={entitySearchRef} />
+                        </>
+                      ),
+                    },
+                    {
+                      value: ToolbarTool.TracePlayer,
+                      content: <TracePlayer />,
+                    },
+                    {
+                      value: ToolbarTool.TelemetrySearch,
+                      content: <TelemetrySearch />,
+                    },
+                    {
+                      value: ToolbarTool.RepositoryAnalysis,
+                      content: (
+                        <>
+                          <h5 className="text-center">Git Repository Analysis</h5>
+                          <CodeAnalysisSection landscapeToken={landscapeToken?.value} />
+                        </>
+                      ),
+                    },
+                    {
+                      value: ToolbarTool.KubernetesDiagrams,
+                      content: (
+                        <>
+                          <h5 className="text-center">Kubernetes Diagrams</h5>
+                          <KubernetesDiagrams />
+                        </>
+                      ),
+                    },
+                  ]}
+                />
+              </ToolSelection>
 
               {showSettingsSidebar && (
                 <div className="sidebar right" id="settingsSidebar">
