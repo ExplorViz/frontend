@@ -75,7 +75,7 @@ export default function DualRangeSlider({
   onChange,
   getTooltipText,
 }: DualRangeSliderProps) {
-  initialValue = initialValue.toSorted() as [number, number];
+  initialValue = initialValue.toSorted((a, b) => a - b) as [number, number];
 
   let [range, setRange] = useState<[number, number]>(initialValue);
   const [swapThumbs, setSwapThumbs] = useState<boolean>(false);
@@ -124,6 +124,7 @@ export default function DualRangeSlider({
     updateValue(index, pointerPositionToValue(clientX));
 
   const handleTrackPointerDown = (e: React.PointerEvent<HTMLElement>) => {
+    if (disabled) return;
     e.preventDefault(); // Focus should be given to thumb, not track
 
     const clickedValue = clamp(pointerPositionToValue(e.clientX), min, max);
@@ -321,6 +322,7 @@ function SliderThumb({
   });
 
   const handlePointerDown: React.PointerEventHandler<HTMLElement> = (e) => {
+    if (disabled) return;
     setIsDragging(true);
     setPointerIds((state) => new Set([...state, e.pointerId]));
     thumbDivRef.current?.focus();

@@ -253,7 +253,9 @@ export const useModelStore = create<ModelRepositoryState>((set, get) => ({
       return {
         cities: cities,
         telemetryKeyToEntityId: new Map(
-          [...state.telemetryKeyToEntityId].filter(([key]) => key !== id)
+          [...state.telemetryKeyToEntityId].filter(
+            ([, entityId]) => entityId !== id
+          )
         ),
       };
     }),
@@ -264,7 +266,9 @@ export const useModelStore = create<ModelRepositoryState>((set, get) => ({
       return {
         districts: districts,
         telemetryKeyToEntityId: new Map(
-          [...state.telemetryKeyToEntityId].filter(([key]) => key !== id)
+          [...state.telemetryKeyToEntityId].filter(
+            ([, entityId]) => entityId !== id
+          )
         ),
       };
     }),
@@ -275,7 +279,9 @@ export const useModelStore = create<ModelRepositoryState>((set, get) => ({
       return {
         buildings: buildings,
         telemetryKeyToEntityId: new Map(
-          [...state.telemetryKeyToEntityId].filter(([key]) => key !== id)
+          [...state.telemetryKeyToEntityId].filter(
+            ([, entityId]) => entityId !== id
+          )
         ),
       };
     }),

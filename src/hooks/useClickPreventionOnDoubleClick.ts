@@ -125,7 +125,7 @@ const useClickPreventionOnDoubleClick = (
       });
   };
 
-  const handleDoubleClick = (e: Event) => {
+  const handleDoubleClick = (e: Pick<Event, 'stopPropagation'>) => {
     e.stopPropagation();
     api.clearPendingPromises();
     onDoubleClick(e);
@@ -172,7 +172,7 @@ const useClickPreventionOnDoubleClick = (
       });
   };
 
-  return [handleClick, handleDoubleClick, handleRightClick];
+  return [handleClick, handleDoubleClick, handleRightClick] as const;
 };
 
 export default useClickPreventionOnDoubleClick;

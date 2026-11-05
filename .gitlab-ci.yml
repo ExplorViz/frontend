@@ -45,12 +45,18 @@ test:
     - node --version
     - npm install -g pnpm
     - pnpm --version
-    - pnpm install
+    - pnpm install --frozen-lockfile
   script:
-    - pnpm run test
+    - pnpm run test:coverage
   artifacts:
-    expire_in: 1h
+    when: always
+    expire_in: 7 days
+    reports:
+      coverage_report:
+        coverage_format: cobertura
+        path: coverage/cobertura-coverage.xml
     paths:
+      - coverage/
       - node_modules
 
 build:

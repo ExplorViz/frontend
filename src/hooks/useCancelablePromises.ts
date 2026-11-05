@@ -2,10 +2,18 @@
 // Ceci García García
 
 import { cancelablePromise } from 'explorviz-frontend/src/utils/helpers/promise-helpers';
-import { useRef } from 'react';
+import { useEffect, useRef } from 'react';
 
 const useCancelablePromises = () => {
   const pendingPromises = useRef<ReturnType<typeof cancelablePromise>[]>([]);
+
+  useEffect(
+    () => () => {
+      pendingPromises.current.forEach((promise) => promise.cancel());
+      pendingPromises.current = [];
+    },
+    []
+  );
 
   const appendPendingPromise = (
     promise: ReturnType<typeof cancelablePromise>

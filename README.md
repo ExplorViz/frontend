@@ -55,3 +55,8 @@ To cite ExplorViz please use:
 
 - Florian Fittkau, Alexander Krause, Wilhelm Hasselbring (2017): Software landscape and application visualization for system comprehension with ExplorViz. Information and Software Technology, Volume 87. pp. 259-277. DOI https://doi.org/10.1016/j.infsof.2016.07.004.
   [[BibTex]](https://oceanrep.geomar.de/cgi/export/eprint/33464/BibTeX/geomar-eprint-33464.bib) | [[Endnote]](https://oceanrep.geomar.de/cgi/export/eprint/33464/EndNote/geomar-eprint-33464.enw)
+
+## Regression tests
+
+Run `pnpm test` for the regression suite, `pnpm test:watch` while developing,
+and `pnpm test:coverage` for the CI coverage gate.
