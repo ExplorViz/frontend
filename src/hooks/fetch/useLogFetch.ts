@@ -108,9 +108,7 @@ export default function useLogFetch() {
         throw new Error('Log service URL not configured');
       }
 
-      const requestUrl = new URL(
-        `${logServiceUrl}/v3/landscapes/${params.landscapeTokenId}/logs`
-      );
+      const requestUrl = new URL(`${logServiceUrl}/v3/landscapes/${params.landscapeTokenId}/logs`);
 
       const queryParams = new URLSearchParams();
       for (const [key, value] of Object.entries(params)) {

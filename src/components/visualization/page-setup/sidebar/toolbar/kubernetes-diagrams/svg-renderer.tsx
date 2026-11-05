@@ -8,12 +8,7 @@ import {
   getLocalSvgPath,
   normalizeSvgProps,
 } from './svg-utils';
-import type {
-  DiagramRenderContext,
-  SvgElementNode,
-  SvgNode,
-  SvgRootNode,
-} from './types';
+import type { DiagramRenderContext, SvgElementNode, SvgNode, SvgRootNode } from './types';
 
 /**
  * Convert an SVG string into a React node tree, optionally adjusting the viewBox
@@ -28,14 +23,12 @@ export function svgToReactNode(
   svg: string,
   props?: React.SVGProps<SVGSVGElement>,
   ctx?: DiagramRenderContext,
-  adjustViewBox = false,
+  adjustViewBox = false
 ): React.ReactNode {
   if (!svg.trim().startsWith('<')) return null;
 
   const ast = parse(svg) as SvgRootNode;
-  const svgElement = ast.children.find(
-    (n): n is SvgElementNode => n.type === 'element' && n.tagName === 'svg'
-  );
+  const svgElement = ast.children.find((n): n is SvgElementNode => n.type === 'element' && n.tagName === 'svg');
   if (!svgElement) return null;
 
   if (adjustViewBox && svgElement.properties) {
@@ -57,7 +50,7 @@ export function svgToReactNode(
       },
     },
     undefined,
-    ctx,
+    ctx
   );
 }
 
@@ -68,10 +61,7 @@ export function svgToReactNode(
  * Position strings ("x,y") are unique per node instance and are used to look up
  * which <image> elements should render the highlighted icon variant.
  */
-export function buildHighlightedPositions(
-  svg: string,
-  highlightedNodeNames: Set<string>,
-): Set<string> {
+export function buildHighlightedPositions(svg: string, highlightedNodeNames: Set<string>): Set<string> {
   if (highlightedNodeNames.size === 0) return new Set();
 
   const ast = parse(svg) as SvgRootNode;
@@ -90,11 +80,7 @@ export function buildHighlightedPositions(
   return positions;
 }
 
-function renderNode(
-  node: SvgNode,
-  key?: React.Key,
-  ctx?: DiagramRenderContext,
-): React.ReactNode {
+function renderNode(node: SvgNode, key?: React.Key, ctx?: DiagramRenderContext): React.ReactNode {
   if (node.type === 'text') {
     return decodeXmlEntities(node.value);
   }
@@ -113,10 +99,7 @@ function renderNode(
   }
 
   // Replace <image> with inlined SVG (if a local version exists)
-  if (
-    node.tagName === 'image' &&
-    (node.properties?.href || node.properties?.['xlink:href'])
-  ) {
+  if (node.tagName === 'image' && (node.properties?.href || node.properties?.['xlink:href'])) {
     const href = node.properties?.href || node.properties?.['xlink:href'];
     const localPath = getLocalSvgPath(href);
 

@@ -1,9 +1,6 @@
 import { useCommitTreeStateStore } from 'explorviz-frontend/src/stores/commit-tree-state';
 import { getCommitAuthorOptionsFromCommitTree } from 'explorviz-frontend/src/utils/evolution-data-helpers';
-import {
-  CommitTree,
-  hasActiveAuthorFilter,
-} from 'explorviz-frontend/src/utils/evolution-schemes/evolution-data';
+import { CommitTree, hasActiveAuthorFilter } from 'explorviz-frontend/src/utils/evolution-schemes/evolution-data';
 import { useEffect, useMemo, useState } from 'react';
 import Button from 'react-bootstrap/Button';
 import Form from 'react-bootstrap/Form';
@@ -27,8 +24,7 @@ function buildAuthorKeysFromSelection(
   availableAuthorKeys: string[]
 ): string[] | undefined {
   const allSelected =
-    availableAuthorKeys.length > 0 &&
-    availableAuthorKeys.every((authorKey) => selectedAuthorKeys.has(authorKey));
+    availableAuthorKeys.length > 0 && availableAuthorKeys.every((authorKey) => selectedAuthorKeys.has(authorKey));
 
   if (allSelected) {
     return undefined;
@@ -48,26 +44,14 @@ export default function CommitChartAuthorFilters({
   commitTree,
   onAuthorFilterApplied,
 }: CommitChartAuthorFiltersProps) {
-  const appliedFilters = useCommitTreeStateStore(
-    (state) => state._commitTreeFilters
-  );
-  const setCommitTreeFilters = useCommitTreeStateStore(
-    (state) => state.setCommitTreeFilters
-  );
+  const appliedFilters = useCommitTreeStateStore((state) => state._commitTreeFilters);
+  const setCommitTreeFilters = useCommitTreeStateStore((state) => state.setCommitTreeFilters);
 
-  const availableAuthors = useMemo(
-    () => getCommitAuthorOptionsFromCommitTree(commitTree),
-    [commitTree]
-  );
-  const availableAuthorKeys = useMemo(
-    () => availableAuthors.map((author) => author.authorKey),
-    [availableAuthors]
-  );
+  const availableAuthors = useMemo(() => getCommitAuthorOptionsFromCommitTree(commitTree), [commitTree]);
+  const availableAuthorKeys = useMemo(() => availableAuthors.map((author) => author.authorKey), [availableAuthors]);
   const availableAuthorKeysSignature = availableAuthorKeys.join('|');
 
-  const [draftSelectedAuthorKeys, setDraftSelectedAuthorKeys] = useState<
-    Set<string>
-  >(new Set());
+  const [draftSelectedAuthorKeys, setDraftSelectedAuthorKeys] = useState<Set<string>>(() => new Set());
   const [isApplying, setIsApplying] = useState(false);
 
   useEffect(() => {
@@ -82,11 +66,7 @@ export default function CommitChartAuthorFilters({
     }
 
     setDraftSelectedAuthorKeys(
-      new Set(
-        appliedFilters.authorKeys.filter((authorKey) =>
-          availableAuthorKeys.includes(authorKey)
-        )
-      )
+      new Set(appliedFilters.authorKeys.filter((authorKey) => availableAuthorKeys.includes(authorKey)))
     );
   }, [appliedFilters.authorKeys, availableAuthorKeysSignature]);
 
@@ -103,15 +83,9 @@ export default function CommitChartAuthorFilters({
     return new Set(appliedAuthorKeys);
   }, [appliedAuthorKeys, availableAuthorKeysSignature]);
 
-  const draftAuthorKeys = buildAuthorKeysFromSelection(
-    draftSelectedAuthorKeys,
-    availableAuthorKeys
-  );
+  const draftAuthorKeys = buildAuthorKeysFromSelection(draftSelectedAuthorKeys, availableAuthorKeys);
 
-  const hasDraftChanges = !setsEqual(
-    draftSelectedAuthorKeys,
-    appliedSelectedAuthorKeys
-  );
+  const hasDraftChanges = !setsEqual(draftSelectedAuthorKeys, appliedSelectedAuthorKeys);
   const hasActiveAuthorFilterApplied = hasActiveAuthorFilter(appliedFilters);
 
   const applyAuthorFilter = async (authorKeys: string[] | undefined) => {
@@ -165,10 +139,7 @@ export default function CommitChartAuthorFilters({
   }
 
   return (
-    <div
-      id="commit-chart-author-row"
-      className="commit-metrics-chart-author-filter-panel"
-    >
+    <div id="commit-chart-author-row" className="commit-metrics-chart-author-filter-panel">
       <div className="commit-metrics-chart-author-filter-row">
         <div className="commit-metrics-chart-author-toolbar">
           <div className="commit-metrics-chart-author-actions">
@@ -177,9 +148,7 @@ export default function CommitChartAuthorFilters({
               size="sm"
               variant="outline-secondary"
               onClick={selectAllAuthors}
-              disabled={
-                draftSelectedAuthorKeys.size === availableAuthors.length
-              }
+              disabled={draftSelectedAuthorKeys.size === availableAuthors.length}
             >
               Select All
             </Button>
@@ -226,9 +195,7 @@ export default function CommitChartAuthorFilters({
               onChange={() => toggleAuthor(author.authorKey)}
               label={
                 <span className="commit-metrics-chart-author-row">
-                  <span className="commit-metrics-chart-author-name">
-                    {author.label}
-                  </span>
+                  <span className="commit-metrics-chart-author-name">{author.label}</span>
                   <span className="commit-metrics-chart-author-count">
                     {author.commitCount.toLocaleString('en-US')}
                   </span>

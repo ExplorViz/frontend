@@ -5,7 +5,7 @@ import { useCameraControlsStore } from 'explorviz-frontend/src/stores/camera-con
 import { useModelStore } from 'explorviz-frontend/src/stores/repos/model-repository';
 import { useToastHandlerStore } from 'explorviz-frontend/src/stores/toast-handler';
 import { Span } from 'explorviz-frontend/src/utils/landscape-schemes/telemetry/traces';
-import { pingByModelId } from 'explorviz-frontend/src/view-objects/3d/city/animated-ping-r3f';
+import { pingByModelId } from 'explorviz-frontend/src/view-objects/3d/city/ping-animation';
 import { use } from 'react';
 import { Button, Card, OverlayTrigger, Tooltip } from 'react-bootstrap';
 import { ToolbarContext } from '../../../page-setup/sidebar/toolbar/toolbar-context';
@@ -18,21 +18,14 @@ interface SpanDetailsCardProps {
 /**
  * Detailed listing of properties for a specific OpenTelemetry span
  */
-export default function SpanDetailsCard({
-  span,
-  onParentSpanIdClick,
-}: SpanDetailsCardProps) {
-  const city = useModelStore((state) =>
-    Object.values(state.cities).find((c) => c.name === span.serviceName)
-  );
+export default function SpanDetailsCard({ span, onParentSpanIdClick }: SpanDetailsCardProps) {
+  const city = useModelStore((state) => Object.values(state.cities).find((c) => c.name === span.serviceName));
   const entity = useModelStore((state) => {
     const id = state.telemetryKeyToEntityId.get(span.telemetryKey);
     return id ? state.buildings[id] : undefined;
   });
   const lookAtEntity = useCameraControlsStore((state) => state.lookAtEntity);
-  const showErrorToastMessage = useToastHandlerStore(
-    (state) => state.showErrorToastMessage
-  );
+  const showErrorToastMessage = useToastHandlerStore((state) => state.showErrorToastMessage);
 
   const toolbarContext = use(ToolbarContext);
 
@@ -161,12 +154,7 @@ export default function SpanDetailsCard({
                   trigger={['hover', 'focus']}
                   overlay={<Tooltip>Search all spans for this entity</Tooltip>}
                 >
-                  <Button
-                    variant="light"
-                    size="sm"
-                    className="ms-1"
-                    onClick={handleSearchEntityClick}
-                  >
+                  <Button variant="light" size="sm" className="ms-1" onClick={handleSearchEntityClick}>
                     <SearchIcon />
                   </Button>
                 </OverlayTrigger>
@@ -181,9 +169,7 @@ export default function SpanDetailsCard({
                 <OverlayTrigger
                   placement={'top'}
                   trigger={['hover', 'focus']}
-                  overlay={
-                    <Tooltip>Highlight service in visualization</Tooltip>
-                  }
+                  overlay={<Tooltip>Highlight service in visualization</Tooltip>}
                 >
                   <small>
                     <a href="#" onClick={handleServiceClick}>
@@ -197,12 +183,7 @@ export default function SpanDetailsCard({
                   trigger={['hover', 'focus']}
                   overlay={<Tooltip>Search all spans for this service</Tooltip>}
                 >
-                  <Button
-                    variant="light"
-                    size="sm"
-                    className="ms-1"
-                    onClick={handleSearchServiceClick}
-                  >
+                  <Button variant="light" size="sm" className="ms-1" onClick={handleSearchServiceClick}>
                     <SearchIcon />
                   </Button>
                 </OverlayTrigger>

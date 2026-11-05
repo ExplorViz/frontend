@@ -4,10 +4,7 @@ import { Tab, Tabs } from 'react-bootstrap';
 import generateUuidv4 from 'explorviz-frontend/src/utils/helpers/uuid4-generator';
 import { TypeOfAnalysis } from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
 
-function isValidPopupSection(
-  typeOfPopup: string,
-  originOfData: TypeOfAnalysis
-) {
+function isValidPopupSection(typeOfPopup: string, originOfData: TypeOfAnalysis) {
   if (!typeOfPopup || !originOfData) {
     return false;
   }

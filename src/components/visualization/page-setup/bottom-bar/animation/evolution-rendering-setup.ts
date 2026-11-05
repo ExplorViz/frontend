@@ -13,34 +13,21 @@ export const EVOLUTION_ANIMATION_RENDER_CONFIG = {
 };
 
 export function applyEvolutionRenderingConfig() {
-  useRenderingServiceStore
-    .getState()
-    .setAnalysisModeFromEvolutionRenderingConfig(
-      EVOLUTION_ANIMATION_RENDER_CONFIG
-    );
-  useVisibilityServiceStore
-    .getState()
-    .applyEvolutionModeRenderingConfiguration(
-      EVOLUTION_ANIMATION_RENDER_CONFIG
-    );
+  useRenderingServiceStore.getState().setAnalysisModeFromEvolutionRenderingConfig(EVOLUTION_ANIMATION_RENDER_CONFIG);
+  useVisibilityServiceStore.getState().applyEvolutionModeRenderingConfiguration(EVOLUTION_ANIMATION_RENDER_CONFIG);
 }
 
-export function triggerEvolutionLandscapeRendering(
-  flatLandscape: FlatLandscape
-) {
-  useRenderingServiceStore
-    .getState()
-    .triggerRenderingForGivenLandscapeData(flatLandscape, [], {
-      communications: [],
-      fromUnixNano: 0n,
-      toUnixNano: 0n,
-      metrics: {},
-    });
+export function triggerEvolutionLandscapeRendering(flatLandscape: FlatLandscape) {
+  useRenderingServiceStore.getState().triggerRenderingForGivenLandscapeData(flatLandscape, [], {
+    communications: [],
+    fromUnixNano: 0n,
+    toUnixNano: 0n,
+    metrics: {},
+  });
 }
 
 export function applySkeletonLayout(stableFrame?: FlatLandscape | null) {
-  const frame =
-    stableFrame ?? useEvolutionAnimationStore.getState().stableFrame;
+  const frame = stableFrame ?? useEvolutionAnimationStore.getState().stableFrame;
   if (!frame) return;
 
   invalidateLayoutCache();

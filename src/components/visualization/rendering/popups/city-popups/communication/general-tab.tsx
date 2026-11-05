@@ -1,5 +1,5 @@
 import AggregatedCommunication from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/aggregated-communication';
-import { pingByModelId } from 'explorviz-frontend/src/view-objects/3d/city/animated-ping-r3f';
+import { pingByModelId } from 'explorviz-frontend/src/view-objects/3d/city/ping-animation';
 import { OverlayTrigger, Table, Tooltip } from 'react-bootstrap';
 
 interface GeneralTabProps {
@@ -7,9 +7,7 @@ interface GeneralTabProps {
 }
 
 export default function GeneralTab({ communication }: GeneralTabProps) {
-  const metrics = Object.entries(communication.metrics).filter(
-    ([key]) => key !== 'normalizedRequestCount'
-  );
+  const metrics = Object.entries(communication.metrics).filter(([key]) => key !== 'normalizedRequestCount');
 
   return (
     <Table hover className="table table-sm mt-2 mb-0">
@@ -21,11 +19,7 @@ export default function GeneralTab({ communication }: GeneralTabProps) {
             <OverlayTrigger
               placement="top"
               trigger={['hover', 'focus']}
-              overlay={
-                <Tooltip>
-                  App ID: {communication.sourceEntity.parentCityId}
-                </Tooltip>
-              }
+              overlay={<Tooltip>App ID: {communication.sourceEntity.parentCityId}</Tooltip>}
             >
               <a
                 href="#"
@@ -46,16 +40,9 @@ export default function GeneralTab({ communication }: GeneralTabProps) {
             <OverlayTrigger
               placement="top"
               trigger={['hover', 'focus']}
-              overlay={
-                <Tooltip>
-                  App ID: {communication.targetEntity.parentCityId}
-                </Tooltip>
-              }
+              overlay={<Tooltip>App ID: {communication.targetEntity.parentCityId}</Tooltip>}
             >
-              <a
-                href="#"
-                onClick={() => pingByModelId(communication.targetEntity.id)}
-              >
+              <a href="#" onClick={() => pingByModelId(communication.targetEntity.id)}>
                 {communication.targetEntity.name}
               </a>
             </OverlayTrigger>

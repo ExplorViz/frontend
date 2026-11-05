@@ -1,17 +1,8 @@
-import {
-  Application,
-  Class,
-} from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
-import {
-  getSubPackagesOfPackage,
-  packageContainsClass,
-} from 'explorviz-frontend/src/utils/package-helpers';
+import { Application, Class } from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
+import { getSubPackagesOfPackage, packageContainsClass } from 'explorviz-frontend/src/utils/package-helpers';
 
 export function getAllPackagesInApplication(application: Application) {
-  return [
-    ...application.packages,
-    ...application.packages.map((pckg) => getSubPackagesOfPackage(pckg)).flat(),
-  ];
+  return [...application.packages, ...application.packages.map((pckg) => getSubPackagesOfPackage(pckg)).flat()];
 }
 
 export function getAllClassesInApplication(application: Application) {
@@ -25,14 +16,10 @@ export function getAllClassesInApplication(application: Application) {
 }
 
 export function getAllClassIdsInApplication(application: Application) {
-  return getAllClassesInApplication(application).map(
-    (containedClass) => containedClass.id
-  );
+  return getAllClassesInApplication(application).map((containedClass) => containedClass.id);
 }
 
-export function getAllClassIdsInApplications(
-  applications: Application | Application[]
-) {
+export function getAllClassIdsInApplications(applications: Application | Application[]) {
   const apps = applications instanceof Array ? applications : [applications];
   let classIds: string[] = [];
   apps.forEach((app) => {
@@ -54,7 +41,5 @@ export function getAllMethodHashCodesInApplication(application: Application) {
 }
 
 export function applicationHasClass(application: Application, clazz: Class) {
-  return application.packages.some((component) =>
-    packageContainsClass(component, clazz)
-  );
+  return application.packages.some((component) => packageContainsClass(component, clazz));
 }

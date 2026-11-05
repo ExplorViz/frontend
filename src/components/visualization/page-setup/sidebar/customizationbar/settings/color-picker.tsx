@@ -24,14 +24,8 @@ function computePopupPosition(trigger: HTMLElement): PopupPosition {
     top = rect.top - SKETCH_PICKER_HEIGHT - 4;
   }
 
-  top = Math.max(
-    POPUP_MARGIN,
-    Math.min(top, window.innerHeight - SKETCH_PICKER_HEIGHT - POPUP_MARGIN)
-  );
-  left = Math.max(
-    POPUP_MARGIN,
-    Math.min(left, window.innerWidth - SKETCH_PICKER_WIDTH - POPUP_MARGIN)
-  );
+  top = Math.max(POPUP_MARGIN, Math.min(top, window.innerHeight - SKETCH_PICKER_HEIGHT - POPUP_MARGIN));
+  left = Math.max(POPUP_MARGIN, Math.min(left, window.innerWidth - SKETCH_PICKER_WIDTH - POPUP_MARGIN));
 
   return { top, left };
 }
@@ -43,19 +37,10 @@ interface ColorPickerProps {
   onChange?(hexColor: string | null): void;
 }
 
-export default function ColorPicker({
-  label,
-  value,
-  initialValue,
-  onChange,
-}: ColorPickerProps) {
-  const [selectedValue, setSelectedValue] = useState<string | null>(
-    initialValue ?? null
-  );
+export default function ColorPicker({ label, value, initialValue, onChange }: ColorPickerProps) {
+  const [selectedValue, setSelectedValue] = useState<string | null>(initialValue ?? null);
   const [displayColorPicker, setDisplayColorPicker] = useState(false);
-  const [popupPosition, setPopupPosition] = useState<PopupPosition | null>(
-    null
-  );
+  const [popupPosition, setPopupPosition] = useState<PopupPosition | null>(null);
 
   const colorPickerRef = useRef<HTMLDivElement>(null);
   const triggerRef = useRef<HTMLSpanElement>(null);
@@ -85,10 +70,7 @@ export default function ColorPicker({
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       const target = event.target as Node;
-      if (
-        colorPickerRef.current?.contains(target) ||
-        popupRef.current?.contains(target)
-      ) {
+      if (colorPickerRef.current?.contains(target) || popupRef.current?.contains(target)) {
         return;
       }
       setDisplayColorPicker(false);
@@ -135,11 +117,7 @@ export default function ColorPicker({
               left: popupPosition.left,
             }}
           >
-            <SketchPicker
-              color={value ?? selectedValue ?? COLOR_WHEN_NULL}
-              onChange={handleColorChange}
-              disableAlpha
-            />
+            <SketchPicker color={value ?? selectedValue ?? COLOR_WHEN_NULL} onChange={handleColorChange} disableAlpha />
           </div>,
           document.body
         )
@@ -150,15 +128,11 @@ export default function ColorPicker({
     onChange?.(initialValue!);
   };
 
-  const isNoColorSelected =
-    value === null || (value === undefined && selectedValue === null);
+  const isNoColorSelected = value === null || (value === undefined && selectedValue === null);
 
   return (
     <>
-      <div
-        className="setting-container input-group justify-content-between"
-        ref={colorPickerRef}
-      >
+      <div className="setting-container input-group justify-content-between" ref={colorPickerRef}>
         <span className="colorpicker-label">{label}</span>
         <div className="d-flex align-items-center gap-2">
           <span className="input-group-append colorpicker-input">
@@ -192,9 +166,7 @@ export default function ColorPicker({
               </style>
             </div>
           </span>
-          {initialValue !== undefined && (
-            <ResetButton onClick={handleResetClick} />
-          )}
+          {initialValue !== undefined && <ResetButton onClick={handleResetClick} />}
         </div>
       </div>
       {popup}

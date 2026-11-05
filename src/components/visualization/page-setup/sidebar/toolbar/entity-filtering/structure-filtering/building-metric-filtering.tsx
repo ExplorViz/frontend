@@ -1,4 +1,4 @@
-import React, { forwardRef, useImperativeHandle } from 'react';
+import React, { useImperativeHandle } from 'react';
 
 import HelpTooltip from 'explorviz-frontend/src/components/help-tooltip';
 import { formatWithUpToTwoDecimals } from 'explorviz-frontend/src/components/visualization/rendering/popups/city-popups/building-metrics-utils';
@@ -18,36 +18,25 @@ export type BuildingMetricFilteringHandle = {
   reset: () => void;
 };
 
-const BuildingMetricFiltering = forwardRef<
-  BuildingMetricFilteringHandle,
-  BuildingMetricFilteringProps
->(function BuildingMetricFiltering(
-  {
-    metricBounds,
-    selectedMetricThresholds,
-    updateMetricThreshold,
-    remainingEntityCountAfterFiltering,
-    initialEntityCount,
-  },
-  ref
-) {
-  const pauseVisualizationUpdating = useRenderingServiceStore(
-    (state) => state.pauseVisualizationUpdating
-  );
+const BuildingMetricFiltering = function BuildingMetricFiltering({
+  ref,
+  metricBounds,
+  selectedMetricThresholds,
+  updateMetricThreshold,
+  remainingEntityCountAfterFiltering,
+  initialEntityCount,
+}: BuildingMetricFilteringProps & {
+  ref?: React.RefObject<BuildingMetricFilteringHandle | null>;
+}) {
+  const pauseVisualizationUpdating = useRenderingServiceStore((state) => state.pauseVisualizationUpdating);
 
-  const onInput = (
-    event: React.InputEvent<HTMLInputElement>,
-    metricName: string
-  ) => {
+  const onInput = (event: React.InputEvent<HTMLInputElement>, metricName: string) => {
     const newValue = Number(event.currentTarget.value);
     pauseVisualizationUpdating();
     updateMetricThreshold(metricName, newValue);
   };
 
-  const onPointerUp = (
-    event: React.PointerEvent<HTMLInputElement>,
-    metricName: string
-  ) => {
+  const onPointerUp = (event: React.PointerEvent<HTMLInputElement>, metricName: string) => {
     const newSelected = Number(event.currentTarget.value);
     updateMetricThreshold(metricName, newSelected);
   };
@@ -63,16 +52,11 @@ const BuildingMetricFiltering = forwardRef<
     },
   }));
 
-  const isNormalizedMetricBounds = (bounds: { min: number; max: number }) =>
-    bounds.min === 0 && bounds.max <= 1;
+  const isNormalizedMetricBounds = (bounds: { min: number; max: number }) => bounds.min === 0 && bounds.max <= 1;
 
-  const getMetricStep = (bounds: { min: number; max: number }) =>
-    isNormalizedMetricBounds(bounds) ? 0.01 : 1;
+  const getMetricStep = (bounds: { min: number; max: number }) => (isNormalizedMetricBounds(bounds) ? 0.01 : 1);
 
-  const clampMetricValue = (
-    value: number,
-    bounds: { min: number; max: number }
-  ) => {
+  const clampMetricValue = (value: number, bounds: { min: number; max: number }) => {
     if (!Number.isFinite(value)) {
       return bounds.min;
     }
@@ -80,10 +64,7 @@ const BuildingMetricFiltering = forwardRef<
     return isNormalizedMetricBounds(bounds) ? clamped : Math.round(clamped);
   };
 
-  const onValueInput = (
-    event: React.ChangeEvent<HTMLInputElement>,
-    metricName: string
-  ) => {
+  const onValueInput = (event: React.ChangeEvent<HTMLInputElement>, metricName: string) => {
     const newValue = Number(event.currentTarget.value);
     if (!Number.isFinite(newValue)) {
       return;
@@ -97,10 +78,7 @@ const BuildingMetricFiltering = forwardRef<
     metricName: string,
     bounds: { min: number; max: number }
   ) => {
-    const newValue = clampMetricValue(
-      Number(event.currentTarget.value),
-      bounds
-    );
+    const newValue = clampMetricValue(Number(event.currentTarget.value), bounds);
     updateMetricThreshold(metricName, newValue);
   };
 
@@ -115,64 +93,62 @@ const BuildingMetricFiltering = forwardRef<
         )
       </label>
       <div className="building-metric-filter-grid">
-        {sortBuildingMetricNames(Object.keys(metricBounds)).map(
-          (metricName, index) => {
-            const bounds = metricBounds[metricName];
-            const selected = selectedMetricThresholds[metricName] ?? bounds.min;
-            const rowStart = index * 2 + 1;
+        {sortBuildingMetricNames(Object.keys(metricBounds)).map((metricName, index) => {
+          const bounds = metricBounds[metricName];
+          const selected = selectedMetricThresholds[metricName] ?? bounds.min;
+          const rowStart = index * 2 + 1;
 
-            return (
-              <React.Fragment key={metricName}>
-                <label
-                  className="building-metric-filter-label m-0"
-                  htmlFor={`filtering-building-metric-${metricName}`}
-                  style={{ gridColumn: 1, gridRow: `${rowStart} / span 2` }}
-                >
-                  {metricName}
-                </label>
-                <input
-                  id={`filtering-building-metric-${metricName}`}
-                  value={selected}
-                  min={bounds.min}
-                  max={bounds.max}
-                  type="range"
-                  step={getMetricStep(bounds)}
-                  className="building-metric-filter-slider form-control"
-                  style={{ gridColumn: '2 / 5', gridRow: rowStart }}
-                  onPointerUp={(event) => onPointerUp(event, metricName)}
-                  onInput={(event) => onInput(event, metricName)}
-                />
-                <span
-                  className="building-metric-filter-bound building-metric-filter-bound--min"
-                  style={{ gridColumn: 2, gridRow: rowStart + 1 }}
-                >
-                  {formatWithUpToTwoDecimals(bounds.min)}
-                </span>
-                <input
-                  className="building-metric-filter-value form-control"
-                  type="number"
-                  min={bounds.min}
-                  max={bounds.max}
-                  step={getMetricStep(bounds)}
-                  value={selected}
-                  aria-label={`${metricName} threshold`}
-                  style={{ gridColumn: 3, gridRow: rowStart + 1 }}
-                  onChange={(event) => onValueInput(event, metricName)}
-                  onBlur={(event) => onValueBlur(event, metricName, bounds)}
-                />
-                <span
-                  className="building-metric-filter-bound building-metric-filter-bound--max"
-                  style={{ gridColumn: 4, gridRow: rowStart + 1 }}
-                >
-                  {formatWithUpToTwoDecimals(bounds.max)}
-                </span>
-              </React.Fragment>
-            );
-          }
-        )}
+          return (
+            <React.Fragment key={metricName}>
+              <label
+                className="building-metric-filter-label m-0"
+                htmlFor={`filtering-building-metric-${metricName}`}
+                style={{ gridColumn: 1, gridRow: `${rowStart} / span 2` }}
+              >
+                {metricName}
+              </label>
+              <input
+                id={`filtering-building-metric-${metricName}`}
+                value={selected}
+                min={bounds.min}
+                max={bounds.max}
+                type="range"
+                step={getMetricStep(bounds)}
+                className="building-metric-filter-slider form-control"
+                style={{ gridColumn: '2 / 5', gridRow: rowStart }}
+                onPointerUp={(event) => onPointerUp(event, metricName)}
+                onInput={(event) => onInput(event, metricName)}
+              />
+              <span
+                className="building-metric-filter-bound building-metric-filter-bound--min"
+                style={{ gridColumn: 2, gridRow: rowStart + 1 }}
+              >
+                {formatWithUpToTwoDecimals(bounds.min)}
+              </span>
+              <input
+                className="building-metric-filter-value form-control"
+                type="number"
+                min={bounds.min}
+                max={bounds.max}
+                step={getMetricStep(bounds)}
+                value={selected}
+                aria-label={`${metricName} threshold`}
+                style={{ gridColumn: 3, gridRow: rowStart + 1 }}
+                onChange={(event) => onValueInput(event, metricName)}
+                onBlur={(event) => onValueBlur(event, metricName, bounds)}
+              />
+              <span
+                className="building-metric-filter-bound building-metric-filter-bound--max"
+                style={{ gridColumn: 4, gridRow: rowStart + 1 }}
+              >
+                {formatWithUpToTwoDecimals(bounds.max)}
+              </span>
+            </React.Fragment>
+          );
+        })}
       </div>
     </div>
   );
-});
+};
 
 export default BuildingMetricFiltering;

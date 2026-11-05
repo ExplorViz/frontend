@@ -1,7 +1,4 @@
-import {
-  Span,
-  Trace,
-} from 'explorviz-frontend/src/utils/landscape-schemes/telemetry/traces';
+import { Span, Trace } from 'explorviz-frontend/src/utils/landscape-schemes/telemetry/traces';
 
 /**
  * Returns the span's total duration in nanoseconds
@@ -23,11 +20,7 @@ export function calculateDuration(traceOrSpan: Trace | Span) {
  * @param copy - If set to true, a sorted copy of the array is returned,
  * else the original array is mutated and returned
  */
-export function sortTracesByDuration(
-  traces: Trace[],
-  ascending = true,
-  copy = false
-) {
+export function sortTracesByDuration(traces: Trace[], ascending = true, copy = false) {
   let sortedArray = traces;
   if (copy) {
     sortedArray = [...sortedArray];
@@ -53,11 +46,7 @@ export function sortTracesByDuration(
  * @param copy - If set to true, a sorted copy of the array is returned,
  * else the original array is mutated and returned. Default: `true`
  */
-export function sortTracesById(
-  traces: Trace[],
-  ascending = true,
-  copy = false
-) {
+export function sortTracesById(traces: Trace[], ascending = true, copy = false) {
   let sortedArray = traces;
   if (copy) {
     sortedArray = [...sortedArray];
@@ -93,11 +82,7 @@ export function getTraceRequestCount(trace: Trace) {
  * @param copy - If set to true, a sorted copy of the array is returned,
  * else the original array is mutated and returned. Default: `true`
  */
-export function sortTracesByRequestCount(
-  traces: Trace[],
-  ascending = true,
-  copy = false
-) {
+export function sortTracesByRequestCount(traces: Trace[], ascending = true, copy = false) {
   let sortedArray = traces;
   if (copy) {
     sortedArray = [...sortedArray];
@@ -127,9 +112,7 @@ export function sortSpanArrayByTime(spanArray: Span[], copy = false) {
   if (copy) {
     sortedArray = [...sortedArray];
   }
-  return sortedArray.sort((span1, span2) =>
-    Number(span1.startUnixNano - span2.startUnixNano)
-  );
+  return sortedArray.sort((span1, span2) => Number(span1.startUnixNano - span2.startUnixNano));
 }
 
 /**
@@ -159,9 +142,7 @@ export function getTraceIdToSpanTree(trace: Trace) {
     parentSpanIdToChildSpansMap.get(span.parentSpanId ?? '')?.push(span);
   });
 
-  parentSpanIdToChildSpansMap.forEach((spanArray) =>
-    sortSpanArrayByTime(spanArray)
-  );
+  parentSpanIdToChildSpansMap.forEach((spanArray) => sortSpanArrayByTime(spanArray));
 
   const tree: SpanTree = {
     root: firstSpan,
@@ -193,9 +174,7 @@ export function getSortedTraceSpans(trace: Trace) {
       return [span];
     }
 
-    const subSpans = childSpans
-      .map((subSpan) => getSortedSpanList(subSpan, tree))
-      .flat();
+    const subSpans = childSpans.map((subSpan) => getSortedSpanList(subSpan, tree)).flat();
 
     return [span, ...subSpans];
   }

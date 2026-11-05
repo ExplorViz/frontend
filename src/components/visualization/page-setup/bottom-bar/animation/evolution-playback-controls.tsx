@@ -4,23 +4,13 @@ import { useCommitTreeStateStore } from 'explorviz-frontend/src/stores/commit-tr
 import { useEffect, useRef, useCallback } from 'react';
 import { createPortal } from 'react-dom';
 import { useShallow } from 'zustand/react/shallow';
-import {
-  useEvolutionAnimationStore,
-  WINDOW_SIZE,
-} from './evolution-animation-store';
+import { useEvolutionAnimationStore, WINDOW_SIZE } from './evolution-animation-store';
 import Form from 'react-bootstrap/Form';
-import {
-  ChevronLeftIcon,
-  ChevronRightIcon,
-  ChevronUpIcon,
-  PauseIcon,
-  PlayIcon,
-  XIcon
-} from '@primer/octicons-react';
+import { ChevronLeftIcon, ChevronRightIcon, ChevronUpIcon, PauseIcon, PlayIcon, XIcon } from '@primer/octicons-react';
 import {
   useFloatingPanel,
   FloatingPanelPosition,
-  } from 'explorviz-frontend/src/components/visualization/page-setup/bottom-bar/animation/floating-panel.ts';
+} from 'explorviz-frontend/src/components/visualization/page-setup/bottom-bar/animation/floating-panel.ts';
 export default function EvolutionPlaybackControls() {
   const {
     loadedFrames,
@@ -48,12 +38,8 @@ export default function EvolutionPlaybackControls() {
     }))
   );
 
-  const repositoryName = useCommitTreeStateStore(
-    (s) => s._currentSelectedRepositoryName
-  );
-  const fetchWindow = useEvolutionAnimationFetchServiceStore(
-    (s) => s.fetchAnimationWindow
-  );
+  const repositoryName = useCommitTreeStateStore((s) => s._currentSelectedRepositoryName);
+  const fetchWindow = useEvolutionAnimationFetchServiceStore((s) => s.fetchAnimationWindow);
   const anchorNextToPanel = useCallback((): FloatingPanelPosition | null => {
     const panel = document.querySelector('.evolution-animation-panel');
     if (panel) {
@@ -73,13 +59,8 @@ export default function EvolutionPlaybackControls() {
     return null;
   }, []);
 
-  const { ref, isMinimized, toggleMinimized, onDragStart } = useFloatingPanel(
-    anchorNextToPanel,
-    8
-  );
-  const fetchDeltaWindow = useEvolutionAnimationFetchServiceStore(
-    (s) => s.fetchAnimationDeltaWindow
-  );
+  const { ref, isMinimized, toggleMinimized, onDragStart } = useFloatingPanel(anchorNextToPanel, 8);
+  const fetchDeltaWindow = useEvolutionAnimationFetchServiceStore((s) => s.fetchAnimationDeltaWindow);
 
   const initialLayoutDoneRef = useRef(false);
 
@@ -110,9 +91,7 @@ export default function EvolutionPlaybackControls() {
           s.rangeFrom,
           s.rangeTo
         );
-        useEvolutionAnimationStore
-          .getState()
-          .actions.addDeltaFrames(windowData.frames);
+        useEvolutionAnimationStore.getState().actions.addDeltaFrames(windowData.frames);
       } else {
         const windowData = await fetchWindow(
           repositoryName,
@@ -122,22 +101,13 @@ export default function EvolutionPlaybackControls() {
           s.timeMode,
           s.bucketSize
         );
-        useEvolutionAnimationStore
-          .getState()
-          .actions.addFrames(windowData.frames);
+        useEvolutionAnimationStore.getState().actions.addFrames(windowData.frames);
       }
     };
     const block = Math.floor(currentFrameIndex / WINDOW_SIZE);
     ensureBlock(block);
     ensureBlock(block + 1);
-  }, [
-    currentFrameIndex,
-    totalCount,
-    repositoryName,
-    deltaMode,
-    fetchDeltaWindow,
-    fetchWindow,
-  ]);
+  }, [currentFrameIndex, totalCount, repositoryName, deltaMode, fetchDeltaWindow, fetchWindow]);
 
   // One-time frame layout after animation starts; skeleton layout is applied on load.
   useEffect(() => {
@@ -145,17 +115,10 @@ export default function EvolutionPlaybackControls() {
       return;
     }
 
-    if (applyAnimationFrameLayout()){
+    if (applyAnimationFrameLayout()) {
       initialLayoutDoneRef.current = true;
     }
-  }, [
-    stableFrame,
-    totalCount,
-    loadedFrames,
-    deltaFrames,
-    deltaMode,
-    currentFrameIndex,
-  ]);
+  }, [stableFrame, totalCount, loadedFrames, deltaFrames, deltaMode, currentFrameIndex]);
 
   useEffect(() => {
     if (!isPlaying) return;
@@ -172,24 +135,15 @@ export default function EvolutionPlaybackControls() {
 
   if (totalCount === 0) return null;
 
-  const active = deltaMode
-    ? deltaFrames.get(currentFrameIndex)
-    : loadedFrames.get(currentFrameIndex);
-  const activeDelta = deltaMode
-    ? deltaFrames.get(currentFrameIndex)
-    : undefined;
+  const active = deltaMode ? deltaFrames.get(currentFrameIndex) : loadedFrames.get(currentFrameIndex);
+  const activeDelta = deltaMode ? deltaFrames.get(currentFrameIndex) : undefined;
 
   return createPortal(
     <div
-      className={`evolution-playback-controls${
-        isMinimized ? ' evolution-playback-controls--minimized' : ''
-      }`}
+      className={`evolution-playback-controls${isMinimized ? ' evolution-playback-controls--minimized' : ''}`}
       ref={ref}
     >
-      <div
-        className="evolution-playback-controls__transport"
-        onPointerDown={onDragStart}
-      >
+      <div className="evolution-playback-controls__transport" onPointerDown={onDragStart}>
         <button
           type="button"
           className="btn btn-sm btn-outline-secondary evolution-playback-controls__button"
@@ -239,10 +193,7 @@ export default function EvolutionPlaybackControls() {
           aria-label={isMinimized ? 'Maximize' : 'Minimize'}
           onPointerDown={(e) => e.stopPropagation()}
         >
-          <ChevronUpIcon
-            size="small"
-            className={isMinimized ? '' : 'hide-bottom-bar-icon-down'}
-          />
+          <ChevronUpIcon size="small" className={isMinimized ? '' : 'hide-bottom-bar-icon-down'} />
         </button>
 
         <button
@@ -266,9 +217,7 @@ export default function EvolutionPlaybackControls() {
       />
 
       <div className="evolution-playback-controls__hash-row">
-        <code className="evolution-playback-controls__hash">
-          {active ? active.commitHash.slice(0, 7) : '—'}
-        </code>
+        <code className="evolution-playback-controls__hash">{active ? active.commitHash.slice(0, 7) : '—'}</code>
         <span className="evolution-playback-controls__counter">
           {currentFrameIndex + 1} / {totalCount}
         </span>
@@ -276,24 +225,22 @@ export default function EvolutionPlaybackControls() {
 
       <div className="evolution-playback-controls__range">
         {pausedForLoading
-        ? 'Loading ...'
-        :activeDelta
-          ? `${
-              activeDelta.tsFrom === activeDelta.tsTo
-                ? new Date(activeDelta.tsFrom).toLocaleDateString()
-                : `${new Date(activeDelta.tsFrom).toLocaleDateString()} – ${new Date(
-                    activeDelta.tsTo
-                  ).toLocaleDateString()}`
-            } · ${
-              activeDelta.commitCount === 0
-                ? 'No Commits'
-                : `${activeDelta.commitCount} Commit${
-                    activeDelta.commitCount === 1 ? '' : 's'
-                  }`
-            }`
-          : active && new Date(active.authorDate).toLocaleString()}
+          ? 'Loading ...'
+          : activeDelta
+            ? `${
+                activeDelta.tsFrom === activeDelta.tsTo
+                  ? new Date(activeDelta.tsFrom).toLocaleDateString()
+                  : `${new Date(activeDelta.tsFrom).toLocaleDateString()} – ${new Date(
+                      activeDelta.tsTo
+                    ).toLocaleDateString()}`
+              } · ${
+                activeDelta.commitCount === 0
+                  ? 'No Commits'
+                  : `${activeDelta.commitCount} Commit${activeDelta.commitCount === 1 ? '' : 's'}`
+              }`
+            : active && new Date(active.authorDate).toLocaleString()}
       </div>
     </div>,
     document.body
   );
-};
+}

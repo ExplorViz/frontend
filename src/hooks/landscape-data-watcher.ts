@@ -25,26 +25,20 @@ function refreshBuildingCommunications(
   flatLandscapeStructure: FlatLandscape,
   aggregatedCommunication: CommSummary | undefined
 ) {
-  const buildingCommunications = computeBuildingCommunication(
-    flatLandscapeStructure,
-    aggregatedCommunication
-  );
+  const buildingCommunications = computeBuildingCommunication(flatLandscapeStructure, aggregatedCommunication);
 
   useModelStore.getState().setBuildingCommunications(buildingCommunications);
   calculateAggregatedCommunications(buildingCommunications);
 }
 
-export default function useLandscapeDataWatcher(
-  landscapeData: LandscapeData | null
-) {
+export default function useLandscapeDataWatcher(landscapeData: LandscapeData | null) {
   const log = debug('app:hooks:useLandscapeWatcher');
 
   const { removedDistrictIds } = useVisualizationStore();
 
   // Variables
   const dynamicLandscapeData = landscapeData?.dynamicLandscapeData;
-  const aggregatedFileCommunication =
-    landscapeData?.aggregatedFileCommunication;
+  const aggregatedFileCommunication = landscapeData?.aggregatedFileCommunication;
   const flatLandscapeData = landscapeData?.flatLandscapeData;
 
   const lastProcessedDynamicData = useRef<DynamicLandscapeData | null>(null);
@@ -71,23 +65,16 @@ export default function useLandscapeDataWatcher(
   const handleDynamicOnlyUpdate = () => {
     log('handleDynamicOnlyUpdate');
 
-    const landscapeDataFromStore =
-      useRenderingServiceStore.getState()._landscapeData;
-    const flatLandscapeStructure =
-      landscapeDataFromStore?.flatLandscapeData ?? flatLandscapeData;
-    const aggregatedCommunication =
-      landscapeDataFromStore?.aggregatedFileCommunication ??
-      aggregatedFileCommunication;
+    const landscapeDataFromStore = useRenderingServiceStore.getState()._landscapeData;
+    const flatLandscapeStructure = landscapeDataFromStore?.flatLandscapeData ?? flatLandscapeData;
+    const aggregatedCommunication = landscapeDataFromStore?.aggregatedFileCommunication ?? aggregatedFileCommunication;
 
     if (!flatLandscapeStructure) {
       return;
     }
 
     log('Refresh building communication only');
-    refreshBuildingCommunications(
-      flatLandscapeStructure,
-      aggregatedCommunication
-    );
+    refreshBuildingCommunications(flatLandscapeStructure, aggregatedCommunication);
   };
 
   const handleLandscapeUpdate = useCallback(async () => {
@@ -95,41 +82,28 @@ export default function useLandscapeDataWatcher(
     log('handleLandscapeUpdate');
     await Promise.resolve();
 
-    const landscapeDataFromStore =
-      useRenderingServiceStore.getState()._landscapeData;
-    const flatLandscapeStructure =
-      landscapeDataFromStore?.flatLandscapeData ?? flatLandscapeData;
-    const dynamicData =
-      landscapeDataFromStore?.dynamicLandscapeData ?? dynamicLandscapeData;
-    const aggregatedCommunication =
-      landscapeDataFromStore?.aggregatedFileCommunication ??
-      aggregatedFileCommunication;
+    const landscapeDataFromStore = useRenderingServiceStore.getState()._landscapeData;
+    const flatLandscapeStructure = landscapeDataFromStore?.flatLandscapeData ?? flatLandscapeData;
+    const dynamicData = landscapeDataFromStore?.dynamicLandscapeData ?? dynamicLandscapeData;
+    const aggregatedCommunication = landscapeDataFromStore?.aggregatedFileCommunication ?? aggregatedFileCommunication;
 
     if (!dynamicData || !flatLandscapeStructure) {
       return;
     }
 
     log('Layouting landscape ...');
-    const boxLayoutMap = await layoutLandscape(
-      flatLandscapeStructure,
-      removedDistrictIds
-    );
+    const boxLayoutMap = await layoutLandscape(flatLandscapeStructure, removedDistrictIds);
     if (generation !== layoutGenerationRef.current) {
       return;
     }
     log('Layouted landscape: ', boxLayoutMap);
 
     log('Compute building communication');
-    const buildingCommunications = computeBuildingCommunication(
-      flatLandscapeStructure,
-      aggregatedCommunication
-    );
+    const buildingCommunications = computeBuildingCommunication(flatLandscapeStructure, aggregatedCommunication);
 
     // In Remove mode the entity filter applier owns cities/districts/buildings.
     if (useEntityFilteringStore.getState().filterMode === 'Remove') {
-      useModelStore
-        .getState()
-        .setBuildingCommunications(buildingCommunications);
+      useModelStore.getState().setBuildingCommunications(buildingCommunications);
     } else {
       useModelStore.getState().setAllModels({
         cities: Object.values(flatLandscapeStructure.cities),
@@ -141,40 +115,26 @@ export default function useLandscapeDataWatcher(
 
     calculateAggregatedCommunications(buildingCommunications);
 
-    useLayoutStore
-      .getState()
-      .updateLayouts(boxLayoutMap, flatLandscapeStructure);
+    useLayoutStore.getState().updateLayouts(boxLayoutMap, flatLandscapeStructure);
 
     tryApplyPendingSerializedRoom();
-  }, [
-    dynamicLandscapeData,
-    aggregatedFileCommunication,
-    flatLandscapeData,
-    removedDistrictIds,
-    log,
-  ]);
+  }, [dynamicLandscapeData, aggregatedFileCommunication, flatLandscapeData, removedDistrictIds, log]);
 
   useEffect(() => {
     if (!dynamicLandscapeData || !flatLandscapeData) {
       return;
     }
 
-    const currentFlatLandscapeSignature =
-      getCachedStructureSignature(flatLandscapeData);
+    const currentFlatLandscapeSignature = getCachedStructureSignature(flatLandscapeData);
 
-    const flatChanged =
-      currentFlatLandscapeSignature !==
-      lastProcessedFlatLandscapeSignature.current;
+    const flatChanged = currentFlatLandscapeSignature !== lastProcessedFlatLandscapeSignature.current;
 
-    const landscapeChanged =
-      landscapeData !== lastProcessedLandscapeData.current;
+    const landscapeChanged = landscapeData !== lastProcessedLandscapeData.current;
 
     // Deep-comparing the traces is expensive, so only fall back to it when the
     // cheap checks did not already tell us that an update is due.
     const dynamicChanged =
-      !landscapeChanged &&
-      !flatChanged &&
-      !areArraysEqual(dynamicLandscapeData, lastProcessedDynamicData.current);
+      !landscapeChanged && !flatChanged && !areArraysEqual(dynamicLandscapeData, lastProcessedDynamicData.current);
 
     if (!landscapeChanged && !flatChanged && !dynamicChanged) {
       return;

@@ -15,16 +15,13 @@ type DistrictStructureState = {
 export default function CollaborationComponentSync() {
   const isConnected = usePlayroomConnectionStore((state) => state.isConnected);
 
-  const [globalStructure, setGlobalStructure] =
-    useMultiplayerState<DistrictStructureState>('componentStructure', {
-      closed: [],
-      hiddenDistricts: [],
-    });
+  const [globalStructure, setGlobalStructure] = useMultiplayerState<DistrictStructureState>('componentStructure', {
+    closed: [],
+    hiddenDistricts: [],
+  });
 
   const localClosed = useVisualizationStore((state) => state.closedDistrictIds);
-  const localHiddenDistricts = useVisualizationStore(
-    (state) => state.hiddenDistrictIds
-  );
+  const localHiddenDistricts = useVisualizationStore((state) => state.hiddenDistrictIds);
 
   const lastSyncedStringRef = useRef<string>('');
   const isFirstRender = useRef(true);
@@ -49,14 +46,10 @@ export default function CollaborationComponentSync() {
     if (isFirstRender.current) {
       isFirstRender.current = false;
 
-      if (
-        globalString !== JSON.stringify({ closed: [], hiddenDistricts: [] })
-      ) {
+      if (globalString !== JSON.stringify({ closed: [], hiddenDistricts: [] })) {
         lastSyncedStringRef.current = globalString;
         useVisualizationStore.setState({
-          closedDistrictIds: deserializeClosedDistricts(
-            globalStructure?.closed || []
-          ),
+          closedDistrictIds: deserializeClosedDistricts(globalStructure?.closed || []),
           hiddenDistrictIds: new Set(globalStructure?.hiddenDistricts || []),
         });
       } else {
@@ -77,20 +70,12 @@ export default function CollaborationComponentSync() {
       lastSyncedStringRef.current = globalString;
 
       useVisualizationStore.setState({
-        closedDistrictIds: deserializeClosedDistricts(
-          globalStructure?.closed || []
-        ),
+        closedDistrictIds: deserializeClosedDistricts(globalStructure?.closed || []),
         hiddenDistrictIds: new Set(globalStructure?.hiddenDistricts || []),
       });
       return;
     }
-  }, [
-    localClosed,
-    localHiddenDistricts,
-    globalStructure,
-    setGlobalStructure,
-    isConnected,
-  ]);
+  }, [localClosed, localHiddenDistricts, globalStructure, setGlobalStructure, isConnected]);
 
   return null;
 }

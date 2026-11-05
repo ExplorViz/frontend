@@ -245,8 +245,7 @@ export default class ClazzCommunicationMesh extends BaseMesh {
     this.requestRender();
 
     if (
-      (this.material instanceof THREE.MeshBasicMaterial ||
-        this.material instanceof THREE.MeshLambertMaterial) &&
+      (this.material instanceof THREE.MeshBasicMaterial || this.material instanceof THREE.MeshLambertMaterial) &&
       !this.highlighted
     ) {
       this.material.color = color;
@@ -331,12 +330,11 @@ export default class ClazzCommunicationMesh extends BaseMesh {
   private _originHAP: HAPNode | null = null;
   private _destinationHAP: HAPNode | null = null;
   private _beta: number = 0.8;
-  private _use3DHAPAlgorithm: boolean = false;
+  private _enable3DHAPAlgorithm: boolean = false;
   private _scatterRadius: number = 0.5;
 
   // Shared geometries cache
-  private static sharedGeometries: Map<string, THREE.BufferGeometry> =
-    new Map();
+  private static sharedGeometries: Map<string, THREE.BufferGeometry> = new Map();
   private static geometryUsageCount: Map<string, number> = new Map();
 
   get enableEdgeBundling(): boolean {
@@ -371,13 +369,13 @@ export default class ClazzCommunicationMesh extends BaseMesh {
     }
   }
 
-  get use3DHAPAlgorithm(): boolean {
-    return this._use3DHAPAlgorithm;
+  get enable3DHAPAlgorithm(): boolean {
+    return this._enable3DHAPAlgorithm;
   }
 
-  set use3DHAPAlgorithm(value: boolean) {
-    if (this._use3DHAPAlgorithm !== value) {
-      this._use3DHAPAlgorithm = value;
+  set enable3DHAPAlgorithm(value: boolean) {
+    if (this._enable3DHAPAlgorithm !== value) {
+      this._enable3DHAPAlgorithm = value;
       this._needsRender = true;
     }
   }
@@ -397,13 +395,10 @@ export default class ClazzCommunicationMesh extends BaseMesh {
     }
   }
 
-  constructor(
-    dataModel: ClazzCommuMeshDataModel,
-    options?: { use3DHAPAlgorithm?: boolean }
-  ) {
+  constructor(dataModel: ClazzCommuMeshDataModel, options?: { enable3DHAPAlgorithm?: boolean }) {
     super();
     this.dataModel = dataModel;
-    this._use3DHAPAlgorithm = options?.use3DHAPAlgorithm ?? false;
+    this._enable3DHAPAlgorithm = options?.enable3DHAPAlgorithm ?? false;
     this.material = new THREE.MeshBasicMaterial({
       color: this.defaultColor,
     });
@@ -423,9 +418,7 @@ export default class ClazzCommunicationMesh extends BaseMesh {
       destinationId: destinationHAP.id,
     };
 
-    const hasChanged =
-      this._originHAP?.id !== originHAP.id ||
-      this._destinationHAP?.id !== destinationHAP.id;
+    const hasChanged = this._originHAP?.id !== originHAP.id || this._destinationHAP?.id !== destinationHAP.id;
 
     if (hasChanged) {
       this._hapSystem = hapSystem;
@@ -447,23 +440,19 @@ export default class ClazzCommunicationMesh extends BaseMesh {
    * @returns Array of PoI
    */
   getPoI(): Array<THREE.Vector3> {
-    let worldPosStart = new THREE.Vector3();
-    let worldPosEnd = new THREE.Vector3();
     const orignalWorldPos: Array<THREE.Vector3> = super.getPoI();
     const start = new THREE.Vector3();
     start.subVectors(this.layout.startPoint, this.applicationCenter);
 
     const end = new THREE.Vector3();
     end.subVectors(this.layout.endPoint, this.applicationCenter);
-    worldPosStart = this.localToWorld(start);
-    worldPosEnd = this.localToWorld(end);
+    const worldPosStart = this.localToWorld(start);
+    const worldPosEnd = this.localToWorld(end);
     return [...orignalWorldPos, worldPosStart, worldPosEnd];
   }
 
   saveCurrentlyActiveLayout() {
-    this.layers.enable(
-      useVisualizationStore.getState().sceneLayers.Communication
-    );
+    this.layers.enable(useVisualizationStore.getState().sceneLayers.Communication);
   }
 
   getModelId() {
@@ -531,18 +520,10 @@ export default class ClazzCommunicationMesh extends BaseMesh {
     const direction = new THREE.Vector3().subVectors(end, start);
     const orientation = new THREE.Matrix4();
     orientation.lookAt(start, end, new THREE.Object3D().up);
-    orientation.multiply(
-      new THREE.Matrix4().set(1, 0, 0, 0, 0, 0, 1, 0, 0, -1, 0, 0, 0, 0, 0, 1)
-    );
+    orientation.multiply(new THREE.Matrix4().set(1, 0, 0, 0, 0, 0, 1, 0, 0, -1, 0, 0, 0, 0, 0, 1));
 
     const { lineThickness } = layout;
-    const edgeGeometry = new THREE.CylinderGeometry(
-      lineThickness,
-      lineThickness,
-      direction.length(),
-      20,
-      1
-    );
+    const edgeGeometry = new THREE.CylinderGeometry(lineThickness, lineThickness, direction.length(), 20, 1);
     this.geometry = edgeGeometry;
     this.applyMatrix4(orientation);
 
@@ -585,7 +566,7 @@ export default class ClazzCommunicationMesh extends BaseMesh {
       return;
     }
 
-    if (this._enableEdgeBundling && this._use3DHAPAlgorithm) {
+    if (this._enableEdgeBundling && this._enable3DHAPAlgorithm) {
       if (!this._hapSystem || !this._originHAP || !this._destinationHAP) {
         this.renderWithEdgeBundling(curveSegments); // Fallback
         return;
@@ -606,12 +587,7 @@ export default class ClazzCommunicationMesh extends BaseMesh {
       // Original algorithm
       this.renderOriginalAlgorithm(curveSegments);
     } else {
-      if (
-        this._use3DHAPAlgorithm &&
-        this._hapSystem &&
-        this._originHAP &&
-        this._destinationHAP
-      ) {
+      if (this._enable3DHAPAlgorithm && this._hapSystem && this._originHAP && this._destinationHAP) {
         this.renderWith3DHAPGradient(curveSegments);
       } else {
         this.renderWithEdgeBundling(curveSegments);
@@ -638,10 +614,7 @@ export default class ClazzCommunicationMesh extends BaseMesh {
 
     // Release old geometry before assigning new one
     const oldGeometry = this.geometry;
-    this.geometry = this.getSharedGeometry(
-      curve,
-      this.curveHeight === 0 ? 1 : curveSegments
-    );
+    this.geometry = this.getSharedGeometry(curve, this.curveHeight === 0 ? 1 : curveSegments);
 
     // If geometry changed, release the old one
     if (oldGeometry && oldGeometry !== this.geometry) {
@@ -691,9 +664,7 @@ export default class ClazzCommunicationMesh extends BaseMesh {
 
   // Get layout as BundledCommunicationLayout if possible
   private getBundledLayout(): BundledCommunicationLayout | null {
-    return this.isBundledLayout()
-      ? (this.layout as unknown as BundledCommunicationLayout)
-      : null;
+    return this.isBundledLayout() ? (this.layout as unknown as BundledCommunicationLayout) : null;
   }
 
   // Directions of Edges is displayed by color
@@ -757,20 +728,12 @@ export default class ClazzCommunicationMesh extends BaseMesh {
   /**
    * Calculate position along curve (0 = origin, 1 = destination)
    */
-  private calculateVertexT(
-    vertexPosition: THREE.Vector3,
-    curve: THREE.Curve<THREE.Vector3>
-  ): number {
+  private calculateVertexT(vertexPosition: THREE.Vector3, curve: THREE.Curve<THREE.Vector3>): number {
     const start = curve.getPoint(0);
     const end = curve.getPoint(1);
 
-    const lineDirection = new THREE.Vector3()
-      .subVectors(end, start)
-      .normalize();
-    const vertexDirection = new THREE.Vector3().subVectors(
-      vertexPosition,
-      start
-    );
+    const lineDirection = new THREE.Vector3().subVectors(end, start).normalize();
+    const vertexDirection = new THREE.Vector3().subVectors(vertexPosition, start);
 
     const projectedLength = vertexDirection.dot(lineDirection);
     const totalLength = start.distanceTo(end);
@@ -781,10 +744,7 @@ export default class ClazzCommunicationMesh extends BaseMesh {
   /**
    * Get or create shared geometry for identical curves
    */
-  private getSharedGeometry(
-    curve: THREE.Curve<THREE.Vector3>,
-    segments: number
-  ): THREE.BufferGeometry {
+  private getSharedGeometry(curve: THREE.Curve<THREE.Vector3>, segments: number): THREE.BufferGeometry {
     if (!curve) {
       return new THREE.BufferGeometry();
     }
@@ -813,11 +773,7 @@ export default class ClazzCommunicationMesh extends BaseMesh {
 
     if (!ClazzCommunicationMesh.sharedGeometries.has(key)) {
       try {
-        const geometry = new THREE.TubeGeometry(
-          curve,
-          segments,
-          this.layout.lineThickness
-        );
+        const geometry = new THREE.TubeGeometry(curve, segments, this.layout.lineThickness);
         ClazzCommunicationMesh.sharedGeometries.set(key, geometry);
         ClazzCommunicationMesh.geometryUsageCount.set(key, 1);
       } catch (geometryError) {
@@ -831,11 +787,8 @@ export default class ClazzCommunicationMesh extends BaseMesh {
   /**
    * Generate unique key for geometry caching
    */
-  private generateGeometryKey(
-    curve: THREE.Curve<THREE.Vector3>,
-    segments: number
-  ): string {
-    if (this._use3DHAPAlgorithm && this._originHAP && this._destinationHAP) {
+  private generateGeometryKey(curve: THREE.Curve<THREE.Vector3>, segments: number): string {
+    if (this._enable3DHAPAlgorithm && this._originHAP && this._destinationHAP) {
       const elevationKey = `C${Math.round(this._hapClassElevation)}_P${Math.round(this._hapPackageElevation)}_A${Math.round(this._hapApplicationElevation)}_R${this._hapUseRelativeElevation ? 1 : 0}`;
 
       return `HAP_${this._originHAP.id}_${this._destinationHAP.id}_${this._beta}_${this._scatterRadius}_${this._streamline ? 'S' : 'F'}_${this._leafPackagesOnly ? 'L' : 'A'}_${elevationKey}_H${this._curveHeight.toFixed(2)}_EB${this._enableEdgeBundling ? 'ON' : 'OFF'}_${segments}_${this.layout.lineThickness}`;
@@ -857,8 +810,7 @@ export default class ClazzCommunicationMesh extends BaseMesh {
     });
 
     if (foundKey) {
-      const count =
-        ClazzCommunicationMesh.geometryUsageCount.get(foundKey) || 0;
+      const count = ClazzCommunicationMesh.geometryUsageCount.get(foundKey) || 0;
       if (count <= 1) {
         ClazzCommunicationMesh.sharedGeometries.delete(foundKey);
         ClazzCommunicationMesh.geometryUsageCount.delete(foundKey);
@@ -868,9 +820,7 @@ export default class ClazzCommunicationMesh extends BaseMesh {
     }
   }
 
-  private isLayoutValid(
-    layout: CommunicationLayout | BundledCommunicationLayout | null
-  ): boolean {
+  private isLayoutValid(layout: CommunicationLayout | BundledCommunicationLayout | null): boolean {
     if (!layout) return false;
 
     if (!layout.startPoint || !layout.endPoint) return false;
@@ -878,14 +828,7 @@ export default class ClazzCommunicationMesh extends BaseMesh {
     const start = layout.startPoint;
     const end = layout.endPoint;
 
-    return (
-      !isNaN(start.x) &&
-      !isNaN(start.y) &&
-      !isNaN(start.z) &&
-      !isNaN(end.x) &&
-      !isNaN(end.y) &&
-      !isNaN(end.z)
-    );
+    return !isNaN(start.x) && !isNaN(start.y) && !isNaN(start.z) && !isNaN(end.x) && !isNaN(end.y) && !isNaN(end.z);
   }
   /**
    * Modified render methods that use shared geometries
@@ -900,12 +843,7 @@ export default class ClazzCommunicationMesh extends BaseMesh {
     if (!bundledLayout || !this.isLayoutValid(bundledLayout)) {
       return;
     }
-    if (
-      !bundledLayout ||
-      !this._hapSystem ||
-      !this._originHAP ||
-      !this._destinationHAP
-    ) {
+    if (!bundledLayout || !this._hapSystem || !this._originHAP || !this._destinationHAP) {
       this.renderWithEdgeBundling(curveSegments);
       return;
     }
@@ -962,14 +900,11 @@ export default class ClazzCommunicationMesh extends BaseMesh {
   }
 
   // Update edge bundling based on group of communications
-  public updateEdgeBundling(
-    allCommunications: ClazzCommunicationMesh[],
-    config?: Partial<EdgeBundlingConfig>
-  ): void {
+  public updateEdgeBundling(allCommunications: ClazzCommunicationMesh[], config?: Partial<EdgeBundlingConfig>): void {
     if (!this.layout || !this._enableEdgeBundling) return;
 
     // If using 3D-HAP algorithm, no need for compatibility-based bundling
-    if (this._use3DHAPAlgorithm && this._hapSystem) {
+    if (this._enable3DHAPAlgorithm && this._hapSystem) {
       return;
     }
 
@@ -983,7 +918,7 @@ export default class ClazzCommunicationMesh extends BaseMesh {
         comm.bundleGroupId === this.bundleGroupId &&
         comm.layout &&
         comm.isBundledLayout() &&
-        !comm.use3DHAPAlgorithm // Only bundle with other non-HAP edges
+        !comm.enable3DHAPAlgorithm // Only bundle with other non-HAP edges
     );
 
     if (compatibleEdges.length > 0) {
@@ -1002,10 +937,7 @@ export default class ClazzCommunicationMesh extends BaseMesh {
         bundledLayout.setBundlingConfig(config);
       }
 
-      const bundledEdges = EdgeBundlingProcessor.applyEdgeBundling(
-        edges,
-        bundledLayout.getBundlingConfig()
-      );
+      const bundledEdges = EdgeBundlingProcessor.applyEdgeBundling(edges, bundledLayout.getBundlingConfig());
 
       // Update control points
       if (bundledEdges.length > 0) {
@@ -1037,7 +969,7 @@ export default class ClazzCommunicationMesh extends BaseMesh {
       hasHAPSystem: !!this._hapSystem,
       hasHAPNodes: !!(this._originHAP && this._destinationHAP),
       beta: this._beta,
-      use3DHAP: this._use3DHAPAlgorithm,
+      use3DHAP: this._enable3DHAPAlgorithm,
     };
   }
 
@@ -1106,10 +1038,7 @@ export default class ClazzCommunicationMesh extends BaseMesh {
   }
 
   addBidirectionalArrow() {
-    if (
-      this.dataModel.communication.isBidirectional &&
-      this.potentialBidirectionalArrow
-    ) {
+    if (this.dataModel.communication.isBidirectional && this.potentialBidirectionalArrow) {
       this.add(this.potentialBidirectionalArrow);
     }
   }
@@ -1133,11 +1062,7 @@ export default class ClazzCommunicationMesh extends BaseMesh {
     dir.normalize();
 
     // Arrow properties
-    const origin = new THREE.Vector3(
-      middle.x,
-      middle.y + this.arrowOffset + this.curveHeight / 2,
-      middle.z
-    );
+    const origin = new THREE.Vector3(middle.x, middle.y + this.arrowOffset + this.curveHeight / 2, middle.z);
     const headWidth = Math.max(0.5, this.arrowWidth);
     const headLength = Math.min(2 * headWidth, 0.3 * len);
     const length = headLength + 0.00001; // body of arrow not visible
@@ -1167,11 +1092,7 @@ export default class ClazzCommunicationMesh extends BaseMesh {
     dir.normalize();
 
     // Arrow properties
-    const origin = new THREE.Vector3(
-      middle.x,
-      middle.y + this.arrowOffset,
-      middle.z
-    );
+    const origin = new THREE.Vector3(middle.x, middle.y + this.arrowOffset, middle.z);
     const headWidth = Math.max(0.5, this.arrowWidth);
     const headLength = Math.min(2 * headWidth, 0.3 * len);
     const length = headLength + 0.00001; // body of arrow not visible
@@ -1233,8 +1154,7 @@ export default class ClazzCommunicationMesh extends BaseMesh {
     this.cleanupHoverCacheIfNeeded();
 
     if (ClazzCommunicationMesh.hoverGeometryCache.has(cacheKey)) {
-      const cacheEntry =
-        ClazzCommunicationMesh.hoverGeometryCache.get(cacheKey)!;
+      const cacheEntry = ClazzCommunicationMesh.hoverGeometryCache.get(cacheKey)!;
       cacheEntry.usageCount++;
       cacheEntry.timestamp = Date.now();
 
@@ -1254,9 +1174,7 @@ export default class ClazzCommunicationMesh extends BaseMesh {
     return geometry;
   }
 
-  private createSimpleHoverGeometry(
-    hoverThickness: number
-  ): THREE.BufferGeometry {
+  private createSimpleHoverGeometry(hoverThickness: number): THREE.BufferGeometry {
     const start = this.layout.startPoint;
     const end = this.layout.endPoint;
     const direction = new THREE.Vector3().subVectors(end, start);
@@ -1277,19 +1195,14 @@ export default class ClazzCommunicationMesh extends BaseMesh {
 
     const orientation = new THREE.Matrix4();
     orientation.lookAt(start, end, new THREE.Object3D().up);
-    orientation.multiply(
-      new THREE.Matrix4().set(1, 0, 0, 0, 0, 0, 1, 0, 0, -1, 0, 0, 0, 0, 0, 1)
-    );
+    orientation.multiply(new THREE.Matrix4().set(1, 0, 0, 0, 0, 0, 1, 0, 0, -1, 0, 0, 0, 0, 0, 1));
 
     geometry.applyMatrix4(orientation);
 
     return geometry;
   }
 
-  private switchToHoverDisplay(
-    hoverGeometry: THREE.BufferGeometry,
-    hoverThickness: number
-  ): void {
+  private switchToHoverDisplay(hoverGeometry: THREE.BufferGeometry, hoverThickness: number): void {
     this.geometry = hoverGeometry;
 
     const start = this.layout.startPoint;
@@ -1365,17 +1278,11 @@ export default class ClazzCommunicationMesh extends BaseMesh {
   private cleanupHoverCacheIfNeeded(): void {
     const now = Date.now();
 
-    if (
-      now - ClazzCommunicationMesh.lastCacheCleanup >
-      ClazzCommunicationMesh.CACHE_CLEANUP_INTERVAL
-    ) {
+    if (now - ClazzCommunicationMesh.lastCacheCleanup > ClazzCommunicationMesh.CACHE_CLEANUP_INTERVAL) {
       let deletedCount = 0;
       const maxAge = 60000;
 
-      for (const [
-        key,
-        entry,
-      ] of ClazzCommunicationMesh.hoverGeometryCache.entries()) {
+      for (const [key, entry] of ClazzCommunicationMesh.hoverGeometryCache.entries()) {
         if (now - entry.timestamp > maxAge && entry.usageCount === 1) {
           entry.geometry.dispose();
           ClazzCommunicationMesh.hoverGeometryCache.delete(key);
@@ -1388,16 +1295,11 @@ export default class ClazzCommunicationMesh extends BaseMesh {
   }
 
   private limitHoverCacheSize(): void {
-    if (
-      ClazzCommunicationMesh.hoverGeometryCache.size <=
-      ClazzCommunicationMesh.MAX_HOVER_CACHE_SIZE
-    ) {
+    if (ClazzCommunicationMesh.hoverGeometryCache.size <= ClazzCommunicationMesh.MAX_HOVER_CACHE_SIZE) {
       return;
     }
 
-    const entries = Array.from(
-      ClazzCommunicationMesh.hoverGeometryCache.entries()
-    );
+    const entries = Array.from(ClazzCommunicationMesh.hoverGeometryCache.entries());
     entries.sort((a, b) => {
       const scoreA = a[1].usageCount * 1000 + (Date.now() - a[1].timestamp);
       const scoreB = b[1].usageCount * 1000 + (Date.now() - b[1].timestamp);
@@ -1476,7 +1378,7 @@ declare module '@react-three/fiber' {
       };
       // 3D-HAP properties
       beta?: number;
-      use3DHAPAlgorithm?: boolean;
+      enable3DHAPAlgorithm?: boolean;
       hapSystem?: HierarchicalAttractionSystem;
       originHAP?: HAPNode;
       destinationHAP?: HAPNode;

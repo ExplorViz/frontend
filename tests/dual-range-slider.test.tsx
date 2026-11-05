@@ -8,13 +8,7 @@ import './setup-dom';
 it('sorts initial bounds numerically and submits the selected range', () => {
   render(
     <form aria-label="Range">
-      <DualRangeSlider
-        min={0}
-        max={100}
-        initialValue={[20, 3]}
-        lowerFormName="from"
-        upperFormName="to"
-      />
+      <DualRangeSlider min={0} max={100} initialValue={[20, 3]} lowerFormName="from" upperFormName="to" />
     </form>
   );
   expect(screen.getByRole('form')).toHaveFormValues({ from: '3', to: '20' });
@@ -23,9 +17,7 @@ it('sorts initial bounds numerically and submits the selected range', () => {
 it('supports keyboard steps, crossover and clamping to bounds', async () => {
   const user = userEvent.setup();
   const change = vi.fn();
-  render(
-    <DualRangeSlider min={0} max={10} initialValue={[2, 4]} onChange={change} />
-  );
+  render(<DualRangeSlider min={0} max={10} initialValue={[2, 4]} onChange={change} />);
   await user.tab();
   await user.keyboard('{ArrowRight}');
   expect(change).toHaveBeenLastCalledWith([3, 4]);
@@ -45,13 +37,7 @@ it('uses controlled values until the parent supplies new bounds', async () => {
   const change = vi.fn();
   const { rerender } = render(
     <form aria-label="Range">
-      <DualRangeSlider
-        min={0}
-        max={10}
-        value={[2, 8]}
-        lowerFormName="from"
-        onChange={change}
-      />
+      <DualRangeSlider min={0} max={10} value={[2, 8]} lowerFormName="from" onChange={change} />
     </form>
   );
   await user.tab();
@@ -70,9 +56,7 @@ it('uses controlled values until the parent supplies new bounds', async () => {
 
 it('does not change a disabled slider through keyboard or track clicks', () => {
   const change = vi.fn();
-  const { container } = render(
-    <DualRangeSlider min={0} max={10} disabled onChange={change} />
-  );
+  const { container } = render(<DualRangeSlider min={0} max={10} disabled onChange={change} />);
   // The current component has no slider roles; tab order and the track are its public interaction surface.
   const track = container.firstElementChild!;
   vi.spyOn(track, 'getBoundingClientRect').mockReturnValue({
@@ -86,14 +70,7 @@ it('does not change a disabled slider through keyboard or track clicks', () => {
 it('starts keyboard navigation at the numeric lower bound', async () => {
   const user = userEvent.setup();
   const change = vi.fn();
-  render(
-    <DualRangeSlider
-      min={0}
-      max={100}
-      initialValue={[20, 3]}
-      onChange={change}
-    />
-  );
+  render(<DualRangeSlider min={0} max={100} initialValue={[20, 3]} onChange={change} />);
   await user.tab();
   await user.keyboard('{ArrowRight}');
   expect(change).toHaveBeenLastCalledWith([4, 20]);
@@ -102,13 +79,7 @@ it('starts keyboard navigation at the numeric lower bound', async () => {
 it('snaps pointer selection, drags the closest thumb, and stops after release', async () => {
   const change = vi.fn();
   const { container } = render(
-    <DualRangeSlider
-      min={0}
-      max={100}
-      step={10}
-      initialValue={[20, 80]}
-      onChange={change}
-    />
+    <DualRangeSlider min={0} max={100} step={10} initialValue={[20, 80]} onChange={change} />
   );
   const track = container.firstElementChild!;
   vi.spyOn(track, 'getBoundingClientRect').mockReturnValue({

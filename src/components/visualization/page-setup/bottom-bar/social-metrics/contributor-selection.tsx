@@ -5,18 +5,16 @@ import Button from 'react-bootstrap/Button';
 import Form from 'react-bootstrap/Form';
 import { useShallow } from 'zustand/react/shallow';
 
-const displayName = (c: ContributorDto): string =>
-  c.githubLogin || c.gitUsername || c.email || `#${c.contributorId}`;
+const displayName = (c: ContributorDto): string => c.githubLogin || c.gitUsername || c.email || `#${c.contributorId}`;
 
 export default function ContributorSelection() {
-  const { contributors, selectedContributorIds, setSelectedContributorIds } =
-    useSocialMetricsStore(
-      useShallow((state) => ({
-        contributors: state.contributors,
-        selectedContributorIds: state.selectedContributorIds,
-        setSelectedContributorIds: state.setSelectedContributorIds,
-      }))
-    );
+  const { contributors, selectedContributorIds, setSelectedContributorIds } = useSocialMetricsStore(
+    useShallow((state) => ({
+      contributors: state.contributors,
+      selectedContributorIds: state.selectedContributorIds,
+      setSelectedContributorIds: state.setSelectedContributorIds,
+    }))
+  );
 
   const toggle = (id: number) => {
     const next = new Set(selectedContributorIds);
@@ -24,16 +22,10 @@ export default function ContributorSelection() {
     setSelectedContributorIds(next);
   };
 
-  const getIds = (list: ContributorDto[]) =>
-    new Set(list.map((c) => c.contributorId));
+  const getIds = (list: ContributorDto[]) => new Set(list.map((c) => c.contributorId));
 
   const isBot = (c: ContributorDto): boolean => {
-    const name = (
-      c.githubLogin ??
-      c.gitUsername ??
-      c.email ??
-      ''
-    ).toLowerCase();
+    const name = (c.githubLogin ?? c.gitUsername ?? c.email ?? '').toLowerCase();
     return name.includes('[bot]');
   };
 
@@ -44,17 +36,11 @@ export default function ContributorSelection() {
       case 'none':
         return setSelectedContributorIds(new Set());
       case 'core':
-        return setSelectedContributorIds(
-          getIds(contributors.filter((c) => c.isCore))
-        );
+        return setSelectedContributorIds(getIds(contributors.filter((c) => c.isCore)));
       case 'edge':
-        return setSelectedContributorIds(
-          getIds(contributors.filter((c) => !c.isCore))
-        );
+        return setSelectedContributorIds(getIds(contributors.filter((c) => !c.isCore)));
       case 'human':
-        return setSelectedContributorIds(
-          getIds(contributors.filter((c) => !isBot(c)))
-        );
+        return setSelectedContributorIds(getIds(contributors.filter((c) => !isBot(c))));
     }
   };
 
@@ -68,20 +54,10 @@ export default function ContributorSelection() {
         />
       </span>
       <div className="social-metrics-preset-group">
-        <Button
-          size="sm"
-          variant="outline-secondary"
-          title="select everyone"
-          onClick={() => selectPreset('all')}
-        >
+        <Button size="sm" variant="outline-secondary" title="select everyone" onClick={() => selectPreset('all')}>
           All
         </Button>
-        <Button
-          size="sm"
-          variant="outline-secondary"
-          title="clear selection"
-          onClick={() => selectPreset('none')}
-        >
+        <Button size="sm" variant="outline-secondary" title="clear selection" onClick={() => selectPreset('none')}>
           None
         </Button>
         <Button
@@ -125,15 +101,9 @@ export default function ContributorSelection() {
                   alt=""
                   loading="lazy"
                 />
-                <span className="social-metrics-contributor-name">
-                  {displayName(c)}
-                </span>
-                <span className="social-metrics-commit-count">
-                  {c.commitCount}
-                </span>
-                {c.isCore && (
-                  <span className="social-metrics-core-badge">core</span>
-                )}
+                <span className="social-metrics-contributor-name">{displayName(c)}</span>
+                <span className="social-metrics-commit-count">{c.commitCount}</span>
+                {c.isCore && <span className="social-metrics-core-badge">core</span>}
               </span>
             }
           />

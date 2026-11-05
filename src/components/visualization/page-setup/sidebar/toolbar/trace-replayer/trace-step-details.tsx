@@ -61,30 +61,20 @@ export default function TraceStepDetails({
             </tr>
             <tr className="d-flex">
               <th className="col-3">Source Application</th>
-              <td className="col-9 container-word-wrap">
-                {sourceApplicationName}
-              </td>
+              <td className="col-9 container-word-wrap">{sourceApplicationName}</td>
             </tr>
             <tr className="d-flex">
               <th className="col-3">Target Application</th>
-              <td className="col-9 container-word-wrap">
-                {targetApplicationName}
-              </td>
+              <td className="col-9 container-word-wrap">{targetApplicationName}</td>
             </tr>
             <tr className="d-flex">
               <th className="col-3">
                 Duration
-                <Button
-                  onClick={toggleSpanDurationTimeUnit}
-                  className="th-btn"
-                  variant="outline-secondary"
-                >
+                <Button onClick={toggleSpanDurationTimeUnit} className="th-btn" variant="outline-secondary">
                   {timeUnit}
                 </Button>
               </th>
-              <td className="col-9 container-word-wrap">
-                {formatNumber(duration, timeUnit)}
-              </td>
+              <td className="col-9 container-word-wrap">{formatNumber(duration, timeUnit)}</td>
             </tr>
           </tbody>
         </table>

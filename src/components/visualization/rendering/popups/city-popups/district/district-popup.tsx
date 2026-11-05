@@ -21,12 +21,8 @@ interface DistrictPopupProps {
 }
 
 export default function DistrictPopup({ popupData }: DistrictPopupProps) {
-  const district =
-    useLiveDistrict(popupData.entityId) ?? (popupData.entity as District);
-  const { districtIds, buildingIds } = useMemo(
-    () => collectDistrictSubtreeIds(district.id),
-    [district.id]
-  );
+  const district = useLiveDistrict(popupData.entityId) ?? (popupData.entity as District);
+  const { districtIds, buildingIds } = useMemo(() => collectDistrictSubtreeIds(district.id), [district.id]);
   const visibleEntityCounts = useVisibleEntityCounts({
     directDistrictIds: district.districtIds,
     containedDistrictIds: districtIds.slice(1),
@@ -34,27 +30,17 @@ export default function DistrictPopup({ popupData }: DistrictPopupProps) {
     containedBuildingIds: buildingIds,
   });
   const uuid = useMemo(() => generateUuidv4(), []);
-  const selectedCommits = useCommitTreeStateStore(
-    (state) => state._selectedCommits
-  );
-  const currentSelectedRepositoryName = useCommitTreeStateStore(
-    (state) => state._currentSelectedRepositoryName
-  );
+  const selectedCommits = useCommitTreeStateStore((state) => state._selectedCommits);
+  const currentSelectedRepositoryName = useCommitTreeStateStore((state) => state._currentSelectedRepositoryName);
   const remoteUrl = useEvolutionDataRepositoryStore(
-    (state) =>
-      state._repoNameCommitTreeMap.get(currentSelectedRepositoryName)?.remoteUrl
+    (state) => state._repoNameCommitTreeMap.get(currentSelectedRepositoryName)?.remoteUrl
   );
   const sourceReferenceCommitHash = useMemo(
-    () =>
-      getSourceReferenceCommitHash(
-        selectedCommits,
-        currentSelectedRepositoryName
-      ),
+    () => getSourceReferenceCommitHash(selectedCommits, currentSelectedRepositoryName),
     [selectedCommits, currentSelectedRepositoryName]
   );
   const isStatic =
-    district.originOfData === TypeOfAnalysis.Static ||
-    district.originOfData === TypeOfAnalysis.StaticAndRuntime;
+    district.originOfData === TypeOfAnalysis.Static || district.originOfData === TypeOfAnalysis.StaticAndRuntime;
   const sourceDirectoryUrl = buildDirectoryTreeUrl(
     remoteUrl,
     sourceReferenceCommitHash,
@@ -62,82 +48,55 @@ export default function DistrictPopup({ popupData }: DistrictPopupProps) {
     currentSelectedRepositoryName
   );
   const showSourceLink = isStatic && !!district.id;
-  const sourceLinkTooltip = sourceDirectoryUrl
-    ? 'Open source directory'
-    : 'Source directory unavailable';
+  const sourceLinkTooltip = sourceDirectoryUrl ? 'Open source directory' : 'Source directory unavailable';
 
   return (
     <>
       <h3 className="popover-header">
-        <div className="text-center text-break fw-bold pl-1">
-          {district.name}
-        </div>
+        <div className="text-center text-break fw-bold pl-1">{district.name}</div>
         {showSourceLink && (
-          <LinkButton
-            url={sourceDirectoryUrl}
-            disabled={!sourceDirectoryUrl}
-            tooltip={sourceLinkTooltip}
-          />
+          <LinkButton url={sourceDirectoryUrl} disabled={!sourceDirectoryUrl} tooltip={sourceLinkTooltip} />
         )}
       </h3>
       <div className="popover-body p-2">
-        <Tabs
-          defaultActiveKey="general"
-          id={`district-popup-tabs-${uuid}`}
-          className="nav-tabs justify-content-center"
-        >
+        <Tabs defaultActiveKey="general" id={`district-popup-tabs-${uuid}`} className="nav-tabs justify-content-center">
           <Tab eventKey="general" title="General">
             <Table hover className="table table-sm mt-2 mb-0">
               <tbody>
                 <tr>
                   <td className="fw-bold">Type</td>
                   <td className="text-right text-break pl-1">
-                    <ModelTypeBadge
-                      type={district.type}
-                      flatEntityType="district"
-                    />
+                    <ModelTypeBadge type={district.type} flatEntityType="district" />
                   </td>
                 </tr>
                 {district.fqn && (
                   <tr>
                     <td className="fw-bold">FQN</td>
-                    <td className="text-right text-break pl-1">
-                      {district.fqn}
-                    </td>
+                    <td className="text-right text-break pl-1">{district.fqn}</td>
                   </tr>
                 )}
                 {district.originOfData && (
                   <tr>
                     <td className="fw-bold">Origin</td>
-                    <td className="text-right text-break pl-1">
-                      {district.originOfData}
-                    </td>
+                    <td className="text-right text-break pl-1">{district.originOfData}</td>
                   </tr>
                 )}
 
                 <tr>
                   <td className="fw-bold">Direct Districts</td>
-                  <td className="text-right text-break pl-1">
-                    {visibleEntityCounts.directDistrictCount}
-                  </td>
+                  <td className="text-right text-break pl-1">{visibleEntityCounts.directDistrictCount}</td>
                 </tr>
                 <tr>
                   <td className="fw-bold">Contained Districts</td>
-                  <td className="text-right text-break pl-1">
-                    {visibleEntityCounts.containedDistrictCount}
-                  </td>
+                  <td className="text-right text-break pl-1">{visibleEntityCounts.containedDistrictCount}</td>
                 </tr>
                 <tr>
                   <td className="fw-bold">Direct Buildings</td>
-                  <td className="text-right text-break pl-1">
-                    {visibleEntityCounts.directBuildingCount}
-                  </td>
+                  <td className="text-right text-break pl-1">{visibleEntityCounts.directBuildingCount}</td>
                 </tr>
                 <tr>
                   <td className="fw-bold">Contained Buildings</td>
-                  <td className="text-right text-break pl-1">
-                    {visibleEntityCounts.containedBuildingCount}
-                  </td>
+                  <td className="text-right text-break pl-1">{visibleEntityCounts.containedBuildingCount}</td>
                 </tr>
               </tbody>
             </Table>

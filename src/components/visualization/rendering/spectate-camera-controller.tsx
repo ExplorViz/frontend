@@ -1,5 +1,5 @@
 import { useFrame, useThree } from '@react-three/fiber';
-import { usePlayroomPlayers } from 'explorviz-frontend/src/components/collaboration/playroom-players-context';
+import { usePlayroomPlayers } from 'explorviz-frontend/src/components/collaboration/playroom-players-context-store';
 import { useSpectateUserStore } from 'explorviz-frontend/src/stores/collaboration/spectate-user';
 import * as THREE from 'three';
 
@@ -12,7 +12,7 @@ export default function SpectateCameraController() {
   useFrame(() => {
     if (!spectatedPlayerId || !(camera instanceof THREE.PerspectiveCamera)) return;
 
-    const targetPlayer = players.find(p => p.id === spectatedPlayerId);
+    const targetPlayer = players.find((p) => p.id === spectatedPlayerId);
     if (!targetPlayer) return;
 
     const projMatrix = targetPlayer.getState('projectionMatrix');

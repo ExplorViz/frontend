@@ -1,9 +1,6 @@
 import { useAuthStore } from 'explorviz-frontend/src/stores/auth';
 import { getTraceServiceUrl } from 'explorviz-frontend/src/utils/landscape-http-request-util';
-import {
-  isTraceOverview,
-  TraceOverview,
-} from 'explorviz-frontend/src/utils/landscape-schemes/telemetry/traces';
+import { isTraceOverview, TraceOverview } from 'explorviz-frontend/src/utils/landscape-schemes/telemetry/traces';
 import { useCallback } from 'react';
 
 export interface TraceSearchParams {
@@ -57,9 +54,7 @@ export default function useTraceCatalogFetch() {
         throw new Error('Trace service URL not configured');
       }
 
-      const requestUrl = new URL(
-        `${traceServiceUrl}/v3/landscapes/${params.landscapeTokenId}/traces`
-      );
+      const requestUrl = new URL(`${traceServiceUrl}/v3/landscapes/${params.landscapeTokenId}/traces`);
 
       for (const [key, value] of Object.entries(params)) {
         if (value !== undefined && key !== 'cursor') {
@@ -69,10 +64,7 @@ export default function useTraceCatalogFetch() {
 
       if (params.cursor) {
         requestUrl.searchParams.set('cursorId', params.cursor.traceId);
-        requestUrl.searchParams.set(
-          'cursorTimestamp',
-          params.cursor.startUnixNano.toString()
-        );
+        requestUrl.searchParams.set('cursorTimestamp', params.cursor.startUnixNano.toString());
         requestUrl.searchParams.set(
           'cursorDuration',
           (params.cursor.endUnixNano - params.cursor.startUnixNano).toString()
@@ -97,10 +89,7 @@ export default function useTraceCatalogFetch() {
       const receivedTraces = JSON.parse(await response.text(), (k, v) => {
         return k === 'startUnixNano' || k === 'endUnixNano' ? BigInt(v) : v;
       });
-      if (
-        !Array.isArray(receivedTraces) ||
-        !receivedTraces.every(isTraceOverview)
-      ) {
+      if (!Array.isArray(receivedTraces) || !receivedTraces.every(isTraceOverview)) {
         console.error(`JSON fails type guard ${isTraceOverview.name}`, {
           json: receivedTraces,
         });

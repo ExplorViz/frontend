@@ -131,26 +131,16 @@ export class BundledCommunicationLayout extends CommunicationLayout {
 
   private initializeControlPoints(): void {
     // Fallback to original control points if no HAP system available
-    const midPoint = new THREE.Vector3()
-      .addVectors(this.startPoint, this.endPoint)
-      .multiplyScalar(0.5);
+    const midPoint = new THREE.Vector3().addVectors(this.startPoint, this.endPoint).multiplyScalar(0.5);
 
-    const direction = new THREE.Vector3()
-      .subVectors(this.endPoint, this.startPoint)
-      .normalize();
+    const direction = new THREE.Vector3().subVectors(this.endPoint, this.startPoint).normalize();
 
     const perpendicular = new THREE.Vector3(-direction.z, 0, direction.x);
 
     this._controlPoints = [
-      new THREE.Vector3().addVectors(
-        this.startPoint,
-        direction.clone().multiplyScalar(0.33)
-      ),
+      new THREE.Vector3().addVectors(this.startPoint, direction.clone().multiplyScalar(0.33)),
       midPoint.clone().add(perpendicular.multiplyScalar(2)),
-      new THREE.Vector3().addVectors(
-        this.startPoint,
-        direction.clone().multiplyScalar(0.66)
-      ),
+      new THREE.Vector3().addVectors(this.startPoint, direction.clone().multiplyScalar(0.66)),
     ];
   }
   public setUseForceDirected(use: boolean): void {
@@ -186,9 +176,7 @@ export class BundledCommunicationLayout extends CommunicationLayout {
     return new THREE.CatmullRomCurve3(points);
   }
 
-  public override getCurve(options?: {
-    yOffset?: number;
-  }): THREE.CatmullRomCurve3 {
+  public override getCurve(options?: { yOffset?: number }): THREE.CatmullRomCurve3 {
     const yOffset = options?.yOffset ?? 0;
     return this.getCurveWithHeight(yOffset);
   }

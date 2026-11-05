@@ -2,16 +2,11 @@ import HelpTooltip from 'explorviz-frontend/src/components/help-tooltip';
 import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
 import { use } from 'react';
 import Button from 'react-bootstrap/Button';
-import {
-  SettingsSidebarContext,
-  SettingsSidebarTab,
-} from '../../sidebar/customizationbar/settings-sidebar-context';
+import { SettingsSidebarContext, SettingsSidebarTab } from '../../sidebar/customizationbar/settings-sidebar-context';
 
 export default function MetricShortcuts() {
   const updateSetting = useUserSettingsStore((s) => s.updateSetting);
-  const heatmapEnabled = useUserSettingsStore(
-    (s) => s.visualizationSettings.heatmapEnabled.value
-  );
+  const heatmapEnabled = useUserSettingsStore((s) => s.visualizationSettings.heatmapEnabled.value);
 
   const settingsSidebarContext = use(SettingsSidebarContext);
 
@@ -21,9 +16,7 @@ export default function MetricShortcuts() {
   };
 
   const openEntityConfig = () => {
-    settingsSidebarContext.openSettingsSidebarTab(
-      SettingsSidebarTab.EntityConfig
-    );
+    settingsSidebarContext.openSettingsSidebarTab(SettingsSidebarTab.EntityConfig);
   };
 
   return (
@@ -36,18 +29,10 @@ export default function MetricShortcuts() {
         />
       </span>
       <div className="social-metrics-preset-group social-metrics-shortcut-buttons">
-        <Button
-          size="sm"
-          variant="outline-secondary"
-          onClick={handleHeatmapClick}
-        >
+        <Button size="sm" variant="outline-secondary" onClick={handleHeatmapClick}>
           Show Heatmap
         </Button>
-        <Button
-          size="sm"
-          variant="outline-secondary"
-          onClick={openEntityConfig}
-        >
+        <Button size="sm" variant="outline-secondary" onClick={openEntityConfig}>
           Building Config
         </Button>
       </div>

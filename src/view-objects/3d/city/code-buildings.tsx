@@ -4,14 +4,8 @@ import { useEvolutionAnimationStore } from 'explorviz-frontend/src/components/vi
 import { useImmersiveBuildingGrow } from 'explorviz-frontend/src/hooks/use-immersive-building-grow';
 import useClickPreventionOnDoubleClick from 'explorviz-frontend/src/hooks/useClickPreventionOnDoubleClick';
 import { useCommitTreeStateStore } from 'explorviz-frontend/src/stores/commit-tree-state';
-import {
-  HeatmapValueMapping,
-  useHeatmapStore,
-} from 'explorviz-frontend/src/stores/heatmap/heatmap-store';
-import {
-  buildFallbackImmersiveInfo,
-  useImmersiveViewStore,
-} from 'explorviz-frontend/src/stores/immersive-view-store';
+import { HeatmapValueMapping, useHeatmapStore } from 'explorviz-frontend/src/stores/heatmap/heatmap-store';
+import { buildFallbackImmersiveInfo, useImmersiveViewStore } from 'explorviz-frontend/src/stores/immersive-view-store';
 import { useLayoutStore } from 'explorviz-frontend/src/stores/layout-store';
 import { usePopupHandlerStore } from 'explorviz-frontend/src/stores/popup-handler';
 import { useModelStore } from 'explorviz-frontend/src/stores/repos/model-repository';
@@ -19,32 +13,23 @@ import { useToastHandlerStore } from 'explorviz-frontend/src/stores/toast-handle
 import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
 import { useVisualizationStore } from 'explorviz-frontend/src/stores/visualization-store';
 import { resolveBuildingForVisibility } from 'explorviz-frontend/src/utils/city-rendering/entity-visibility';
-import { useSharedEntityVisibilityContext } from 'explorviz-frontend/src/utils/city-rendering/entity-visibility-provider';
+import { useSharedEntityVisibilityContext } from 'explorviz-frontend/src/utils/city-rendering/entity-visibility-provider-store';
 import { getHighlightingColorForEntity } from 'explorviz-frontend/src/utils/city-rendering/highlighting';
 import { getImmersiveTargetWorldPosition } from 'explorviz-frontend/src/utils/city-rendering/immersive-target-position';
 import { emitContextMenuFromWorld } from 'explorviz-frontend/src/utils/context-menu-bridge';
 import { getSourceReferenceCommitHash } from 'explorviz-frontend/src/utils/evolution-data-helpers';
 import { getMetricValues } from 'explorviz-frontend/src/utils/heatmap/building-heatmap-helper';
-import {
-  getColorGradient,
-  getSimpleHeatmapColor,
-} from 'explorviz-frontend/src/utils/heatmap/simple-heatmap';
+import { getColorGradient, getSimpleHeatmapColor } from 'explorviz-frontend/src/utils/heatmap/simple-heatmap';
 import calculateColorBrightness from 'explorviz-frontend/src/utils/helpers/threejs-helpers';
 import { requestFileDetailedData } from 'explorviz-frontend/src/utils/landscape-http-request-util';
-import {
-  type Building,
-  type City,
-} from 'explorviz-frontend/src/utils/landscape-schemes/flat-landscape';
+import { type Building, type City } from 'explorviz-frontend/src/utils/landscape-schemes/flat-landscape';
 import { TypeOfAnalysis } from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
 import { normalizeLanguage } from 'explorviz-frontend/src/utils/language-utils';
 import {
   computeMappedBuildingHeight,
   getCachedBuildingMetricBounds,
 } from 'explorviz-frontend/src/utils/settings/building-metrics';
-import {
-  AppearanceOverride,
-  BuildingGeometryType,
-} from 'explorviz-frontend/src/utils/settings/settings-schemas';
+import { AppearanceOverride, BuildingGeometryType } from 'explorviz-frontend/src/utils/settings/settings-schemas';
 import gsap from 'gsap';
 import { useCallback, useEffect, useRef } from 'react';
 import * as THREE from 'three';
@@ -138,11 +123,7 @@ interface GeometryGroupProps {
 /**
  * Renders buildings for a single geometry type with its own instanced mesh.
  */
-const GeometryGroup: React.FC<GeometryGroupProps> = ({
-  geometryType,
-  buildingIds,
-  city,
-}) => {
+const GeometryGroup: React.FC<GeometryGroupProps> = ({ geometryType, buildingIds, city }) => {
   const meshRef = useRef<InstancedMesh2>(null);
   const material = useRef(new MeshLambertMaterial());
   const instanceIdToBuildingIdRef = useRef(new Map<number, string>());
@@ -153,24 +134,19 @@ const GeometryGroup: React.FC<GeometryGroupProps> = ({
   const geometry = getBuildingGeometry(geometryType);
   const lastAppliedFrameVersionRef = useRef(0);
 
-  const { hoveredEntityId, setHoveredEntity, highlightedEntityIds } =
-    useVisualizationStore(
-      useShallow((state) => ({
-        hoveredEntityId: state.hoveredEntityId,
-        setHoveredEntity: state.actions.setHoveredEntityId,
-        highlightedEntityIds: state.highlightedEntityIds,
-      }))
-    );
+  const { hoveredEntityId, setHoveredEntity, highlightedEntityIds } = useVisualizationStore(
+    useShallow((state) => ({
+      hoveredEntityId: state.hoveredEntityId,
+      setHoveredEntity: state.actions.setHoveredEntityId,
+      highlightedEntityIds: state.highlightedEntityIds,
+    }))
+  );
 
   const visibilityContext = useSharedEntityVisibilityContext();
   const { evoConfig, isDiffMode } = visibilityContext;
 
-  const _selectedCommits = useCommitTreeStateStore(
-    (state) => state._selectedCommits
-  );
-  const currentSelectedRepo = useCommitTreeStateStore(
-    (state) => state._currentSelectedRepositoryName
-  );
+  const _selectedCommits = useCommitTreeStateStore((state) => state._selectedCommits);
+  const currentSelectedRepo = useCommitTreeStateStore((state) => state._currentSelectedRepositoryName);
 
   const {
     buildingColor,
@@ -193,8 +169,7 @@ const GeometryGroup: React.FC<GeometryGroupProps> = ({
     useShallow((state) => ({
       buildingColor: state.visualizationSettings.buildingColor,
       buildingFootprint: state.visualizationSettings.buildingFootprint.value,
-      buildingHeightMultiplier:
-        state.visualizationSettings.buildingHeightMultiplier.value,
+      buildingHeightMultiplier: state.visualizationSettings.buildingHeightMultiplier.value,
       metricMapping: state.visualizationSettings.buildingMetricMapping.value,
       metricBuckets: state.visualizationSettings.buildingMetricBuckets.value,
       enableHoverEffects: state.visualizationSettings.enableHoverEffects.value,
@@ -203,24 +178,15 @@ const GeometryGroup: React.FC<GeometryGroupProps> = ({
       enableAnimations: state.visualizationSettings.enableAnimations.value,
       animationDuration: state.visualizationSettings.animationDuration.value,
       addedBuildingColor: state.visualizationSettings.addedBuildingColor.value,
-      modifiedBuildingColor:
-        state.visualizationSettings.modifiedBuildingColor.value,
-      removedBuildingColor:
-        state.visualizationSettings.removedBuildingColor.value,
-      unchangedBuildingColor:
-        state.visualizationSettings.unchangedBuildingColor.value,
+      modifiedBuildingColor: state.visualizationSettings.modifiedBuildingColor.value,
+      removedBuildingColor: state.visualizationSettings.removedBuildingColor.value,
+      unchangedBuildingColor: state.visualizationSettings.unchangedBuildingColor.value,
       agedBuildingColor: state.visualizationSettings.agedBuildingColor.value,
-      buildingColorOverrides:
-        state.visualizationSettings.buildingColorOverrides,
+      buildingColorOverrides: state.visualizationSettings.buildingColorOverrides,
     }))
   );
 
-  const {
-    heatmapActive,
-    selectedBuildingMetric,
-    selectedGradient,
-    selectedValueMapping,
-  } = useHeatmapStore(
+  const { heatmapActive, selectedBuildingMetric, selectedGradient, selectedValueMapping } = useHeatmapStore(
     useShallow((state) => ({
       heatmapActive: state.isActive(),
       selectedBuildingMetric: state.getSelectedBuildingMetric(),
@@ -236,15 +202,10 @@ const GeometryGroup: React.FC<GeometryGroupProps> = ({
     }))
   );
 
-  const heightMetricBounds = getCachedBuildingMetricBounds(
-    buildings,
-    heightMetric
-  );
+  const heightMetricBounds = getCachedBuildingMetricBounds(buildings, heightMetric);
 
   const enterImmersive = useImmersiveViewStore((state) => state.enterImmersive);
-  const activeImmersiveMeshId = useImmersiveViewStore(
-    (state) => state.activeMeshId
-  );
+  const activeImmersiveMeshId = useImmersiveViewStore((state) => state.activeMeshId);
 
   const sceneLayers = useVisualizationStore((state) => state.sceneLayers);
 
@@ -268,15 +229,7 @@ const GeometryGroup: React.FC<GeometryGroupProps> = ({
       return building ? getBuildingHeight(building) : null;
     },
     // getBuildingHeight closes over these metric/layout inputs
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [
-      buildingFootprint,
-      buildingHeightMultiplier,
-      heightMetric,
-      metricMapping,
-      metricBuckets,
-      heightMetricBounds,
-    ]
+    [buildingFootprint, buildingHeightMultiplier, heightMetric, metricMapping, metricBuckets, heightMetricBounds]
   );
 
   useImmersiveBuildingGrow({
@@ -288,11 +241,7 @@ const GeometryGroup: React.FC<GeometryGroupProps> = ({
   });
 
   function resolveBuilding(buildingId: string) {
-    return resolveBuildingForVisibility(
-      buildingId,
-      visibilityContext,
-      buildings[buildingId]
-    );
+    return resolveBuildingForVisibility(buildingId, visibilityContext, buildings[buildingId]);
   }
 
   function applyBuildingVisuals(changedOnly = false) {
@@ -302,9 +251,7 @@ const GeometryGroup: React.FC<GeometryGroupProps> = ({
 
     const { changedBuildingIds } = useEvolutionAnimationStore.getState();
     const buildingIdsToUpdate =
-      changedOnly && changedBuildingIds.size > 0
-        ? changedBuildingIds
-        : buildingIdToInstanceIdRef.current.keys();
+      changedOnly && changedBuildingIds.size > 0 ? changedBuildingIds : buildingIdToInstanceIdRef.current.keys();
 
     for (const buildingId of buildingIdsToUpdate) {
       const instanceId = buildingIdToInstanceIdRef.current.get(buildingId);
@@ -349,10 +296,7 @@ const GeometryGroup: React.FC<GeometryGroupProps> = ({
       );
     }
 
-    if (
-      (isDiffMode || evoConfig.renderOnlyDifferences) &&
-      building.commitComparison
-    ) {
+    if ((isDiffMode || evoConfig.renderOnlyDifferences) && building.commitComparison) {
       if (building.commitComparison === 'ADDED') {
         return new THREE.Color(addedBuildingColor);
       } else if (building.commitComparison === 'REMOVED') {
@@ -532,8 +476,7 @@ const GeometryGroup: React.FC<GeometryGroupProps> = ({
       return;
     }
 
-    const layoutsReady =
-      buildingIds.length === 0 || buildingIds.every((id) => layoutMap.has(id));
+    const layoutsReady = buildingIds.length === 0 || buildingIds.every((id) => layoutMap.has(id));
 
     if (!layoutsReady) {
       return;
@@ -645,11 +588,7 @@ const GeometryGroup: React.FC<GeometryGroupProps> = ({
         return;
       }
       const buildingHeight = getBuildingHeight(building);
-      obj.position.set(
-        layout.center.x,
-        layout.position.y + buildingHeight / 2,
-        layout.center.z
-      );
+      obj.position.set(layout.center.x, layout.position.y + buildingHeight / 2, layout.center.z);
 
       obj.scale.set(layout.width, buildingHeight, layout.depth);
       obj.visible = true;
@@ -659,9 +598,8 @@ const GeometryGroup: React.FC<GeometryGroupProps> = ({
     meshRef.current.computeBVH();
     applyInstanceAppearance(meshRef.current);
 
-    meshRef.current.userData.explorvizResolveBuildingId = (
-      meshInstanceId: number
-    ) => instanceIdToBuildingIdRef.current.get(meshInstanceId);
+    meshRef.current.userData.explorvizResolveBuildingId = (meshInstanceId: number) =>
+      instanceIdToBuildingIdRef.current.get(meshInstanceId);
   }, [
     buildingIds,
     buildingFootprint,
@@ -775,39 +713,23 @@ const GeometryGroup: React.FC<GeometryGroupProps> = ({
     if (!building) return;
 
     const mesh = meshRef.current;
-    const sphereRadius =
-      useUserSettingsStore.getState().visualizationSettings.sphereRadius
-        ?.value ?? 0.7;
-    const targetPos = getImmersiveTargetWorldPosition(
-      mesh,
-      instanceId,
-      sphereRadius
-    );
+    const sphereRadius = useUserSettingsStore.getState().visualizationSettings.sphereRadius?.value ?? 0.7;
+    const targetPos = getImmersiveTargetWorldPosition(mesh, instanceId, sphereRadius);
     if (!targetPos) {
       return;
     }
 
     // Check if we have data in an existing popup. Read from the store
     // instead of subscribing so popup drag/hover does not re-render buildings.
-    const existingPopup = usePopupHandlerStore
-      .getState()
-      .popupData.find((p) => p.entityId === buildingId);
+    const existingPopup = usePopupHandlerStore.getState().popupData.find((p) => p.entityId === buildingId);
 
     if (existingPopup && existingPopup.fileDetailedData) {
-      enterImmersive(
-        buildingId,
-        targetPos,
-        undefined,
-        existingPopup.fileDetailedData
-      );
+      enterImmersive(buildingId, targetPos, undefined, existingPopup.fileDetailedData);
     } else if (
       building.originOfData === TypeOfAnalysis.Static ||
       building.originOfData === TypeOfAnalysis.StaticAndRuntime
     ) {
-      requestFileDetailedData(
-        buildingId,
-        getSourceReferenceCommitHash(_selectedCommits, currentSelectedRepo)
-      )
+      requestFileDetailedData(buildingId, getSourceReferenceCommitHash(_selectedCommits, currentSelectedRepo))
         .then((data) => {
           enterImmersive(buildingId, targetPos, undefined, data);
           // Also update popup if it exists
@@ -816,22 +738,13 @@ const GeometryGroup: React.FC<GeometryGroupProps> = ({
           }
         })
         .catch((err) => {
-          console.error(
-            'Failed to fetch detailed file data for immersive view:',
-            err
-          );
+          console.error('Failed to fetch detailed file data for immersive view:', err);
           useToastHandlerStore
             .getState()
             .showErrorToastMessage(
-              err instanceof Error
-                ? err.message
-                : 'Could not load file details for immersive view.'
+              err instanceof Error ? err.message : 'Could not load file details for immersive view.'
             );
-          enterImmersive(
-            buildingId,
-            targetPos,
-            buildFallbackImmersiveInfo(building)
-          );
+          enterImmersive(buildingId, targetPos, buildFallbackImmersiveInfo(building));
         });
     } else {
       enterImmersive(buildingId, targetPos);
@@ -851,13 +764,10 @@ const GeometryGroup: React.FC<GeometryGroupProps> = ({
     emitContextMenuFromWorld({ kind: 'building', buildingId }, e.nativeEvent);
   };
 
-  const [
-    handleClickWithPrevent,
-    handleDoubleClickWithPrevent,
-    handleRightClickWithPrevent,
-  ] = useClickPreventionOnDoubleClick(handleClick, handleDoubleClick, {
-    onRightClick: handleRightClick,
-  });
+  const [handleClickWithPrevent, handleDoubleClickWithPrevent, handleRightClickWithPrevent] =
+    useClickPreventionOnDoubleClick(handleClick, handleDoubleClick, {
+      onRightClick: handleRightClick,
+    });
 
   return (
     <instancedMesh2
@@ -888,9 +798,7 @@ interface CodeBuildingsArgs {
  */
 const CodeBuildings: React.FC<CodeBuildingsArgs> = ({ buildingIds, city }) => {
   const getBuilding = useModelStore((state) => state.getBuilding);
-  const buildingGeometry = useUserSettingsStore(
-    (state) => state.visualizationSettings.buildingGeometry
-  );
+  const buildingGeometry = useUserSettingsStore((state) => state.visualizationSettings.buildingGeometry);
   const buildingGeometryOverrides = useUserSettingsStore(
     (state) => state.visualizationSettings.buildingGeometryOverrides
   );
@@ -908,16 +816,14 @@ const CodeBuildings: React.FC<CodeBuildingsArgs> = ({ buildingIds, city }) => {
 
   return (
     <>
-      {Array.from(buildingsByGeometry.entries()).map(
-        ([geometryType, groupBuildingIds]) => (
-          <GeometryGroup
-            key={`${city.id}-${geometryType}`}
-            geometryType={geometryType}
-            buildingIds={groupBuildingIds}
-            city={city}
-          />
-        )
-      )}
+      {Array.from(buildingsByGeometry.entries()).map(([geometryType, groupBuildingIds]) => (
+        <GeometryGroup
+          key={`${city.id}-${geometryType}`}
+          geometryType={geometryType}
+          buildingIds={groupBuildingIds}
+          city={city}
+        />
+      ))}
     </>
   );
 };

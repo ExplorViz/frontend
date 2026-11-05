@@ -20,10 +20,7 @@ interface HighlightingState {
 
 export const useHighlightingStore = create<HighlightingState>((set, get) => ({
   highlightingColor: () => {
-    return new THREE.Color(
-      useUserSettingsStore.getState().visualizationSettings
-        .highlightedEntityColor.value
-    );
+    return new THREE.Color(useUserSettingsStore.getState().visualizationSettings.highlightedEntityColor.value);
   },
 
   /**
@@ -34,9 +31,7 @@ export const useHighlightingStore = create<HighlightingState>((set, get) => ({
 
     const worldPos = getWorldPositionOfModel(entityId);
     if (!worldPos) {
-      console.warn(
-        `[lookAtEntity] Could not find world position for entity: ${entityId}`
-      );
+      console.warn(`[lookAtEntity] Could not find world position for entity: ${entityId}`);
       return;
     }
 
@@ -59,10 +54,7 @@ export const useHighlightingStore = create<HighlightingState>((set, get) => ({
     if (!highlight) return; // Only log highlights, not unhighlights
 
     const MAX_DISPLAY_LENGTH = 30;
-    const displayId =
-      entityId.length > MAX_DISPLAY_LENGTH
-        ? entityId.slice(0, MAX_DISPLAY_LENGTH) + ' ...'
-        : entityId;
+    const displayId = entityId.length > MAX_DISPLAY_LENGTH ? entityId.slice(0, MAX_DISPLAY_LENGTH) + ' ...' : entityId;
 
     const msg = `🔆 Highlighted: ${displayId}`;
     useChatStore.getState().sendChatMessage(me().id, msg, true, 'highlight', [

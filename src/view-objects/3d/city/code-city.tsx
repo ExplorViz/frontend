@@ -15,7 +15,7 @@ import {
   filterVisibleBuildingIds,
   filterVisibleDistrictIds,
 } from 'explorviz-frontend/src/utils/city-rendering/entity-visibility';
-import { useSharedEntityVisibilityContext } from 'explorviz-frontend/src/utils/city-rendering/entity-visibility-provider';
+import { useSharedEntityVisibilityContext } from 'explorviz-frontend/src/utils/city-rendering/entity-visibility-provider-store';
 import CityDistrictLabel from 'explorviz-frontend/src/view-objects/3d/city/city-district-label';
 import CityDistricts from 'explorviz-frontend/src/view-objects/3d/city/city-districts';
 import CityFoundation from 'explorviz-frontend/src/view-objects/3d/city/city-foundation';
@@ -39,21 +39,15 @@ export default function CodeCity({ cityId }: { cityId: string }) {
     }))
   );
 
-  const {
-    animationDuration,
-    enableAnimations,
-    showEmbeddedBrowserIcon,
-    buildingLayoutAlgorithm,
-  } = useUserSettingsStore(
-    useShallow((state) => ({
-      animationDuration: state.visualizationSettings.animationDuration.value,
-      enableAnimations: state.visualizationSettings.enableAnimations.value,
-      showEmbeddedBrowserIcon:
-        state.visualizationSettings.showEmbeddedBrowserIcon.value,
-      buildingLayoutAlgorithm:
-        state.visualizationSettings.buildingLayoutAlgorithm.value,
-    }))
-  );
+  const { animationDuration, enableAnimations, showEmbeddedBrowserIcon, buildingLayoutAlgorithm } =
+    useUserSettingsStore(
+      useShallow((state) => ({
+        animationDuration: state.visualizationSettings.animationDuration.value,
+        enableAnimations: state.visualizationSettings.enableAnimations.value,
+        showEmbeddedBrowserIcon: state.visualizationSettings.showEmbeddedBrowserIcon.value,
+        buildingLayoutAlgorithm: state.visualizationSettings.buildingLayoutAlgorithm.value,
+      }))
+    );
 
   const filterMode = useEntityFilteringStore((state) => state.filterMode);
 
@@ -67,46 +61,27 @@ export default function CodeCity({ cityId }: { cityId: string }) {
     [city.id, city.allContainedDistrictIds]
   );
   const visibleBuildingIds = useMemo(
-    () =>
-      filterVisibleBuildingIds(
-        cityBuildingIds,
-        visibilityContext,
-        evolutionAnimation
-      ),
+    () => filterVisibleBuildingIds(cityBuildingIds, visibilityContext, evolutionAnimation),
     [cityBuildingIds, visibilityContext, evolutionAnimation]
   );
   const visibleDistrictIds = useMemo(
-    () =>
-      showDistricts
-        ? filterVisibleDistrictIds(
-            cityDistrictIds,
-            visibilityContext,
-            evolutionAnimation
-          )
-        : [],
+    () => (showDistricts ? filterVisibleDistrictIds(cityDistrictIds, visibilityContext, evolutionAnimation) : []),
     [cityDistrictIds, showDistricts, visibilityContext, evolutionAnimation]
   );
   const districtMeshIds = useMemo(
     () =>
       cityDistrictIds.filter(
         (districtId) =>
-          !visibilityContext.hiddenDistrictIds.has(districtId) &&
-          !visibilityContext.removedDistrictIds.has(districtId)
+          !visibilityContext.hiddenDistrictIds.has(districtId) && !visibilityContext.removedDistrictIds.has(districtId)
       ),
-    [
-      cityDistrictIds,
-      visibilityContext.hiddenDistrictIds,
-      visibilityContext.removedDistrictIds,
-    ]
+    [cityDistrictIds, visibilityContext.hiddenDistrictIds, visibilityContext.removedDistrictIds]
   );
   const districtRenderIds = useMemo(
     () => (filterMode === 'Hide' ? districtMeshIds : visibleDistrictIds),
     [filterMode, districtMeshIds, visibleDistrictIds]
   );
 
-  const [cityPosition, setCityPosition] = useState<THREE.Vector3 | undefined>(
-    cityLayout?.position
-  );
+  const [cityPosition, setCityPosition] = useState<THREE.Vector3 | undefined>(cityLayout?.position);
   const [isBrowserActive, setIsBrowserActive] = useState(false);
 
   const componentInstanceMeshRef = useRef<InstancedMesh2>(null);
@@ -126,13 +101,7 @@ export default function CodeCity({ cityId }: { cityId: string }) {
         positionZ: newPosition.z,
         duration: animationDuration,
         onUpdate: () => {
-          setCityPosition(
-            new THREE.Vector3(
-              gsapValues.positionX,
-              gsapValues.positionY,
-              gsapValues.positionZ
-            )
-          );
+          setCityPosition(new THREE.Vector3(gsapValues.positionX, gsapValues.positionY, gsapValues.positionZ));
         },
       });
     } else {
@@ -165,10 +134,7 @@ export default function CodeCity({ cityId }: { cityId: string }) {
       {cityLayout && <CityFoundation city={city} layout={cityLayout} />}
       <CodeBuildings buildingIds={visibleBuildingIds} city={city} />
       {visibleBuildingIds.map((buildingId) => (
-        <CodeBuildingLabel
-          key={buildingId + '-label'}
-          buildingId={buildingId}
-        />
+        <CodeBuildingLabel key={buildingId + '-label'} buildingId={buildingId} />
       ))}
       {showDistricts && districtRenderIds.length > 0 && (
         <CityDistricts
@@ -182,13 +148,7 @@ export default function CodeCity({ cityId }: { cityId: string }) {
         const district = useModelStore.getState().getDistrict(districtId);
         const layout = useLayoutStore.getState().getLayout(districtId);
         if (district && layout) {
-          return (
-            <CityDistrictLabel
-              key={districtId + '-label'}
-              district={district}
-              layout={layout}
-            />
-          );
+          return <CityDistrictLabel key={districtId + '-label'} district={district} layout={layout} />;
         }
         return null;
       })}

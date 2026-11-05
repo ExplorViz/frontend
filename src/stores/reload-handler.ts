@@ -20,13 +20,8 @@ interface ReloadHandlerState {
   loadLandscapeByTimestampSnapshot: (
     structureData: StructureLandscapeData,
     dynamicData: DynamicLandscapeData
-  ) => Promise<
-    [StructureLandscapeData, DynamicLandscapeData, FlatLandscape | undefined]
-  >;
-  findLastIndexPolyfill: <T>(
-    array: T[],
-    predicate: (value: T) => boolean
-  ) => number;
+  ) => Promise<[StructureLandscapeData, DynamicLandscapeData, FlatLandscape | undefined]>;
+  findLastIndexPolyfill: <T>(array: T[], predicate: (value: T) => boolean) => number;
 }
 
 export const useReloadHandlerStore = create<ReloadHandlerState>((set, get) => ({
@@ -35,10 +30,7 @@ export const useReloadHandlerStore = create<ReloadHandlerState>((set, get) => ({
    * @method loadLandscapeById
    * @param {*} timestamp
    */
-  loadLandscapeByTimestamp: async (
-    timestampFrom: bigint,
-    timestampTo?: bigint
-  ) => {
+  loadLandscapeByTimestamp: async (timestampFrom: bigint, timestampTo?: bigint) => {
     const bucketSizeMs = BigInt(useTimestampPollingStore.getState().bucketSize);
     const NANOSECONDS_PER_MILLISECOND = 1_000_000n;
 
@@ -47,8 +39,7 @@ export const useReloadHandlerStore = create<ReloadHandlerState>((set, get) => ({
     let end = exact + bucketSizeMs * NANOSECONDS_PER_MILLISECOND;
 
     try {
-      const getTimestampsForCommitId =
-        useTimestampRepositoryStore.getState().getTimestampsForCommitId;
+      const getTimestampsForCommitId = useTimestampRepositoryStore.getState().getTimestampsForCommitId;
 
       let listOfAllTimestamps = getTimestampsForCommitId(
         'cross-commit',
@@ -60,20 +51,13 @@ export const useReloadHandlerStore = create<ReloadHandlerState>((set, get) => ({
         (timestamp) => timestamp.fromUnixNano <= timestampFrom
       );
 
-      const tenSecondBucketEpochNano =
-        timestampIndex1 === -1
-          ? 0n
-          : listOfAllTimestamps[timestampIndex1].fromUnixNano;
+      const tenSecondBucketEpochNano = timestampIndex1 === -1 ? 0n : listOfAllTimestamps[timestampIndex1].fromUnixNano;
 
       start = tenSecondBucketEpochNano;
 
-      listOfAllTimestamps = useTimestampRepositoryStore
-        .getState()
-        .getTimestampsForCommitId('cross-commit', true);
+      listOfAllTimestamps = useTimestampRepositoryStore.getState().getTimestampsForCommitId('cross-commit', true);
 
-      const timestampIndex2 = listOfAllTimestamps.findIndex(
-        (ts) => ts.fromUnixNano > timestampFrom
-      );
+      const timestampIndex2 = listOfAllTimestamps.findIndex((ts) => ts.fromUnixNano > timestampFrom);
 
       if (timestampIndex2 !== -1) {
         end = listOfAllTimestamps[timestampIndex2].fromUnixNano;
@@ -83,10 +67,7 @@ export const useReloadHandlerStore = create<ReloadHandlerState>((set, get) => ({
     }
 
     try {
-      const [structureDataPromise, dynamicDataPromise] = await requestData(
-        start,
-        timestampTo ?? end
-      );
+      const [structureDataPromise, dynamicDataPromise] = await requestData(start, timestampTo ?? end);
 
       if (structureDataPromise.status !== 'fulfilled') {
         throw Error('No structure data available.', {
@@ -105,9 +86,7 @@ export const useReloadHandlerStore = create<ReloadHandlerState>((set, get) => ({
               toUnixNano: BigInt(0),
             };
 
-      useCommunicationStore
-        .getState()
-        .setCommunications(aggregatedCommunication);
+      useCommunicationStore.getState().setCommunications(aggregatedCommunication);
 
       return [flat, [], aggregatedCommunication];
     } catch (e: any) {
@@ -119,10 +98,7 @@ export const useReloadHandlerStore = create<ReloadHandlerState>((set, get) => ({
     structureData: StructureLandscapeData,
     dynamicData: DynamicLandscapeData
   ) => {
-    const structure = preProcessAndEnhanceStructureLandscape(
-      structureData,
-      TypeOfAnalysis.Runtime
-    );
+    const structure = preProcessAndEnhanceStructureLandscape(structureData, TypeOfAnalysis.Runtime);
     const dynamic = dynamicData;
 
     for (const t of dynamic) {

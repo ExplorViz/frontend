@@ -34,9 +34,7 @@ describe('building path filters', () => {
   });
 
   it('uses OR within each list and keeps invalid inclusions restrictive', () => {
-    expect(isIncludedBySearchExpressions('App.ts', ['*.java', '*.ts'])).toBe(
-      true
-    );
+    expect(isIncludedBySearchExpressions('App.ts', ['*.java', '*.ts'])).toBe(true);
     expect(isIncludedBySearchExpressions('App.ts', ['regex:['])).toBe(false);
     expect(isExcludedBySearchExpressions('App.ts', ['*.ts'])).toBe(true);
     expect(isExcludedBySearchExpressions('App.ts', ['regex:['])).toBe(false);

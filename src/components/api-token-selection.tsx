@@ -1,9 +1,6 @@
 import { PlusIcon, TrashIcon } from '@primer/octicons-react';
 import { format } from 'date-fns';
-import {
-  ApiToken,
-  useUserApiTokenStore,
-} from 'explorviz-frontend/src/stores/user-api-token';
+import { ApiToken, useUserApiTokenStore } from 'explorviz-frontend/src/stores/user-api-token';
 import convertDate from 'explorviz-frontend/src/utils/helpers/time-convter';
 import React, { useState } from 'react';
 import { Button, Modal, OverlayTrigger, Tooltip } from 'react-bootstrap';
@@ -15,10 +12,7 @@ interface ApiTokenSelectionArgs {
   refreshRoute(): void;
 }
 
-export default function ApiTokenSelection({
-  apiTokens,
-  refreshRoute,
-}: ApiTokenSelectionArgs) {
+export default function ApiTokenSelection({ apiTokens, refreshRoute }: ApiTokenSelectionArgs) {
   const [sortProperty, setSortProperty] = useState<string>('createdAt');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
   const [createToken, setCreateToken] = useState<boolean>(false);
@@ -36,13 +30,7 @@ export default function ApiTokenSelection({
       return 0;
     }
 
-    return sortOrder === 'asc'
-      ? aValue > bValue
-        ? 1
-        : -1
-      : aValue < bValue
-        ? 1
-        : -1;
+    return sortOrder === 'asc' ? (aValue > bValue ? 1 : -1) : aValue < bValue ? 1 : -1;
   });
 
   const sortBy = (property: keyof ApiToken) => {
@@ -59,9 +47,7 @@ export default function ApiTokenSelection({
   };
 
   const deleteApiToken = async (apiToken: ApiToken) => {
-    await useUserApiTokenStore
-      .getState()
-      .deleteApiToken(apiToken.token, apiToken.uid);
+    await useUserApiTokenStore.getState().deleteApiToken(apiToken.token, apiToken.uid);
     if (localStorage.getItem('gitAPIToken') !== null) {
       if (localStorage.getItem('gitAPIToken') === JSON.stringify(apiToken)) {
         localStorage.removeItem('gitAPIToken');
@@ -77,9 +63,7 @@ export default function ApiTokenSelection({
   };
 
   const createApiToken = async () => {
-    await useUserApiTokenStore
-      .getState()
-      .createApiToken(name, token, hostUrl, expDate);
+    await useUserApiTokenStore.getState().createApiToken(name, token, hostUrl, expDate);
     reset();
     refreshRoute();
   };
@@ -136,10 +120,7 @@ export default function ApiTokenSelection({
     <>
       <div className="pb-5 px-5 w-100">
         <h5 className="text-left mb-3">API-Tokens</h5>
-        <div
-          className="flex-row justify-content-center selection-table"
-          style={{ maxHeight: '700px' }}
-        >
+        <div className="flex-row justify-content-center selection-table" style={{ maxHeight: '700px' }}>
           <table className="table table-striped">
             <thead>
               <tr>
@@ -172,19 +153,13 @@ export default function ApiTokenSelection({
                       <ul className="token-selection-icons">
                         <li>
                           <div id="colorPresets" className="dropdown">
-                            <OverlayTrigger
-                              placement="bottom"
-                              overlay={<Tooltip>Delete Snapshot</Tooltip>}
-                            >
+                            <OverlayTrigger placement="bottom" overlay={<Tooltip>Delete Snapshot</Tooltip>}>
                               <button
                                 className="button-svg-with-hover"
                                 type="button"
                                 onClick={() => deleteApiToken(apiToken)}
                               >
-                                <TrashIcon
-                                  size="small"
-                                  className="align-middle"
-                                />
+                                <TrashIcon size="small" className="align-middle" />
                               </button>
                             </OverlayTrigger>
                           </div>
@@ -227,21 +202,11 @@ export default function ApiTokenSelection({
               Name:
             </label>
             <div className="d-flex justify-content-between">
-              <input
-                id="name"
-                className="form-control mr-2"
-                onInput={(e) => updateName(e)}
-                value={name}
-              />
+              <input id="name" className="form-control mr-2" onInput={(e) => updateName(e)} value={name} />
             </div>
             <label htmlFor="token">API Token:</label>
             <div className="d-flex justify-content-between">
-              <input
-                id="token"
-                className="form-control mr-2"
-                onInput={(e) => updateToken(e)}
-                value={token}
-              />
+              <input id="token" className="form-control mr-2" onInput={(e) => updateToken(e)} value={token} />
             </div>
             <label htmlFor="token">Host URL:</label>
             <div className="d-flex justify-content-between">
@@ -270,11 +235,7 @@ export default function ApiTokenSelection({
             <Button variant="outline-danger" onClick={() => reset()}>
               Cancel
             </Button>
-            <Button
-              variant="outline-secondary"
-              onClick={() => createApiToken()}
-              disabled={saveBtnDisabled}
-            >
+            <Button variant="outline-secondary" onClick={() => createApiToken()} disabled={saveBtnDisabled}>
               Save
             </Button>
           </Modal.Footer>

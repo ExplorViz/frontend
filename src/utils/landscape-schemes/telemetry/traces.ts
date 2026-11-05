@@ -127,12 +127,7 @@ export function isSpan(x: any): x is Span {
 }
 
 export function isSpanPair(x: any): x is SpanPair {
-  return (
-    x !== null &&
-    typeof x === 'object' &&
-    typeof x.parentSpanId === 'string' &&
-    typeof x.childSpanId === 'string'
-  );
+  return x !== null && typeof x === 'object' && typeof x.parentSpanId === 'string' && typeof x.childSpanId === 'string';
 }
 
 export function isCommSpans(x: any): x is CommSpans {

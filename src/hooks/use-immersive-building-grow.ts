@@ -32,15 +32,9 @@ export function useImmersiveBuildingGrow({
   enableAnimations,
   animationDuration,
 }: UseImmersiveBuildingGrowOptions): void {
-  const activeImmersiveMeshId = useImmersiveViewStore(
-    (state) => state.activeMeshId
-  );
-  const immersiveTargetPosition = useImmersiveViewStore(
-    (state) => state.targetPosition
-  );
-  const setImmersiveBuildingHeight = useImmersiveViewStore(
-    (state) => state.setImmersiveBuildingHeight
-  );
+  const activeImmersiveMeshId = useImmersiveViewStore((state) => state.activeMeshId);
+  const immersiveTargetPosition = useImmersiveViewStore((state) => state.targetPosition);
+  const setImmersiveBuildingHeight = useImmersiveViewStore((state) => state.setImmersiveBuildingHeight);
 
   const grownBuildingIdRef = useRef<string | null>(null);
   const tweenRef = useRef<InstanceHeightTween | null>(null);
@@ -54,11 +48,7 @@ export function useImmersiveBuildingGrow({
 
     const previousGrownId = grownBuildingIdRef.current;
 
-    const applyHeight = (
-      buildingId: string,
-      targetHeight: number,
-      onComplete?: () => void
-    ) => {
+    const applyHeight = (buildingId: string, targetHeight: number, onComplete?: () => void) => {
       const instanceId = buildingIdToInstanceId.current.get(buildingId);
       if (instanceId === undefined) {
         onComplete?.();
@@ -84,9 +74,7 @@ export function useImmersiveBuildingGrow({
       }
       // Keep the label mounted and tween it down with the building.
       setImmersiveBuildingHeight(buildingId, normalHeight);
-      applyHeight(buildingId, normalHeight, () =>
-        setImmersiveBuildingHeight(null, null)
-      );
+      applyHeight(buildingId, normalHeight, () => setImmersiveBuildingHeight(null, null));
     };
 
     if (previousGrownId && previousGrownId !== activeImmersiveMeshId) {
@@ -100,21 +88,13 @@ export function useImmersiveBuildingGrow({
       return () => killNumericTween(tweenRef);
     }
 
-    const instanceId =
-      buildingIdToInstanceId.current.get(activeImmersiveMeshId);
+    const instanceId = buildingIdToInstanceId.current.get(activeImmersiveMeshId);
     if (instanceId === undefined) {
       return () => killNumericTween(tweenRef);
     }
 
-    const feetWorld = getImmersiveFeetWorldPosition(
-      mesh,
-      immersiveTargetPosition
-    );
-    const grownHeight = getImmersiveGrownBuildingHeight(
-      mesh,
-      instanceId,
-      feetWorld
-    );
+    const feetWorld = getImmersiveFeetWorldPosition(mesh, immersiveTargetPosition);
+    const grownHeight = getImmersiveGrownBuildingHeight(mesh, instanceId, feetWorld);
     if (grownHeight === null) {
       return () => killNumericTween(tweenRef);
     }

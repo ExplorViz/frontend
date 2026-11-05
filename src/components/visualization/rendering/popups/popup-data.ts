@@ -1,10 +1,6 @@
 import AggregatedCommunication from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/aggregated-communication';
 import { FileDetailedDto } from 'explorviz-frontend/src/utils/landscape-schemes/file-detailed-data';
-import {
-  Building,
-  City,
-  District,
-} from 'explorviz-frontend/src/utils/landscape-schemes/flat-landscape';
+import { Building, City, District } from 'explorviz-frontend/src/utils/landscape-schemes/flat-landscape';
 
 export interface PopupDataArgs {
   mouseX: number;

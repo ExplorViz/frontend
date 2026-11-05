@@ -10,10 +10,7 @@ import {
   TraceTreeVisitor,
 } from 'explorviz-frontend/src/components/visualization/page-setup/sidebar/toolbar/trace-replayer/trace-tree';
 import { useConfigurationStore } from 'explorviz-frontend/src/stores/configuration';
-import {
-  PlayState,
-  useTraceReplayStore,
-} from 'explorviz-frontend/src/stores/trace-replay';
+import { PlayState, useTraceReplayStore } from 'explorviz-frontend/src/stores/trace-replay';
 import { useVisualizationStore } from 'explorviz-frontend/src/stores/visualization-store';
 import { openAllDistrictsInLandscape } from 'explorviz-frontend/src/utils/city-rendering/entity-manipulation';
 import {
@@ -31,14 +28,10 @@ interface TraceReplayerControlsProps {
   flatData: FlatLandscape;
 }
 
-export default function TraceReplayerControls({
-  selectedTrace,
-  flatData,
-}: TraceReplayerControlsProps) {
+export default function TraceReplayerControls({ selectedTrace, flatData }: TraceReplayerControlsProps) {
   const visualizationStore = useVisualizationStore(
     useShallow((state) => ({
-      removeAllHighlightedEntityIds:
-        state.actions.removeAllHighlightedEntityIds,
+      removeAllHighlightedEntityIds: state.actions.removeAllHighlightedEntityIds,
     }))
   );
 
@@ -180,9 +173,7 @@ export default function TraceReplayerControls({
     }
 
     // Find active nodes at current cursor position
-    const activeNodes = localTimeline.filter(
-      (node) => node.start <= cursor && node.end >= cursor
-    );
+    const activeNodes = localTimeline.filter((node) => node.start <= cursor && node.end >= cursor);
 
     if (activeNodes.length === 0) {
       setTabs([]);
@@ -199,9 +190,7 @@ export default function TraceReplayerControls({
 
       if (!sourceClass || !targetClass) return;
 
-      const sourceCityName = sourceClass
-        ? (cityMap[sourceClass.parentCityId]?.name ?? '')
-        : '';
+      const sourceCityName = sourceClass ? (cityMap[sourceClass.parentCityId]?.name ?? '') : '';
       const targetCityName = cityMap[targetClass.parentCityId]?.name ?? '';
 
       // Create a color for this tab
@@ -215,14 +204,7 @@ export default function TraceReplayerControls({
       };
 
       // Create TraceTab
-      const tab = new TraceTab(
-        node,
-        node,
-        sourceCityName,
-        targetCityName,
-        color,
-        callback
-      );
+      const tab = new TraceTab(node, node, sourceCityName, targetCityName, color, callback);
 
       newTabs.push(tab);
     });
@@ -269,34 +251,20 @@ export default function TraceReplayerControls({
               <PlayIcon size="small" />
             </button>
           ) : (
-            <button
-              className="btn btn-warning mx-2 navbar-highlight playing"
-              title="Pause"
-              onClick={() => pause()}
-            >
+            <button className="btn btn-warning mx-2 navbar-highlight playing" title="Pause" onClick={() => pause()}>
               <PlayIcon size="small" />
             </button>
           )}
         </div>
       ) : (
         <div>
-          <TracePreProcess
-            tree={tree}
-            timeline={localTimeline}
-            callback={callbackReady}
-          />
+          <TracePreProcess tree={tree} timeline={localTimeline} callback={callbackReady} />
         </div>
       )}
 
       <div className="my-3">
         <label htmlFor="eager-checkbox"></label>
-        <input
-          id="eager-checkbox"
-          className="mx-2"
-          type="checkbox"
-          checked={eager}
-          onChange={toggleEager}
-        />
+        <input id="eager-checkbox" className="mx-2" type="checkbox" checked={eager} onChange={toggleEager} />
         Eager Expansion
       </div>
 
@@ -337,11 +305,7 @@ export default function TraceReplayerControls({
                 title={`${tab.name} (${tab.caller} → ${tab.callee})`}
                 onClick={tab.enable}
                 type="button"
-                style={
-                  tab.active
-                    ? { backgroundColor: tab.style.split(': ')[1] }
-                    : {}
-                }
+                style={tab.active ? { backgroundColor: tab.style.split(': ')[1] } : {}}
               >
                 {tab.label}
               </button>

@@ -1,7 +1,4 @@
-import {
-  Language,
-  ModelType,
-} from 'explorviz-frontend/src/utils/landscape-schemes/flat-landscape';
+import { Language, ModelType } from 'explorviz-frontend/src/utils/landscape-schemes/flat-landscape';
 import { create } from 'zustand';
 
 interface VisualizationStoreState {
@@ -61,208 +58,181 @@ type layersType = {
   LocalMinimapMarker: number;
 };
 
-export const useVisualizationStore = create<VisualizationStoreState>(
-  (set, get) => ({
+export const useVisualizationStore = create<VisualizationStoreState>((set, get) => ({
+  // Shared entity states
+  hoveredEntityId: null,
+  highlightedEntityIds: new Set(),
+  // District state
+  closedDistrictIds: new Set(),
+  hiddenDistrictIds: new Set(),
+  // Building state
+  hiddenBuildingIds: new Set(),
+  removedDistrictIds: new Set(),
+  // Model type filtering
+  hiddenModelTypes: new Set(),
+  // Language filtering
+  hiddenLanguages: new Set(),
+  sceneLayers: {
+    Default: 0,
+    Foundation: 1,
+    District: 2,
+    Building: 3,
+    Communication: 4,
+    Ping: 5,
+    Label: 6,
+    MinimapLabel: 7,
+    LocalMinimapMarker: 8,
+    MinimapMarkers: 9,
+  },
+  actions: {
     // Shared entity states
-    hoveredEntityId: null,
-    highlightedEntityIds: new Set(),
-    // District state
-    closedDistrictIds: new Set(),
-    hiddenDistrictIds: new Set(),
-    // Building state
-    hiddenBuildingIds: new Set(),
-    removedDistrictIds: new Set(),
-    // Model type filtering
-    hiddenModelTypes: new Set(),
-    // Language filtering
-    hiddenLanguages: new Set(),
-    sceneLayers: {
-      Default: 0,
-      Foundation: 1,
-      District: 2,
-      Building: 3,
-      Communication: 4,
-      Ping: 5,
-      Label: 6,
-      MinimapLabel: 7,
-      LocalMinimapMarker: 8,
-      MinimapMarkers: 9,
+    setHoveredEntityId: (id: string | null) => {
+      if (get().hoveredEntityId === id) {
+        return;
+      }
+      set({ hoveredEntityId: id });
     },
-    actions: {
-      // Shared entity states
-      setHoveredEntityId: (id: string | null) => {
-        if (get().hoveredEntityId === id) {
+    setHighlightedEntityId: (id: string, isHighlighted: boolean) => {
+      set((prevState) => {
+        const alreadyHighlighted = prevState.highlightedEntityIds.has(id);
+        if (isHighlighted === alreadyHighlighted) {
+          return prevState;
+        }
+        const updatedHighlightedEntityIds = new Set(prevState.highlightedEntityIds);
+        if (isHighlighted) {
+          updatedHighlightedEntityIds.add(id);
+        } else {
+          updatedHighlightedEntityIds.delete(id);
+        }
+        return {
+          highlightedEntityIds: updatedHighlightedEntityIds,
+        };
+      });
+    },
+    setHighlightedEntityIds: (ids: string[], areHighlighted: boolean) => {
+      if (areHighlighted) {
+        set({
+          highlightedEntityIds: get().highlightedEntityIds.union(new Set(ids)),
+        });
+      } else {
+        set({
+          highlightedEntityIds: get().highlightedEntityIds.difference(new Set(ids)),
+        });
+      }
+    },
+    removeAllHighlightedEntityIds: () => {
+      set({ highlightedEntityIds: new Set() });
+    },
+    resetVisualizationState: () => {
+      set({
+        hoveredEntityId: null,
+        highlightedEntityIds: new Set(),
+        closedDistrictIds: new Set(),
+        hiddenDistrictIds: new Set(),
+        hiddenBuildingIds: new Set(),
+        hiddenModelTypes: new Set(),
+        hiddenLanguages: new Set(),
+      });
+    },
+    filterEntityIds: (validEntityIds: Set<string>) => {
+      set((prevState) => ({
+        highlightedEntityIds: new Set([...prevState.highlightedEntityIds].filter((id) => validEntityIds.has(id))),
+        hoveredEntityId:
+          prevState.hoveredEntityId && validEntityIds.has(prevState.hoveredEntityId) ? prevState.hoveredEntityId : null,
+        closedDistrictIds: new Set([...prevState.closedDistrictIds].filter((id) => validEntityIds.has(id))),
+        hiddenDistrictIds: new Set([...prevState.hiddenDistrictIds].filter((id) => validEntityIds.has(id))),
+        hiddenBuildingIds: new Set([...prevState.hiddenBuildingIds].filter((id) => validEntityIds.has(id))),
+      }));
+    },
+    // Districts
+    openDistricts: (ids: string[]) => {
+      set({
+        closedDistrictIds: get().closedDistrictIds.difference(new Set(ids)),
+      });
+    },
+    closeDistricts: (ids: string[]) => {
+      set({
+        closedDistrictIds: get().closedDistrictIds.union(new Set(ids)),
+      });
+    },
+    showDistricts: (ids: string[]) => {
+      const newSet = get().hiddenDistrictIds.difference(new Set(ids));
+      set({
+        hiddenDistrictIds: newSet,
+      });
+    },
+    hideDistricts: (ids: string[]) => {
+      set({
+        hiddenDistrictIds: get().hiddenDistrictIds.union(new Set(ids)),
+      });
+    },
+    resetDistrictState: () => {
+      set({
+        closedDistrictIds: new Set(),
+        hiddenDistrictIds: new Set(),
+      });
+    },
+    // Buildings
+    setFilterHiddenBuildingIds: (ids: string[]) => {
+      // A new Set invalidates the shared visibility context and rebuilds every
+      // instanced mesh, so keep the current one when the selection is equal.
+      const current = get().hiddenBuildingIds;
+      const next = new Set(ids);
+      if (current.size === next.size) {
+        let isEqual = true;
+        for (const id of next) {
+          if (!current.has(id)) {
+            isEqual = false;
+            break;
+          }
+        }
+        if (isEqual) {
           return;
         }
-        set({ hoveredEntityId: id });
-      },
-      setHighlightedEntityId: (id: string, isHighlighted: boolean) => {
-        set((prevState) => {
-          const alreadyHighlighted = prevState.highlightedEntityIds.has(id);
-          if (isHighlighted === alreadyHighlighted) {
-            return prevState;
-          }
-          const updatedHighlightedEntityIds = new Set(
-            prevState.highlightedEntityIds
-          );
-          if (isHighlighted) {
-            updatedHighlightedEntityIds.add(id);
-          } else {
-            updatedHighlightedEntityIds.delete(id);
-          }
-          return {
-            highlightedEntityIds: updatedHighlightedEntityIds,
-          };
-        });
-      },
-      setHighlightedEntityIds: (ids: string[], areHighlighted: boolean) => {
-        if (areHighlighted) {
-          set({
-            highlightedEntityIds: get().highlightedEntityIds.union(
-              new Set(ids)
-            ),
-          });
-        } else {
-          set({
-            highlightedEntityIds: get().highlightedEntityIds.difference(
-              new Set(ids)
-            ),
-          });
-        }
-      },
-      removeAllHighlightedEntityIds: () => {
-        set({ highlightedEntityIds: new Set() });
-      },
-      resetVisualizationState: () => {
-        set({
-          hoveredEntityId: null,
-          highlightedEntityIds: new Set(),
-          closedDistrictIds: new Set(),
-          hiddenDistrictIds: new Set(),
-          hiddenBuildingIds: new Set(),
-          hiddenModelTypes: new Set(),
-          hiddenLanguages: new Set(),
-        });
-      },
-      filterEntityIds: (validEntityIds: Set<string>) => {
-        set((prevState) => ({
-          highlightedEntityIds: new Set(
-            [...prevState.highlightedEntityIds].filter((id) =>
-              validEntityIds.has(id)
-            )
-          ),
-          hoveredEntityId:
-            prevState.hoveredEntityId &&
-            validEntityIds.has(prevState.hoveredEntityId)
-              ? prevState.hoveredEntityId
-              : null,
-          closedDistrictIds: new Set(
-            [...prevState.closedDistrictIds].filter((id) =>
-              validEntityIds.has(id)
-            )
-          ),
-          hiddenDistrictIds: new Set(
-            [...prevState.hiddenDistrictIds].filter((id) =>
-              validEntityIds.has(id)
-            )
-          ),
-          hiddenBuildingIds: new Set(
-            [...prevState.hiddenBuildingIds].filter((id) =>
-              validEntityIds.has(id)
-            )
-          ),
-        }));
-      },
-      // Districts
-      openDistricts: (ids: string[]) => {
-        set({
-          closedDistrictIds: get().closedDistrictIds.difference(new Set(ids)),
-        });
-      },
-      closeDistricts: (ids: string[]) => {
-        set({
-          closedDistrictIds: get().closedDistrictIds.union(new Set(ids)),
-        });
-      },
-      showDistricts: (ids: string[]) => {
-        const newSet = get().hiddenDistrictIds.difference(new Set(ids));
-        set({
-          hiddenDistrictIds: newSet,
-        });
-      },
-      hideDistricts: (ids: string[]) => {
-        set({
-          hiddenDistrictIds: get().hiddenDistrictIds.union(new Set(ids)),
-        });
-      },
-      resetDistrictState: () => {
-        set({
-          closedDistrictIds: new Set(),
-          hiddenDistrictIds: new Set(),
-        });
-      },
-      // Buildings
-      setFilterHiddenBuildingIds: (ids: string[]) => {
-        // A new Set invalidates the shared visibility context and rebuilds every
-        // instanced mesh, so keep the current one when the selection is equal.
-        const current = get().hiddenBuildingIds;
-        const next = new Set(ids);
-        if (current.size === next.size) {
-          let isEqual = true;
-          for (const id of next) {
-            if (!current.has(id)) {
-              isEqual = false;
-              break;
-            }
-          }
-          if (isEqual) {
-            return;
-          }
-        }
-        set({
-          hiddenBuildingIds: next,
-        });
-      },
-      removeDistricts: (ids: Set<string>) => {
-        set({
-          removedDistrictIds: get().removedDistrictIds.union(ids),
-        });
-      },
-      setRemovedDistricts: (ids: Set<string>) => {
-        set({
-          removedDistrictIds: ids,
-        });
-      },
-      resetBuildingStates: () => {
-        set({ hiddenBuildingIds: new Set() });
-      },
-      setSceneLayers: (layers: layersType) => {
-        set({ sceneLayers: layers });
-      },
-      toggleModelTypeVisibility: (modelType: ModelType) => {
-        const current = new Set(get().hiddenModelTypes);
-        if (current.has(modelType)) {
-          current.delete(modelType);
-        } else {
-          current.add(modelType);
-        }
-        set({ hiddenModelTypes: current });
-      },
-      resetModelTypeFilter: () => {
-        set({ hiddenModelTypes: new Set() });
-      },
-      toggleLanguageVisibility: (language: Language) => {
-        const current = new Set(get().hiddenLanguages);
-        if (current.has(language)) {
-          current.delete(language);
-        } else {
-          current.add(language);
-        }
-        set({ hiddenLanguages: current });
-      },
-      resetLanguageFilter: () => {
-        set({ hiddenLanguages: new Set() });
-      },
+      }
+      set({
+        hiddenBuildingIds: next,
+      });
     },
-  })
-);
+    removeDistricts: (ids: Set<string>) => {
+      set({
+        removedDistrictIds: get().removedDistrictIds.union(ids),
+      });
+    },
+    setRemovedDistricts: (ids: Set<string>) => {
+      set({
+        removedDistrictIds: ids,
+      });
+    },
+    resetBuildingStates: () => {
+      set({ hiddenBuildingIds: new Set() });
+    },
+    setSceneLayers: (layers: layersType) => {
+      set({ sceneLayers: layers });
+    },
+    toggleModelTypeVisibility: (modelType: ModelType) => {
+      const current = new Set(get().hiddenModelTypes);
+      if (current.has(modelType)) {
+        current.delete(modelType);
+      } else {
+        current.add(modelType);
+      }
+      set({ hiddenModelTypes: current });
+    },
+    resetModelTypeFilter: () => {
+      set({ hiddenModelTypes: new Set() });
+    },
+    toggleLanguageVisibility: (language: Language) => {
+      const current = new Set(get().hiddenLanguages);
+      if (current.has(language)) {
+        current.delete(language);
+      } else {
+        current.add(language);
+      }
+      set({ hiddenLanguages: current });
+    },
+    resetLanguageFilter: () => {
+      set({ hiddenLanguages: new Set() });
+    },
+  },
+}));

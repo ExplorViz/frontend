@@ -24,25 +24,14 @@ export function animateNumericProps<T extends NumericRecord>(options: {
   onComplete?: () => void;
   epsilon?: number;
 }): void {
-  const {
-    from,
-    to,
-    duration,
-    animate,
-    tweenRef,
-    onUpdate,
-    onComplete,
-    epsilon = 1e-4,
-  } = options;
+  const { from, to, duration, animate, tweenRef, onUpdate, onComplete, epsilon = 1e-4 } = options;
 
   if (tweenRef.current) {
     gsap.killTweensOf(tweenRef.current);
     tweenRef.current = null;
   }
 
-  const alreadyThere = (Object.keys(to) as (keyof T)[]).every(
-    (key) => Math.abs(from[key] - to[key]) < epsilon
-  );
+  const alreadyThere = (Object.keys(to) as (keyof T)[]).every((key) => Math.abs(from[key] - to[key]) < epsilon);
 
   if (!animate || alreadyThere) {
     onUpdate({ ...to });
@@ -66,9 +55,7 @@ export function animateNumericProps<T extends NumericRecord>(options: {
   });
 }
 
-export function killNumericTween<T extends object>(
-  tweenRef: MutableRefObject<T | null>
-): void {
+export function killNumericTween<T extends object>(tweenRef: MutableRefObject<T | null>): void {
   if (tweenRef.current) {
     gsap.killTweensOf(tweenRef.current);
     tweenRef.current = null;
@@ -92,15 +79,7 @@ export function animateInstanceBuildingHeight(options: {
   tweenRef: MutableRefObject<InstanceHeightTween | null>;
   onComplete?: () => void;
 }): void {
-  const {
-    mesh,
-    instanceId,
-    targetHeight,
-    duration,
-    animate,
-    tweenRef,
-    onComplete,
-  } = options;
+  const { mesh, instanceId, targetHeight, duration, animate, tweenRef, onComplete } = options;
 
   const tempMatrix = new Matrix4();
   const pos = new Vector3();
@@ -141,9 +120,5 @@ export function createBuildingLabelPosition(
   buildingHeight: number,
   labelOffset: number
 ): Vector3 {
-  return new Vector3(
-    centerX,
-    positionY + buildingHeight + labelOffset,
-    centerZ
-  );
+  return new Vector3(centerX, positionY + buildingHeight + labelOffset, centerZ);
 }

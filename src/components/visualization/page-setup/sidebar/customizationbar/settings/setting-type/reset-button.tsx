@@ -1,12 +1,6 @@
 import { SyncIcon } from '@primer/octicons-react';
 
-export default function ResetButton({
-  onClick,
-  args,
-}: {
-  onClick: (args: any) => void;
-  args?: unknown | undefined;
-}) {
+export default function ResetButton({ onClick, args }: { onClick: (args: any) => void; args?: unknown | undefined }) {
   return (
     <button
       type="button"

@@ -242,10 +242,7 @@ svg.octicon {
       height: var(--bs-spinner-height);
       vertical-align: var(--bs-spinner-vertical-align);
       border-radius: 50%;
-      animation: var(--bs-spinner-animation-speed)
-        linear
-        infinite
-        var(--bs-spinner-animation-name);
+      animation: var(--bs-spinner-animation-speed) linear infinite var(--bs-spinner-animation-name);
       position: absolute;
       top: calc(50% - #{calc($i / 2)}rem);
       left: calc(50% - #{calc($i / 2)}rem);

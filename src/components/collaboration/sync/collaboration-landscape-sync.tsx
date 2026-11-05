@@ -4,12 +4,8 @@ import { useEffect, useRef } from 'react';
 
 export default function CollaborationLandscapeSync() {
   const localToken = useLandscapeTokenStore((state) => state.token);
-  const setTokenByValue = useLandscapeTokenStore(
-    (state) => state.setTokenByValue
-  );
-  const [globalTokenValue, setGlobalTokenValue] = useMultiplayerState<
-    string | null
-  >('globalLandscapeToken', null);
+  const setTokenByValue = useLandscapeTokenStore((state) => state.setTokenByValue);
+  const [globalTokenValue, setGlobalTokenValue] = useMultiplayerState<string | null>('globalLandscapeToken', null);
   const lastGlobalRef = useRef<string | null>(null);
 
   // When host: Notify everyone else that the landscape has been changed

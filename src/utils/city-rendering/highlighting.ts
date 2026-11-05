@@ -16,18 +16,13 @@ export function getLocalHighlightingColor(): THREE.Color {
   }
   // If not in a room, use the local highlighting color from the settings
   else {
-    return new THREE.Color(
-      useUserSettingsStore.getState().visualizationSettings
-        .highlightedEntityColor.value
-    );
+    return new THREE.Color(useUserSettingsStore.getState().visualizationSettings.highlightedEntityColor.value);
   }
 }
 
 export function getHighlightingColorForEntity(entityId: string): THREE.Color {
   // 1. Check if the entity is highlighted by the local user
-  const isHighlightedLocally = useLocalHighlightStore
-    .getState()
-    .localHighlightedIds.has(entityId);
+  const isHighlightedLocally = useLocalHighlightStore.getState().localHighlightedIds.has(entityId);
   if (isHighlightedLocally) {
     return getLocalHighlightingColor();
   }
@@ -35,9 +30,7 @@ export function getHighlightingColorForEntity(entityId: string): THREE.Color {
   // 2. Otherwise, check if it is highlighted by a remote user
   const isConnected = usePlayroomConnectionStore.getState().isConnected;
   if (isConnected) {
-    const remoteColorHex = useRemoteHighlightingStore
-      .getState()
-      .getColor(entityId);
+    const remoteColorHex = useRemoteHighlightingStore.getState().getColor(entityId);
     if (remoteColorHex) {
       return new THREE.Color(remoteColorHex);
     }
@@ -47,14 +40,8 @@ export function getHighlightingColorForEntity(entityId: string): THREE.Color {
   return getLocalHighlightingColor();
 }
 
-export function setHighlightingById(
-  modelId: string,
-  highlight: boolean,
-  sendMessage = true
-) {
-  useVisualizationStore
-    .getState()
-    .actions.setHighlightedEntityId(modelId, highlight);
+export function setHighlightingById(modelId: string, highlight: boolean, sendMessage = true) {
+  useVisualizationStore.getState().actions.setHighlightedEntityId(modelId, highlight);
 
   useLocalHighlightStore.getState().setHighlighted(modelId, highlight);
 
@@ -66,9 +53,7 @@ export function setHighlightingById(
         useHighlightingStore.getState().logHighlightToChat(modelId, highlight);
       }
 
-      const allMyHighlights = Array.from(
-        useLocalHighlightStore.getState().localHighlightedIds
-      );
+      const allMyHighlights = Array.from(useLocalHighlightStore.getState().localHighlightedIds);
       myPlayer().setState('highlightedEntities', allMyHighlights);
     } catch (e) {
       console.warn('Playroom Highlighting Update failed:', e);
@@ -85,9 +70,7 @@ export function unhighlightById(modelId: string, sendMessage = true) {
 }
 
 export function toggleHighlightById(modelId: string, sendMessage = true) {
-  const isHighlighted = useLocalHighlightStore
-    .getState()
-    .localHighlightedIds.has(modelId);
+  const isHighlighted = useLocalHighlightStore.getState().localHighlightedIds.has(modelId);
   setHighlightingById(modelId, !isHighlighted, sendMessage);
 }
 

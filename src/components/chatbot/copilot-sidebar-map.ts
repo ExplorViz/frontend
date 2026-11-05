@@ -11,9 +11,7 @@ export const copilotToolComponentToToolbarTool: Record<string, ToolbarTool> = {
   'kubernetes-diagrams': ToolbarTool.KubernetesDiagrams,
 };
 
-export const copilotToolComponentIds = Object.keys(
-  copilotToolComponentToToolbarTool
-);
+export const copilotToolComponentIds = Object.keys(copilotToolComponentToToolbarTool);
 
 /** Resolves a copilot tools-component id (or tab label) to a toolbar tool. */
 export function resolveCopilotToolbarTool(id: string): ToolbarTool | undefined {
@@ -28,31 +26,24 @@ export function resolveCopilotToolbarTool(id: string): ToolbarTool | undefined {
       return tool;
     }
   }
-  return Object.values(ToolbarTool).find(
-    (tool) => tool.toLowerCase() === lower || tool === trimmed
-  );
+  return Object.values(ToolbarTool).find((tool) => tool.toLowerCase() === lower || tool === trimmed);
 }
 
 /** Copilot setting ids -> settings sidebar tab (see open-close-settings-component). */
-export const copilotSettingComponentToTab: Record<string, SettingsSidebarTab> =
-  {
-    Collaboration: SettingsSidebarTab.Collaboration,
-    Chatbot: SettingsSidebarTab.Chatbot,
-    'VSCode-Extension-Settings': SettingsSidebarTab.VsCodeExtension,
-    'Restructure-Landscape': SettingsSidebarTab.Restructure,
-    'Persist-Landscape': SettingsSidebarTab.Snapshot,
-    'Building-Config': SettingsSidebarTab.EntityConfig,
-    Settings: SettingsSidebarTab.Settings,
-  };
+export const copilotSettingComponentToTab: Record<string, SettingsSidebarTab> = {
+  Collaboration: SettingsSidebarTab.Collaboration,
+  Chatbot: SettingsSidebarTab.Chatbot,
+  'VSCode-Extension-Settings': SettingsSidebarTab.VsCodeExtension,
+  'Restructure-Landscape': SettingsSidebarTab.Restructure,
+  'Persist-Landscape': SettingsSidebarTab.Snapshot,
+  'Building-Config': SettingsSidebarTab.EntityConfig,
+  Settings: SettingsSidebarTab.Settings,
+};
 
-export const copilotSettingComponentIds = Object.keys(
-  copilotSettingComponentToTab
-);
+export const copilotSettingComponentIds = Object.keys(copilotSettingComponentToTab);
 
 /** Resolves a copilot settings-component id (or tab label) to a settings tab. */
-export function resolveCopilotSettingsTab(
-  id: string
-): SettingsSidebarTab | undefined {
+export function resolveCopilotSettingsTab(id: string): SettingsSidebarTab | undefined {
   const trimmed = id.trim();
   const mapped = copilotSettingComponentToTab[trimmed];
   if (mapped) {
@@ -64,7 +55,5 @@ export function resolveCopilotSettingsTab(
       return tab;
     }
   }
-  return Object.values(SettingsSidebarTab).find(
-    (tab) => tab.toLowerCase() === lower || tab === trimmed
-  );
+  return Object.values(SettingsSidebarTab).find((tab) => tab.toLowerCase() === lower || tab === trimmed);
 }

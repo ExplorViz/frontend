@@ -18,13 +18,8 @@ export function getLandscapeCenterPosition(): THREE.Vector3 {
     return ZERO_VECTOR.clone();
   }
 
-  const {
-    landscapeScalar,
-    landscapePositionX,
-    landscapePositionY,
-    landscapePositionZ,
-    openedDistrictHeight,
-  } = settings;
+  const { landscapeScalar, landscapePositionX, landscapePositionY, landscapePositionZ, openedDistrictHeight } =
+    settings;
 
   const landscapeOffset = new THREE.Vector3(
     landscapePositionX.value,
@@ -38,18 +33,14 @@ export function getLandscapeCenterPosition(): THREE.Vector3 {
     -landscapeLayout.depth / 2
   );
 
-  return landscapeCenter
-    .multiplyScalar(landscapeScalar.value)
-    .add(landscapeOffset);
+  return landscapeCenter.multiplyScalar(landscapeScalar.value).add(landscapeOffset);
 }
 
 /**
  * Computes the world-space position of a specific model (city, district, or building)
  * based on the current layout and landscape settings.
  */
-export function getWorldPositionOfModel(
-  modelId: string
-): THREE.Vector3 | undefined {
+export function getWorldPositionOfModel(modelId: string): THREE.Vector3 | undefined {
   // Check is model is a communication
   if (useModelStore.getState().getCommunication(modelId)) {
     return getWorldPositionOfCommunication(modelId);
@@ -67,22 +58,15 @@ export function getWorldPositionOfModel(
     return undefined;
   }
 
-  const landscapeScalar =
-    useUserSettingsStore.getState().visualizationSettings.landscapeScalar.value;
+  const landscapeScalar = useUserSettingsStore.getState().visualizationSettings.landscapeScalar.value;
 
-  const cityPosition = cityLayout.position
-    .clone()
-    .multiplyScalar(landscapeScalar);
+  const cityPosition = cityLayout.position.clone().multiplyScalar(landscapeScalar);
 
   let modelPosition: THREE.Vector3 | undefined;
 
   // Case that model is city
   if (useModelStore.getState().cities[modelId]) {
-    modelPosition = new THREE.Vector3(
-      modelLayout.width / 2,
-      0,
-      modelLayout.depth / 2
-    ).multiplyScalar(landscapeScalar);
+    modelPosition = new THREE.Vector3(modelLayout.width / 2, 0, modelLayout.depth / 2).multiplyScalar(landscapeScalar);
   } else {
     modelPosition = modelLayout.center.clone().multiplyScalar(landscapeScalar);
   }
@@ -95,9 +79,7 @@ export function getWorldPositionOfModel(
  * based on the current layout and landscape settings. Unlike getWorldPositionOfModel,
  * this returns the position relative to the landscape coordinate system (without the landscape center offset).
  */
-export function getLandscapePositionOfModel(
-  modelId: string
-): THREE.Vector3 | undefined {
+export function getLandscapePositionOfModel(modelId: string): THREE.Vector3 | undefined {
   // Check is model is a communication
   if (useModelStore.getState().getCommunication(modelId)) {
     return getLandscapePositionOfCommunication(modelId);
@@ -126,9 +108,7 @@ export function getLandscapePositionOfModel(
     return undefined;
   }
 
-  const cityPosition = cityLayout.position
-    .clone()
-    .multiplyScalar(landscapeScalar.value);
+  const cityPosition = cityLayout.position.clone().multiplyScalar(landscapeScalar.value);
 
   const isModelCity = modelId === cityForModel.id;
   let modelPosition: THREE.Vector3 | undefined;
@@ -136,33 +116,25 @@ export function getLandscapePositionOfModel(
   if (isModelCity) {
     const modelLayout = layoutStore.getLayout(modelId);
     if (!modelLayout) return undefined;
-    modelPosition = new THREE.Vector3(
-      modelLayout.width / 2,
-      0,
-      modelLayout.depth / 2
-    ).multiplyScalar(landscapeScalar.value);
+    modelPosition = new THREE.Vector3(modelLayout.width / 2, 0, modelLayout.depth / 2).multiplyScalar(
+      landscapeScalar.value
+    );
   } else {
     const modelLayout = layoutStore.getLayout(modelId);
     if (!modelLayout) return undefined;
-    modelPosition = modelLayout.center
-      .clone()
-      .multiplyScalar(landscapeScalar.value);
+    modelPosition = modelLayout.center.clone().multiplyScalar(landscapeScalar.value);
   }
 
   return cityPosition.add(modelPosition);
 }
 
-export function getLandscapePositionOfCommunication(
-  communicationId: string
-): THREE.Vector3 {
+export function getLandscapePositionOfCommunication(communicationId: string): THREE.Vector3 {
   const modelStore = useModelStore.getState();
   const userSettings = useUserSettingsStore.getState().visualizationSettings;
 
   const communication = modelStore.getCommunication(communicationId);
   if (!(communication instanceof AggregatedCommunication)) {
-    console.warn(
-      `[getLandscapePositionOfCommunication] Invalid communication ID: ${communicationId}`
-    );
+    console.warn(`[getLandscapePositionOfCommunication] Invalid communication ID: ${communicationId}`);
     return new THREE.Vector3();
   }
 
@@ -180,14 +152,10 @@ export function getLandscapePositionOfCommunication(
   const midpoint = sourcePos.clone().add(targetPos).multiplyScalar(0.5);
 
   // Calculate height based on distance and settings
-  const commCurveHeightDependsOnDistance =
-    userSettings.commCurveHeightDependsOnDistance?.value ?? true;
+  const commCurveHeightDependsOnDistance = userSettings.commCurveHeightDependsOnDistance?.value ?? true;
   const curvyCommHeight = userSettings.curvyCommHeight?.value ?? 5.0;
 
-  const horizontalDistance = Math.hypot(
-    targetPos.x - sourcePos.x,
-    targetPos.z - sourcePos.z
-  );
+  const horizontalDistance = Math.hypot(targetPos.x - sourcePos.x, targetPos.z - sourcePos.z);
 
   let baseCurveHeight = 50;
   if (commCurveHeightDependsOnDistance) {
@@ -223,8 +191,7 @@ export function getWorldPositionsForEntities(entityIds: string[]): {
   // Read each store exactly once
   const layoutStore = useLayoutStore.getState();
   const modelStore = useModelStore.getState();
-  const landscapeScalar =
-    useUserSettingsStore.getState().visualizationSettings.landscapeScalar.value;
+  const landscapeScalar = useUserSettingsStore.getState().visualizationSettings.landscapeScalar.value;
 
   if (!layoutStore.landscapeLayout) {
     return { positions: new Float32Array(0), validEntityIds: [] };
@@ -268,12 +235,9 @@ export function getWorldPositionsForEntities(entityIds: string[]): {
       modelZ = (modelLayout.depth / 2) * landscapeScalar;
     } else {
       // District or building: use the box center (positionX + width/2, …)
-      modelX =
-        (modelLayout.positionX + modelLayout.width / 2) * landscapeScalar;
-      modelY =
-        (modelLayout.positionY + modelLayout.height / 2) * landscapeScalar;
-      modelZ =
-        (modelLayout.positionZ + modelLayout.depth / 2) * landscapeScalar;
+      modelX = (modelLayout.positionX + modelLayout.width / 2) * landscapeScalar;
+      modelY = (modelLayout.positionY + modelLayout.height / 2) * landscapeScalar;
+      modelZ = (modelLayout.positionZ + modelLayout.depth / 2) * landscapeScalar;
     }
 
     buf[count * 3] = lcx + cityX + modelX;
@@ -292,17 +256,13 @@ export function getWorldPositionsForEntities(entityIds: string[]): {
   };
 }
 
-export function getWorldPositionOfCommunication(
-  communicationId: string
-): THREE.Vector3 {
+export function getWorldPositionOfCommunication(communicationId: string): THREE.Vector3 {
   const modelStore = useModelStore.getState();
   const userSettings = useUserSettingsStore.getState().visualizationSettings;
 
   const communication = modelStore.getCommunication(communicationId);
   if (!(communication instanceof AggregatedCommunication)) {
-    console.warn(
-      `[getWorldPositionOfCommunication] Invalid communication ID: ${communicationId}`
-    );
+    console.warn(`[getWorldPositionOfCommunication] Invalid communication ID: ${communicationId}`);
     return new THREE.Vector3();
   }
 
@@ -320,14 +280,10 @@ export function getWorldPositionOfCommunication(
   const midpoint = sourcePos.clone().add(targetPos).multiplyScalar(0.5);
 
   // Calculate height based on distance and settings
-  const commCurveHeightDependsOnDistance =
-    userSettings.commCurveHeightDependsOnDistance?.value ?? true;
+  const commCurveHeightDependsOnDistance = userSettings.commCurveHeightDependsOnDistance?.value ?? true;
   const curvyCommHeight = userSettings.curvyCommHeight?.value ?? 5.0;
 
-  const horizontalDistance = Math.hypot(
-    targetPos.x - sourcePos.x,
-    targetPos.z - sourcePos.z
-  );
+  const horizontalDistance = Math.hypot(targetPos.x - sourcePos.x, targetPos.z - sourcePos.z);
 
   let baseCurveHeight = 50;
   if (commCurveHeightDependsOnDistance) {

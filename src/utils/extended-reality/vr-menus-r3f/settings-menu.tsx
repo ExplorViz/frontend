@@ -12,18 +12,13 @@ import {
 import SubsettingsMenu from './subsettings-menu';
 
 export default function SettingsMenu() {
-  const visualizationSettings = useUserSettingsStore(
-    (state) => state.visualizationSettings
-  );
+  const visualizationSettings = useUserSettingsStore((state) => state.visualizationSettings);
 
   /**
    * Checks if a setting's dependency condition is met.
    * Returns true if the setting has no dependency or if the dependency is satisfied.
    */
-  const isDependencyMet = (
-    dependsOn: SettingDependency | undefined,
-    allSettings: VisualizationSettings
-  ): boolean => {
+  const isDependencyMet = (dependsOn: SettingDependency | undefined, allSettings: VisualizationSettings): boolean => {
     if (dependsOn === undefined) {
       return true;
     }
@@ -55,10 +50,7 @@ export default function SettingsMenu() {
   };
 
   const filteredSettingsByGroup = (() => {
-    const settingGroupToSettingIds: Record<
-      SettingGroup,
-      VisualizationSettingId[]
-    > = {
+    const settingGroupToSettingIds: Record<SettingGroup, VisualizationSettingId[]> = {
       Camera: [],
       Colors: [],
       Communication: [],
@@ -81,11 +73,7 @@ export default function SettingsMenu() {
 
     for (settingId in visualizationSettings) {
       const setting = visualizationSettings[settingId];
-      if (
-        setting.level <=
-        (visualizationSettings.showExtendedSettings
-          .value as unknown as SettingLevel)
-      ) {
+      if (setting.level <= (visualizationSettings.showExtendedSettings.value as unknown as SettingLevel)) {
         if (isDependencyMet(setting.dependsOn, visualizationSettings)) {
           const groupSettings = settingGroupToSettingIds[setting.group];
           if (!groupSettings) {
@@ -99,17 +87,15 @@ export default function SettingsMenu() {
     return settingGroupToSettingIds;
   })();
 
-  return Object.entries(filteredSettingsByGroup).map(
-    ([groupId, settingIdArray]) => {
-      return (
-        <Container flexDirection="column">
-          <Text>{groupId}</Text>
-          {settingIdArray.length > 0 &&
-            settingIdArray.map((settingId) => {
-              return <SubsettingsMenu settingId={settingId} />;
-            })}
-        </Container>
-      );
-    }
-  );
+  return Object.entries(filteredSettingsByGroup).map(([groupId, settingIdArray]) => {
+    return (
+      <Container key={groupId} flexDirection="column">
+        <Text>{groupId}</Text>
+        {settingIdArray.length > 0 &&
+          settingIdArray.map((settingId) => {
+            return <SubsettingsMenu key={settingId} settingId={settingId} />;
+          })}
+      </Container>
+    );
+  });
 }

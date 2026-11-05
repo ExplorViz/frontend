@@ -5,15 +5,10 @@ import {
   collectDistrictSubtreeIds,
   filterDistrictIdsForCity,
 } from 'explorviz-frontend/src/utils/city-rendering/district-tree';
-import {
-  Building,
-  City,
-  District,
-} from 'explorviz-frontend/src/utils/landscape-schemes/flat-landscape';
+import { Building, City, District } from 'explorviz-frontend/src/utils/landscape-schemes/flat-landscape';
 import { Package } from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
 
-const { closeDistricts, hideDistricts, openDistricts, showDistricts } =
-  useVisualizationStore.getState().actions;
+const { closeDistricts, hideDistricts, openDistricts, showDistricts } = useVisualizationStore.getState().actions;
 
 function getValidatedChildDistrictIds(district: District): string[] {
   return district.districtIds.filter((childDistrictId) => {
@@ -31,9 +26,7 @@ function getValidatedChildDistrictIds(district: District): string[] {
  *
  * @param entity District or Building of which the ancestors shall be returned (entity is not included in the list)
  */
-export function getAllAncestorDistricts(
-  entity: District | Building
-): (Package | District)[] {
+export function getAllAncestorDistricts(entity: District | Building): (Package | District)[] {
   if (!entity.parentDistrictId) {
     return [];
   }
@@ -46,11 +39,7 @@ export function getAllAncestorDistricts(
   return [parent, ...getAllAncestorDistricts(parent)];
 }
 
-export function closeDistrictsByList(
-  districtIds: string[],
-  hide = false,
-  sendMessage = true
-) {
+export function closeDistrictsByList(districtIds: string[], hide = false, sendMessage = true) {
   districtIds.forEach((districtId) => {
     closeDistrict(districtId, hide, sendMessage);
   });
@@ -65,10 +54,7 @@ export function openDistrict(districtId: string, sendMessage = true) {
   const district = useModelStore.getState().getDistrict(districtId);
   if (!district) return;
 
-  const isOpen = isDistrictOpen(
-    district.id,
-    useVisualizationStore.getState().closedDistrictIds
-  );
+  const isOpen = isDistrictOpen(district.id, useVisualizationStore.getState().closedDistrictIds);
   if (isOpen) {
     return;
   }
@@ -80,10 +66,7 @@ export function openDistrict(districtId: string, sendMessage = true) {
 /**
  * Opens a district and expands the full subtree: all nested districts and their buildings.
  */
-export function openDistrictAndChildren(
-  districtId: string,
-  sendMessage = true
-) {
+export function openDistrictAndChildren(districtId: string, sendMessage = true) {
   const { districtIds } = collectDistrictSubtreeIds(districtId);
   if (districtIds.length === 0) {
     return;
@@ -97,11 +80,7 @@ export function openDistrictAndChildren(
  *
  * @param districtId Id of district which shall be closed
  */
-export function closeDistrict(
-  districtId: string,
-  hide = false,
-  sendMessage = true
-) {
+export function closeDistrict(districtId: string, hide = false, sendMessage = true) {
   const district = useModelStore.getState().getDistrict(districtId);
 
   if (!district) {
@@ -109,10 +88,7 @@ export function closeDistrict(
     return;
   }
 
-  const isOpen = isDistrictOpen(
-    district.id,
-    useVisualizationStore.getState().closedDistrictIds
-  );
+  const isOpen = isDistrictOpen(district.id, useVisualizationStore.getState().closedDistrictIds);
   if (hide) {
     hideDistricts([district.id]);
   }
@@ -134,13 +110,8 @@ export function closeDistrict(
  * @param city City which contains the districts
  */
 export function closeAllDistrictsInCity(city: City, sendMessage = true) {
-  const cityDistrictIds = filterDistrictIdsForCity(
-    city.id,
-    city.allContainedDistrictIds
-  );
-  const districtIdsToHide = cityDistrictIds.filter(
-    (id) => !city.districtIds.includes(id)
-  );
+  const cityDistrictIds = filterDistrictIdsForCity(city.id, city.allContainedDistrictIds);
+  const districtIdsToHide = cityDistrictIds.filter((id) => !city.districtIds.includes(id));
   closeDistricts(cityDistrictIds);
   hideDistricts(districtIdsToHide);
 }
@@ -155,9 +126,7 @@ export function closeAllDistrictsInLandscape(sendMessage = true) {
 
   closeDistricts(allDistrictIds);
 
-  const districtIdsToHide = Array.from(
-    new Set(allDistrictIds).difference(new Set(topLevelDistrictIds))
-  );
+  const districtIdsToHide = Array.from(new Set(allDistrictIds).difference(new Set(topLevelDistrictIds)));
   hideDistricts(districtIdsToHide);
   showDistricts(topLevelDistrictIds);
 }
@@ -168,10 +137,7 @@ export function closeAllDistrictsInLandscape(sendMessage = true) {
  * @param city City which contains the districts to be opened
  */
 export function openAllDistrictsInCity(city: City, sendMessage = true) {
-  const cityDistrictIds = filterDistrictIdsForCity(
-    city.id,
-    city.allContainedDistrictIds
-  );
+  const cityDistrictIds = filterDistrictIdsForCity(city.id, city.allContainedDistrictIds);
   openDistricts(cityDistrictIds);
   showDistricts(cityDistrictIds);
 }

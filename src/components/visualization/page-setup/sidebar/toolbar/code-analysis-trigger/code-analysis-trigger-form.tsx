@@ -92,22 +92,24 @@ const FILTER_EXAMPLES = [
   },
   {
     expression: 'some/*/*/path/**',
-    description:
-      'Matches files in paths with exactly 2 directory levels between some and path.',
+    description: 'Matches files in paths with exactly 2 directory levels between some and path.',
   },
   {
     expression: '**/target/**',
-    description:
-      'Matches any target folder and its contents (may be useful for exclusion).',
+    description: 'Matches any target folder and its contents (may be useful for exclusion).',
   },
   {
     expression: 'regex:.*Test\\.java',
-    description:
-      'Regular expression that matches all Java test files (ending in Test.java) anywhere.',
+    description: 'Regular expression that matches all Java test files (ending in Test.java) anywhere.',
   },
 ];
 
-const createApplicationRow = (): ApplicationSpec => ({ name: '', root: '' });
+type ApplicationRow = ApplicationSpec & { id: string };
+const createApplicationRow = (): ApplicationRow => ({
+  id: crypto.randomUUID(),
+  name: '',
+  root: '',
+});
 
 function FormLabelWithHelp({ label, help }: { label: string; help: string }) {
   return (
@@ -122,11 +124,7 @@ function buildPayload(
   repoType: RepoType,
   formData: Omit<
     AnalysisRequestPayload,
-    | 'includeDataStructures'
-    | 'sendToRemote'
-    | 'fetchSocialData'
-    | 'syncSocialWindow'
-    | 'firstParentCommitsOnly'
+    'includeDataStructures' | 'sendToRemote' | 'fetchSocialData' | 'syncSocialWindow' | 'firstParentCommitsOnly'
   > & {
     includeDataStructures: boolean;
     sendToRemote: boolean;
@@ -176,28 +174,16 @@ function buildPayload(
     payload.fetchEndDate = formData.fetchEndDate.trim();
   }
 
-  if (
-    formData.commitAnalysisLimit !== undefined &&
-    formData.commitAnalysisLimit > 0
-  ) {
+  if (formData.commitAnalysisLimit !== undefined && formData.commitAnalysisLimit > 0) {
     payload.commitAnalysisLimit = formData.commitAnalysisLimit;
   }
-  if (
-    formData.maxLocForFullAnalysis !== undefined &&
-    formData.maxLocForFullAnalysis > 0
-  ) {
+  if (formData.maxLocForFullAnalysis !== undefined && formData.maxLocForFullAnalysis > 0) {
     payload.maxLocForFullAnalysis = formData.maxLocForFullAnalysis;
   }
-  if (
-    formData.socialDataTimeFrameDays !== undefined &&
-    formData.socialDataTimeFrameDays > 0
-  ) {
+  if (formData.socialDataTimeFrameDays !== undefined && formData.socialDataTimeFrameDays > 0) {
     payload.socialDataTimeFrameDays = formData.socialDataTimeFrameDays;
   }
-  if (
-    formData.commitSamplingInterval !== undefined &&
-    formData.commitSamplingInterval > 1
-  ) {
+  if (formData.commitSamplingInterval !== undefined && formData.commitSamplingInterval > 1) {
     payload.commitSamplingInterval = formData.commitSamplingInterval;
   }
   if (formData.commitSamplingPeriod) {
@@ -205,14 +191,10 @@ function buildPayload(
   }
 
   if (inclusionExpressions.length > 0) {
-    payload.includeInAnalysisExpressions = inclusionExpressions
-      .map((opt) => opt.value)
-      .join(',');
+    payload.includeInAnalysisExpressions = inclusionExpressions.map((opt) => opt.value).join(',');
   }
   if (exclusionExpressions.length > 0) {
-    payload.excludeFromAnalysisExpressions = exclusionExpressions
-      .map((opt) => opt.value)
-      .join(',');
+    payload.excludeFromAnalysisExpressions = exclusionExpressions.map((opt) => opt.value).join(',');
   }
 
   const resolvedApplications = applications
@@ -229,35 +211,18 @@ function buildPayload(
   return payload;
 }
 
-export default function CodeAnalysisTriggerForm({
-  landscapeToken,
-  assignRandomToken = false,
-  onSubmitSuccess,
-}: Props) {
+export default function CodeAnalysisTriggerForm({ landscapeToken, assignRandomToken = false, onSubmitSuccess }: Props) {
   const [searchParams] = useSearchParams();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [repoType, setRepoType] = useState<RepoType>('remote');
-  const [exclusionExpressions, setExclusionExpressions] = useState<
-    readonly InputOption[]
-  >([]);
-  const [inclusionExpressions, setInclusionExpressions] = useState<
-    readonly InputOption[]
-  >([]);
-  const [applications, setApplications] = useState<ApplicationSpec[]>([
-    createApplicationRow(),
-  ]);
-  const [localRepositories, setLocalRepositories] = useState<
-    LocalRepositoryInfo[]
-  >([]);
-  const [localRepositoriesLoading, setLocalRepositoriesLoading] =
-    useState(false);
-  const [localRepositoriesError, setLocalRepositoriesError] = useState<
-    string | null
-  >(null);
+  const [exclusionExpressions, setExclusionExpressions] = useState<readonly InputOption[]>([]);
+  const [inclusionExpressions, setInclusionExpressions] = useState<readonly InputOption[]>([]);
+  const [applications, setApplications] = useState<ApplicationRow[]>(() => [createApplicationRow()]);
+  const [localRepositories, setLocalRepositories] = useState<LocalRepositoryInfo[]>([]);
+  const [localRepositoriesLoading, setLocalRepositoriesLoading] = useState(false);
+  const [localRepositoriesError, setLocalRepositoriesError] = useState<string | null>(null);
 
-  const [generatedToken] = useState(() =>
-    assignRandomToken ? generateUuidv4() : ''
-  );
+  const [generatedToken] = useState(() => (assignRandomToken ? generateUuidv4() : ''));
 
   const externalLandscapeToken = useMemo(() => {
     return landscapeToken || searchParams.get('landscapeToken') || '';
@@ -305,29 +270,13 @@ export default function CodeAnalysisTriggerForm({
   }, [landscapeTokenValue]);
 
   const selectedLocalRepository = useMemo(
-    () =>
-      localRepositories.find(
-        (repository) => repository.path === formData.repoPath
-      ),
+    () => localRepositories.find((repository) => repository.path === formData.repoPath),
     [localRepositories, formData.repoPath]
   );
 
   const payloadPreview = useMemo(
-    () =>
-      buildPayload(
-        repoType,
-        formData,
-        inclusionExpressions,
-        exclusionExpressions,
-        applications
-      ),
-    [
-      repoType,
-      formData,
-      inclusionExpressions,
-      exclusionExpressions,
-      applications,
-    ]
+    () => buildPayload(repoType, formData, inclusionExpressions, exclusionExpressions, applications),
+    [repoType, formData, inclusionExpressions, exclusionExpressions, applications]
   );
 
   const loadLocalRepositories = async () => {
@@ -335,9 +284,7 @@ export default function CodeAnalysisTriggerForm({
     setLocalRepositoriesError(null);
 
     try {
-      const response = await fetch(
-        `${codeAnalyzerUrl}/api/analysis/local-repositories`
-      );
+      const response = await fetch(`${codeAnalyzerUrl}/api/analysis/local-repositories`);
       if (!response.ok) {
         throw new Error('Unable to load cloned repositories.');
       }
@@ -346,9 +293,7 @@ export default function CodeAnalysisTriggerForm({
       setLocalRepositories(repositories);
     } catch (error: any) {
       setLocalRepositories([]);
-      setLocalRepositoriesError(
-        error.message || 'Unable to load cloned repositories.'
-      );
+      setLocalRepositoriesError(error.message || 'Unable to load cloned repositories.');
     } finally {
       setLocalRepositoriesLoading(false);
     }
@@ -360,26 +305,17 @@ export default function CodeAnalysisTriggerForm({
     }
   }, [repoType]);
 
-  const handleInputChange = (
-    field: keyof typeof formData,
-    value: string | boolean | number | undefined
-  ) => {
+  const handleInputChange = (field: keyof typeof formData, value: string | boolean | number | undefined) => {
     setFormData((prev) => ({
       ...prev,
       [field]: value,
     }));
   };
 
-  const handleApplicationChange = (
-    index: number,
-    field: keyof ApplicationSpec,
-    value: string
-  ) => {
+  const handleApplicationChange = (index: number, field: keyof ApplicationSpec, value: string) => {
     setApplications((prev) =>
       prev.map((application, currentIndex) =>
-        currentIndex === index
-          ? { ...application, [field]: value }
-          : application
+        currentIndex === index ? { ...application, [field]: value } : application
       )
     );
   };
@@ -390,14 +326,10 @@ export default function CodeAnalysisTriggerForm({
 
   const removeApplicationRow = (index: number) => {
     if (applications.length <= 1) {
-      useToastHandlerStore
-        .getState()
-        .showErrorToastMessage('Keep at least one application row.');
+      useToastHandlerStore.getState().showErrorToastMessage('Keep at least one application row.');
       return;
     }
-    setApplications((prev) =>
-      prev.filter((_, currentIndex) => currentIndex !== index)
-    );
+    setApplications((prev) => prev.filter((_, currentIndex) => currentIndex !== index));
   };
 
   const resetForm = () => {
@@ -431,20 +363,10 @@ export default function CodeAnalysisTriggerForm({
   const handleSubmit = async (e: React.SubmitEvent) => {
     e.preventDefault();
 
-    const requestBody = buildPayload(
-      repoType,
-      formData,
-      inclusionExpressions,
-      exclusionExpressions,
-      applications
-    );
+    const requestBody = buildPayload(repoType, formData, inclusionExpressions, exclusionExpressions, applications);
 
     if (!requestBody.repoPath && !requestBody.repoRemoteUrl) {
-      useToastHandlerStore
-        .getState()
-        .showErrorToastMessage(
-          'Provide either a local repository path or a remote URL.'
-        );
+      useToastHandlerStore.getState().showErrorToastMessage('Provide either a local repository path or a remote URL.');
       return;
     }
 
@@ -461,26 +383,18 @@ export default function CodeAnalysisTriggerForm({
 
       if (response.ok) {
         const message = await response.text();
-        useToastHandlerStore
-          .getState()
-          .showSuccessToastMessage(
-            message || 'Analysis triggered successfully'
-          );
+        useToastHandlerStore.getState().showSuccessToastMessage(message || 'Analysis triggered successfully');
 
         resetForm();
         onSubmitSuccess?.(requestBody.landscapeToken || landscapeTokenValue);
       } else {
         const errorMessage = await response.text();
-        useToastHandlerStore
-          .getState()
-          .showErrorToastMessage(`Analysis failed: ${errorMessage}`);
+        useToastHandlerStore.getState().showErrorToastMessage(`Analysis failed: ${errorMessage}`);
       }
     } catch (error: any) {
       useToastHandlerStore
         .getState()
-        .showErrorToastMessage(
-          `Failed to trigger analysis: ${error.message || 'Network error'}`
-        );
+        .showErrorToastMessage(`Failed to trigger analysis: ${error.message || 'Network error'}`);
     } finally {
       setIsSubmitting(false);
     }
@@ -501,10 +415,7 @@ export default function CodeAnalysisTriggerForm({
                 label={
                   <span className="d-inline-flex align-items-center">
                     Remote Repository
-                    <HelpTooltip
-                      title="Clone and analyze a repository from a remote URL."
-                      placement="top"
-                    />
+                    <HelpTooltip title="Clone and analyze a repository from a remote URL." placement="top" />
                   </span>
                 }
                 checked={repoType === 'remote'}
@@ -540,9 +451,7 @@ export default function CodeAnalysisTriggerForm({
                   type="text"
                   placeholder="https://github.com/org/project.git or git@github.com:org/project.git"
                   value={formData.repoRemoteUrl}
-                  onChange={(e) =>
-                    handleInputChange('repoRemoteUrl', e.target.value)
-                  }
+                  onChange={(e) => handleInputChange('repoRemoteUrl', e.target.value)}
                 />
               </Form.Group>
 
@@ -556,9 +465,7 @@ export default function CodeAnalysisTriggerForm({
                     type="text"
                     autoComplete="username"
                     value={formData.username}
-                    onChange={(e) =>
-                      handleInputChange('username', e.target.value)
-                    }
+                    onChange={(e) => handleInputChange('username', e.target.value)}
                   />
                 </Form.Group>
 
@@ -571,9 +478,7 @@ export default function CodeAnalysisTriggerForm({
                     type="password"
                     autoComplete="current-password"
                     value={formData.password}
-                    onChange={(e) =>
-                      handleInputChange('password', e.target.value)
-                    }
+                    onChange={(e) => handleInputChange('password', e.target.value)}
                   />
                 </Form.Group>
               </div>
@@ -623,9 +528,7 @@ export default function CodeAnalysisTriggerForm({
               onChange={(e) =>
                 handleInputChange(
                   'commitAnalysisLimit',
-                  e.target.value === ''
-                    ? undefined
-                    : parseInt(e.target.value, 10)
+                  e.target.value === '' ? undefined : parseInt(e.target.value, 10)
                 )
               }
             />
@@ -645,9 +548,7 @@ export default function CodeAnalysisTriggerForm({
                 </span>
               }
               checked={formData.firstParentCommitsOnly}
-              onChange={(e) =>
-                handleInputChange('firstParentCommitsOnly', e.target.checked)
-              }
+              onChange={(e) => handleInputChange('firstParentCommitsOnly', e.target.checked)}
             />
           </Form.Group>
 
@@ -664,9 +565,7 @@ export default function CodeAnalysisTriggerForm({
               onChange={(e) =>
                 handleInputChange(
                   'maxLocForFullAnalysis',
-                  e.target.value === ''
-                    ? undefined
-                    : parseInt(e.target.value, 10)
+                  e.target.value === '' ? undefined : parseInt(e.target.value, 10)
                 )
               }
             />
@@ -720,9 +619,7 @@ export default function CodeAnalysisTriggerForm({
                 type="text"
                 placeholder="Oldest Commit"
                 value={formData.startCommit}
-                onChange={(e) =>
-                  handleInputChange('startCommit', e.target.value)
-                }
+                onChange={(e) => handleInputChange('startCommit', e.target.value)}
               />
             </Form.Group>
 
@@ -759,9 +656,7 @@ export default function CodeAnalysisTriggerForm({
                 label: inputValue,
               })}
               placeholder="Include all"
-              noOptionsMessage={() =>
-                'Type an expression or select a default...'
-              }
+              noOptionsMessage={() => 'Type an expression or select a default...'}
             />
           </Form.Group>
 
@@ -780,9 +675,7 @@ export default function CodeAnalysisTriggerForm({
                 label: inputValue,
               })}
               placeholder="Exclude none"
-              noOptionsMessage={() =>
-                'Type an expression or select a default...'
-              }
+              noOptionsMessage={() => 'Type an expression or select a default...'}
             />
           </Form.Group>
 
@@ -801,9 +694,7 @@ export default function CodeAnalysisTriggerForm({
                 onChange={(e) =>
                   handleInputChange(
                     'commitSamplingInterval',
-                    e.target.value === ''
-                      ? undefined
-                      : parseInt(e.target.value, 10)
+                    e.target.value === '' ? undefined : parseInt(e.target.value, 10)
                   )
                 }
               />
@@ -816,16 +707,8 @@ export default function CodeAnalysisTriggerForm({
               />
               <Form.Select
                 value={formData.commitSamplingPeriod}
-                disabled={
-                  formData.commitSamplingInterval != null &&
-                  formData.commitSamplingInterval > 1
-                }
-                onChange={(e) =>
-                  handleInputChange(
-                    'commitSamplingPeriod',
-                    e.target.value as CommitSamplingPeriod | ''
-                  )
-                }
+                disabled={formData.commitSamplingInterval != null && formData.commitSamplingInterval > 1}
+                onChange={(e) => handleInputChange('commitSamplingPeriod', e.target.value as CommitSamplingPeriod | '')}
               >
                 <option value="">disabled</option>
                 <option value="DAY">Day</option>
@@ -867,10 +750,7 @@ export default function CodeAnalysisTriggerForm({
               help="One or more logical applications: each has a name and an optional project root path relative to the repository root. Use multiple rows for monorepos."
             />
             {applications.map((application, index) => (
-              <div
-                key={`application-row-${index}`}
-                className="border rounded p-2 mb-2"
-              >
+              <div key={application.id} className="border rounded p-2 mb-2">
                 <div className="row g-2 align-items-end">
                   <Form.Group className="col-md-5">
                     <Form.Label className="mb-1">Application name</Form.Label>
@@ -878,9 +758,7 @@ export default function CodeAnalysisTriggerForm({
                       type="text"
                       placeholder="e.g. order-service"
                       value={application.name}
-                      onChange={(e) =>
-                        handleApplicationChange(index, 'name', e.target.value)
-                      }
+                      onChange={(e) => handleApplicationChange(index, 'name', e.target.value)}
                     />
                   </Form.Group>
                   <Form.Group className="col-md-5">
@@ -889,9 +767,7 @@ export default function CodeAnalysisTriggerForm({
                       type="text"
                       placeholder="relative to repo root, optional"
                       value={application.root}
-                      onChange={(e) =>
-                        handleApplicationChange(index, 'root', e.target.value)
-                      }
+                      onChange={(e) => handleApplicationChange(index, 'root', e.target.value)}
                     />
                   </Form.Group>
                   <Form.Group className="col-md-2">
@@ -908,12 +784,7 @@ export default function CodeAnalysisTriggerForm({
                 </div>
               </div>
             ))}
-            <Button
-              type="button"
-              variant="outline-primary"
-              size="sm"
-              onClick={addApplicationRow}
-            >
+            <Button type="button" variant="outline-primary" size="sm" onClick={addApplicationRow}>
               Add application
             </Button>
           </div>
@@ -927,9 +798,7 @@ export default function CodeAnalysisTriggerForm({
               type={externalLandscapeToken ? 'text' : 'password'}
               placeholder="mytokenvalue"
               value={formData.landscapeToken}
-              onChange={(e) =>
-                handleInputChange('landscapeToken', e.target.value)
-              }
+              onChange={(e) => handleInputChange('landscapeToken', e.target.value)}
               readOnly={!!externalLandscapeToken}
             />
             <Form.Text className="text-muted">
@@ -951,9 +820,7 @@ export default function CodeAnalysisTriggerForm({
                 type="text"
                 placeholder="current date"
                 value={formData.fetchEndDate}
-                onChange={(e) =>
-                  handleInputChange('fetchEndDate', e.target.value)
-                }
+                onChange={(e) => handleInputChange('fetchEndDate', e.target.value)}
               />
             </Form.Group>
 
@@ -970,9 +837,7 @@ export default function CodeAnalysisTriggerForm({
                 onChange={(e) =>
                   handleInputChange(
                     'socialDataTimeFrameDays',
-                    e.target.value === ''
-                      ? undefined
-                      : parseInt(e.target.value, 10)
+                    e.target.value === '' ? undefined : parseInt(e.target.value, 10)
                   )
                 }
               />
@@ -993,9 +858,7 @@ export default function CodeAnalysisTriggerForm({
                 </span>
               }
               checked={formData.includeDataStructures}
-              onChange={(e) =>
-                handleInputChange('includeDataStructures', e.target.checked)
-              }
+              onChange={(e) => handleInputChange('includeDataStructures', e.target.checked)}
             />
             <Form.Check
               type="checkbox"
@@ -1003,16 +866,11 @@ export default function CodeAnalysisTriggerForm({
               label={
                 <span className="d-inline-flex align-items-center">
                   Send Results via gRPC
-                  <HelpTooltip
-                    title="Whether to push the analysis results to the landscape-service."
-                    placement="top"
-                  />
+                  <HelpTooltip title="Whether to push the analysis results to the landscape-service." placement="top" />
                 </span>
               }
               checked={formData.sendToRemote}
-              onChange={(e) =>
-                handleInputChange('sendToRemote', e.target.checked)
-              }
+              onChange={(e) => handleInputChange('sendToRemote', e.target.checked)}
             />
             <Form.Check
               type="checkbox"
@@ -1020,16 +878,11 @@ export default function CodeAnalysisTriggerForm({
               label={
                 <span className="d-inline-flex align-items-center">
                   Fetch Social Data
-                  <HelpTooltip
-                    title="Whether to fetch social data."
-                    placement="top"
-                  />
+                  <HelpTooltip title="Whether to fetch social data." placement="top" />
                 </span>
               }
               checked={formData.fetchSocialData}
-              onChange={(e) =>
-                handleInputChange('fetchSocialData', e.target.checked)
-              }
+              onChange={(e) => handleInputChange('fetchSocialData', e.target.checked)}
             />
             <Form.Check
               type="checkbox"
@@ -1044,36 +897,21 @@ export default function CodeAnalysisTriggerForm({
                 </span>
               }
               checked={formData.syncSocialWindow}
-              onChange={(e) =>
-                handleInputChange('syncSocialWindow', e.target.checked)
-              }
+              onChange={(e) => handleInputChange('syncSocialWindow', e.target.checked)}
             />
           </div>
         </section>
 
         <details className="border rounded p-3 mb-3">
           <summary className="fw-semibold">Payload Preview (read-only)</summary>
-          <pre className="mt-3 mb-0 small bg-light p-2 rounded">
-            {JSON.stringify(payloadPreview, null, 2)}
-          </pre>
+          <pre className="mt-3 mb-0 small bg-light p-2 rounded">{JSON.stringify(payloadPreview, null, 2)}</pre>
         </details>
 
         <div className="d-flex justify-content-end">
-          <button
-            className="btn btn-primary"
-            type="submit"
-            disabled={isSubmitting}
-          >
+          <button className="btn btn-primary" type="submit" disabled={isSubmitting}>
             {isSubmitting ? (
               <>
-                <Spinner
-                  as="span"
-                  animation="border"
-                  size="sm"
-                  role="status"
-                  aria-hidden="true"
-                  className="me-2"
-                />
+                <Spinner as="span" animation="border" size="sm" role="status" aria-hidden="true" className="me-2" />
                 Analyzing...
               </>
             ) : (

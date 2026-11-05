@@ -12,9 +12,7 @@ interface AggregatedBuildingMetricsTableProps {
   buildingIds: string[];
 }
 
-export default function AggregatedBuildingMetricsTable({
-  buildingIds,
-}: AggregatedBuildingMetricsTableProps) {
+export default function AggregatedBuildingMetricsTable({ buildingIds }: AggregatedBuildingMetricsTableProps) {
   const buildings = useLiveBuildings();
   const buildingIdsKey = buildingIds.join(',');
 
@@ -23,21 +21,14 @@ export default function AggregatedBuildingMetricsTable({
     [buildingIds, buildingIdsKey, buildings]
   );
 
-  const metricEntries = useMemo(
-    () => getOrderedBuildingMetricEntries(aggregatedMetrics),
-    [aggregatedMetrics]
-  );
+  const metricEntries = useMemo(() => getOrderedBuildingMetricEntries(aggregatedMetrics), [aggregatedMetrics]);
 
   if (buildingIds.length === 0) {
-    return (
-      <div className="text-center text-muted py-3">No contained buildings</div>
-    );
+    return <div className="text-center text-muted py-3">No contained buildings</div>;
   }
 
   if (metricEntries.length === 0) {
-    return (
-      <div className="text-center text-muted py-3">No metrics available</div>
-    );
+    return <div className="text-center text-muted py-3">No metrics available</div>;
   }
 
   return (
@@ -47,16 +38,9 @@ export default function AggregatedBuildingMetricsTable({
           {metricEntries.map(([name, value]) => {
             const currentValue = coerceMetricNumber(value.current);
             const previousValue = coerceMetricNumber(value.previous);
-            const hasChanged =
-              previousValue !== null &&
-              currentValue !== null &&
-              currentValue !== previousValue;
-            const diff =
-              previousValue !== null && currentValue !== null
-                ? currentValue - previousValue
-                : 0;
-            const diffText =
-              diff > 0 ? `+${formatInteger(diff)}` : `${formatInteger(diff)}`;
+            const hasChanged = previousValue !== null && currentValue !== null && currentValue !== previousValue;
+            const diff = previousValue !== null && currentValue !== null ? currentValue - previousValue : 0;
+            const diffText = diff > 0 ? `+${formatInteger(diff)}` : `${formatInteger(diff)}`;
 
             return (
               <tr key={name}>
@@ -66,14 +50,9 @@ export default function AggregatedBuildingMetricsTable({
                     formatMetricValue(name, value.current)
                   ) : (
                     <>
-                      <span
-                        className={diff < 0 ? 'text-danger' : 'text-success'}
-                      >
-                        {diffText}
-                      </span>
+                      <span className={diff < 0 ? 'text-danger' : 'text-success'}>{diffText}</span>
                       <span className="ml-2 small text-muted">
-                        (C1: {formatMetricValue(name, previousValue)}, C2:{' '}
-                        {formatMetricValue(name, currentValue)})
+                        (C1: {formatMetricValue(name, previousValue)}, C2: {formatMetricValue(name, currentValue)})
                       </span>
                     </>
                   )}

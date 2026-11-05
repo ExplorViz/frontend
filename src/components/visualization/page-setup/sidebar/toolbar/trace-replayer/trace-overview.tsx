@@ -14,9 +14,7 @@ export default function TraceOverview({
   toggleSettingsSidebarComponent,
   toggleVisualizationUpdating,
 }: TraceOverviewProps) {
-  const showInfoToastMessage = useToastHandlerStore(
-    (state) => state.showInfoToastMessage
-  );
+  const showInfoToastMessage = useToastHandlerStore((state) => state.showInfoToastMessage);
 
   const showTraces = () => {
     if (dynamicData.length === 0) {
@@ -32,11 +30,7 @@ export default function TraceOverview({
 
   return (
     <li className="nav-item">
-      <div
-        className="nav-link-with-cursor"
-        title="Show Traces"
-        onClick={showTraces}
-      >
+      <div className="nav-link-with-cursor" title="Show Traces" onClick={showTraces}>
         Trace Overview
       </div>
     </li>

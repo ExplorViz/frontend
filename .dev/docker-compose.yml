@@ -1,5 +1,4 @@
 services:
-
   backend-mock:
     container_name: explorviz-backend-mock
     image: explorviz/backend-mock
@@ -16,9 +15,8 @@ services:
       - ..:/work
     working_dir: /work
     ports:
-      - "9123:9123"
-    command: ["node", "server/index.js"]
-
+      - '9123:9123'
+    command: ['node', 'server/index.js']
 
 networks:
   default:

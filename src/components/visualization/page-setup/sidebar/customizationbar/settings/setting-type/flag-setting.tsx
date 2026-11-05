@@ -11,8 +11,7 @@ export default function FlagSetting({
   settingId: VisualizationSettingId;
   onChange: (id: VisualizationSettingId, value?: boolean) => void;
 }) {
-  const setting =
-    useUserSettingsStore.getState().visualizationSettings[settingId];
+  const setting = useUserSettingsStore.getState().visualizationSettings[settingId];
 
   return (
     <div className="setting-container d-flex justify-content-between">
@@ -21,10 +20,7 @@ export default function FlagSetting({
         {setting.displayName}
       </div>
       <div className="d-flex align-self-center">
-        <WideCheckbox
-          value={setting.value}
-          onToggle={() => onChange(settingId, !setting.value)}
-        />
+        <WideCheckbox value={setting.value} onToggle={() => onChange(settingId, !setting.value)} />
         <ResetButton onClick={() => onChange(settingId)} />
       </div>
     </div>

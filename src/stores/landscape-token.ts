@@ -17,11 +17,7 @@ interface LandscapeTokenState {
   _isValidToken: (token: unknown) => token is LandscapeToken;
   _isStringArray: (possibleArray: unknown) => possibleArray is string[];
   _isObject: (variable: unknown) => variable is object;
-  createToken: (params: {
-    alias: string;
-    value?: string;
-    secret?: string;
-  }) => Promise<LandscapeToken>;
+  createToken: (params: { alias: string; value?: string; secret?: string }) => Promise<LandscapeToken>;
   updateTokenAlias: (tokenValue: string, alias: string) => Promise<void>;
 }
 
@@ -37,168 +33,150 @@ export type LandscapeToken = {
   value: string;
 };
 
-export const useLandscapeTokenStore = create<LandscapeTokenState>(
-  (set, get) => ({
-    token: null, // tracked
+export const useLandscapeTokenStore = create<LandscapeTokenState>((set, get) => ({
+  token: null, // tracked
 
-    _constructor: () => {
-      get().restoreSingleLandscapeToken();
-    },
+  _constructor: () => {
+    get().restoreSingleLandscapeToken();
+  },
 
-    restoreSingleLandscapeToken: () => {
-      if (!tokenToShow || tokenToShow === 'change-token') {
-        return;
-      }
+  restoreSingleLandscapeToken: () => {
+    if (!tokenToShow || tokenToShow === 'change-token') {
+      return;
+    }
 
-      const singleLandscapeToken = {
-        value: tokenToShow,
-        ownerId: 'github|123456',
-        created: 1589876888000,
-        alias: '',
-        sharedUsersIds: [],
-      };
+    const singleLandscapeToken = {
+      value: tokenToShow,
+      ownerId: 'github|123456',
+      created: 1589876888000,
+      alias: '',
+      sharedUsersIds: [],
+    };
 
-      if (get()._isValidToken(singleLandscapeToken)) {
-        set({ token: singleLandscapeToken });
-      } else {
-        get().removeToken();
-      }
-    },
+    if (get()._isValidToken(singleLandscapeToken)) {
+      set({ token: singleLandscapeToken });
+    } else {
+      get().removeToken();
+    }
+  },
 
-    retrieveTokens: async () => {
-      return new Promise<LandscapeToken[]>((resolve, reject) => {
-        const userId = encodeURI(useAuthStore.getState().user?.sub || '');
-        if (!userId) {
-          resolve([]);
-        }
-
-        fetch(`${userService}/user/${userId}/token`, {
-          headers: {
-            Authorization: `Bearer ${useAuthStore.getState().accessToken}`,
-          },
-        })
-          .then(async (response: Response) => {
-            if (response.ok) {
-              const tokens = (await response.json()) as LandscapeToken[];
-              resolve(tokens);
-            } else {
-              reject();
-            }
-          })
-          .catch(async (e) => {
-            reject(e);
-            useToastHandlerStore
-              .getState()
-              .showErrorToastMessage('Server for landscapes not available.');
-          });
-      });
-    },
-
-    setToken: (token: LandscapeToken | null) => {
-      if (token && token.value === get().token?.value) {
-        return;
-      }
-
-      set({ token: token });
-    },
-
-    setTokenByValue: async (tokenValue: string) => {
-      const tokens = await get().retrieveTokens();
-      const token = tokens.find((t) => t.value === tokenValue);
-      if (token) {
-        get().setToken(token);
-      }
-    },
-
-    removeToken: () => {
-      set({ token: null });
-    },
-
-    _isValidToken: (token: unknown): token is LandscapeToken => {
-      return (
-        get()._isObject(token) &&
-        Object.keys(token).length === 5 &&
-        {}.hasOwnProperty.call(token, 'alias') &&
-        {}.hasOwnProperty.call(token, 'created') &&
-        {}.hasOwnProperty.call(token, 'ownerId') &&
-        {}.hasOwnProperty.call(token, 'sharedUsersIds') &&
-        {}.hasOwnProperty.call(token, 'value') &&
-        (!{}.hasOwnProperty.call(token, 'secret') ||
-          typeof (<LandscapeToken>token).secret === 'string') &&
-        typeof (<LandscapeToken>token).alias === 'string' &&
-        typeof (<LandscapeToken>token).created === 'number' &&
-        typeof (<LandscapeToken>token).ownerId === 'string' &&
-        get()._isStringArray((<LandscapeToken>token).sharedUsersIds) &&
-        typeof (<LandscapeToken>token).value === 'string'
-      );
-    },
-
-    _isStringArray: (possibleArray: unknown) => {
-      return (
-        Array.isArray(possibleArray) &&
-        possibleArray.every((item) => typeof item === 'string')
-      );
-    },
-
-    _isObject: (variable: unknown): variable is object => {
-      return Object.prototype.toString.call(variable) === '[object Object]';
-    },
-    createToken: async ({ alias, value, secret }) => {
+  retrieveTokens: async () => {
+    return new Promise<LandscapeToken[]>((resolve, reject) => {
       const userId = encodeURI(useAuthStore.getState().user?.sub || '');
       if (!userId) {
-        throw new Error('User not authenticated');
+        resolve([]);
       }
 
-      const body: Record<string, string> = { alias };
-      if (value) {
-        body.value = value;
-      }
-      if (secret) {
-        body.secret = secret;
-      }
-
-      const response = await fetch(`${userService}/user/${userId}/token`, {
-        method: 'POST',
+      fetch(`${userService}/user/${userId}/token`, {
         headers: {
-          'Content-Type': 'application/json',
           Authorization: `Bearer ${useAuthStore.getState().accessToken}`,
         },
-        body: JSON.stringify(body),
-      });
+      })
+        .then(async (response: Response) => {
+          if (response.ok) {
+            const tokens = (await response.json()) as LandscapeToken[];
+            resolve(tokens);
+          } else {
+            reject();
+          }
+        })
+        .catch(async (e) => {
+          reject(e);
+          useToastHandlerStore.getState().showErrorToastMessage('Server for landscapes not available.');
+        });
+    });
+  },
 
-      if (!response.ok) {
-        throw new Error(
-          await getResponseErrorMessage(
-            response,
-            'Failed to create landscape token'
-          )
-        );
-      }
+  setToken: (token: LandscapeToken | null) => {
+    if (token && token.value === get().token?.value) {
+      return;
+    }
 
-      const token = (await response.json()) as LandscapeToken;
-      return token;
-    },
+    set({ token: token });
+  },
 
-    updateTokenAlias: async (tokenValue: string, alias: string) => {
-      const response = await fetch(`${userService}/token/${tokenValue}`, {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${useAuthStore.getState().accessToken}`,
-        },
-        body: JSON.stringify({ alias }),
-      });
+  setTokenByValue: async (tokenValue: string) => {
+    const tokens = await get().retrieveTokens();
+    const token = tokens.find((t) => t.value === tokenValue);
+    if (token) {
+      get().setToken(token);
+    }
+  },
 
-      if (!response.ok) {
-        throw new Error(
-          await getResponseErrorMessage(
-            response,
-            'Failed to update landscape token alias'
-          )
-        );
-      }
-    },
-  })
-);
+  removeToken: () => {
+    set({ token: null });
+  },
+
+  _isValidToken: (token: unknown): token is LandscapeToken => {
+    return (
+      get()._isObject(token) &&
+      Object.keys(token).length === 5 &&
+      {}.hasOwnProperty.call(token, 'alias') &&
+      {}.hasOwnProperty.call(token, 'created') &&
+      {}.hasOwnProperty.call(token, 'ownerId') &&
+      {}.hasOwnProperty.call(token, 'sharedUsersIds') &&
+      {}.hasOwnProperty.call(token, 'value') &&
+      (!{}.hasOwnProperty.call(token, 'secret') || typeof (<LandscapeToken>token).secret === 'string') &&
+      typeof (<LandscapeToken>token).alias === 'string' &&
+      typeof (<LandscapeToken>token).created === 'number' &&
+      typeof (<LandscapeToken>token).ownerId === 'string' &&
+      get()._isStringArray((<LandscapeToken>token).sharedUsersIds) &&
+      typeof (<LandscapeToken>token).value === 'string'
+    );
+  },
+
+  _isStringArray: (possibleArray: unknown) => {
+    return Array.isArray(possibleArray) && possibleArray.every((item) => typeof item === 'string');
+  },
+
+  _isObject: (variable: unknown): variable is object => {
+    return Object.prototype.toString.call(variable) === '[object Object]';
+  },
+  createToken: async ({ alias, value, secret }) => {
+    const userId = encodeURI(useAuthStore.getState().user?.sub || '');
+    if (!userId) {
+      throw new Error('User not authenticated');
+    }
+
+    const body: Record<string, string> = { alias };
+    if (value) {
+      body.value = value;
+    }
+    if (secret) {
+      body.secret = secret;
+    }
+
+    const response = await fetch(`${userService}/user/${userId}/token`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${useAuthStore.getState().accessToken}`,
+      },
+      body: JSON.stringify(body),
+    });
+
+    if (!response.ok) {
+      throw new Error(await getResponseErrorMessage(response, 'Failed to create landscape token'));
+    }
+
+    const token = (await response.json()) as LandscapeToken;
+    return token;
+  },
+
+  updateTokenAlias: async (tokenValue: string, alias: string) => {
+    const response = await fetch(`${userService}/token/${tokenValue}`, {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${useAuthStore.getState().accessToken}`,
+      },
+      body: JSON.stringify({ alias }),
+    });
+
+    if (!response.ok) {
+      throw new Error(await getResponseErrorMessage(response, 'Failed to update landscape token alias'));
+    }
+  },
+}));
 
 useLandscapeTokenStore.getState()._constructor();

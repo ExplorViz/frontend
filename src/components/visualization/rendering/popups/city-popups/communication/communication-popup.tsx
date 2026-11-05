@@ -12,9 +12,7 @@ interface CommunicationPopupProps {
   popupData: PopupData;
 }
 
-export default function CommunicationPopup({
-  popupData,
-}: CommunicationPopupProps) {
+export default function CommunicationPopup({ popupData }: CommunicationPopupProps) {
   const communication = popupData.entity as AggregatedCommunication;
   const baseComms = communication.baseCommunications;
 
@@ -23,9 +21,7 @@ export default function CommunicationPopup({
   const cities = useModelStore((state) => state.cities);
   const models = { ...buildings, ...districts, ...cities };
 
-  const telemetryKeyToEntityId = useModelStore(
-    (state) => state.telemetryKeyToEntityId
-  );
+  const telemetryKeyToEntityId = useModelStore((state) => state.telemetryKeyToEntityId);
 
   const modelTypes = new Set<ModelType>();
   for (const c of baseComms) {
@@ -49,9 +45,7 @@ export default function CommunicationPopup({
   return (
     <>
       <h3 className="popover-header">
-        <div className="text-center text-break fw-bold pl-1">
-          Communication Information
-        </div>
+        <div className="text-center text-break fw-bold pl-1">Communication Information</div>
       </h3>
       <div className="popover-body p-2">
         <Tabs

@@ -1,0 +1,7 @@
+{
+  "extends": "./tsconfig.json",
+  "include": ["src", "server", "tests", "vite.config.js", "vitest.config.ts", "eslint.config.js"],
+  "compilerOptions": {
+    "allowJs": true
+  }
+}

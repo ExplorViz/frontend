@@ -9,35 +9,23 @@ interface EditCommMeshProps {
   classCommunication: AggregatedCommunication;
 }
 
-export default function EditCommMesh({
-  classCommunication,
-}: EditCommMeshProps) {
-  const deletedDataModels = useLandscapeRestructureStore(
-    (state) => state.deletedDataModels
-  );
+export default function EditCommMesh({ classCommunication }: EditCommMeshProps) {
+  const deletedDataModels = useLandscapeRestructureStore((state) => state.deletedDataModels);
 
-  const deleteCommunication = useLandscapeRestructureStore(
-    (state) => state.deleteCommunication
-  );
+  const deleteCommunication = useLandscapeRestructureStore((state) => state.deleteCommunication);
 
   const deleteComm = () => {
     deleteCommunication(classCommunication);
   };
 
-  const isDeleted = !deletedDataModels.some(
-    (entity) => entity === classCommunication
-  );
+  const isDeleted = !deletedDataModels.some((entity) => entity === classCommunication);
 
   return (
     isDeleted && (
       <tr>
         <td className="text-nowrap align-top"></td>
         <td className="text-right text-break pl-1">
-          <OverlayTrigger
-            placement="top"
-            trigger={['hover', 'focus']}
-            overlay={<Tooltip>Delete</Tooltip>}
-          >
+          <OverlayTrigger placement="top" trigger={['hover', 'focus']} overlay={<Tooltip>Delete</Tooltip>}>
             <Button variant="danger" onClick={deleteComm}>
               <TrashIcon size="small" className="align-right" />
             </Button>

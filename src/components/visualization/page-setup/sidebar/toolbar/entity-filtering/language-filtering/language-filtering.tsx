@@ -10,14 +10,8 @@ import Tooltip from 'react-bootstrap/Tooltip';
 import { useShallow } from 'zustand/react/shallow';
 import ColorSwatch from '../color-swatch';
 
-function LanguageFileExtensionInfo({
-  language,
-}: {
-  readonly language: Language;
-}) {
-  const extensionStats = useEntityFilteringStore(
-    (state) => state.baselineLanguageFileExtensionStats[language] ?? []
-  );
+function LanguageFileExtensionInfo({ language }: { readonly language: Language }) {
+  const extensionStats = useEntityFilteringStore((state) => state.baselineLanguageFileExtensionStats[language] ?? []);
 
   if (extensionStats.length === 0) {
     return null;
@@ -56,9 +50,7 @@ function LanguageFileExtensionInfo({
 }
 
 export default function LanguageFiltering() {
-  const baselineLanguageStats = useEntityFilteringStore(
-    (state) => state.baselineLanguageStats
-  );
+  const baselineLanguageStats = useEntityFilteringStore((state) => state.baselineLanguageStats);
   const { hiddenLanguages, toggleLanguageVisibility } = useVisualizationStore(
     useShallow((state) => ({
       hiddenLanguages: state.hiddenLanguages,
@@ -66,12 +58,8 @@ export default function LanguageFiltering() {
     }))
   );
 
-  const buildingColorOverrides = useUserSettingsStore(
-    (state) => state.visualizationSettings.buildingColorOverrides
-  );
-  const buildingColor = useUserSettingsStore(
-    (state) => state.visualizationSettings.buildingColor
-  );
+  const buildingColorOverrides = useUserSettingsStore((state) => state.visualizationSettings.buildingColorOverrides);
+  const buildingColor = useUserSettingsStore((state) => state.visualizationSettings.buildingColor);
 
   if (baselineLanguageStats.length === 0) {
     return (
@@ -91,10 +79,7 @@ export default function LanguageFiltering() {
         const isVisible = !hiddenLanguages.has(language);
 
         return (
-          <div
-            key={language}
-            className="language-filter-item d-flex align-items-center gap-2 mb-2"
-          >
+          <div key={language} className="language-filter-item d-flex align-items-center gap-2 mb-2">
             <ColorSwatch color={color} />
             <Form.Check
               type="checkbox"
@@ -103,10 +88,7 @@ export default function LanguageFiltering() {
               label={
                 <span className="d-flex align-items-center gap-2">
                   <span>{getLabelForLanguage(language) ?? language}</span>
-                  <span
-                    className="d-inline-flex align-items-center gap-1 text-muted"
-                    style={{ fontSize: '0.8rem' }}
-                  >
+                  <span className="d-inline-flex align-items-center gap-1 text-muted" style={{ fontSize: '0.8rem' }}>
                     ({count})
                     <LanguageFileExtensionInfo language={language} />
                   </span>

@@ -10,21 +10,17 @@ import {
   openAllDistrictsInCity,
   openDistrict,
 } from 'explorviz-frontend/src/utils/city-rendering/entity-manipulation';
-import {
-  Building,
-  City,
-  District,
-} from 'explorviz-frontend/src/utils/landscape-schemes/flat-landscape';
+import { Building, City, District } from 'explorviz-frontend/src/utils/landscape-schemes/flat-landscape';
 import { defaultVizSettings } from 'explorviz-frontend/src/utils/settings/default-settings';
 import { VisualizationSettings } from 'explorviz-frontend/src/utils/settings/settings-schemas';
-import { pingByModelId } from 'explorviz-frontend/src/view-objects/3d/city/animated-ping-r3f';
+import { pingByModelId } from 'explorviz-frontend/src/view-objects/3d/city/ping-animation';
 import * as htmlToImage from 'html-to-image';
 import { use } from 'react';
 import { z } from 'zod';
-import { EditingContext } from '../editing/editing-context';
+import { EditingContext } from '../editing/editing-context-store';
 import { SettingsSidebarTab } from '../visualization/page-setup/sidebar/customizationbar/settings-sidebar-context';
 import { ToolbarTool } from '../visualization/page-setup/sidebar/toolbar/toolbar-context';
-import { ChatbotContext } from './chatbot-context';
+import { ChatbotContext } from './chatbot-context-store';
 import {
   copilotSettingComponentIds,
   copilotToolComponentIds,
@@ -58,20 +54,14 @@ function districtMatchesFilter(district: District, districtName?: string) {
   if (!normalizeText(districtName)) {
     return true;
   }
-  return (
-    matchesText(district.name, districtName) ||
-    matchesText(district.fqn, districtName)
-  );
+  return matchesText(district.name, districtName) || matchesText(district.fqn, districtName);
 }
 
 function buildingMatchesFilter(building: Building, buildingName?: string) {
   if (!normalizeText(buildingName)) {
     return true;
   }
-  return (
-    matchesText(building.name, buildingName) ||
-    matchesText(building.fqn, buildingName)
-  );
+  return matchesText(building.name, buildingName) || matchesText(building.fqn, buildingName);
 }
 
 function buildCitySummary(
@@ -128,8 +118,7 @@ function buildSettingsPromptDescription() {
           ? `${(setting as any).displayName} (${id})`
           : id;
       const description =
-        (setting as any).description &&
-        (setting as any).description.trim().length
+        (setting as any).description && (setting as any).description.trim().length
           ? (setting as any).description
           : 'No description available.';
       return `${displayName}: ${description}`;
@@ -142,15 +131,8 @@ const settingsPromptDescription = buildSettingsPromptDescription();
 export function CopilotTools() {
   const { actions } = useVisualizationStore();
   const { lookAtEntity, resetCamera } = useCameraControlsStore();
-  const {
-    addApplication,
-    addClasses,
-    removeComponent,
-    goBack,
-    goForward,
-    canGoBack,
-    canGoForward,
-  } = use(EditingContext);
+  const { addApplication, addClasses, removeComponent, goBack, goForward, canGoBack, canGoForward } =
+    use(EditingContext);
 
   const {
     pingScreenAtPoint,
@@ -182,21 +164,10 @@ export function CopilotTools() {
     }),
     // @ts-ignore
     _isRenderAndWait: true,
-    handler: async ({
-      cityIds,
-      cityName,
-      districtName,
-      buildingName,
-      maxCities,
-      maxDistricts,
-      maxBuildings,
-    }) => {
+    handler: async ({ cityIds, cityName, districtName, buildingName, maxCities, maxDistricts, maxBuildings }) => {
       const availableCities = useModelStore.getState().getAllCities() ?? [];
       const filteredCities = availableCities.filter((city) => {
-        const idMatches =
-          !Array.isArray(cityIds) ||
-          cityIds.length === 0 ||
-          cityIds.includes(city.id);
+        const idMatches = !Array.isArray(cityIds) || cityIds.length === 0 || cityIds.includes(city.id);
         const nameMatches = matchesText(city.name, cityName);
         return idMatches && nameMatches;
       });
@@ -210,8 +181,7 @@ export function CopilotTools() {
         buildings?: ReturnType<typeof toBuildingResult>[];
       } = {
         filters: {
-          cityIds:
-            Array.isArray(cityIds) && cityIds.length > 0 ? cityIds : undefined,
+          cityIds: Array.isArray(cityIds) && cityIds.length > 0 ? cityIds : undefined,
           cityName: cityName || undefined,
           districtName: districtName || undefined,
           buildingName: buildingName || undefined,
@@ -230,31 +200,21 @@ export function CopilotTools() {
           .map((buildingId) => useModelStore.getState().getBuilding(buildingId))
           .filter((building): building is Building => !!building);
 
-        const filteredDistricts = cityDistricts.filter((district) =>
-          districtMatchesFilter(district, districtName)
-        );
-        const filteredBuildings = cityBuildings.filter((building) =>
-          buildingMatchesFilter(building, buildingName)
-        );
+        const filteredDistricts = cityDistricts.filter((district) => districtMatchesFilter(district, districtName));
+        const filteredBuildings = cityBuildings.filter((building) => buildingMatchesFilter(building, buildingName));
 
-        const filteredBuildingsWithDistrictConstraint = normalizeText(
-          districtName
-        )
+        const filteredBuildingsWithDistrictConstraint = normalizeText(districtName)
           ? filteredBuildings.filter((building) => {
               const districtId = building.parentDistrictId;
               if (!districtId) {
                 return false;
               }
-              return filteredDistricts.some(
-                (district) => district.id === districtId
-              );
+              return filteredDistricts.some((district) => district.id === districtId);
             })
           : filteredBuildings;
 
         const limitedDistricts = limitList(filteredDistricts, maxDistricts);
-        const limitedBuildings = limitList(
-          filteredBuildingsWithDistrictConstraint
-        );
+        const limitedBuildings = limitList(filteredBuildingsWithDistrictConstraint);
 
         response.cities.push(
           buildCitySummary(
@@ -302,8 +262,7 @@ export function CopilotTools() {
 
   useFrontendTool({
     name: 'highlight-entities',
-    description:
-      'Highlights or un-highlights cities, districts, or buildings by their ids in the 3D visualization.',
+    description: 'Highlights or un-highlights cities, districts, or buildings by their ids in the 3D visualization.',
     parameters: z.object({
       ids: z.array(z.string()),
       areHighlighted: z.boolean().default(true),
@@ -315,19 +274,9 @@ export function CopilotTools() {
     },
     render: ({ args, status }) => {
       const action =
-        args.areHighlighted === undefined
-          ? undefined
-          : args.areHighlighted
-            ? 'highlight'
-            : 'removeHighlight';
+        args.areHighlighted === undefined ? undefined : args.areHighlighted ? 'highlight' : 'removeHighlight';
 
-      return (
-        <ToolCallCard
-          component={{ name: args.ids?.toString() }}
-          status={status}
-          action={action}
-        />
-      );
+      return <ToolCallCard component={{ name: args.ids?.toString() }} status={status} action={action} />;
     },
   });
 
@@ -453,11 +402,7 @@ export function CopilotTools() {
       }, 200);
     },
     render: ({ status }) => (
-      <ToolCallCard
-        component={{ id: 'entity-filtering', name: 'Filter' }}
-        status={status}
-        action={'filterEntities'}
-      />
+      <ToolCallCard component={{ id: 'entity-filtering', name: 'Filter' }} status={status} action={'filterEntities'} />
     ),
   });
 
@@ -472,32 +417,24 @@ export function CopilotTools() {
     // @ts-ignore
     _isRenderAndWait: true,
     handler: async ({ settings, resetIds, resetAll }) => {
-      const { visualizationSettings, updateSetting, applyDefaultSettings } =
-        useUserSettingsStore.getState();
+      const { visualizationSettings, updateSetting, applyDefaultSettings } = useUserSettingsStore.getState();
       if (resetAll) {
         applyDefaultSettings();
       } else if (Array.isArray(resetIds) && resetIds.length > 0) {
         resetIds.forEach((id) => {
           const defaultSetting = (defaultVizSettings as any)[id];
           if (defaultSetting) {
-            updateSetting(
-              id as keyof VisualizationSettings,
-              defaultSetting.value
-            );
+            updateSetting(id as keyof VisualizationSettings, defaultSetting.value);
           }
         });
       }
 
       if (settings && typeof settings === 'object') {
-        Object.entries(settings as Record<string, unknown>).forEach(
-          ([id, value]) => {
-            if (
-              Object.prototype.hasOwnProperty.call(visualizationSettings, id)
-            ) {
-              updateSetting(id as keyof VisualizationSettings, value);
-            }
+        Object.entries(settings as Record<string, unknown>).forEach(([id, value]) => {
+          if (Object.prototype.hasOwnProperty.call(visualizationSettings, id)) {
+            updateSetting(id as keyof VisualizationSettings, value);
           }
-        );
+        });
       }
     },
     render: ({ status, args }) => (
@@ -543,11 +480,7 @@ export function CopilotTools() {
       }, 200);
     },
     render: ({ status, args }) => (
-      <ToolCallCard
-        component={{ name: args.query }}
-        status={status}
-        action={'searchComponents'}
-      />
+      <ToolCallCard component={{ name: args.query }} status={status} action={'searchComponents'} />
     ),
   });
 
@@ -581,16 +514,9 @@ export function CopilotTools() {
       }
     },
     render: ({ args, status }) => {
-      const action =
-        args.open === undefined ? undefined : args.open ? 'open' : 'close';
+      const action = args.open === undefined ? undefined : args.open ? 'open' : 'close';
 
-      return (
-        <ToolCallCard
-          component={{ id: args.id }}
-          status={status}
-          action={action}
-        />
-      );
+      return <ToolCallCard component={{ id: args.id }} status={status} action={action} />;
     },
   });
 
@@ -609,11 +535,7 @@ export function CopilotTools() {
       });
     },
     render: ({ args, status }) => (
-      <ToolCallCard
-        component={{ name: args.ids?.toString() }}
-        status={status}
-        action={'ping'}
-      />
+      <ToolCallCard component={{ name: args.ids?.toString() }} status={status} action={'ping'} />
     ),
   });
 
@@ -629,28 +551,19 @@ export function CopilotTools() {
     handler: async ({ id }) => {
       lookAtEntity(id);
     },
-    render: ({ args, status }) => (
-      <ToolCallCard
-        component={{ id: args.id }}
-        status={status}
-        action="moveCamera"
-      />
-    ),
+    render: ({ args, status }) => <ToolCallCard component={{ id: args.id }} status={status} action="moveCamera" />,
   });
 
   useFrontendTool({
     name: 'reset-camera',
-    description:
-      'Resets the camera to its default position and orientation in the 3D visualization.',
+    description: 'Resets the camera to its default position and orientation in the 3D visualization.',
     parameters: z.object({}),
     // @ts-ignore
     _isRenderAndWait: true,
     handler: async () => {
       resetCamera();
     },
-    render: ({ status }) => (
-      <ToolCallCard status={status} action="resetCamera" />
-    ),
+    render: ({ status }) => <ToolCallCard status={status} action="resetCamera" />,
   });
 
   useFrontendTool({
@@ -686,11 +599,7 @@ export function CopilotTools() {
       return addApplication(name, classes);
     },
     render: ({ status, args, result }) => (
-      <ToolCallCard
-        status={status}
-        action="addApplication"
-        component={{ id: result, name: args.name }}
-      />
+      <ToolCallCard status={status} action="addApplication" component={{ id: result, name: args.name }} />
     ),
   });
 
@@ -727,12 +636,7 @@ export function CopilotTools() {
       addClasses(applicationId, classes);
     },
     render: ({ status, args }) => (
-      <ToolCallCard
-        status={status}
-        action="addClasses"
-        messageArgs={args}
-        component={{ id: args.applicationId }}
-      />
+      <ToolCallCard status={status} action="addClasses" messageArgs={args} component={{ id: args.applicationId }} />
     ),
   });
 
@@ -749,19 +653,13 @@ export function CopilotTools() {
       removeComponent(id);
     },
     render: ({ status, args }) => (
-      <ToolCallCard
-        status={status}
-        action="removeComponent"
-        component={{ id: args.id }}
-        showPopup
-      />
+      <ToolCallCard status={status} action="removeComponent" component={{ id: args.id }} showPopup />
     ),
   });
 
   useFrontendTool({
     name: 'undo-edit',
-    description:
-      'Undoes the last edit made to the landscape, reverting it to the previous state.',
+    description: 'Undoes the last edit made to the landscape, reverting it to the previous state.',
     parameters: z.object({}),
     // @ts-ignore
     _isRenderAndWait: true,
@@ -775,8 +673,7 @@ export function CopilotTools() {
 
   useFrontendTool({
     name: 'redo-edit',
-    description:
-      'Redoes the last undone edit to the landscape, reapplying the change that was previously reverted.',
+    description: 'Redoes the last undone edit to the landscape, reapplying the change that was previously reverted.',
     parameters: z.object({}),
     // @ts-ignore
     _isRenderAndWait: true,
@@ -807,11 +704,7 @@ export function CopilotTools() {
             const img = new Image();
             img.onload = () => {
               const { width, height } = img;
-              const scale = Math.min(
-                1,
-                SCREENSHOT_MAX_WIDTH / width,
-                SCREENSHOT_MAX_HEIGHT / height
-              );
+              const scale = Math.min(1, SCREENSHOT_MAX_WIDTH / width, SCREENSHOT_MAX_HEIGHT / height);
               if (scale < 1) {
                 const canvas = document.createElement('canvas');
                 canvas.width = Math.round(width * scale);
@@ -830,14 +723,11 @@ export function CopilotTools() {
             img.onerror = () => reject(new Error('Could not load screenshot'));
             img.src = reader.result as string;
           };
-          reader.onerror = () =>
-            reject(new Error('Could not read screenshot data'));
+          reader.onerror = () => reject(new Error('Could not read screenshot data'));
           reader.readAsDataURL(blob);
         });
       });
-      const [format, bytes] = url
-        .split(/data:image\/|;|base64,/)
-        .filter(Boolean);
+      const [format, bytes] = url.split(/data:image\/|;|base64,/).filter(Boolean);
       const mimeType = format === 'jpg' ? 'image/jpeg' : `image/${format}`;
       return [
         {

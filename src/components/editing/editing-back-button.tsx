@@ -1,17 +1,12 @@
 import { ArrowLeftIcon } from '@primer/octicons-react';
 import { use } from 'react';
 import Button from 'react-bootstrap/Button';
-import { EditingContext } from './editing-context';
+import { EditingContext } from './editing-context-store';
 
 export function EditingBackButton() {
   const { canGoBack, goBack } = use(EditingContext);
   return (
-    <Button
-      title="Undo"
-      variant="outline-dark"
-      onClick={() => goBack()}
-      disabled={!canGoBack}
-    >
+    <Button title="Undo" variant="outline-dark" onClick={() => goBack()} disabled={!canGoBack}>
       <ArrowLeftIcon size="small" />
     </Button>
   );

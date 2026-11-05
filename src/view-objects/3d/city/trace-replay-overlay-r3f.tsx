@@ -1,25 +1,17 @@
 import { useFrame } from '@react-three/fiber';
 import { useConfigurationStore } from 'explorviz-frontend/src/stores/configuration';
-import {
-  PlayState,
-  useTraceReplayStore,
-} from 'explorviz-frontend/src/stores/trace-replay';
+import { PlayState, useTraceReplayStore } from 'explorviz-frontend/src/stores/trace-replay';
 import { getWorldPositionOfModel } from 'explorviz-frontend/src/utils/layout-helper';
 import { useEffect, useRef } from 'react';
 import * as THREE from 'three';
 
 function computeArc(start: THREE.Vector3, end: THREE.Vector3, height: number) {
-  const ctrl = new THREE.Vector3(
-    (start.x + end.x) / 2,
-    Math.max(start.y, end.y) + height,
-    (start.z + end.z) / 2
-  );
+  const ctrl = new THREE.Vector3((start.x + end.x) / 2, Math.max(start.y, end.y) + height, (start.z + end.z) / 2);
   return new THREE.QuadraticBezierCurve3(start.clone(), ctrl, end.clone());
 }
 
 export default function TraceReplayOverlayR3F() {
-  const { timeline, cursor, playState, eager, afterimage, tick } =
-    useTraceReplayStore();
+  const { timeline, cursor, playState, eager, afterimage, tick } = useTraceReplayStore();
   const lineGroupRef = useRef<THREE.Group>(null);
   const spheresRef = useRef<THREE.Group>(null);
 
@@ -35,8 +27,7 @@ export default function TraceReplayOverlayR3F() {
     if (!lineGroup || !sphereGroup) return;
 
     // Cleanup spheres (always clear spheres each frame)
-    while (sphereGroup.children.length)
-      sphereGroup.remove(sphereGroup.children[0]);
+    while (sphereGroup.children.length) sphereGroup.remove(sphereGroup.children[0]);
 
     // Active nodes at cursor
     const active = timeline.filter((n) => n.start <= cursor && n.end >= cursor);
@@ -46,9 +37,7 @@ export default function TraceReplayOverlayR3F() {
       while (lineGroup.children.length) lineGroup.remove(lineGroup.children[0]);
     }
     // Sort to keep deterministic coloring
-    active.sort(
-      (a, b) => a.start - b.start || a.end - b.end || a.id.localeCompare(b.id)
-    );
+    active.sort((a, b) => a.start - b.start || a.end - b.end || a.id.localeCompare(b.id));
 
     // Color/height partitions
     // Stable color per span id (hash), avoid flicker
@@ -71,20 +60,14 @@ export default function TraceReplayOverlayR3F() {
       if (eager && node.childrenIds.length > 0) {
         const childStarts = node.childrenIds
           .map((id) => timeline.find((n) => n.id === id))
-          .filter(
-            (child): child is NonNullable<typeof child> => child !== undefined
-          )
+          .filter((child): child is NonNullable<typeof child> => child !== undefined)
           .map((child) => child.start);
         if (childStarts.length > 0) {
           endTs = Math.min(...childStarts);
         }
       }
 
-      const progress = THREE.MathUtils.clamp(
-        (cursor - node.start) / Math.max(1e-9, endTs - node.start),
-        0,
-        1
-      );
+      const progress = THREE.MathUtils.clamp((cursor - node.start) / Math.max(1e-9, endTs - node.start), 0, 1);
 
       const startPos = getWorldPositionOfModel(node.sourceClassId);
       const endPos = getWorldPositionOfModel(node.targetClassId);
@@ -96,9 +79,7 @@ export default function TraceReplayOverlayR3F() {
       const pathColor = mkColorById(node.id, idx, active.length);
 
       // Check if line already exists for this node
-      const existingLine = lineGroup.children.find(
-        (child) => child.userData?.nodeId === node.id
-      );
+      const existingLine = lineGroup.children.find((child) => child.userData?.nodeId === node.id);
 
       if (!existingLine) {
         // Trail line (simple line segments along 0..progress)
@@ -133,9 +114,7 @@ export default function TraceReplayOverlayR3F() {
 
       // Remove line if afterimage is disabled and progress is complete
       if (!afterimage && progress >= 1) {
-        const lineToRemove = lineGroup.children.find(
-          (child) => child.userData?.nodeId === node.id
-        );
+        const lineToRemove = lineGroup.children.find((child) => child.userData?.nodeId === node.id);
         if (lineToRemove) {
           lineGroup.remove(lineToRemove);
         }
@@ -147,9 +126,7 @@ export default function TraceReplayOverlayR3F() {
   const prevActiveIdsRef = useRef<Set<string>>(new Set());
   useEffect(() => {
     const nextActive = new Set(
-      timeline
-        .filter((n) => n.start <= cursor && n.end >= cursor)
-        .flatMap((n) => [n.sourceClassId, n.targetClassId])
+      timeline.filter((n) => n.start <= cursor && n.end >= cursor).flatMap((n) => [n.sourceClassId, n.targetClassId])
     );
 
     const prevActive = prevActiveIdsRef.current;
@@ -175,12 +152,10 @@ export default function TraceReplayOverlayR3F() {
       const lineGroup = lineGroupRef.current;
       const sphereGroup = spheresRef.current;
       if (lineGroup) {
-        while (lineGroup.children.length)
-          lineGroup.remove(lineGroup.children[0]);
+        while (lineGroup.children.length) lineGroup.remove(lineGroup.children[0]);
       }
       if (sphereGroup) {
-        while (sphereGroup.children.length)
-          sphereGroup.remove(sphereGroup.children[0]);
+        while (sphereGroup.children.length) sphereGroup.remove(sphereGroup.children[0]);
       }
       useConfigurationStore.getState().setIsCommRendered(true);
     }

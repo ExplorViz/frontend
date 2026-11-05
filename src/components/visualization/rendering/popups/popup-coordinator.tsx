@@ -40,7 +40,7 @@ import {
   isFlatBaseModel,
 } from 'explorviz-frontend/src/utils/landscape-schemes/flat-landscape';
 import { isMethod } from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
-import { pingByModelId } from 'explorviz-frontend/src/view-objects/3d/city/animated-ping-r3f';
+import { pingByModelId } from 'explorviz-frontend/src/view-objects/3d/city/ping-animation';
 import { Dropdown, DropdownButton } from 'react-bootstrap';
 import Button from 'react-bootstrap/Button';
 import OverlayTrigger from 'react-bootstrap/OverlayTrigger';
@@ -65,12 +65,8 @@ export default function PopupCoordinator({
   addAnnotationForPopup,
 }: PopupCoordinatorProps) {
   const isConnected = usePlayroomConnectionStore((state) => state.isConnected);
-  const restructureMode = useLandscapeRestructureStore(
-    (state) => state.restructureMode
-  );
-  const showErrorToastMessage = useToastHandlerStore(
-    (state) => state.showErrorToastMessage
-  );
+  const restructureMode = useLandscapeRestructureStore((state) => state.restructureMode);
+  const showErrorToastMessage = useToastHandlerStore((state) => state.showErrorToastMessage);
 
   const element = useRef<HTMLDivElement | null>(null);
   const lastMousePosition = useRef<Position2D>({ x: 0, y: 0 });
@@ -87,14 +83,11 @@ export default function PopupCoordinator({
   });
 
   const entityType = getEntityType(popupData);
-  const telemetryKey: string | undefined = (popupData.entity as any)
-    .telemetryKey;
+  const telemetryKey: string | undefined = (popupData.entity as any).telemetryKey;
 
   const toolbarContext = use(ToolbarContext);
 
-  const setHoveredEntityId = useVisualizationStore(
-    (state) => state.actions.setHoveredEntityId
-  );
+  const setHoveredEntityId = useVisualizationStore((state) => state.actions.setHoveredEntityId);
 
   const onPointerEnter = () => {
     setHoveredEntityId(popupData.entity.id);
@@ -119,16 +112,9 @@ export default function PopupCoordinator({
 
   const persistPopupPosition = () => {
     const { x, y } = currentPopupPosition.current;
-    const latest = usePopupHandlerStore
-      .getState()
-      .popupData.find((pd) => pd.entityId === popupData.entityId);
+    const latest = usePopupHandlerStore.getState().popupData.find((pd) => pd.entityId === popupData.entityId);
 
-    if (
-      latest &&
-      latest.wasMoved &&
-      latest.mouseX === x &&
-      latest.mouseY === y
-    ) {
+    if (latest && latest.wasMoved && latest.mouseX === x && latest.mouseY === y) {
       return;
     }
 
@@ -168,8 +154,7 @@ export default function PopupCoordinator({
     lastMousePosition.current.x = event.clientX;
     lastMousePosition.current.y = event.clientY;
 
-    const { width, height, containerWidth, containerHeight } =
-      dragBounds.current;
+    const { width, height, containerWidth, containerHeight } = dragBounds.current;
 
     let newPositionX = currentPopupPosition.current.x - diffX;
     let newPositionY = currentPopupPosition.current.y - diffY;
@@ -206,9 +191,7 @@ export default function PopupCoordinator({
 
     const containerDiv = element.current.parentElement;
     if (!containerDiv) {
-      console.error(
-        'Cannot update popup position: Parent element is not accessible'
-      );
+      console.error('Cannot update popup position: Parent element is not accessible');
       return;
     }
 
@@ -244,11 +227,7 @@ export default function PopupCoordinator({
 
     const containerWidth = containerDiv.clientWidth;
 
-    if (
-      popoverHeight === undefined ||
-      popoverWidth === undefined ||
-      containerWidth === undefined
-    ) {
+    if (popoverHeight === undefined || popoverWidth === undefined || containerWidth === undefined) {
       return;
     }
 
@@ -269,8 +248,7 @@ export default function PopupCoordinator({
     // position at right edge of canvas
     if (popupLeftPosition + popoverWidth > containerWidth) {
       const extraPopupMarginFromAtBottom = 5;
-      popupLeftPosition =
-        containerWidth - popoverWidth - extraPopupMarginFromAtBottom;
+      popupLeftPosition = containerWidth - popoverWidth - extraPopupMarginFromAtBottom;
     }
 
     // Prevent popup positioning left(outside) of rendering canvas =>
@@ -289,10 +267,7 @@ export default function PopupCoordinator({
 
     if (isCity(popupData.entity)) {
       params = { ...params, serviceName: popupData.entity.name };
-    } else if (
-      isFlatBaseModel(popupData.entity) &&
-      popupData.entity.telemetryKey
-    ) {
+    } else if (isFlatBaseModel(popupData.entity) && popupData.entity.telemetryKey) {
       params = { ...params, telemetryKey: popupData.entity.telemetryKey };
     } else {
       showErrorToastMessage('Cannot search spans for entity');
@@ -307,10 +282,7 @@ export default function PopupCoordinator({
 
     if (isCity(popupData.entity)) {
       params = { serviceName: popupData.entity.name };
-    } else if (
-      isFlatBaseModel(popupData.entity) &&
-      popupData.entity.telemetryKey
-    ) {
+    } else if (isFlatBaseModel(popupData.entity) && popupData.entity.telemetryKey) {
       params = { telemetryKey: popupData.entity.telemetryKey };
     } else {
       showErrorToastMessage('Cannot search metrics for entity');
@@ -325,10 +297,7 @@ export default function PopupCoordinator({
 
     if (isCity(popupData.entity)) {
       params = { ...params, serviceName: popupData.entity.name };
-    } else if (
-      isFlatBaseModel(popupData.entity) &&
-      popupData.entity.telemetryKey
-    ) {
+    } else if (isFlatBaseModel(popupData.entity) && popupData.entity.telemetryKey) {
       params = { ...params, telemetryKey: popupData.entity.telemetryKey };
     } else {
       showErrorToastMessage('Cannot search logs for entity');
@@ -357,11 +326,7 @@ export default function PopupCoordinator({
           <OverlayTrigger
             placement="top"
             trigger={['hover', 'focus']}
-            overlay={
-              <Tooltip>
-                {popupData.isPinned ? 'Popup is pinned' : 'Pin Popup'}
-              </Tooltip>
-            }
+            overlay={<Tooltip>{popupData.isPinned ? 'Popup is pinned' : 'Pin Popup'}</Tooltip>}
           >
             <Button
               variant={popupData.isPinned ? 'outline-secondary' : 'primary'}
@@ -373,11 +338,7 @@ export default function PopupCoordinator({
               <PinIcon className="align-right" />
             </Button>
           </OverlayTrigger>
-          <OverlayTrigger
-            placement="top"
-            trigger={['hover', 'focus']}
-            overlay={<Tooltip>Ping Entity</Tooltip>}
-          >
+          <OverlayTrigger placement="top" trigger={['hover', 'focus']} overlay={<Tooltip>Ping Entity</Tooltip>}>
             <Button
               variant="primary"
               onClick={() => {
@@ -389,11 +350,7 @@ export default function PopupCoordinator({
           </OverlayTrigger>
 
           {popupData.sharedBy ? (
-            <OverlayTrigger
-              placement="top"
-              trigger={['hover', 'focus']}
-              overlay={<Tooltip>Popup is shared</Tooltip>}
-            >
+            <OverlayTrigger placement="top" trigger={['hover', 'focus']} overlay={<Tooltip>Popup is shared</Tooltip>}>
               <Button variant="outline-secondary" disabled>
                 <ShareAndroidIcon className="align-right" />
               </Button>
@@ -418,25 +375,15 @@ export default function PopupCoordinator({
             )
           )}
 
-          <OverlayTrigger
-            placement="top"
-            trigger={['hover', 'focus']}
-            overlay={<Tooltip>Highlight</Tooltip>}
-          >
+          <OverlayTrigger placement="top" trigger={['hover', 'focus']} overlay={<Tooltip>Highlight</Tooltip>}>
             <Button variant="primary" onClick={highlight}>
               <PaintbrushIcon className="align-middle" />
             </Button>
           </OverlayTrigger>
 
-          <OverlayTrigger
-            placement="top"
-            trigger={['hover', 'focus']}
-            overlay={<Tooltip>Annotate</Tooltip>}
-          >
+          <OverlayTrigger placement="top" trigger={['hover', 'focus']} overlay={<Tooltip>Annotate</Tooltip>}>
             <Button
-              variant={
-                isEntityAnnotated(popupData.entityId) ? 'success' : 'primary'
-              }
+              variant={isEntityAnnotated(popupData.entityId) ? 'success' : 'primary'}
               onClick={() => addAnnotationForPopup(popupData)}
             >
               <CommentIcon className="align-middle" />
@@ -466,11 +413,7 @@ export default function PopupCoordinator({
             </OverlayTrigger>
           )}
 
-          <OverlayTrigger
-            placement="top"
-            trigger={['hover', 'focus']}
-            overlay={<Tooltip>Close</Tooltip>}
-          >
+          <OverlayTrigger placement="top" trigger={['hover', 'focus']} overlay={<Tooltip>Close</Tooltip>}>
             <Button
               variant="outline-secondary"
               className="popup-close-button"
@@ -485,12 +428,8 @@ export default function PopupCoordinator({
       {entityType == 'city' && <FoundationPopup popupData={popupData} />}
       {entityType == 'district' && <DistrictPopup popupData={popupData} />}
       {entityType == 'building' && <BuildingPopup popupData={popupData} />}
-      {entityType == 'method' && (
-        <MethodPopup restructureMode={restructureMode} popupData={popupData} />
-      )}
-      {entityType == 'classCommunication' && (
-        <CommunicationPopup popupData={popupData} />
-      )}
+      {entityType == 'method' && <MethodPopup restructureMode={restructureMode} popupData={popupData} />}
+      {entityType == 'classCommunication' && <CommunicationPopup popupData={popupData} />}
 
       {entityType == 'html' && <HtmlPopup data={popupData} />}
     </div>
@@ -520,9 +459,7 @@ function getEntityType(popupData?: PopupData) {
     return 'html';
   }
 
-  const entityTypeFromStore = useModelStore
-    .getState()
-    .getEntityType(popupData.entityId);
+  const entityTypeFromStore = useModelStore.getState().getEntityType(popupData.entityId);
   if (entityTypeFromStore === 'building') {
     return 'building';
   }

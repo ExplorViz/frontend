@@ -11,10 +11,7 @@ import { emitContextMenuFromWorld } from 'explorviz-frontend/src/utils/context-m
 import calculateColorBrightness from 'explorviz-frontend/src/utils/helpers/threejs-helpers';
 import { City } from 'explorviz-frontend/src/utils/landscape-schemes/flat-landscape';
 import BoxLayout from 'explorviz-frontend/src/utils/layout/box-layout';
-import {
-  getCityLabelFontSize,
-  MIN_CITY_LABEL_MARGIN,
-} from 'explorviz-frontend/src/utils/layout/label-utils';
+import { getCityLabelFontSize, MIN_CITY_LABEL_MARGIN } from 'explorviz-frontend/src/utils/layout/label-utils';
 import { getLabelRotation } from 'explorviz-frontend/src/view-objects/utils/label-utils';
 import { gsap } from 'gsap';
 import { useEffect, useState } from 'react';
@@ -23,13 +20,7 @@ import { useShallow } from 'zustand/react/shallow';
 
 const CYLINDER_HEIGHT_MULTIPLIER = 4;
 
-export default function CityFoundation({
-  city,
-  layout,
-}: {
-  city: City;
-  layout: BoxLayout;
-}) {
+export default function CityFoundation({ city, layout }: { city: City; layout: BoxLayout }) {
   const [foundationPosition, setFoundationPosition] = useState<THREE.Vector3>(
     new THREE.Vector3(layout.width / 2, layout.positionY, layout.depth / 2)
   );
@@ -49,35 +40,24 @@ export default function CityFoundation({
         positionZ: layout.depth / 2,
         duration: 0.25,
         onUpdate: () => {
-          setFoundationPosition(
-            new THREE.Vector3(
-              gsapValues.positionX,
-              gsapValues.positionY,
-              gsapValues.positionZ
-            )
-          );
+          setFoundationPosition(new THREE.Vector3(gsapValues.positionX, gsapValues.positionY, gsapValues.positionZ));
         },
       });
     } else {
-      const target = new THREE.Vector3(
-        layout.width / 2,
-        layout.center.y,
-        layout.depth / 2
-      );
+      const target = new THREE.Vector3(layout.width / 2, layout.center.y, layout.depth / 2);
       if (!foundationPosition.equals(target)) {
         setFoundationPosition(target);
       }
     }
   }, [layout.width, layout.positionY, layout.depth]);
 
-  const { isHighlighted, isHovered, setHoveredEntityId } =
-    useVisualizationStore(
-      useShallow((state) => ({
-        isHighlighted: state.highlightedEntityIds.has(city.id),
-        isHovered: state.hoveredEntityId === city.id,
-        setHoveredEntityId: state.actions.setHoveredEntityId,
-      }))
-    );
+  const { isHighlighted, isHovered, setHoveredEntityId } = useVisualizationStore(
+    useShallow((state) => ({
+      isHighlighted: state.highlightedEntityIds.has(city.id),
+      isHovered: state.hoveredEntityId === city.id,
+      setHoveredEntityId: state.actions.setHoveredEntityId,
+    }))
+  );
 
   const { addPopup } = usePopupHandlerStore(
     useShallow((state) => ({
@@ -107,10 +87,8 @@ export default function CityFoundation({
       cityColorOverrides: state.visualizationSettings.cityColorOverrides,
       cityGeometryOverrides: state.visualizationSettings.cityGeometryOverrides,
       enableHoverEffects: state.visualizationSettings.enableHoverEffects.value,
-      foundationTextColor:
-        state.visualizationSettings.foundationTextColor.value,
-      districtLabelPlacement:
-        state.visualizationSettings.districtLabelPlacement.value,
+      foundationTextColor: state.visualizationSettings.foundationTextColor.value,
+      districtLabelPlacement: state.visualizationSettings.districtLabelPlacement.value,
       entityOpacity: state.visualizationSettings.entityOpacity.value,
     }))
   );
@@ -143,19 +121,13 @@ export default function CityFoundation({
 
   const handleRightClick = (event: ThreeEvent<MouseEvent>) => {
     event.stopPropagation();
-    emitContextMenuFromWorld(
-      { kind: 'city', cityId: city.id },
-      event.nativeEvent
-    );
+    emitContextMenuFromWorld({ kind: 'city', cityId: city.id }, event.nativeEvent);
   };
 
-  const [
-    handleClickWithPrevent,
-    handleDoubleClickWithPrevent,
-    handleRightClickWithPrevent,
-  ] = useClickPreventionOnDoubleClick(handleClick, handleDoubleClick, {
-    onRightClick: handleRightClick,
-  });
+  const [handleClickWithPrevent, handleDoubleClickWithPrevent, handleRightClickWithPrevent] =
+    useClickPreventionOnDoubleClick(handleClick, handleDoubleClick, {
+      onRightClick: handleRightClick,
+    });
 
   const computeColor = () => {
     const colorOverride = cityColorOverrides.value.modelType[city.type];
@@ -175,19 +147,12 @@ export default function CityFoundation({
 
   const meshPosition = foundationPosition.clone(); // Center around city's position
 
-  const meshScale: [number, number, number] = [
-    layout.width,
-    layout.height,
-    layout.depth,
-  ];
+  const meshScale: [number, number, number] = [layout.width, layout.height, layout.depth];
 
-  const isEmpty =
-    city.districtIds.length === 0 && city.buildingIds.length === 0;
+  const isEmpty = city.districtIds.length === 0 && city.buildingIds.length === 0;
 
   // Geometry overrides should only be applied to empty cities since internal city layout relies on box layout
-  const geometryOverride = isEmpty
-    ? cityGeometryOverrides.value.modelType[city.type]
-    : undefined;
+  const geometryOverride = isEmpty ? cityGeometryOverrides.value.modelType[city.type] : undefined;
 
   if (geometryOverride === 'Cylinder') {
     // Round primitives default to radius 1 (diameter 2); multiply by 0.5 to match BoxGeometry's 1x1 footprint
@@ -246,17 +211,9 @@ export default function CityFoundation({
       })}
     >
       {geometryOverride === 'Cylinder' ? (
-        <meshStandardMaterial
-          color={computeColor()}
-          transparent={entityOpacity < 1.0}
-          opacity={entityOpacity}
-        />
+        <meshStandardMaterial color={computeColor()} transparent={entityOpacity < 1.0} opacity={entityOpacity} />
       ) : (
-        <meshBasicMaterial
-          color={computeColor()}
-          transparent={entityOpacity < 1.0}
-          opacity={entityOpacity}
-        />
+        <meshBasicMaterial color={computeColor()} transparent={entityOpacity < 1.0} opacity={entityOpacity} />
       )}
       {geometryOverride === 'Cylinder' ? <cylinderGeometry /> : <boxGeometry />}
       {cityLabelMargin > MIN_CITY_LABEL_MARGIN && (

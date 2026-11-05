@@ -42,9 +42,7 @@ interface ClusterStoreState {
 }
 
 /** Builds a cluster-id -> entity-ids reverse index from the forward map. */
-function buildReverseIndex(
-  entityIdToCluster: Map<string, number>
-): Map<number, string[]> {
+function buildReverseIndex(entityIdToCluster: Map<string, number>): Map<number, string[]> {
   const index = new Map<number, string[]>();
   entityIdToCluster.forEach((clusterId, entityId) => {
     let list = index.get(clusterId);
@@ -69,10 +67,7 @@ export const useClusterStore = create<ClusterStoreState>()((set, get) => ({
     const centroidDistances = new Map<number, number>();
     if (cameraPosition) {
       centroids.forEach((centroid, clusterId) => {
-        centroidDistances.set(
-          clusterId,
-          cameraPosition.distanceTo(centroid.position)
-        );
+        centroidDistances.set(clusterId, cameraPosition.distanceTo(centroid.position));
       });
     }
 

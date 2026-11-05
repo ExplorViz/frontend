@@ -20,26 +20,16 @@ import { useNavigate } from 'react-router-dom';
 const tokenToShow = import.meta.env.VITE_ONLY_SHOW_TOKEN;
 
 export default function Navbar() {
-  const restartAndSetSocket = useIdeWebsocketStore(
-    (state) => state.restartAndSetSocket
-  );
+  const restartAndSetSocket = useIdeWebsocketStore((state) => state.restartAndSetSocket);
 
-  const closeConnection = useIdeWebsocketStore(
-    (state) => state.closeConnection
-  );
+  const closeConnection = useIdeWebsocketStore((state) => state.closeConnection);
 
-  const isIdeConnected = useIdeWebsocketFacadeStore(
-    (state) => state.isConnected
-  );
+  const isIdeConnected = useIdeWebsocketFacadeStore((state) => state.isConnected);
   const user = useAuthStore((state) => state.user);
   const landscapeToken = useLandscapeTokenStore((state) => state.token);
-  const _analysisMode = useRenderingServiceStore(
-    (state) => state._analysisMode
-  );
+  const _analysisMode = useRenderingServiceStore((state) => state._analysisMode);
   const setSnapshotToken = useSnapshotTokenStore((state) => state.setToken);
-  const setSnapshotSelected = useSnapshotTokenStore(
-    (state) => state.setSnapshotSelected
-  );
+  const setSnapshotSelected = useSnapshotTokenStore((state) => state.setSnapshotSelected);
   const setLandscapeToken = useLandscapeTokenStore((state) => state.setToken);
 
   const navigate = useNavigate();
@@ -87,11 +77,7 @@ export default function Navbar() {
           {!isSingleLandscapeMode() && landscapeToken && (
             <>
               <div className="navbar-token-link pointer-events-all">
-                <span
-                  className="d-flex-center"
-                  role="button"
-                  onClick={goToLandscapeSelection}
-                >
+                <span className="d-flex-center" role="button" onClick={goToLandscapeSelection}>
                   <UndoIcon size="small" />
                   &nbsp;{landscapeToken.alias}
                 </span>
@@ -107,10 +93,7 @@ export default function Navbar() {
               <Dropdown.Header>
                 <div className="d-flex align-items-center">
                   <PersonIcon size="medium" className="me-1" />
-                  <div
-                    className="d-flex flex-column"
-                    style={{ height: '32px' }}
-                  >
+                  <div className="d-flex flex-column" style={{ height: '32px' }}>
                     <strong className="truncate-text">{user?.nickname}</strong>
                     <span className="truncate-text">
                       <IdBadgeIcon size="small" className="me-1" />
@@ -131,13 +114,9 @@ export default function Navbar() {
                 Git API Token
               </Dropdown.Item>
               {isIdeConnected ? (
-                <Dropdown.Item onClick={() => closeConnection()}>
-                  Disconnect from VSCode extension
-                </Dropdown.Item>
+                <Dropdown.Item onClick={() => closeConnection()}>Disconnect from VSCode extension</Dropdown.Item>
               ) : (
-                <Dropdown.Item
-                  onClick={() => restartAndSetSocket(landscapeToken?.value)}
-                >
+                <Dropdown.Item onClick={() => restartAndSetSocket(landscapeToken?.value)}>
                   <VscodeIcon size="small" className="me-2" />
                   Connect to VSCode extension
                 </Dropdown.Item>

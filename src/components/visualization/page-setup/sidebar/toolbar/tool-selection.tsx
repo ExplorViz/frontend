@@ -9,11 +9,7 @@ interface ToolSelection {
   closeToolSelection: () => void;
 }
 
-export default function ToolSelection({
-  show,
-  children,
-  closeToolSelection,
-}: ToolSelection) {
+export default function ToolSelection({ show, children, closeToolSelection }: ToolSelection) {
   return (
     <div className={show ? 'sidebar left' : 'd-none'} id="toolselection">
       <div className="mt-6 d-flex flex-row w-100" style={{ zIndex: 90 }}>
@@ -26,11 +22,7 @@ export default function ToolSelection({
             aria-label="Close"
             onClick={closeToolSelection}
           >
-            <XIcon
-              size="small"
-              verticalAlign="middle"
-              className="align-middle"
-            />
+            <XIcon size="small" verticalAlign="middle" className="align-middle" />
           </button>
           <SidebarResizer
             buttonName="toolSidebarDragButton"

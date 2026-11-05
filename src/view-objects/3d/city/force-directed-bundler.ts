@@ -83,9 +83,7 @@ export class ForceDirectedBundlerPaper {
       edge.subdivisionPoints = [];
       for (let i = 0; i < P; i++) {
         const t = (i + 1) / (P + 1);
-        edge.subdivisionPoints.push(
-          new THREE.Vector3().lerpVectors(edge.P0, edge.P1, t)
-        );
+        edge.subdivisionPoints.push(new THREE.Vector3().lerpVectors(edge.P0, edge.P1, t));
       }
     });
   }
@@ -95,9 +93,7 @@ export class ForceDirectedBundlerPaper {
     if (P === 0) return;
 
     const S = this.S0 / Math.pow(2, this.currentCycle);
-    const newPositions: THREE.Vector3[][] = this.edges.map((e) =>
-      e.subdivisionPoints.map((p) => p.clone())
-    );
+    const newPositions: THREE.Vector3[][] = this.edges.map((e) => e.subdivisionPoints.map((p) => p.clone()));
 
     for (let e = 0; e < this.edges.length; e++) {
       const edge = this.edges[e];
@@ -149,11 +145,7 @@ export class ForceDirectedBundlerPaper {
 
     this.edges.forEach((edge) => {
       const old = edge.subdivisionPoints;
-      const poly = [
-        edge.P0.clone(),
-        ...old.map((p) => p.clone()),
-        edge.P1.clone(),
-      ];
+      const poly = [edge.P0.clone(), ...old.map((p) => p.clone()), edge.P1.clone()];
 
       const newPoints: THREE.Vector3[] = [];
       for (let i = 0; i < poly.length - 1; i++) {
@@ -229,12 +221,7 @@ export class ForceDirectedBundlerPaper {
     return projLen / lenU;
   }
 
-  private clampedT(
-    P: PaperEdge,
-    x: THREE.Vector3,
-    u: THREE.Vector3,
-    lenUSq: number
-  ): number {
+  private clampedT(P: PaperEdge, x: THREE.Vector3, u: THREE.Vector3, lenUSq: number): number {
     const ux = x.clone().sub(P.P0);
     const t = ux.dot(u) / lenUSq;
     return Math.max(0, Math.min(1, t));

@@ -1,6 +1,4 @@
-export function getLabelRotation(
-  districtLabelPlacement: string
-): [number, number, number] {
+export function getLabelRotation(districtLabelPlacement: string): [number, number, number] {
   switch (districtLabelPlacement) {
     case 'top':
       return [-1.5 * Math.PI, -Math.PI, 0];

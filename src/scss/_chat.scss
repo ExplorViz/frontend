@@ -21,7 +21,9 @@
   border: 1px solid var(--chat-border);
   border-radius: var(--ev-radius-lg);
   overflow: hidden;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+  font-family:
+    -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif, 'Apple Color Emoji',
+    'Segoe UI Emoji', 'Segoe UI Symbol';
 
   h5 {
     padding: 1rem;
@@ -61,7 +63,8 @@
       transform: none;
     }
 
-    &.btn-danger, &.btn-clear-chat {
+    &.btn-danger,
+    &.btn-clear-chat {
       background: rgba(239, 68, 68, 0.1);
       border-color: rgba(239, 68, 68, 0.2);
       color: #f87171;
@@ -123,7 +126,7 @@
 
   &.selectable {
     cursor: pointer;
-    
+
     &:hover {
       transform: none;
       filter: none;
@@ -131,7 +134,8 @@
   }
 
   &.selected {
-    .Message, .event-message {
+    .Message,
+    .event-message {
       background: var(--bs-warning, #ffc107) !important;
       color: var(--bs-body-color, #212529) !important;
       box-shadow: none;
@@ -198,7 +202,8 @@
   opacity: 0.8;
 }
 
-.Message, .event-message {
+.Message,
+.event-message {
   position: relative;
   padding: 0.75rem 1rem;
   border-radius: var(--ev-radius-lg);
@@ -302,7 +307,7 @@
     font-size: 0.875rem;
     margin-bottom: 0.75rem;
     color: var(--chat-text-muted);
-    
+
     &:hover {
       color: var(--chat-text);
     }
@@ -329,7 +334,7 @@
       border-radius: var(--ev-radius-sm);
       padding: 0.4rem;
       font-size: 0.875rem;
-      
+
       &:focus {
         outline: 2px solid var(--bs-primary, #0d6efd);
         outline-offset: 2px;

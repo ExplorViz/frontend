@@ -23,9 +23,7 @@ const BAR_COLOR = 'rgba(70, 130, 180, 0.85)';
 const DEFAULT_WINDOW_POSITION = { left: 120, top: 80 };
 
 function sanitizeFilenamePart(value: string): string {
-  return (
-    value.replace(/[^a-z0-9-_]+/gi, '-').replace(/^-+|-+$/g, '') || 'unknown'
-  );
+  return value.replace(/[^a-z0-9-_]+/gi, '-').replace(/^-+|-+$/g, '') || 'unknown';
 }
 
 function buildCommitStatisticsImageFilename(
@@ -34,9 +32,7 @@ function buildCommitStatisticsImageFilename(
   statisticsView: CommitStatisticsView
 ): string {
   const viewLabel =
-    COMMIT_STATISTICS_VIEW_OPTIONS.find(
-      (option) => option.value === statisticsView
-    )?.label ?? statisticsView;
+    COMMIT_STATISTICS_VIEW_OPTIONS.find((option) => option.value === statisticsView)?.label ?? statisticsView;
 
   const repoPart =
     repoNames.length === 0
@@ -47,9 +43,7 @@ function buildCommitStatisticsImageFilename(
           ? repoNames.join('_')
           : `${repoNames.length}-repositories`;
 
-  const uniqueBranchNames = [...new Set(branchNames)].sort((left, right) =>
-    left.localeCompare(right)
-  );
+  const uniqueBranchNames = [...new Set(branchNames)].sort((left, right) => left.localeCompare(right));
   const branchPart =
     uniqueBranchNames.length === 0
       ? 'unknown'
@@ -86,43 +80,27 @@ export default function CommitStatisticsWindow({
   const fetchAndStoreRepositoryCommitTrees = useEvolutionDataRepositoryStore(
     (state) => state.fetchAndStoreRepositoryCommitTrees
   );
-  const repoNameToSelectedBranchNameMap = useCommitTreeStateStore(
-    (state) => state._repoNameToSelectedBranchNameMap
-  );
-  const setSelectedBranchNameForRepo = useCommitTreeStateStore(
-    (state) => state.setSelectedBranchNameForRepo
-  );
+  const repoNameToSelectedBranchNameMap = useCommitTreeStateStore((state) => state._repoNameToSelectedBranchNameMap);
+  const setSelectedBranchNameForRepo = useCommitTreeStateStore((state) => state.setSelectedBranchNameForRepo);
 
   const repositoryNames = useMemo(
-    () =>
-      [...repoNameCommitTreeMap.keys()].sort((left, right) =>
-        left.localeCompare(right)
-      ),
+    () => [...repoNameCommitTreeMap.keys()].sort((left, right) => left.localeCompare(right)),
     [repoNameCommitTreeMap]
   );
 
-  const [selectedRepoNames, setSelectedRepoNames] = useState<Set<string>>(
-    () => {
-      const initialSelection = repositoryNames.includes(initialRepoName)
-        ? initialRepoName
-        : (repositoryNames[0] ?? '');
-      return initialSelection ? new Set([initialSelection]) : new Set();
-    }
-  );
+  const [selectedRepoNames, setSelectedRepoNames] = useState<Set<string>>(() => {
+    const initialSelection = repositoryNames.includes(initialRepoName) ? initialRepoName : (repositoryNames[0] ?? '');
+    return initialSelection ? new Set([initialSelection]) : new Set();
+  });
   const [dateFrom, setDateFrom] = useState('');
   const [dateTo, setDateTo] = useState('');
-  const [statisticsView, setStatisticsView] =
-    useState<CommitStatisticsView>('timeOfDay');
+  const [statisticsView, setStatisticsView] = useState<CommitStatisticsView>('timeOfDay');
   const [colorByAuthor, setColorByAuthor] = useState(false);
-  const [selectedAuthorKeys, setSelectedAuthorKeys] = useState<Set<string>>(
-    new Set()
-  );
+  const [selectedAuthorKeys, setSelectedAuthorKeys] = useState<Set<string>>(() => new Set());
   const [isDownloadingImage, setIsDownloadingImage] = useState(false);
 
   const selectedRepoNamesList = useMemo(() => {
-    const selected = repositoryNames.filter((repoName) =>
-      selectedRepoNames.has(repoName)
-    );
+    const selected = repositoryNames.filter((repoName) => selectedRepoNames.has(repoName));
 
     if (selected.length > 0) {
       return selected;
@@ -132,16 +110,11 @@ export default function CommitStatisticsWindow({
       return [];
     }
 
-    const fallback = repositoryNames.includes(initialRepoName)
-      ? initialRepoName
-      : repositoryNames[0];
+    const fallback = repositoryNames.includes(initialRepoName) ? initialRepoName : repositoryNames[0];
     return [fallback];
   }, [repositoryNames, selectedRepoNames, initialRepoName]);
 
-  const selectedRepoNamesSet = useMemo(
-    () => new Set(selectedRepoNamesList),
-    [selectedRepoNamesList]
-  );
+  const selectedRepoNamesSet = useMemo(() => new Set(selectedRepoNamesList), [selectedRepoNamesList]);
 
   const selectedRepoBranchAssignments = useMemo(
     () =>
@@ -157,9 +130,7 @@ export default function CommitStatisticsWindow({
       selectedRepoNamesList
         .map((repoName) => ({
           repoName,
-          branches: getBranchesWithCommits(
-            repoNameCommitTreeMap.get(repoName)
-          ),
+          branches: getBranchesWithCommits(repoNameCommitTreeMap.get(repoName)),
         }))
         .filter(({ branches }) => branches.length > 1),
     [selectedRepoNamesList, repoNameCommitTreeMap]
@@ -172,9 +143,7 @@ export default function CommitStatisticsWindow({
       selectedRepoBranchAssignments.filter(
         ({ repoName, branchName }) =>
           branchName !== '' &&
-          repoNameCommitTreeMap
-            .get(repoName)
-            ?.branches.some((branch) => branch.name === branchName)
+          repoNameCommitTreeMap.get(repoName)?.branches.some((branch) => branch.name === branchName)
       ).length,
     [repoNameCommitTreeMap, selectedRepoBranchAssignments]
   );
@@ -186,13 +155,7 @@ export default function CommitStatisticsWindow({
       repoNameToSelectedBranchNameMap
     );
     return filterCommitsByDateRange(branchCommits, dateFrom, dateTo);
-  }, [
-    repoNameCommitTreeMap,
-    selectedRepoNamesList,
-    repoNameToSelectedBranchNameMap,
-    dateFrom,
-    dateTo,
-  ]);
+  }, [repoNameCommitTreeMap, selectedRepoNamesList, repoNameToSelectedBranchNameMap, dateFrom, dateTo]);
 
   const toggleRepository = (repoName: string) => {
     const nextSelection = new Set(selectedRepoNamesList);
@@ -214,9 +177,7 @@ export default function CommitStatisticsWindow({
   };
 
   const selectOnlyInitialRepository = () => {
-    const fallback = repositoryNames.includes(initialRepoName)
-      ? initialRepoName
-      : (repositoryNames[0] ?? '');
+    const fallback = repositoryNames.includes(initialRepoName) ? initialRepoName : (repositoryNames[0] ?? '');
     setSelectedRepoNames(fallback ? new Set([fallback]) : new Set());
   };
 
@@ -229,21 +190,15 @@ export default function CommitStatisticsWindow({
     [filteredCommits, statisticsView, dateFrom, dateTo]
   );
 
-  const hasAuthorData = useMemo(
-    () => commitsHaveAuthorData(filteredCommits),
-    [filteredCommits]
-  );
+  const hasAuthorData = useMemo(() => commitsHaveAuthorData(filteredCommits), [filteredCommits]);
 
   const authorSeriesKey = useMemo(
-    () =>
-      chartData.authorSeries?.map((series) => series.authorKey).join('|') ?? '',
+    () => chartData.authorSeries?.map((series) => series.authorKey).join('|') ?? '',
     [chartData.authorSeries]
   );
 
   useEffect(() => {
-    setSelectedAuthorKeys(
-      new Set(chartData.authorSeries?.map((series) => series.authorKey) ?? [])
-    );
+    setSelectedAuthorKeys(new Set(chartData.authorSeries?.map((series) => series.authorKey) ?? []));
   }, [authorSeriesKey]);
 
   const displayChartData = useMemo(() => {
@@ -267,9 +222,7 @@ export default function CommitStatisticsWindow({
   };
 
   const selectAllAuthors = () => {
-    setSelectedAuthorKeys(
-      new Set(chartData.authorSeries?.map((series) => series.authorKey) ?? [])
-    );
+    setSelectedAuthorKeys(new Set(chartData.authorSeries?.map((series) => series.authorKey) ?? []));
   };
 
   const deselectAllAuthors = () => {
@@ -277,21 +230,13 @@ export default function CommitStatisticsWindow({
   };
 
   useEffect(() => {
-    if (
-      hasAttemptedAuthorRefetch.current ||
-      hasAuthorData ||
-      filteredCommits.length === 0
-    ) {
+    if (hasAttemptedAuthorRefetch.current || hasAuthorData || filteredCommits.length === 0) {
       return;
     }
 
     hasAttemptedAuthorRefetch.current = true;
     void fetchAndStoreRepositoryCommitTrees();
-  }, [
-    fetchAndStoreRepositoryCommitTrees,
-    filteredCommits.length,
-    hasAuthorData,
-  ]);
+  }, [fetchAndStoreRepositoryCommitTrees, filteredCommits.length, hasAuthorData]);
 
   useLayoutEffect(() => {
     const windowElement = windowRef.current;
@@ -353,17 +298,11 @@ export default function CommitStatisticsWindow({
 
     const nextLeft = Math.max(
       0,
-      Math.min(
-        windowElement.offsetLeft - diffX,
-        window.innerWidth - windowElement.offsetWidth
-      )
+      Math.min(windowElement.offsetLeft - diffX, window.innerWidth - windowElement.offsetWidth)
     );
     const nextTop = Math.max(
       0,
-      Math.min(
-        windowElement.offsetTop - diffY,
-        window.innerHeight - windowElement.offsetHeight
-      )
+      Math.min(windowElement.offsetTop - diffY, window.innerHeight - windowElement.offsetHeight)
     );
 
     windowElement.style.left = `${nextLeft}px`;
@@ -398,9 +337,7 @@ export default function CommitStatisticsWindow({
         format: 'png',
         filename: buildCommitStatisticsImageFilename(
           selectedRepoNamesList,
-          selectedRepoBranchAssignments
-            .map((assignment) => assignment.branchName)
-            .filter(Boolean),
+          selectedRepoBranchAssignments.map((assignment) => assignment.branchName).filter(Boolean),
           statisticsView
         ),
         width: Math.max(chartElement.offsetWidth, 800),
@@ -421,14 +358,8 @@ export default function CommitStatisticsWindow({
       aria-labelledby="commit-statistics-window-title"
       aria-modal="false"
     >
-      <div
-        className="commit-statistics-window-header"
-        onPointerDown={dragStart}
-      >
-        <h2
-          id="commit-statistics-window-title"
-          className="commit-statistics-window-title"
-        >
+      <div className="commit-statistics-window-header" onPointerDown={dragStart}>
+        <h2 id="commit-statistics-window-title" className="commit-statistics-window-title">
           Commit Statistics
         </h2>
         <Button
@@ -447,9 +378,7 @@ export default function CommitStatisticsWindow({
       <div className="commit-statistics-window-controls">
         <div className="commit-statistics-window-repo-panel commit-statistics-window-control--full">
           <div className="commit-statistics-window-repo-toolbar">
-            <span className="commit-statistics-window-control-label">
-              Repositories
-            </span>
+            <span className="commit-statistics-window-control-label">Repositories</span>
             <div className="commit-statistics-window-repo-actions">
               <Button
                 type="button"
@@ -468,9 +397,7 @@ export default function CommitStatisticsWindow({
                 disabled={
                   selectedRepoNamesSet.size === 1 &&
                   selectedRepoNamesSet.has(
-                    repositoryNames.includes(initialRepoName)
-                      ? initialRepoName
-                      : (repositoryNames[0] ?? '')
+                    repositoryNames.includes(initialRepoName) ? initialRepoName : (repositoryNames[0] ?? '')
                   )
                 }
               >
@@ -478,21 +405,14 @@ export default function CommitStatisticsWindow({
               </Button>
             </div>
           </div>
-          <div
-            className="commit-statistics-window-repo-list"
-            role="group"
-            aria-label="Select repositories"
-          >
+          <div className="commit-statistics-window-repo-list" role="group" aria-label="Select repositories">
             {repositoryNames.map((repoName) => (
               <Form.Check
                 key={repoName}
                 type="checkbox"
                 id={`commit-statistics-repo-${repoName}`}
                 checked={selectedRepoNamesSet.has(repoName)}
-                disabled={
-                  selectedRepoNamesSet.has(repoName) &&
-                  selectedRepoNamesSet.size === 1
-                }
+                disabled={selectedRepoNamesSet.has(repoName) && selectedRepoNamesSet.size === 1}
                 onChange={() => toggleRepository(repoName)}
                 label={repoName}
               />
@@ -502,34 +422,18 @@ export default function CommitStatisticsWindow({
 
         {showBranchSelection && (
           <div className="commit-statistics-window-branch-panel commit-statistics-window-control--full">
-            <span className="commit-statistics-window-control-label">
-              Branches
-            </span>
+            <span className="commit-statistics-window-control-label">Branches</span>
             <div
               className="commit-statistics-window-branch-list"
               role="group"
               aria-label="Select branch per repository"
             >
               {reposWithBranchChoice.map(({ repoName, branches }) => (
-                <label
-                  key={repoName}
-                  className="commit-statistics-window-branch-row"
-                >
-                  <span className="commit-statistics-window-branch-repo">
-                    {repoName}
-                  </span>
+                <label key={repoName} className="commit-statistics-window-branch-row">
+                  <span className="commit-statistics-window-branch-repo">{repoName}</span>
                   <select
-                    value={
-                      repoNameToSelectedBranchNameMap.get(repoName) ??
-                      branches[0]?.name ??
-                      ''
-                    }
-                    onChange={(event) =>
-                      setSelectedBranchNameForRepo(
-                        repoName,
-                        event.target.value
-                      )
-                    }
+                    value={repoNameToSelectedBranchNameMap.get(repoName) ?? branches[0]?.name ?? ''}
+                    onChange={(event) => setSelectedBranchNameForRepo(repoName, event.target.value)}
                     aria-label={`Select branch for ${repoName}`}
                     className="commit-statistics-window-control-input"
                   >
@@ -571,9 +475,7 @@ export default function CommitStatisticsWindow({
           <span className="commit-statistics-window-control-label">Chart</span>
           <select
             value={statisticsView}
-            onChange={(event) =>
-              setStatisticsView(event.target.value as CommitStatisticsView)
-            }
+            onChange={(event) => setStatisticsView(event.target.value as CommitStatisticsView)}
             aria-label="Select statistics chart"
             className="commit-statistics-window-control-input"
           >
@@ -586,9 +488,7 @@ export default function CommitStatisticsWindow({
         </label>
 
         <label className="commit-statistics-window-control commit-statistics-window-control--full commit-statistics-window-control--checkbox">
-          <span className="commit-statistics-window-control-label">
-            Authors
-          </span>
+          <span className="commit-statistics-window-control-label">Authors</span>
           <span className="commit-statistics-window-checkbox">
             <input
               type="checkbox"
@@ -606,18 +506,14 @@ export default function CommitStatisticsWindow({
         {colorByAuthor && hasAuthorData && chartData.authorSeries && (
           <div className="commit-statistics-window-author-panel commit-statistics-window-control--full">
             <div className="commit-statistics-window-author-toolbar">
-              <span className="commit-statistics-window-control-label">
-                Filter
-              </span>
+              <span className="commit-statistics-window-control-label">Filter</span>
               <div className="commit-statistics-window-author-actions">
                 <Button
                   type="button"
                   size="sm"
                   variant="outline-secondary"
                   onClick={selectAllAuthors}
-                  disabled={
-                    selectedAuthorKeys.size === chartData.authorSeries.length
-                  }
+                  disabled={selectedAuthorKeys.size === chartData.authorSeries.length}
                 >
                   Select All
                 </Button>
@@ -634,10 +530,7 @@ export default function CommitStatisticsWindow({
             </div>
             <div className="commit-statistics-window-author-list">
               {chartData.authorSeries.map((series) => {
-                const totalCommits = series.values.reduce(
-                  (sum, value) => sum + value,
-                  0
-                );
+                const totalCommits = series.values.reduce((sum, value) => sum + value, 0);
 
                 return (
                   <Form.Check
@@ -653,9 +546,7 @@ export default function CommitStatisticsWindow({
                           style={{ backgroundColor: series.color }}
                           aria-hidden="true"
                         />
-                        <span className="commit-statistics-window-author-name">
-                          {series.label}
-                        </span>
+                        <span className="commit-statistics-window-author-name">{series.label}</span>
                         <span className="commit-statistics-window-author-count">
                           {totalCommits.toLocaleString('en-US')}
                         </span>

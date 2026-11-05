@@ -6,9 +6,7 @@ import * as THREE from 'three';
 import { Text as TroikaText } from 'troika-three-text';
 import ThreeMeshUI from 'three-mesh-ui';
 
-export function defaultRaycastFilter(
-  intersection: THREE.Intersection
-): boolean {
+export function defaultRaycastFilter(intersection: THREE.Intersection): boolean {
   return !(
     intersection.object instanceof TroikaText ||
     intersection.object instanceof PingMesh ||
@@ -90,11 +88,7 @@ export default class Raycaster extends THREE.Raycaster {
     return null;
   }
 
-  raycastMinimapMarkers(
-    camera: THREE.OrthographicCamera,
-    coords: { x: number; y: number },
-    userList: THREE.Mesh[]
-  ) {
+  raycastMinimapMarkers(camera: THREE.OrthographicCamera, coords: { x: number; y: number }, userList: THREE.Mesh[]) {
     this.setFromCamera(new THREE.Vector2(coords.x, coords.y), camera);
     userList.forEach((mesh: THREE.Mesh) => {
       mesh.layers.enable(useVisualizationStore.getState().sceneLayers.Default);

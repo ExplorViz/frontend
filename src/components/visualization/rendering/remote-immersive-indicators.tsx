@@ -57,29 +57,16 @@ function IndicatorSphere({
     rootGroupRef.current.getWorldScale(worldScale);
 
     if (worldScale.x > 0 && worldScale.y > 0 && worldScale.z > 0) {
-      scaleWrapperRef.current.scale.set(
-        1 / worldScale.x,
-        1 / worldScale.y,
-        1 / worldScale.z
-      );
+      scaleWrapperRef.current.scale.set(1 / worldScale.x, 1 / worldScale.y, 1 / worldScale.z);
     }
   });
 
   return (
-    <group
-      ref={rootGroupRef}
-      position={[buildingPosition.x, roofY, buildingPosition.z]}
-    >
+    <group ref={rootGroupRef} position={[buildingPosition.x, roofY, buildingPosition.z]}>
       <group ref={scaleWrapperRef}>
         <mesh ref={sphereRef} position={[0, 1.25, 0]}>
           <sphereGeometry args={[0.25, 32, 32]} />
-          <meshStandardMaterial
-            color={color}
-            transparent
-            opacity={0.8}
-            emissive={color}
-            emissiveIntensity={0.6}
-          />
+          <meshStandardMaterial color={color} transparent opacity={0.8} emissive={color} emissiveIntensity={0.6} />
         </mesh>
 
         <mesh position={[0, 0.5, 0]}>

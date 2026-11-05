@@ -36,12 +36,7 @@ export default class Spheres {
   }
 }
 
-export function addSpheres(
-  color: string,
-  position: THREE.Vector3,
-  scene: THREE.Scene,
-  tickCallbacks: TickCallback[]
-) {
+export function addSpheres(color: string, position: THREE.Vector3, scene: THREE.Scene, tickCallbacks: TickCallback[]) {
   const spheres = new Spheres(color, position);
   scene.add(...spheres.spheres);
   tickCallbacks.push({ id: 'sphere', callback: spheres.tick.bind(spheres) });

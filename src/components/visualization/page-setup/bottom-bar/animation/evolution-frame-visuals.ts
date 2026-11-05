@@ -1,8 +1,5 @@
 import { decodeDeltaFrame } from 'explorviz-frontend/src/components/visualization/page-setup/bottom-bar/animation/evolution-delta-decoder';
-import {
-  AnimationDeltaFrame,
-  AnimationFrame,
-} from 'explorviz-frontend/src/utils/landscape-schemes/animation';
+import { AnimationDeltaFrame, AnimationFrame } from 'explorviz-frontend/src/utils/landscape-schemes/animation';
 import {
   Building,
   CommitComparison,
@@ -36,15 +33,10 @@ export function computeEvolutionFrameVisuals(
   if (!stableFrame) return null;
 
   if (input.deltaMode) {
-    const decoded = decodeDeltaFrame(
-      input.deltaFrames,
-      currentFrameIndex,
-      input.keepRemovedVisible
-    );
+    const decoded = decodeDeltaFrame(input.deltaFrames, currentFrameIndex, input.keepRemovedVisible);
     if (!decoded) return null;
 
-    const currentDate =
-      input.deltaFrames.get(currentFrameIndex)?.authorDate ?? 0;
+    const currentDate = input.deltaFrames.get(currentFrameIndex)?.authorDate ?? 0;
     const visuals = new Map<string, EvolutionBuildingVisualState>();
 
     Object.keys(stableFrame.buildings).forEach((id) => {
@@ -56,8 +48,7 @@ export function computeEvolutionFrameVisuals(
         const raw =
           input.timeMode === 'time'
             ? (currentDate - fileState.lastChangeDate) / input.agingMs
-            : (currentFrameIndex - fileState.lastChangeIndex) /
-              input.agingCommits;
+            : (currentFrameIndex - fileState.lastChangeIndex) / input.agingCommits;
         agingFactor = Math.min(1, Math.max(0, raw));
       }
 
@@ -95,10 +86,7 @@ export function computeEvolutionFrameVisuals(
       }
       Object.values(past.landscape.buildings).forEach((b) => {
         if (!b.fqn || lastChangeByFqn.has(b.fqn)) return;
-        if (
-          b.commitComparison === 'ADDED' ||
-          b.commitComparison === 'MODIFIED'
-        ) {
+        if (b.commitComparison === 'ADDED' || b.commitComparison === 'MODIFIED') {
           lastChangeByFqn.set(b.fqn, i);
         }
       });
@@ -109,17 +97,10 @@ export function computeEvolutionFrameVisuals(
       if (changeIdx === undefined) {
         factor = 1;
       } else if (input.timeMode === 'time') {
-        const changeTs =
-          input.loadedFrames.get(changeIdx)?.authorDate ?? currentTs;
-        factor = Math.min(
-          1,
-          Math.max(0, (currentTs - changeTs) / input.agingMs)
-        );
+        const changeTs = input.loadedFrames.get(changeIdx)?.authorDate ?? currentTs;
+        factor = Math.min(1, Math.max(0, (currentTs - changeTs) / input.agingMs));
       } else {
-        factor = Math.min(
-          1,
-          Math.max(0, (currentFrameIndex - changeIdx) / input.agingCommits)
-        );
+        factor = Math.min(1, Math.max(0, (currentFrameIndex - changeIdx) / input.agingCommits));
       }
       agingFactorByFqn.set(fqn, factor);
     });
@@ -128,20 +109,13 @@ export function computeEvolutionFrameVisuals(
   const visuals = new Map<string, EvolutionBuildingVisualState>();
   Object.keys(stableFrame.buildings).forEach((id) => {
     const fqn = stableFrame.buildings[id].fqn;
-    const currentBuilding = fqn
-      ? currentFrameByFqn.get(fqn)
-      : frame.buildings[id];
+    const currentBuilding = fqn ? currentFrameByFqn.get(fqn) : frame.buildings[id];
     const existsInCurrentFrame = !!currentBuilding;
 
     visuals.set(id, {
       isPlaceholder: !existsInCurrentFrame,
-      commitComparison: existsInCurrentFrame
-        ? (currentBuilding?.commitComparison ?? 'UNCHANGED')
-        : undefined,
-      agingFactor:
-        existsInCurrentFrame && input.agingEnabled && fqn
-          ? (agingFactorByFqn.get(fqn) ?? 0)
-          : undefined,
+      commitComparison: existsInCurrentFrame ? (currentBuilding?.commitComparison ?? 'UNCHANGED') : undefined,
+      agingFactor: existsInCurrentFrame && input.agingEnabled && fqn ? (agingFactorByFqn.get(fqn) ?? 0) : undefined,
     });
   });
 
@@ -192,9 +166,7 @@ export function mergeEvolutionVisualStates(
   };
 }
 
-export function buildMergedFlatLandscape(
-  input: EvolutionFrameVisualInput
-): FlatLandscape | null {
+export function buildMergedFlatLandscape(input: EvolutionFrameVisualInput): FlatLandscape | null {
   const { stableFrame } = input;
   if (!stableFrame) return null;
 

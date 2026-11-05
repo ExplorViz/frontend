@@ -96,10 +96,7 @@ interface LandscapeRestructureState {
   allAggregatedCommunications: AggregatedCommunication[]; // tracked
   copiedAggregatedCommunications: Map<string, AggregatedCommunication[]>; // tracked
   updatedAggregatedCommunications: Map<string, AggregatedCommunication[]>; // tracked
-  completelyDeletedAggregatedCommunications: Map<
-    string,
-    AggregatedCommunication[]
-  >; // tracked
+  completelyDeletedAggregatedCommunications: Map<string, AggregatedCommunication[]>; // tracked
   deletedAggregatedCommunications: AggregatedCommunication[]; // tracked
   sourceClass: Class | null; // tracked
   targetClass: Class | null; // tracked
@@ -107,82 +104,34 @@ interface LandscapeRestructureState {
   setSourceOrTargetClass: (type: string) => void;
   setCommunicationSourceClass: (clazz: Class | null) => void;
   setCommunicationTargetClass: (clazz: Class | null) => void;
-  addCollaborativeCommunication: (
-    sourceClassId: string,
-    targetClassId: string,
-    methodName: string
-  ) => void;
+  addCollaborativeCommunication: (sourceClassId: string, targetClassId: string, methodName: string) => void;
   addCommunication: (methodName: string, collabMode?: boolean) => void;
-  deleteCommunication: (
-    comm: AggregatedCommunication,
-    undo?: boolean,
-    collabMode?: boolean
-  ) => void;
+  deleteCommunication: (comm: AggregatedCommunication, undo?: boolean, collabMode?: boolean) => void;
   toggleRestructureMode: () => void;
   toggleRestructureModeLocally: () => Promise<void>;
   setLandscapeData: (newData: LandscapeData | null) => void;
   duplicateApp: (app: Application, collabMode?: boolean) => void;
-  renameApplication: (
-    name: string,
-    id: string,
-    collabMode?: boolean,
-    undo?: boolean
-  ) => void;
-  renamePackage: (
-    name: string,
-    id: string,
-    collabMode?: boolean,
-    undo?: boolean
-  ) => void;
-  renameSubPackage: (
-    name: string,
-    id: string,
-    collabMode?: boolean,
-    undo?: boolean
-  ) => void;
+  renameApplication: (name: string, id: string, collabMode?: boolean, undo?: boolean) => void;
+  renamePackage: (name: string, id: string, collabMode?: boolean, undo?: boolean) => void;
+  renameSubPackage: (name: string, id: string, collabMode?: boolean, undo?: boolean) => void;
   getAppFromPackage: (pckg: Package) => Application | undefined;
-  renameClass: (
-    name: string,
-    id: string,
-    appId: string,
-    collabMode?: boolean,
-    undo?: boolean
-  ) => void;
+  renameClass: (name: string, id: string, appId: string, collabMode?: boolean, undo?: boolean) => void;
   renameOperation: (
     communication: AggregatedCommunication,
     newName: string,
     collabMode?: boolean,
     undo?: boolean
   ) => void;
-  restoreApplication: (
-    app: Application,
-    undoCutOperation: boolean,
-    collabMode?: boolean
-  ) => void;
-  restorePackage: (
-    pckg: Package,
-    undoCutOperation: boolean,
-    collabMode?: boolean
-  ) => void;
-  restoreClass: (
-    app: Application,
-    clazz: Class,
-    undoCutOperation: boolean,
-    collabMode?: boolean
-  ) => void;
+  restoreApplication: (app: Application, undoCutOperation: boolean, collabMode?: boolean) => void;
+  restorePackage: (pckg: Package, undoCutOperation: boolean, collabMode?: boolean) => void;
+  restoreClass: (app: Application, clazz: Class, undoCutOperation: boolean, collabMode?: boolean) => void;
   removeInsertTexture: (element: Package) => void;
   undoDuplicateApp: (app: Application) => void;
   undoCopyPackage: (app: Application, pckg: Package) => void;
   undoCopyClass: (app: Application, clazz: Class) => void;
-  addApplication: (
-    appName: string,
-    language: string,
-    collabMode?: boolean
-  ) => void;
+  addApplication: (appName: string, language: string, collabMode?: boolean) => void;
   applyColorMappings: () => void;
-  _getCommMesh: (
-    elem: CommModelColorMapping
-  ) => ClazzCommunicationMesh | undefined;
+  _getCommMesh: (elem: CommModelColorMapping) => ClazzCommunicationMesh | undefined;
   applyTextureMappings: () => void;
   _findAppliedTexture: (
     elem: Application | Package | Class,
@@ -208,15 +157,8 @@ interface LandscapeRestructureState {
   cutPackage: (pckg: Package) => void;
   cutClass: (clazz: Class) => void;
   resetClipboard: () => void;
-  pasteCollaborativePackage: (
-    destinationEntity: string,
-    destinationId: string,
-    clippedEntityId: string
-  ) => void;
-  pasteCollaborativeClass: (
-    destinationId: string,
-    clippedEntityId: string
-  ) => void;
+  pasteCollaborativePackage: (destinationEntity: string, destinationId: string, clippedEntityId: string) => void;
+  pasteCollaborativeClass: (destinationId: string, clippedEntityId: string) => void;
   insertCollaborativePackagerOrClass: (
     detinationEntity: string,
     destinationId: string,
@@ -224,15 +166,9 @@ interface LandscapeRestructureState {
     clippedEntityId: string
   ) => void;
   getApp(appChild: Package | Class): Application | undefined;
-  pastePackage: (
-    destination: Application | Package,
-    collabMode?: boolean
-  ) => void;
+  pastePackage: (destination: Application | Package, collabMode?: boolean) => void;
   pasteClass: (destination: Package, collabMode?: boolean) => void;
-  movePackageOrClass(
-    destination: Application | Package,
-    collabMode?: boolean
-  ): void;
+  movePackageOrClass(destination: Application | Package, collabMode?: boolean): void;
   undoBundledEntries(bundledCreateEntries: BaseChangeLogEntry[]): void;
   undoEntry: (entry: BaseChangeLogEntry) => void;
   removeMeshModelTextureMapping: (
@@ -245,1407 +181,486 @@ interface LandscapeRestructureState {
   _sendCutInsertMessage(destination: Application | Package): void;
   removeCopiedAggregatedCommunication: (key: string) => void;
   setCanvas: (canvas: HTMLCanvasElement) => void;
-  setAllAggregatedCommunications: (
-    allAggregatedCommunications: AggregatedCommunication[]
-  ) => void;
+  setAllAggregatedCommunications: (allAggregatedCommunications: AggregatedCommunication[]) => void;
   _addOriginOfData: (entity: Package) => Package;
 }
 
-export const useLandscapeRestructureStore = create<LandscapeRestructureState>(
-  (set, get) => ({
-    restructureMode: false,
-    landscapeData: null,
-    meshModelTextureMappings: [],
-    commModelColorMappings: [],
-    deletedDataModels: [],
-    newMeshCounter: 1,
-    canvas: undefined,
-    clipboard: '',
-    clippedMesh: null,
-    createdAggregatedCommunication: [],
-    allAggregatedCommunications: [],
-    copiedAggregatedCommunications: new Map<
-      string,
-      AggregatedCommunication[]
-    >(),
-    removeCopiedAggregatedCommunication,
-    updatedAggregatedCommunications: new Map<
-      string,
-      AggregatedCommunication[]
-    >(),
-    completelyDeletedAggregatedCommunications: new Map<
-      string,
-      AggregatedCommunication[]
-    >(),
-    deletedAggregatedCommunications: [],
-    sourceClass: null,
-    targetClass: null,
+export const useLandscapeRestructureStore = create<LandscapeRestructureState>((set, get) => ({
+  restructureMode: false,
+  landscapeData: null,
+  meshModelTextureMappings: [],
+  commModelColorMappings: [],
+  deletedDataModels: [],
+  newMeshCounter: 1,
+  canvas: undefined,
+  clipboard: '',
+  clippedMesh: null,
+  createdAggregatedCommunication: [],
+  allAggregatedCommunications: [],
+  copiedAggregatedCommunications: new Map<string, AggregatedCommunication[]>(),
+  removeCopiedAggregatedCommunication,
+  updatedAggregatedCommunications: new Map<string, AggregatedCommunication[]>(),
+  completelyDeletedAggregatedCommunications: new Map<string, AggregatedCommunication[]>(),
+  deletedAggregatedCommunications: [],
+  sourceClass: null,
+  targetClass: null,
 
-    resetLandscapeRestructure: () => {
+  resetLandscapeRestructure: () => {
+    set({
+      restructureMode: false,
+      landscapeData: null,
+      newMeshCounter: 1,
+      meshModelTextureMappings: [],
+      commModelColorMappings: [],
+      deletedDataModels: [],
+      clipboard: '',
+      clippedMesh: null,
+      createdAggregatedCommunication: [],
+      allAggregatedCommunications: [],
+      copiedAggregatedCommunications: new Map(),
+      updatedAggregatedCommunications: new Map(),
+      completelyDeletedAggregatedCommunications: new Map(),
+      deletedAggregatedCommunications: [],
+      sourceClass: null,
+      targetClass: null,
+    });
+    useChangelogStore.getState().resetChangeLog();
+    eventEmitter.emit('showChangeLog');
+  },
+
+  setSourceOrTargetClass: (type: string) => {
+    if (type == 'source' && isClass(get().clippedMesh)) set({ sourceClass: get().clippedMesh });
+    else if (type == 'target' && isClass(get().clippedMesh)) set({ targetClass: get().clippedMesh });
+  },
+
+  setCommunicationSourceClass: (clazz: Class | null) => {
+    set({ sourceClass: clazz });
+  },
+
+  setCommunicationTargetClass: (clazz: Class | null) => {
+    set({ targetClass: clazz });
+  },
+
+  addCollaborativeCommunication: (sourceClassId: string, targetClassId: string, methodName: string) => {
+    set({
+      sourceClass: getClassById(
+        get().landscapeData?.structureLandscapeData as StructureLandscapeData,
+        sourceClassId
+      ) as Class,
+    });
+    set({
+      targetClass: getClassById(
+        get().landscapeData?.structureLandscapeData as StructureLandscapeData,
+        targetClassId
+      ) as Class,
+    });
+    get().addCommunication(methodName, true);
+  },
+
+  addCommunication: (methodName: string, collabMode: boolean = false) => {
+    if (methodName === '' || get().sourceClass === null || get().targetClass === null) {
+      useToastHandlerStore.getState().showErrorToastMessage('Missing communication data');
+      return;
+    }
+
+    if (get().sourceClass === get().targetClass) {
+      useToastHandlerStore.getState().showErrorToastMessage('Select 2 different classes');
+      return;
+    }
+
+    if (!collabMode)
+      useMessageSenderStore
+        .getState()
+        .sendRestructureCommunicationMessage(
+          get().sourceClass?.id as string,
+          get().targetClass?.id as string,
+          methodName
+        );
+
+    if (get().sourceClass && get().targetClass && get().landscapeData?.structureLandscapeData) {
+      const sourceApp = getApplicationFromClass(get().landscapeData!.structureLandscapeData, get().sourceClass!);
+      const targetApp = getApplicationFromClass(get().landscapeData!.structureLandscapeData, get().targetClass!);
+
+      addMethodToClass(get().targetClass!, methodName);
+
+      // Create model of communication between two classes
+      const classCommunication: AggregatedCommunication = {
+        id: get().sourceClass!.name + ' => ' + get().targetClass!.name + '|' + methodName,
+        methodCalls: [],
+        isRecursive: get().sourceClass!.id === get().targetClass!.id,
+        isBidirectional: false,
+        totalRequests: 1,
+        metrics: { normalizedRequestCount: 1 },
+        sourceClass: get().sourceClass!,
+        targetClass: get().targetClass!,
+        operationName: methodName,
+        sourceApp: sourceApp!,
+        targetApp: targetApp!,
+        addMethodCalls: () => {},
+        getClasses: () => [get().sourceClass!, get().targetClass!],
+      };
+
+      // Create the Changelog Entry
+      useChangelogStore.getState().communicationEntry(classCommunication);
+
       set({
-        restructureMode: false,
-        landscapeData: null,
-        newMeshCounter: 1,
-        meshModelTextureMappings: [],
-        commModelColorMappings: [],
-        deletedDataModels: [],
-        clipboard: '',
-        clippedMesh: null,
-        createdAggregatedCommunication: [],
-        allAggregatedCommunications: [],
-        copiedAggregatedCommunications: new Map(),
-        updatedAggregatedCommunications: new Map(),
-        completelyDeletedAggregatedCommunications: new Map(),
-        deletedAggregatedCommunications: [],
-        sourceClass: null,
-        targetClass: null,
+        createdAggregatedCommunication: [...get().createdAggregatedCommunication, classCommunication],
       });
-      useChangelogStore.getState().resetChangeLog();
+
+      set({
+        commModelColorMappings: [
+          ...get().commModelColorMappings,
+          {
+            action: RestructureAction.Communication,
+            comm: classCommunication,
+            color: new THREE.Color(0xbc42f5),
+          },
+        ],
+      });
       eventEmitter.emit('showChangeLog');
-    },
+      eventEmitter.emit(
+        'restructureLandscapeData',
+        get().landscapeData?.structureLandscapeData,
+        get().landscapeData?.dynamicLandscapeData
+      );
+    }
+  },
 
-    setSourceOrTargetClass: (type: string) => {
-      if (type == 'source' && isClass(get().clippedMesh))
-        set({ sourceClass: get().clippedMesh });
-      else if (type == 'target' && isClass(get().clippedMesh))
-        set({ targetClass: get().clippedMesh });
-    },
-
-    setCommunicationSourceClass: (clazz: Class | null) => {
-      set({ sourceClass: clazz });
-    },
-
-    setCommunicationTargetClass: (clazz: Class | null) => {
-      set({ targetClass: clazz });
-    },
-
-    addCollaborativeCommunication: (
-      sourceClassId: string,
-      targetClassId: string,
-      methodName: string
-    ) => {
-      set({
-        sourceClass: getClassById(
-          get().landscapeData?.structureLandscapeData as StructureLandscapeData,
-          sourceClassId
-        ) as Class,
-      });
-      set({
-        targetClass: getClassById(
-          get().landscapeData?.structureLandscapeData as StructureLandscapeData,
-          targetClassId
-        ) as Class,
-      });
-      get().addCommunication(methodName, true);
-    },
-
-    addCommunication: (methodName: string, collabMode: boolean = false) => {
-      if (
-        methodName === '' ||
-        get().sourceClass === null ||
-        get().targetClass === null
-      ) {
-        useToastHandlerStore
-          .getState()
-          .showErrorToastMessage('Missing communication data');
-        return;
-      }
-
-      if (get().sourceClass === get().targetClass) {
-        useToastHandlerStore
-          .getState()
-          .showErrorToastMessage('Select 2 different classes');
-        return;
-      }
-
-      if (!collabMode)
-        useMessageSenderStore
-          .getState()
-          .sendRestructureCommunicationMessage(
-            get().sourceClass?.id as string,
-            get().targetClass?.id as string,
-            methodName
-          );
-
-      if (
-        get().sourceClass &&
-        get().targetClass &&
-        get().landscapeData?.structureLandscapeData
-      ) {
-        const sourceApp = getApplicationFromClass(
-          get().landscapeData!.structureLandscapeData,
-          get().sourceClass!
-        );
-        const targetApp = getApplicationFromClass(
-          get().landscapeData!.structureLandscapeData,
-          get().targetClass!
-        );
-
-        addMethodToClass(get().targetClass!, methodName);
-
-        // Create model of communication between two classes
-        const classCommunication: AggregatedCommunication = {
-          id:
-            get().sourceClass!.name +
-            ' => ' +
-            get().targetClass!.name +
-            '|' +
-            methodName,
-          methodCalls: [],
-          isRecursive: get().sourceClass!.id === get().targetClass!.id,
-          isBidirectional: false,
-          totalRequests: 1,
-          metrics: { normalizedRequestCount: 1 },
-          sourceClass: get().sourceClass!,
-          targetClass: get().targetClass!,
-          operationName: methodName,
-          sourceApp: sourceApp!,
-          targetApp: targetApp!,
-          addMethodCalls: () => {},
-          getClasses: () => [get().sourceClass!, get().targetClass!],
-        };
-
-        // Create the Changelog Entry
-        useChangelogStore.getState().communicationEntry(classCommunication);
-
+  deleteCommunication: (comm: AggregatedCommunication, undo: boolean = false, collabMode: boolean = false) => {
+    if (!collabMode) {
+      useMessageSenderStore.getState().sendRestructureDeleteCommunicationMessage(undo, comm.id);
+    }
+    if (undo) {
+      const newCreatedComm = comm.id.includes(' => ');
+      if (newCreatedComm) {
         set({
-          createdAggregatedCommunication: [
-            ...get().createdAggregatedCommunication,
-            classCommunication,
-          ],
+          createdAggregatedCommunication: get().createdAggregatedCommunication.filter((c) => c != comm),
         });
-
         set({
+          commModelColorMappings: get().commModelColorMappings.slice(0, -1),
+        });
+      } else {
+        set({
+          deletedAggregatedCommunications: get().deletedAggregatedCommunications.filter((d) => d != comm),
+        });
+        const newCommModelColorMappings = get().commModelColorMappings.slice(0, -1);
+        const commMapping = get().commModelColorMappings.pop();
+        set({ commModelColorMappings: newCommModelColorMappings });
+        const commMesh = get()._getCommMesh(commMapping!);
+        const commColor = new THREE.Color(
+          useUserSettingsStore.getState().visualizationSettings.communicationColor.value
+        );
+
+        commMesh?.changeColor(commColor);
+        set({
+          deletedDataModels: get().deletedDataModels.filter((d) => d != comm),
+        });
+      }
+    } else {
+      const newCreatedComm = comm.id.includes(' => ');
+      if (newCreatedComm) {
+        set({
+          createdAggregatedCommunication: get().createdAggregatedCommunication.filter((c) => comm),
+        });
+      } else {
+        set({
+          deletedAggregatedCommunications: [...get().deletedAggregatedCommunications, comm],
           commModelColorMappings: [
             ...get().commModelColorMappings,
             {
               action: RestructureAction.Communication,
-              comm: classCommunication,
-              color: new THREE.Color(0xbc42f5),
+              comm: comm,
+              color: new THREE.Color(0x1c1c1c),
             },
           ],
         });
-        eventEmitter.emit('showChangeLog');
-        eventEmitter.emit(
-          'restructureLandscapeData',
-          get().landscapeData?.structureLandscapeData,
-          get().landscapeData?.dynamicLandscapeData
-        );
       }
-    },
 
-    deleteCommunication: (
-      comm: AggregatedCommunication,
-      undo: boolean = false,
-      collabMode: boolean = false
-    ) => {
+      useChangelogStore.getState().deleteCommunicationEntry(comm);
+      set({ deletedDataModels: [...get().deletedDataModels, comm] });
+    }
+    eventEmitter.emit('showChangeLog');
+    eventEmitter.emit(
+      'restructureLandscapeData',
+      get().landscapeData?.structureLandscapeData,
+      get().landscapeData?.dynamicLandscapeData
+    );
+  },
+
+  toggleRestructureMode: () => {
+    set({ restructureMode: !get().restructureMode });
+    eventEmitter.emit('restructureMode');
+    useMessageSenderStore.getState().sendRestructureModeUpdate();
+  },
+
+  toggleRestructureModeLocally: async () => {
+    set({ restructureMode: !get().restructureMode });
+    await new Promise((f) => setTimeout(f, 500));
+    eventEmitter.emit('restructureMode');
+  },
+
+  setLandscapeData: (newData: LandscapeData | null) => {
+    set({ landscapeData: newData });
+  },
+
+  duplicateApp: (app: Application, collabMode: boolean = false) => {
+    if (get().landscapeData?.structureLandscapeData) {
       if (!collabMode) {
-        useMessageSenderStore
-          .getState()
-          .sendRestructureDeleteCommunicationMessage(undo, comm.id);
-      }
-      if (undo) {
-        const newCreatedComm = comm.id.includes(' => ');
-        if (newCreatedComm) {
-          set({
-            createdAggregatedCommunication:
-              get().createdAggregatedCommunication.filter((c) => c != comm),
-          });
-          set({
-            commModelColorMappings: get().commModelColorMappings.slice(0, -1),
-          });
-        } else {
-          set({
-            deletedAggregatedCommunications:
-              get().deletedAggregatedCommunications.filter((d) => d != comm),
-          });
-          const newCommModelColorMappings = get().commModelColorMappings.slice(
-            0,
-            -1
-          );
-          const commMapping = get().commModelColorMappings.pop();
-          set({ commModelColorMappings: newCommModelColorMappings });
-          const commMesh = get()._getCommMesh(commMapping!);
-          const commColor = new THREE.Color(
-            useUserSettingsStore.getState().visualizationSettings
-              .communicationColor.value
-          );
-
-          commMesh?.changeColor(commColor);
-          set({
-            deletedDataModels: get().deletedDataModels.filter((d) => d != comm),
-          });
-        }
-      } else {
-        const newCreatedComm = comm.id.includes(' => ');
-        if (newCreatedComm) {
-          set({
-            createdAggregatedCommunication:
-              get().createdAggregatedCommunication.filter((c) => comm),
-          });
-        } else {
-          set({
-            deletedAggregatedCommunications: [
-              ...get().deletedAggregatedCommunications,
-              comm,
-            ],
-            commModelColorMappings: [
-              ...get().commModelColorMappings,
-              {
-                action: RestructureAction.Communication,
-                comm: comm,
-                color: new THREE.Color(0x1c1c1c),
-              },
-            ],
-          });
-        }
-
-        useChangelogStore.getState().deleteCommunicationEntry(comm);
-        set({ deletedDataModels: [...get().deletedDataModels, comm] });
-      }
-      eventEmitter.emit('showChangeLog');
-      eventEmitter.emit(
-        'restructureLandscapeData',
-        get().landscapeData?.structureLandscapeData,
-        get().landscapeData?.dynamicLandscapeData
-      );
-    },
-
-    toggleRestructureMode: () => {
-      set({ restructureMode: !get().restructureMode });
-      eventEmitter.emit('restructureMode');
-      useMessageSenderStore.getState().sendRestructureModeUpdate();
-    },
-
-    toggleRestructureModeLocally: async () => {
-      set({ restructureMode: !get().restructureMode });
-      await new Promise((f) => setTimeout(f, 500));
-      eventEmitter.emit('restructureMode');
-    },
-
-    setLandscapeData: (newData: LandscapeData | null) => {
-      set({ landscapeData: newData });
-    },
-
-    duplicateApp: (app: Application, collabMode: boolean = false) => {
-      if (get().landscapeData?.structureLandscapeData) {
-        if (!collabMode) {
-          useMessageSenderStore
-            .getState()
-            .sendRestructureDuplicateAppMessage(app.id);
-        }
-
-        const wrapper = {
-          idCounter: get().newMeshCounter,
-          comms: get().allAggregatedCommunications,
-          copiedComms: [],
-        };
-
-        const duplicatedApp = duplicateApplication(
-          get().landscapeData!.structureLandscapeData,
-          app,
-          wrapper
-        );
-
-        set({ newMeshCounter: get().newMeshCounter++ });
-
-        useChangelogStore.getState().duplicateAppEntry(duplicatedApp);
-
-        set({
-          meshModelTextureMappings: [
-            ...get().meshModelTextureMappings,
-            {
-              action: RestructureAction.CopyPaste,
-              meshType: EntityType.App,
-              texturePath: 'images/x.png',
-              app: duplicatedApp,
-            },
-          ],
-        });
-
-        const key = 'DUPLICATED|' + duplicatedApp.id;
-
-        let newCopiedAggregatedCommunications = new Map(
-          get().copiedAggregatedCommunications
-        );
-        newCopiedAggregatedCommunications.set(key, wrapper.copiedComms);
-        set({
-          copiedAggregatedCommunications: newCopiedAggregatedCommunications,
-        });
-
-        eventEmitter.emit('showChangeLog');
-        eventEmitter.emit(
-          'restructureLandscapeData',
-          get().landscapeData?.structureLandscapeData,
-          get().landscapeData?.dynamicLandscapeData
-        );
-      }
-    },
-
-    renameApplication: (
-      name: string,
-      id: string,
-      collabMode: boolean = false,
-      undo: boolean = false
-    ) => {
-      if (get().landscapeData?.structureLandscapeData) {
-        if (!collabMode)
-          useMessageSenderStore
-            .getState()
-            .sendRestructureUpdate(EntityType.App, id, name, null, undo);
-
-        const app = getApplicationInLandscapeById(
-          get().landscapeData!.structureLandscapeData,
-          id
-        );
-
-        if (app) {
-          if (!undo) {
-            // Create Changelog Entry
-            useChangelogStore.getState().renameAppEntry(app, name);
-
-            set({
-              meshModelTextureMappings: [
-                ...get().meshModelTextureMappings,
-                {
-                  action: RestructureAction.Rename,
-                  meshType: EntityType.App,
-                  texturePath: 'images/hashtag.png',
-                  app: app as Application,
-                },
-              ],
-            });
-          } else {
-            const undoMapping = get().meshModelTextureMappings.find(
-              (mapping) =>
-                mapping.action === RestructureAction.Rename &&
-                mapping.meshType === EntityType.App &&
-                mapping.app === app
-            );
-            set({
-              meshModelTextureMappings: get().meshModelTextureMappings.filter(
-                (m) => m != (undoMapping as MeshModelTextureMapping)
-              ),
-            });
-          }
-          // Set new Application name
-          app.name = name;
-
-          eventEmitter.emit('showChangeLog');
-          eventEmitter.emit(
-            'restructureLandscapeData',
-            get().landscapeData?.structureLandscapeData,
-            get().landscapeData?.dynamicLandscapeData
-          );
-        }
-      }
-    },
-
-    renamePackage: (
-      name: string,
-      id: string,
-      collabMode: boolean = false,
-      undo: boolean = false
-    ) => {
-      if (get().landscapeData?.structureLandscapeData) {
-        if (!collabMode)
-          useMessageSenderStore
-            .getState()
-            .sendRestructureUpdate(EntityType.Package, id, name, null, undo);
-
-        const pckg = getPackageById(
-          get().landscapeData!.structureLandscapeData,
-          id
-        );
-
-        if (pckg) {
-          const app = get().getAppFromPackage(pckg);
-
-          if (!undo) {
-            // Create Changelog Entry
-            if (!pckg.parent && app)
-              useChangelogStore.getState().renamePackageEntry(app, pckg, name);
-            else if (pckg.parent && app)
-              useChangelogStore
-                .getState()
-                .renameSubPackageEntry(app, pckg, name);
-
-            set({
-              meshModelTextureMappings: [
-                ...get().meshModelTextureMappings,
-                {
-                  action: RestructureAction.Rename,
-                  meshType: EntityType.Package,
-                  texturePath: 'images/hashtag.png',
-                  app: app as Application,
-                  pckg: pckg,
-                },
-              ],
-            });
-          } else {
-            const undoMapping = get().meshModelTextureMappings.find(
-              (mapping) =>
-                mapping.action === RestructureAction.Rename &&
-                mapping.meshType === EntityType.Package &&
-                mapping.app === app &&
-                mapping.pckg === pckg
-            );
-
-            set({
-              meshModelTextureMappings: get().meshModelTextureMappings.filter(
-                (m) => m != (undoMapping as MeshModelTextureMapping)
-              ),
-            });
-          }
-
-          // Set new Package name
-          pckg.name = name;
-
-          eventEmitter.emit('showChangeLog');
-          eventEmitter.emit(
-            'restructureLandscapeData',
-            get().landscapeData?.structureLandscapeData,
-            get().landscapeData?.dynamicLandscapeData
-          );
-        }
-      }
-    },
-
-    renameSubPackage: (
-      name: string,
-      id: string,
-      collabMode: boolean = false,
-      undo: boolean = false
-    ) => {
-      if (get().landscapeData?.structureLandscapeData) {
-        if (!collabMode)
-          useMessageSenderStore
-            .getState()
-            .sendRestructureUpdate(EntityType.SubPackage, id, name, null, undo);
-
-        const pckg = getPackageById(
-          get().landscapeData!.structureLandscapeData,
-          id
-        );
-
-        if (pckg) {
-          const app = get().getAppFromPackage(pckg);
-
-          if (!undo) {
-            // Create Changelog Entry
-            if (app)
-              useChangelogStore
-                .getState()
-                .renameSubPackageEntry(app, pckg, name);
-
-            set({
-              meshModelTextureMappings: [
-                ...get().meshModelTextureMappings,
-                {
-                  action: RestructureAction.Rename,
-                  meshType: EntityType.Package,
-                  texturePath: 'images/hashtag.png',
-                  app: app as Application,
-                  pckg: pckg,
-                },
-              ],
-            });
-          } else {
-            const undoMapping = get().meshModelTextureMappings.find(
-              (mapping) =>
-                mapping.action === RestructureAction.Rename &&
-                mapping.meshType === EntityType.Package &&
-                mapping.app === app &&
-                mapping.pckg === pckg
-            );
-            set({
-              meshModelTextureMappings: get().meshModelTextureMappings.filter(
-                (m) => m != (undoMapping as MeshModelTextureMapping)
-              ),
-            });
-          }
-
-          // Set new Package name
-          pckg.name = name;
-
-          eventEmitter.emit('showChangeLog');
-          eventEmitter.emit(
-            'restructureLandscapeData',
-            get().landscapeData?.structureLandscapeData,
-            get().landscapeData?.dynamicLandscapeData
-          );
-        }
-      }
-    },
-
-    getAppFromPackage: (pckg: Package) => {
-      let app: Application | undefined;
-      if (get().landscapeData?.structureLandscapeData) {
-        if (!pckg.parent)
-          app = getApplicationFromPackage(
-            get().landscapeData
-              ?.structureLandscapeData as StructureLandscapeData,
-            pckg.id
-          );
-        else
-          app = getApplicationFromSubPackage(
-            get().landscapeData
-              ?.structureLandscapeData as StructureLandscapeData,
-            pckg.id
-          );
-      }
-      return app;
-    },
-
-    renameClass: (
-      name: string,
-      id: string,
-      appId: string,
-      collabMode: boolean = false,
-      undo: boolean = false
-    ) => {
-      if (get().landscapeData?.structureLandscapeData) {
-        if (!collabMode)
-          useMessageSenderStore
-            .getState()
-            .sendRestructureUpdate(EntityType.Clazz, id, name, appId, undo);
-
-        const application = getApplicationInLandscapeById(
-          get().landscapeData!.structureLandscapeData,
-          appId
-        );
-        if (application) {
-          const clazzToRename = getClassInApplicationById(application, id);
-
-          if (clazzToRename) {
-            if (!undo) {
-              // Create Changelog Entry
-              useChangelogStore
-                .getState()
-                .renameClassEntry(application, clazzToRename, name);
-
-              set({
-                meshModelTextureMappings: [
-                  ...get().meshModelTextureMappings,
-                  {
-                    action: RestructureAction.Rename,
-                    meshType: EntityType.Clazz,
-                    texturePath: 'images/hashtag.png',
-                    app: application as Application,
-                    clazz: clazzToRename,
-                  },
-                ],
-              });
-            } else {
-              const undoMapping = get().meshModelTextureMappings.find(
-                (mapping) =>
-                  mapping.action === RestructureAction.Rename &&
-                  mapping.meshType === EntityType.Clazz &&
-                  mapping.app === application &&
-                  mapping.clazz === clazzToRename
-              );
-              set({
-                meshModelTextureMappings: get().meshModelTextureMappings.filter(
-                  (m) => m != (undoMapping as MeshModelTextureMapping)
-                ),
-              });
-            }
-
-            // Set new Class name
-            clazzToRename.name = name;
-
-            eventEmitter.emit('showChangeLog');
-            eventEmitter.emit(
-              'restructureLandscapeData',
-              get().landscapeData?.structureLandscapeData,
-              get().landscapeData?.dynamicLandscapeData
-            );
-          }
-        }
-      }
-    },
-
-    renameOperation: (
-      communication: AggregatedCommunication,
-      newName: string,
-      collabMode: boolean = false,
-      undo: boolean = false
-    ) => {
-      if (!collabMode) {
-        useMessageSenderStore
-          .getState()
-          .sendRestructureRenameOperationMessage(
-            communication.id,
-            newName,
-            undo
-          );
+        useMessageSenderStore.getState().sendRestructureDuplicateAppMessage(app.id);
       }
 
-      const key = 'RENAMED|' + communication.id;
-      const found = get().updatedAggregatedCommunications.has(key);
+      const wrapper = {
+        idCounter: get().newMeshCounter,
+        comms: get().allAggregatedCommunications,
+        copiedComms: [],
+      };
 
-      if (!undo) {
-        useChangelogStore
-          .getState()
-          .renameOperationEntry(communication, newName);
-        communication.operationName = newName;
+      const duplicatedApp = duplicateApplication(get().landscapeData!.structureLandscapeData, app, wrapper);
 
-        // If the communication was not updated before, then create an entry
-        if (!found) {
-          let newUpdatedAggregatedCommunications = new Map(
-            get().updatedAggregatedCommunications
-          );
-          newUpdatedAggregatedCommunications.set(key as string, [
-            communication,
-          ]);
-          set({
-            updatedAggregatedCommunications: newUpdatedAggregatedCommunications,
-          });
-        }
-      } else {
-        let newUpdatedAggregatedCommunications = new Map(
-          get().updatedAggregatedCommunications
-        );
-        newUpdatedAggregatedCommunications.delete(key);
-        set({
-          updatedAggregatedCommunications: newUpdatedAggregatedCommunications,
-        });
-        communication.operationName = newName;
-      }
-
-      eventEmitter.emit('showChangeLog');
-      eventEmitter.emit(
-        'restructureLandscapeData',
-        get().landscapeData?.structureLandscapeData,
-        get().landscapeData?.dynamicLandscapeData
-      );
-    },
-
-    restoreApplication: (
-      app: Application,
-      undoCutOperation: boolean = false,
-      collabMode: boolean = false
-    ) => {
-      if (!collabMode) {
-        useMessageSenderStore
-          .getState()
-          .sendRestructureRestoreAppMessage(app.id, undoCutOperation);
-      }
-
-      get().restoreDeletedAppData(app as Application);
-      const undoMapping = get().meshModelTextureMappings.find(
-        (mapping) =>
-          mapping.action === RestructureAction.Delete &&
-          mapping.meshType === EntityType.App &&
-          mapping.app === app
-      );
-      set({
-        meshModelTextureMappings: get().meshModelTextureMappings.filter(
-          (m) => m != (undoMapping as MeshModelTextureMapping)
-        ),
-      });
-      if (undoCutOperation) {
-        if (get().createdAggregatedCommunication.length) {
-          get().createdAggregatedCommunication.forEach((comm) => {
-            if (!comm.sourceApp) {
-              comm.sourceApp = app;
-            }
-            if (!comm.targetApp) {
-              comm.targetApp = app;
-            }
-          });
-        }
-        restoreID({ entity: app }, 'removed|');
-      } else {
-        let newCompletelyDeletedAggregatedCommunications = new Map(
-          get().completelyDeletedAggregatedCommunications
-        );
-        newCompletelyDeletedAggregatedCommunications.delete(app.id);
-        set({
-          completelyDeletedAggregatedCommunications:
-            newCompletelyDeletedAggregatedCommunications,
-        });
-      }
-
-      eventEmitter.emit('showChangeLog');
-      eventEmitter.emit(
-        'restructureLandscapeData',
-        get().landscapeData?.structureLandscapeData,
-        get().landscapeData?.dynamicLandscapeData
-      );
-    },
-
-    restorePackage: (
-      pckg: Package,
-      undoCutOperation: boolean = false,
-      collabMode: boolean = false
-    ) => {
-      if (!collabMode) {
-        useMessageSenderStore
-          .getState()
-          .sendRestructureRestorePackageMessage(pckg.id, undoCutOperation);
-      }
-
-      get().restoreDeletedPackageData(pckg as Package);
-      const undoMapping = get().meshModelTextureMappings.find(
-        (mapping) =>
-          mapping.action === RestructureAction.Delete &&
-          mapping.meshType === EntityType.Package &&
-          mapping.pckg === pckg
-      );
-      set({
-        meshModelTextureMappings: get().meshModelTextureMappings.filter(
-          (m) => m != (undoMapping as MeshModelTextureMapping)
-        ),
-      });
-
-      // Cut or Undo Operation? In case of Cut we also need to restore the communications!
-      if (undoCutOperation) {
-        const keyToRemove = 'CUTINSERT|' + pckg.id;
-
-        let newUpdatedAggregatedCommunications = new Map(
-          get().updatedAggregatedCommunications
-        );
-        newUpdatedAggregatedCommunications.delete(keyToRemove);
-        set({
-          updatedAggregatedCommunications: newUpdatedAggregatedCommunications,
-        });
-
-        const app = get().getApp(pckg)!;
-        if (get().createdAggregatedCommunication.length) {
-          get().createdAggregatedCommunication.forEach((comm) => {
-            if (!comm.sourceApp) {
-              comm.sourceApp = app;
-            }
-            if (!comm.targetApp) {
-              comm.targetApp = app;
-            }
-          });
-        }
-        get().removeMeshModelTextureMapping(
-          RestructureAction.CutInsert,
-          EntityType.Package,
-          app as Application,
-          pckg
-        );
-        restoreID({ entity: pckg }, 'removed|');
-      } else {
-        let newCompletelyDeletedAggregatedCommunications = new Map(
-          get().completelyDeletedAggregatedCommunications
-        );
-        newCompletelyDeletedAggregatedCommunications.delete(pckg.id);
-        set({
-          completelyDeletedAggregatedCommunications:
-            newCompletelyDeletedAggregatedCommunications,
-        });
-      }
-
-      eventEmitter.emit('showChangeLog');
-      eventEmitter.emit(
-        'restructureLandscapeData',
-        get().landscapeData?.structureLandscapeData,
-        get().landscapeData?.dynamicLandscapeData
-      );
-    },
-
-    restoreClass: (
-      app: Application,
-      clazz: Class,
-      undoCutOperation: boolean = false,
-      collabMode: boolean = false
-    ) => {
-      if (!collabMode) {
-        useMessageSenderStore
-          .getState()
-          .sendRestructureRestoreClassMessage(
-            app.id,
-            clazz.id,
-            undoCutOperation
-          );
-      }
-
-      set({
-        deletedDataModels: get().deletedDataModels.filter((d) => d != clazz),
-      });
-      const undoMapping = get().meshModelTextureMappings.find(
-        (mapping) =>
-          mapping.action === RestructureAction.Delete &&
-          mapping.meshType === EntityType.Clazz &&
-          mapping.app === app &&
-          mapping.clazz === clazz
-      );
-      set({
-        meshModelTextureMappings: get().meshModelTextureMappings.filter(
-          (m) => m != (undoMapping as MeshModelTextureMapping)
-        ),
-      });
-      if (undoCutOperation) {
-        const keyToRemove = 'CUTINSERT|' + clazz.id;
-
-        let newUpdatedAggregatedCommunications = new Map(
-          get().updatedAggregatedCommunications
-        );
-        newUpdatedAggregatedCommunications.delete(keyToRemove);
-        set({
-          updatedAggregatedCommunications: newUpdatedAggregatedCommunications,
-        });
-
-        restoreID({ entity: clazz }, 'removed|');
-        if (get().createdAggregatedCommunication.length) {
-          get().createdAggregatedCommunication.forEach((comm) => {
-            // referencing the original app again
-            if (!comm.sourceApp) {
-              comm.sourceApp = app;
-            }
-            if (!comm.targetApp) {
-              comm.targetApp = app;
-            }
-
-            // referencing the original class again
-            if (comm.sourceClass.id === clazz.id) {
-              comm.sourceClass = clazz;
-            }
-            if (comm.targetClass.id === clazz.id) {
-              comm.targetClass = clazz;
-            }
-          });
-        }
-        get().removeMeshModelTextureMapping(
-          RestructureAction.CutInsert,
-          EntityType.Clazz,
-          app,
-          clazz.parent,
-          clazz
-        );
-      } else {
-        let newCompletelyDeletedAggregatedCommunications = new Map(
-          get().completelyDeletedAggregatedCommunications
-        );
-        newCompletelyDeletedAggregatedCommunications.delete(clazz.id);
-        set({
-          completelyDeletedAggregatedCommunications:
-            newCompletelyDeletedAggregatedCommunications,
-        });
-      }
-
-      eventEmitter.emit('showChangeLog');
-      eventEmitter.emit(
-        'restructureLandscapeData',
-        get().landscapeData?.structureLandscapeData,
-        get().landscapeData?.dynamicLandscapeData
-      );
-    },
-
-    removeInsertTexture: (element: Package) => {
-      let app: Application;
-      if (element.parent) {
-        app = getApplicationFromSubPackage(
-          get().landscapeData?.structureLandscapeData as StructureLandscapeData,
-          element.id
-        ) as Application;
-      } else {
-        app = getApplicationFromPackage(
-          get().landscapeData?.structureLandscapeData as StructureLandscapeData,
-          element.id
-        ) as Application;
-      }
-      get().removeMeshModelTextureMapping(
-        RestructureAction.CutInsert,
-        EntityType.Package,
-        app,
-        element
-      );
-    },
-
-    undoDuplicateApp: (app: Application) => {
-      const undoMapping = get().meshModelTextureMappings.find(
-        (mapping) =>
-          mapping.action === RestructureAction.CopyPaste &&
-          mapping.meshType === EntityType.App &&
-          mapping.app === app
-      );
-      set({
-        meshModelTextureMappings: get().meshModelTextureMappings.filter(
-          (m) => m != (undoMapping as MeshModelTextureMapping)
-        ),
-      });
-
-      const keyToRemove = 'DUPLICATED|' + app.id;
-
-      let newCopiedAggregatedCommunications = new Map(
-        get().copiedAggregatedCommunications
-      );
-      newCopiedAggregatedCommunications.delete(keyToRemove);
-      set({
-        copiedAggregatedCommunications: newCopiedAggregatedCommunications,
-      });
-    },
-
-    undoCopyPackage(app: Application, pckg: Package) {
-      const undoMapping = get().meshModelTextureMappings.find(
-        (mapping) =>
-          mapping.action === RestructureAction.CopyPaste &&
-          mapping.meshType === EntityType.Package &&
-          mapping.app === app &&
-          mapping.pckg === pckg
-      );
-
-      set({
-        meshModelTextureMappings: get().meshModelTextureMappings.filter(
-          (m) => m != (undoMapping as MeshModelTextureMapping)
-        ),
-      });
-
-      const keyToRemove = 'COPIED|' + pckg.id;
-
-      let newCopiedAggregatedCommunications = new Map(
-        get().copiedAggregatedCommunications
-      );
-      newCopiedAggregatedCommunications.delete(keyToRemove);
-      set({
-        copiedAggregatedCommunications: newCopiedAggregatedCommunications,
-      });
-    },
-
-    //TODO: app gets passed but not used
-    undoCopyClass(app: Application, clazz: Class) {
-      const keyToRemove = 'DUPLICATED|' + clazz.id;
-      const copiedComms = get().copiedAggregatedCommunications.get(keyToRemove);
-      if (copiedComms) {
-        let newDeletedAggregatedCommunications = [
-          ...get().deletedAggregatedCommunications,
-        ];
-        copiedComms.forEach((comm) => {
-          newDeletedAggregatedCommunications.push(comm);
-        });
-        set({
-          deletedAggregatedCommunications: newDeletedAggregatedCommunications,
-        });
-
-        let newCopiedAggregatedCommunications = new Map(
-          get().copiedAggregatedCommunications
-        );
-        newCopiedAggregatedCommunications.delete(keyToRemove);
-        set({
-          copiedAggregatedCommunications: newCopiedAggregatedCommunications,
-        });
-      }
-    },
-
-    addApplication: (
-      appName: string,
-      language: string,
-      collabMode: boolean = false
-    ) => {
-      if (get().landscapeData?.structureLandscapeData) {
-        if (!collabMode)
-          useMessageSenderStore
-            .getState()
-            .sendRestructureCreateOrDeleteMessage(
-              EntityType.App,
-              RestructureAction.Create,
-              appName,
-              language,
-              null,
-              false
-            );
-
-        const foundation = addFoundationToLandscape(
-          appName,
-          language,
-          get().newMeshCounter
-        );
-        const app = foundation.applications.at(0);
-        const pckg = app?.packages.at(0);
-        const clazz = pckg?.classes.at(0);
-        get().landscapeData!.structureLandscapeData.nodes.push(foundation);
-
-        // Create Changelog Entry
-        useChangelogStore
-          .getState()
-          .createAppEntry(app as Application, pckg as Package, clazz as Class);
-
-        set({
-          meshModelTextureMappings: [
-            ...get().meshModelTextureMappings,
-            {
-              action: RestructureAction.Create,
-              meshType: EntityType.App,
-              texturePath: 'images/plus.png',
-              app: app as Application,
-              pckg: pckg as Package,
-              clazz: clazz as Class,
-            },
-          ],
-        });
-
-        eventEmitter.emit('showChangeLog');
-        eventEmitter.emit(
-          'restructureLandscapeData',
-          get().landscapeData?.structureLandscapeData,
-          get().landscapeData?.dynamicLandscapeData
-        );
-      }
       set({ newMeshCounter: get().newMeshCounter++ });
-    },
 
-    applyColorMappings: () => {
-      if (get().restructureMode) {
-        get().commModelColorMappings.forEach((elem) => {
-          const commMesh = get()._getCommMesh(elem);
+      useChangelogStore.getState().duplicateAppEntry(duplicatedApp);
 
-          commMesh?.changeColor(elem.color);
-        });
-      }
-    },
+      set({
+        meshModelTextureMappings: [
+          ...get().meshModelTextureMappings,
+          {
+            action: RestructureAction.CopyPaste,
+            meshType: EntityType.App,
+            texturePath: 'images/x.png',
+            app: duplicatedApp,
+          },
+        ],
+      });
 
-    _getCommMesh: (elem: CommModelColorMapping) => {
-      // Distinguish between internal comms and external comms
-      if (elem.comm.sourceApp === elem.comm.targetApp) {
-        const appModel = useApplicationRendererStore
-          .getState()
-          .getApplicationById(elem.comm.sourceApp?.id as string);
+      const key = 'DUPLICATED|' + duplicatedApp.id;
 
-        const newCreatedComm = elem.comm.id.includes(' => ');
-        if (newCreatedComm) {
-          const commMesh = appModel?.commIdToMesh.get(elem.comm.id);
-          return commMesh;
-        } else {
-          // A communication can consist of multiple function calls. The id looks something this: XXX_XXX_operationName
-          // The operatioName represents the name of the first function.
-          // We need to remove this suffix to get a base ID of the form: XXX_XXX
-          const suffixToRemove = '_' + elem.comm.operationName;
-          const meshId = elem.comm.id.replace(suffixToRemove, '');
+      let newCopiedAggregatedCommunications = new Map(get().copiedAggregatedCommunications);
+      newCopiedAggregatedCommunications.set(key, wrapper.copiedComms);
+      set({
+        copiedAggregatedCommunications: newCopiedAggregatedCommunications,
+      });
 
-          // Now that we have an Id of the form: XXX_XXX we are only missing the _operationName suffix.
-          // We'll look for a key in the 'commIdToMesh' map that starts with our base ID.
-          if (appModel) {
-            for (const key of appModel.commIdToMesh.keys()) {
-              if (key.startsWith(meshId)) {
-                return appModel?.commIdToMesh.get(key);
-              }
-            }
-          }
-
-          // Should never happen!
-
-          return undefined;
-        }
-      } else {
-        const commMesh = useLinkRendererStore
-          .getState()
-          .getLinkById(elem.comm.id);
-        return commMesh;
-      }
-    },
-
-    // TODO: Many redundant cases. Could be refactored/generalized!
-    applyTextureMappings: () => {
-      if (get().restructureMode) {
-        get().meshModelTextureMappings.forEach((elem) => {
-          const currentAppModel = useApplicationRendererStore
-            .getState()
-            .getApplicationById(elem.app?.id as string);
-          // Apply Plus texture for new created Meshes
-          if (elem.action === RestructureAction.Create) {
-            if (elem.meshType === EntityType.App) {
-              currentAppModel?.modelIdToMesh.forEach((mesh) => {
-                if (mesh instanceof ClazzMesh) {
-                  mesh.changeTexture(elem.texturePath);
-                } else {
-                  mesh.changeTexture(elem.texturePath);
-                }
-              });
-            } else if (
-              elem.meshType === EntityType.Package ||
-              elem.meshType === EntityType.SubPackage
-            ) {
-              currentAppModel?.modelIdToMesh.forEach((mesh) => {
-                const isCorrectComponent =
-                  mesh instanceof ComponentMesh &&
-                  mesh.dataModel.id === elem.pckg?.id;
-                const isCorrectClass =
-                  mesh instanceof ClazzMesh &&
-                  mesh.dataModel.id === elem.clazz?.id;
-                if (isCorrectComponent) {
-                  mesh.changeTexture(elem.texturePath);
-                }
-                if (isCorrectClass) {
-                  mesh.changeTexture(elem.texturePath);
-                }
-              });
-            } else if (elem.meshType === EntityType.Clazz) {
-              currentAppModel?.modelIdToMesh.forEach((mesh) => {
-                const isCorrectClass =
-                  mesh instanceof ClazzMesh &&
-                  mesh.dataModel.id === elem.clazz?.id;
-                if (isCorrectClass) {
-                  mesh.changeTexture(elem.texturePath);
-                }
-              });
-            }
-            // Apply Minus texture for deleted Meshes
-          } else if (elem.action === RestructureAction.Delete) {
-            if (elem.meshType === EntityType.App) {
-              currentAppModel?.modelIdToMesh.forEach((mesh) => {
-                mesh.changeTexture(elem.texturePath);
-              });
-            } else if (
-              elem.meshType === EntityType.Package ||
-              elem.meshType === EntityType.SubPackage
-            ) {
-              const allSubPackages = getSubPackagesOfPackage(
-                elem.pckg as Package,
-                true
-              );
-              const allClassesInPackage = getClassesInPackage(
-                elem.pckg as Package,
-                true
-              );
-              currentAppModel?.modelIdToMesh.forEach((mesh) => {
-                const isCorrectComponent =
-                  mesh instanceof ComponentMesh &&
-                  mesh.dataModel.id === elem.pckg?.id;
-                const isCorrectClass =
-                  mesh instanceof ClazzMesh &&
-                  mesh.dataModel.id === elem.clazz?.id;
-                if (isCorrectComponent || isCorrectClass) {
-                  mesh.changeTexture(elem.texturePath);
-                }
-              });
-              currentAppModel?.modelIdToMesh.forEach((mesh) => {
-                allSubPackages.forEach((pckg) => {
-                  const isCorrectComponent =
-                    mesh instanceof ComponentMesh &&
-                    mesh.dataModel.id === pckg.id;
-                  if (isCorrectComponent) {
-                    mesh.changeTexture(elem.texturePath);
-                  }
-                });
-
-                allClassesInPackage.forEach((clazz) => {
-                  const isCorrectClass =
-                    mesh instanceof ClazzMesh && mesh.dataModel.id === clazz.id;
-                  if (isCorrectClass) {
-                    mesh.changeTexture(elem.texturePath);
-                  }
-                });
-              });
-            } else if (elem.meshType === EntityType.Clazz) {
-              currentAppModel?.modelIdToMesh.forEach((mesh) => {
-                const isCorrectClass =
-                  mesh instanceof ClazzMesh &&
-                  mesh.dataModel.id === elem.clazz?.id;
-                if (isCorrectClass) {
-                  mesh.changeTexture(elem.texturePath);
-                }
-              });
-            }
-            // Apply Hashtag texture for renamed operations
-          } else if (elem.action === RestructureAction.Rename) {
-            if (elem.meshType === EntityType.App) {
-              const appliedTexture = get()._findAppliedTexture(elem.app);
-              if (!appliedTexture) {
-                const foundationMesh = currentAppModel?.modelIdToMesh.get(
-                  elem.app.id
-                );
-                foundationMesh?.changeTexture(elem.texturePath);
-              }
-            } else if (elem.meshType === EntityType.Package) {
-              const appliedTexture = get()._findAppliedTexture(
-                elem.pckg as Package,
-                RestructureAction.CutInsert
-              );
-
-              if (!appliedTexture) {
-                const componentMesh = currentAppModel?.modelIdToMesh.get(
-                  elem.pckg?.id as string
-                );
-                componentMesh?.changeTexture(elem.texturePath);
-              }
-            } else if (elem.meshType === EntityType.Clazz) {
-              const appliedTexture = get()._findAppliedTexture(
-                elem.clazz as Class,
-                RestructureAction.CutInsert
-              );
-              if (!appliedTexture) {
-                const clazzMesh = currentAppModel?.modelIdToMesh.get(
-                  elem.clazz?.id as string
-                );
-                clazzMesh?.changeTexture(elem.texturePath);
-              }
-            }
-            // Apply X texture for copied Meshes
-          } else if (elem.action === RestructureAction.CopyPaste) {
-            if (elem.meshType === EntityType.App) {
-              currentAppModel?.modelIdToMesh.forEach((mesh) => {
-                if (mesh instanceof ClazzMesh) {
-                  mesh.changeTexture(elem.texturePath);
-                } else {
-                  mesh.changeTexture(elem.texturePath);
-                }
-              });
-            } else if (elem.meshType === EntityType.Package) {
-              const allSubPackages = getSubPackagesOfPackage(
-                elem.pckg as Package,
-                true
-              );
-              const allClassesInPackage = getClassesInPackage(
-                elem.pckg as Package,
-                true
-              );
-
-              const componentMesh = currentAppModel?.modelIdToMesh.get(
-                elem.pckg?.id as string
-              );
-
-              componentMesh?.changeTexture(elem.texturePath);
-              currentAppModel?.modelIdToMesh.forEach((mesh) => {
-                allSubPackages.forEach((pckg) => {
-                  const isCorrectComponent =
-                    mesh instanceof ComponentMesh &&
-                    mesh.dataModel.id === pckg.id;
-                  if (isCorrectComponent) {
-                    mesh.changeTexture(elem.texturePath);
-                  }
-                });
-
-                allClassesInPackage.forEach((clazz) => {
-                  const isCorrectClass =
-                    mesh instanceof ClazzMesh && mesh.dataModel.id === clazz.id;
-                  if (isCorrectClass) {
-                    mesh.changeTexture(elem.texturePath);
-                  }
-                });
-              });
-            } else if (elem.meshType === EntityType.Clazz) {
-              const clazzMesh = currentAppModel?.modelIdToMesh.get(
-                elem.clazz?.id as string
-              );
-              clazzMesh?.changeTexture(elem.texturePath);
-            }
-            // Apply Slash texture for inserted Meshes
-          } else if (elem.action === RestructureAction.CutInsert) {
-            if (elem.meshType === EntityType.Package) {
-              const appliedTexture = get()._findAppliedTexture(
-                elem.pckg as Package
-              );
-              if (!appliedTexture) {
-                const allSubPackages = getSubPackagesOfPackage(
-                  elem.pckg as Package,
-                  true
-                );
-                const allClassesInPackage = getClassesInPackage(
-                  elem.pckg as Package,
-                  true
-                );
-                const componentMesh = currentAppModel?.modelIdToMesh.get(
-                  elem.pckg?.id as string
-                );
-                componentMesh?.changeTexture(elem.texturePath);
-                currentAppModel?.modelIdToMesh.forEach((mesh) => {
-                  allSubPackages.forEach((pckg) => {
-                    const isCorrectComponent =
-                      mesh instanceof ComponentMesh &&
-                      mesh.dataModel.id === pckg.id;
-                    if (isCorrectComponent) {
-                      mesh.changeTexture(elem.texturePath);
-                    }
-                  });
-
-                  allClassesInPackage.forEach((clazz) => {
-                    const isCorrectClass =
-                      mesh instanceof ClazzMesh &&
-                      mesh.dataModel.id === clazz.id;
-                    if (isCorrectClass) {
-                      mesh.changeTexture(elem.texturePath);
-                    }
-                  });
-                });
-              }
-            } else if (elem.meshType === EntityType.Clazz) {
-              const appliedTexture = get()._findAppliedTexture(
-                elem.clazz as Class
-              );
-              if (!appliedTexture) {
-                const clazzMesh = currentAppModel?.modelIdToMesh.get(
-                  elem.clazz?.id as string
-                );
-                clazzMesh?.changeTexture(elem.texturePath);
-              }
-            }
-          }
-        });
-      }
-    },
-
-    _findAppliedTexture: (
-      elem: Application | Package | Class,
-      action?: RestructureAction
-    ) => {
-      return get().meshModelTextureMappings.find(
-        (entry) =>
-          (entry.app === elem || entry.pckg === elem || entry.clazz === elem) &&
-          (entry.action === RestructureAction.Create || entry.action === action)
+      eventEmitter.emit('showChangeLog');
+      eventEmitter.emit(
+        'restructureLandscapeData',
+        get().landscapeData?.structureLandscapeData,
+        get().landscapeData?.dynamicLandscapeData
       );
-    },
+    }
+  },
 
-    addCollaborativeSubPackage: (pckgId: string) => {
-      const pckg = getPackageById(
-        get().landscapeData?.structureLandscapeData as StructureLandscapeData,
-        pckgId
-      );
-      get().addSubPackage(pckg as Package, true);
-    },
+  renameApplication: (name: string, id: string, collabMode: boolean = false, undo: boolean = false) => {
+    if (get().landscapeData?.structureLandscapeData) {
+      if (!collabMode) useMessageSenderStore.getState().sendRestructureUpdate(EntityType.App, id, name, null, undo);
 
-    addSubPackage: (pckg: Package, collabMode: boolean = false) => {
-      if (get().landscapeData?.structureLandscapeData) {
-        if (!collabMode)
-          useMessageSenderStore
-            .getState()
-            .sendRestructureCreateOrDeleteMessage(
-              EntityType.SubPackage,
-              RestructureAction.Create,
-              null,
-              null,
-              pckg.id,
-              false
-            );
+      const app = getApplicationInLandscapeById(get().landscapeData!.structureLandscapeData, id);
 
-        const app = get().getAppFromPackage(pckg);
-        if (app) {
-          let subPackage = createPackage(
-            'newPackage' + get().newMeshCounter,
-            'New Package ' + get().newMeshCounter
-          );
-          const newClass = createClass(
-            'newClass' + get().newMeshCounter,
-            'New Class ' + get().newMeshCounter
-          );
-          newClass.parent = subPackage;
-          subPackage.parent = pckg;
-          subPackage.classes.push(newClass as Class);
-          subPackage = get()._addOriginOfData(subPackage);
-          pckg.subPackages.push(subPackage);
-
+      if (app) {
+        if (!undo) {
           // Create Changelog Entry
-          useChangelogStore
-            .getState()
-            .createPackageEntry(app, subPackage, newClass as Class);
+          useChangelogStore.getState().renameAppEntry(app, name);
 
           set({
             meshModelTextureMappings: [
               ...get().meshModelTextureMappings,
               {
-                action: RestructureAction.Create,
-                meshType: EntityType.Package,
-                texturePath: 'images/plus.png',
+                action: RestructureAction.Rename,
+                meshType: EntityType.App,
+                texturePath: 'images/hashtag.png',
                 app: app as Application,
-                pckg: subPackage as Package,
-                clazz: newClass as Class,
               },
             ],
           });
+        } else {
+          const undoMapping = get().meshModelTextureMappings.find(
+            (mapping) =>
+              mapping.action === RestructureAction.Rename && mapping.meshType === EntityType.App && mapping.app === app
+          );
+          set({
+            meshModelTextureMappings: get().meshModelTextureMappings.filter(
+              (m) => m != (undoMapping as MeshModelTextureMapping)
+            ),
+          });
+        }
+        // Set new Application name
+        app.name = name;
+
+        eventEmitter.emit('showChangeLog');
+        eventEmitter.emit(
+          'restructureLandscapeData',
+          get().landscapeData?.structureLandscapeData,
+          get().landscapeData?.dynamicLandscapeData
+        );
+      }
+    }
+  },
+
+  renamePackage: (name: string, id: string, collabMode: boolean = false, undo: boolean = false) => {
+    if (get().landscapeData?.structureLandscapeData) {
+      if (!collabMode) useMessageSenderStore.getState().sendRestructureUpdate(EntityType.Package, id, name, null, undo);
+
+      const pckg = getPackageById(get().landscapeData!.structureLandscapeData, id);
+
+      if (pckg) {
+        const app = get().getAppFromPackage(pckg);
+
+        if (!undo) {
+          // Create Changelog Entry
+          if (!pckg.parent && app) useChangelogStore.getState().renamePackageEntry(app, pckg, name);
+          else if (pckg.parent && app) useChangelogStore.getState().renameSubPackageEntry(app, pckg, name);
+
+          set({
+            meshModelTextureMappings: [
+              ...get().meshModelTextureMappings,
+              {
+                action: RestructureAction.Rename,
+                meshType: EntityType.Package,
+                texturePath: 'images/hashtag.png',
+                app: app as Application,
+                pckg: pckg,
+              },
+            ],
+          });
+        } else {
+          const undoMapping = get().meshModelTextureMappings.find(
+            (mapping) =>
+              mapping.action === RestructureAction.Rename &&
+              mapping.meshType === EntityType.Package &&
+              mapping.app === app &&
+              mapping.pckg === pckg
+          );
+
+          set({
+            meshModelTextureMappings: get().meshModelTextureMappings.filter(
+              (m) => m != (undoMapping as MeshModelTextureMapping)
+            ),
+          });
+        }
+
+        // Set new Package name
+        pckg.name = name;
+
+        eventEmitter.emit('showChangeLog');
+        eventEmitter.emit(
+          'restructureLandscapeData',
+          get().landscapeData?.structureLandscapeData,
+          get().landscapeData?.dynamicLandscapeData
+        );
+      }
+    }
+  },
+
+  renameSubPackage: (name: string, id: string, collabMode: boolean = false, undo: boolean = false) => {
+    if (get().landscapeData?.structureLandscapeData) {
+      if (!collabMode)
+        useMessageSenderStore.getState().sendRestructureUpdate(EntityType.SubPackage, id, name, null, undo);
+
+      const pckg = getPackageById(get().landscapeData!.structureLandscapeData, id);
+
+      if (pckg) {
+        const app = get().getAppFromPackage(pckg);
+
+        if (!undo) {
+          // Create Changelog Entry
+          if (app) useChangelogStore.getState().renameSubPackageEntry(app, pckg, name);
+
+          set({
+            meshModelTextureMappings: [
+              ...get().meshModelTextureMappings,
+              {
+                action: RestructureAction.Rename,
+                meshType: EntityType.Package,
+                texturePath: 'images/hashtag.png',
+                app: app as Application,
+                pckg: pckg,
+              },
+            ],
+          });
+        } else {
+          const undoMapping = get().meshModelTextureMappings.find(
+            (mapping) =>
+              mapping.action === RestructureAction.Rename &&
+              mapping.meshType === EntityType.Package &&
+              mapping.app === app &&
+              mapping.pckg === pckg
+          );
+          set({
+            meshModelTextureMappings: get().meshModelTextureMappings.filter(
+              (m) => m != (undoMapping as MeshModelTextureMapping)
+            ),
+          });
+        }
+
+        // Set new Package name
+        pckg.name = name;
+
+        eventEmitter.emit('showChangeLog');
+        eventEmitter.emit(
+          'restructureLandscapeData',
+          get().landscapeData?.structureLandscapeData,
+          get().landscapeData?.dynamicLandscapeData
+        );
+      }
+    }
+  },
+
+  getAppFromPackage: (pckg: Package) => {
+    let app: Application | undefined;
+    if (get().landscapeData?.structureLandscapeData) {
+      if (!pckg.parent)
+        app = getApplicationFromPackage(get().landscapeData?.structureLandscapeData as StructureLandscapeData, pckg.id);
+      else
+        app = getApplicationFromSubPackage(
+          get().landscapeData?.structureLandscapeData as StructureLandscapeData,
+          pckg.id
+        );
+    }
+    return app;
+  },
+
+  renameClass: (name: string, id: string, appId: string, collabMode: boolean = false, undo: boolean = false) => {
+    if (get().landscapeData?.structureLandscapeData) {
+      if (!collabMode) useMessageSenderStore.getState().sendRestructureUpdate(EntityType.Clazz, id, name, appId, undo);
+
+      const application = getApplicationInLandscapeById(get().landscapeData!.structureLandscapeData, appId);
+      if (application) {
+        const clazzToRename = getClassInApplicationById(application, id);
+
+        if (clazzToRename) {
+          if (!undo) {
+            // Create Changelog Entry
+            useChangelogStore.getState().renameClassEntry(application, clazzToRename, name);
+
+            set({
+              meshModelTextureMappings: [
+                ...get().meshModelTextureMappings,
+                {
+                  action: RestructureAction.Rename,
+                  meshType: EntityType.Clazz,
+                  texturePath: 'images/hashtag.png',
+                  app: application as Application,
+                  clazz: clazzToRename,
+                },
+              ],
+            });
+          } else {
+            const undoMapping = get().meshModelTextureMappings.find(
+              (mapping) =>
+                mapping.action === RestructureAction.Rename &&
+                mapping.meshType === EntityType.Clazz &&
+                mapping.app === application &&
+                mapping.clazz === clazzToRename
+            );
+            set({
+              meshModelTextureMappings: get().meshModelTextureMappings.filter(
+                (m) => m != (undoMapping as MeshModelTextureMapping)
+              ),
+            });
+          }
+
+          // Set new Class name
+          clazzToRename.name = name;
 
           eventEmitter.emit('showChangeLog');
           eventEmitter.emit(
@@ -1655,48 +670,596 @@ export const useLandscapeRestructureStore = create<LandscapeRestructureState>(
           );
         }
       }
-      set({ newMeshCounter: get().newMeshCounter++ });
-    },
+    }
+  },
 
-    addCollaborativePackage: (appId: string) => {
-      const app = getApplicationInLandscapeById(
+  renameOperation: (
+    communication: AggregatedCommunication,
+    newName: string,
+    collabMode: boolean = false,
+    undo: boolean = false
+  ) => {
+    if (!collabMode) {
+      useMessageSenderStore.getState().sendRestructureRenameOperationMessage(communication.id, newName, undo);
+    }
+
+    const key = 'RENAMED|' + communication.id;
+    const found = get().updatedAggregatedCommunications.has(key);
+
+    if (!undo) {
+      useChangelogStore.getState().renameOperationEntry(communication, newName);
+      communication.operationName = newName;
+
+      // If the communication was not updated before, then create an entry
+      if (!found) {
+        let newUpdatedAggregatedCommunications = new Map(get().updatedAggregatedCommunications);
+        newUpdatedAggregatedCommunications.set(key as string, [communication]);
+        set({
+          updatedAggregatedCommunications: newUpdatedAggregatedCommunications,
+        });
+      }
+    } else {
+      let newUpdatedAggregatedCommunications = new Map(get().updatedAggregatedCommunications);
+      newUpdatedAggregatedCommunications.delete(key);
+      set({
+        updatedAggregatedCommunications: newUpdatedAggregatedCommunications,
+      });
+      communication.operationName = newName;
+    }
+
+    eventEmitter.emit('showChangeLog');
+    eventEmitter.emit(
+      'restructureLandscapeData',
+      get().landscapeData?.structureLandscapeData,
+      get().landscapeData?.dynamicLandscapeData
+    );
+  },
+
+  restoreApplication: (app: Application, undoCutOperation: boolean = false, collabMode: boolean = false) => {
+    if (!collabMode) {
+      useMessageSenderStore.getState().sendRestructureRestoreAppMessage(app.id, undoCutOperation);
+    }
+
+    get().restoreDeletedAppData(app as Application);
+    const undoMapping = get().meshModelTextureMappings.find(
+      (mapping) =>
+        mapping.action === RestructureAction.Delete && mapping.meshType === EntityType.App && mapping.app === app
+    );
+    set({
+      meshModelTextureMappings: get().meshModelTextureMappings.filter(
+        (m) => m != (undoMapping as MeshModelTextureMapping)
+      ),
+    });
+    if (undoCutOperation) {
+      if (get().createdAggregatedCommunication.length) {
+        get().createdAggregatedCommunication.forEach((comm) => {
+          if (!comm.sourceApp) {
+            comm.sourceApp = app;
+          }
+          if (!comm.targetApp) {
+            comm.targetApp = app;
+          }
+        });
+      }
+      restoreID({ entity: app }, 'removed|');
+    } else {
+      let newCompletelyDeletedAggregatedCommunications = new Map(get().completelyDeletedAggregatedCommunications);
+      newCompletelyDeletedAggregatedCommunications.delete(app.id);
+      set({
+        completelyDeletedAggregatedCommunications: newCompletelyDeletedAggregatedCommunications,
+      });
+    }
+
+    eventEmitter.emit('showChangeLog');
+    eventEmitter.emit(
+      'restructureLandscapeData',
+      get().landscapeData?.structureLandscapeData,
+      get().landscapeData?.dynamicLandscapeData
+    );
+  },
+
+  restorePackage: (pckg: Package, undoCutOperation: boolean = false, collabMode: boolean = false) => {
+    if (!collabMode) {
+      useMessageSenderStore.getState().sendRestructureRestorePackageMessage(pckg.id, undoCutOperation);
+    }
+
+    get().restoreDeletedPackageData(pckg as Package);
+    const undoMapping = get().meshModelTextureMappings.find(
+      (mapping) =>
+        mapping.action === RestructureAction.Delete && mapping.meshType === EntityType.Package && mapping.pckg === pckg
+    );
+    set({
+      meshModelTextureMappings: get().meshModelTextureMappings.filter(
+        (m) => m != (undoMapping as MeshModelTextureMapping)
+      ),
+    });
+
+    // Cut or Undo Operation? In case of Cut we also need to restore the communications!
+    if (undoCutOperation) {
+      const keyToRemove = 'CUTINSERT|' + pckg.id;
+
+      let newUpdatedAggregatedCommunications = new Map(get().updatedAggregatedCommunications);
+      newUpdatedAggregatedCommunications.delete(keyToRemove);
+      set({
+        updatedAggregatedCommunications: newUpdatedAggregatedCommunications,
+      });
+
+      const app = get().getApp(pckg)!;
+      if (get().createdAggregatedCommunication.length) {
+        get().createdAggregatedCommunication.forEach((comm) => {
+          if (!comm.sourceApp) {
+            comm.sourceApp = app;
+          }
+          if (!comm.targetApp) {
+            comm.targetApp = app;
+          }
+        });
+      }
+      get().removeMeshModelTextureMapping(RestructureAction.CutInsert, EntityType.Package, app as Application, pckg);
+      restoreID({ entity: pckg }, 'removed|');
+    } else {
+      let newCompletelyDeletedAggregatedCommunications = new Map(get().completelyDeletedAggregatedCommunications);
+      newCompletelyDeletedAggregatedCommunications.delete(pckg.id);
+      set({
+        completelyDeletedAggregatedCommunications: newCompletelyDeletedAggregatedCommunications,
+      });
+    }
+
+    eventEmitter.emit('showChangeLog');
+    eventEmitter.emit(
+      'restructureLandscapeData',
+      get().landscapeData?.structureLandscapeData,
+      get().landscapeData?.dynamicLandscapeData
+    );
+  },
+
+  restoreClass: (app: Application, clazz: Class, undoCutOperation: boolean = false, collabMode: boolean = false) => {
+    if (!collabMode) {
+      useMessageSenderStore.getState().sendRestructureRestoreClassMessage(app.id, clazz.id, undoCutOperation);
+    }
+
+    set({
+      deletedDataModels: get().deletedDataModels.filter((d) => d != clazz),
+    });
+    const undoMapping = get().meshModelTextureMappings.find(
+      (mapping) =>
+        mapping.action === RestructureAction.Delete &&
+        mapping.meshType === EntityType.Clazz &&
+        mapping.app === app &&
+        mapping.clazz === clazz
+    );
+    set({
+      meshModelTextureMappings: get().meshModelTextureMappings.filter(
+        (m) => m != (undoMapping as MeshModelTextureMapping)
+      ),
+    });
+    if (undoCutOperation) {
+      const keyToRemove = 'CUTINSERT|' + clazz.id;
+
+      let newUpdatedAggregatedCommunications = new Map(get().updatedAggregatedCommunications);
+      newUpdatedAggregatedCommunications.delete(keyToRemove);
+      set({
+        updatedAggregatedCommunications: newUpdatedAggregatedCommunications,
+      });
+
+      restoreID({ entity: clazz }, 'removed|');
+      if (get().createdAggregatedCommunication.length) {
+        get().createdAggregatedCommunication.forEach((comm) => {
+          // referencing the original app again
+          if (!comm.sourceApp) {
+            comm.sourceApp = app;
+          }
+          if (!comm.targetApp) {
+            comm.targetApp = app;
+          }
+
+          // referencing the original class again
+          if (comm.sourceClass.id === clazz.id) {
+            comm.sourceClass = clazz;
+          }
+          if (comm.targetClass.id === clazz.id) {
+            comm.targetClass = clazz;
+          }
+        });
+      }
+      get().removeMeshModelTextureMapping(RestructureAction.CutInsert, EntityType.Clazz, app, clazz.parent, clazz);
+    } else {
+      let newCompletelyDeletedAggregatedCommunications = new Map(get().completelyDeletedAggregatedCommunications);
+      newCompletelyDeletedAggregatedCommunications.delete(clazz.id);
+      set({
+        completelyDeletedAggregatedCommunications: newCompletelyDeletedAggregatedCommunications,
+      });
+    }
+
+    eventEmitter.emit('showChangeLog');
+    eventEmitter.emit(
+      'restructureLandscapeData',
+      get().landscapeData?.structureLandscapeData,
+      get().landscapeData?.dynamicLandscapeData
+    );
+  },
+
+  removeInsertTexture: (element: Package) => {
+    let app: Application;
+    if (element.parent) {
+      app = getApplicationFromSubPackage(
         get().landscapeData?.structureLandscapeData as StructureLandscapeData,
-        appId
+        element.id
+      ) as Application;
+    } else {
+      app = getApplicationFromPackage(
+        get().landscapeData?.structureLandscapeData as StructureLandscapeData,
+        element.id
+      ) as Application;
+    }
+    get().removeMeshModelTextureMapping(RestructureAction.CutInsert, EntityType.Package, app, element);
+  },
+
+  undoDuplicateApp: (app: Application) => {
+    const undoMapping = get().meshModelTextureMappings.find(
+      (mapping) =>
+        mapping.action === RestructureAction.CopyPaste && mapping.meshType === EntityType.App && mapping.app === app
+    );
+    set({
+      meshModelTextureMappings: get().meshModelTextureMappings.filter(
+        (m) => m != (undoMapping as MeshModelTextureMapping)
+      ),
+    });
+
+    const keyToRemove = 'DUPLICATED|' + app.id;
+
+    let newCopiedAggregatedCommunications = new Map(get().copiedAggregatedCommunications);
+    newCopiedAggregatedCommunications.delete(keyToRemove);
+    set({
+      copiedAggregatedCommunications: newCopiedAggregatedCommunications,
+    });
+  },
+
+  undoCopyPackage(app: Application, pckg: Package) {
+    const undoMapping = get().meshModelTextureMappings.find(
+      (mapping) =>
+        mapping.action === RestructureAction.CopyPaste &&
+        mapping.meshType === EntityType.Package &&
+        mapping.app === app &&
+        mapping.pckg === pckg
+    );
+
+    set({
+      meshModelTextureMappings: get().meshModelTextureMappings.filter(
+        (m) => m != (undoMapping as MeshModelTextureMapping)
+      ),
+    });
+
+    const keyToRemove = 'COPIED|' + pckg.id;
+
+    let newCopiedAggregatedCommunications = new Map(get().copiedAggregatedCommunications);
+    newCopiedAggregatedCommunications.delete(keyToRemove);
+    set({
+      copiedAggregatedCommunications: newCopiedAggregatedCommunications,
+    });
+  },
+
+  //TODO: app gets passed but not used
+  undoCopyClass(app: Application, clazz: Class) {
+    const keyToRemove = 'DUPLICATED|' + clazz.id;
+    const copiedComms = get().copiedAggregatedCommunications.get(keyToRemove);
+    if (copiedComms) {
+      let newDeletedAggregatedCommunications = [...get().deletedAggregatedCommunications];
+      copiedComms.forEach((comm) => {
+        newDeletedAggregatedCommunications.push(comm);
+      });
+      set({
+        deletedAggregatedCommunications: newDeletedAggregatedCommunications,
+      });
+
+      let newCopiedAggregatedCommunications = new Map(get().copiedAggregatedCommunications);
+      newCopiedAggregatedCommunications.delete(keyToRemove);
+      set({
+        copiedAggregatedCommunications: newCopiedAggregatedCommunications,
+      });
+    }
+  },
+
+  addApplication: (appName: string, language: string, collabMode: boolean = false) => {
+    if (get().landscapeData?.structureLandscapeData) {
+      if (!collabMode)
+        useMessageSenderStore
+          .getState()
+          .sendRestructureCreateOrDeleteMessage(
+            EntityType.App,
+            RestructureAction.Create,
+            appName,
+            language,
+            null,
+            false
+          );
+
+      const foundation = addFoundationToLandscape(appName, language, get().newMeshCounter);
+      const app = foundation.applications.at(0);
+      const pckg = app?.packages.at(0);
+      const clazz = pckg?.classes.at(0);
+      get().landscapeData!.structureLandscapeData.nodes.push(foundation);
+
+      // Create Changelog Entry
+      useChangelogStore.getState().createAppEntry(app as Application, pckg as Package, clazz as Class);
+
+      set({
+        meshModelTextureMappings: [
+          ...get().meshModelTextureMappings,
+          {
+            action: RestructureAction.Create,
+            meshType: EntityType.App,
+            texturePath: 'images/plus.png',
+            app: app as Application,
+            pckg: pckg as Package,
+            clazz: clazz as Class,
+          },
+        ],
+      });
+
+      eventEmitter.emit('showChangeLog');
+      eventEmitter.emit(
+        'restructureLandscapeData',
+        get().landscapeData?.structureLandscapeData,
+        get().landscapeData?.dynamicLandscapeData
       );
-      get().addPackage(app as Application, true);
-    },
+    }
+    set({ newMeshCounter: get().newMeshCounter++ });
+  },
 
-    addPackage: (app: Application, collabMode: boolean = false) => {
-      if (get().landscapeData?.structureLandscapeData) {
-        if (!collabMode)
-          useMessageSenderStore
-            .getState()
-            .sendRestructureCreateOrDeleteMessage(
-              EntityType.Package,
-              RestructureAction.Create,
-              null,
-              null,
-              app.id,
-              false
-            );
+  applyColorMappings: () => {
+    if (get().restructureMode) {
+      get().commModelColorMappings.forEach((elem) => {
+        const commMesh = get()._getCommMesh(elem);
 
-        let newPckg = createPackage(
-          'newPackage' + get().newMeshCounter,
-          'New Package ' + get().newMeshCounter
-        );
-        const newClass = createClass(
-          'newClass' + get().newMeshCounter,
-          'New Class ' + get().newMeshCounter
-        );
-        newClass.parent = newPckg;
-        newPckg.classes.push(newClass as Class);
-        newPckg = get()._addOriginOfData(newPckg);
-        app.packages.push(newPckg);
+        commMesh?.changeColor(elem.color);
+      });
+    }
+  },
+
+  _getCommMesh: (elem: CommModelColorMapping) => {
+    // Distinguish between internal comms and external comms
+    if (elem.comm.sourceApp === elem.comm.targetApp) {
+      const appModel = useApplicationRendererStore.getState().getApplicationById(elem.comm.sourceApp?.id as string);
+
+      const newCreatedComm = elem.comm.id.includes(' => ');
+      if (newCreatedComm) {
+        const commMesh = appModel?.commIdToMesh.get(elem.comm.id);
+        return commMesh;
+      } else {
+        // A communication can consist of multiple function calls. The id looks something this: XXX_XXX_operationName
+        // The operatioName represents the name of the first function.
+        // We need to remove this suffix to get a base ID of the form: XXX_XXX
+        const suffixToRemove = '_' + elem.comm.operationName;
+        const meshId = elem.comm.id.replace(suffixToRemove, '');
+
+        // Now that we have an Id of the form: XXX_XXX we are only missing the _operationName suffix.
+        // We'll look for a key in the 'commIdToMesh' map that starts with our base ID.
+        if (appModel) {
+          for (const key of appModel.commIdToMesh.keys()) {
+            if (key.startsWith(meshId)) {
+              return appModel?.commIdToMesh.get(key);
+            }
+          }
+        }
+
+        // Should never happen!
+
+        return undefined;
+      }
+    } else {
+      const commMesh = useLinkRendererStore.getState().getLinkById(elem.comm.id);
+      return commMesh;
+    }
+  },
+
+  // TODO: Many redundant cases. Could be refactored/generalized!
+  applyTextureMappings: () => {
+    if (get().restructureMode) {
+      get().meshModelTextureMappings.forEach((elem) => {
+        const currentAppModel = useApplicationRendererStore.getState().getApplicationById(elem.app?.id as string);
+        // Apply Plus texture for new created Meshes
+        if (elem.action === RestructureAction.Create) {
+          if (elem.meshType === EntityType.App) {
+            currentAppModel?.modelIdToMesh.forEach((mesh) => {
+              if (mesh instanceof ClazzMesh) {
+                mesh.changeTexture(elem.texturePath);
+              } else {
+                mesh.changeTexture(elem.texturePath);
+              }
+            });
+          } else if (elem.meshType === EntityType.Package || elem.meshType === EntityType.SubPackage) {
+            currentAppModel?.modelIdToMesh.forEach((mesh) => {
+              const isCorrectComponent = mesh instanceof ComponentMesh && mesh.dataModel.id === elem.pckg?.id;
+              const isCorrectClass = mesh instanceof ClazzMesh && mesh.dataModel.id === elem.clazz?.id;
+              if (isCorrectComponent) {
+                mesh.changeTexture(elem.texturePath);
+              }
+              if (isCorrectClass) {
+                mesh.changeTexture(elem.texturePath);
+              }
+            });
+          } else if (elem.meshType === EntityType.Clazz) {
+            currentAppModel?.modelIdToMesh.forEach((mesh) => {
+              const isCorrectClass = mesh instanceof ClazzMesh && mesh.dataModel.id === elem.clazz?.id;
+              if (isCorrectClass) {
+                mesh.changeTexture(elem.texturePath);
+              }
+            });
+          }
+          // Apply Minus texture for deleted Meshes
+        } else if (elem.action === RestructureAction.Delete) {
+          if (elem.meshType === EntityType.App) {
+            currentAppModel?.modelIdToMesh.forEach((mesh) => {
+              mesh.changeTexture(elem.texturePath);
+            });
+          } else if (elem.meshType === EntityType.Package || elem.meshType === EntityType.SubPackage) {
+            const allSubPackages = getSubPackagesOfPackage(elem.pckg as Package, true);
+            const allClassesInPackage = getClassesInPackage(elem.pckg as Package, true);
+            currentAppModel?.modelIdToMesh.forEach((mesh) => {
+              const isCorrectComponent = mesh instanceof ComponentMesh && mesh.dataModel.id === elem.pckg?.id;
+              const isCorrectClass = mesh instanceof ClazzMesh && mesh.dataModel.id === elem.clazz?.id;
+              if (isCorrectComponent || isCorrectClass) {
+                mesh.changeTexture(elem.texturePath);
+              }
+            });
+            currentAppModel?.modelIdToMesh.forEach((mesh) => {
+              allSubPackages.forEach((pckg) => {
+                const isCorrectComponent = mesh instanceof ComponentMesh && mesh.dataModel.id === pckg.id;
+                if (isCorrectComponent) {
+                  mesh.changeTexture(elem.texturePath);
+                }
+              });
+
+              allClassesInPackage.forEach((clazz) => {
+                const isCorrectClass = mesh instanceof ClazzMesh && mesh.dataModel.id === clazz.id;
+                if (isCorrectClass) {
+                  mesh.changeTexture(elem.texturePath);
+                }
+              });
+            });
+          } else if (elem.meshType === EntityType.Clazz) {
+            currentAppModel?.modelIdToMesh.forEach((mesh) => {
+              const isCorrectClass = mesh instanceof ClazzMesh && mesh.dataModel.id === elem.clazz?.id;
+              if (isCorrectClass) {
+                mesh.changeTexture(elem.texturePath);
+              }
+            });
+          }
+          // Apply Hashtag texture for renamed operations
+        } else if (elem.action === RestructureAction.Rename) {
+          if (elem.meshType === EntityType.App) {
+            const appliedTexture = get()._findAppliedTexture(elem.app);
+            if (!appliedTexture) {
+              const foundationMesh = currentAppModel?.modelIdToMesh.get(elem.app.id);
+              foundationMesh?.changeTexture(elem.texturePath);
+            }
+          } else if (elem.meshType === EntityType.Package) {
+            const appliedTexture = get()._findAppliedTexture(elem.pckg as Package, RestructureAction.CutInsert);
+
+            if (!appliedTexture) {
+              const componentMesh = currentAppModel?.modelIdToMesh.get(elem.pckg?.id as string);
+              componentMesh?.changeTexture(elem.texturePath);
+            }
+          } else if (elem.meshType === EntityType.Clazz) {
+            const appliedTexture = get()._findAppliedTexture(elem.clazz as Class, RestructureAction.CutInsert);
+            if (!appliedTexture) {
+              const clazzMesh = currentAppModel?.modelIdToMesh.get(elem.clazz?.id as string);
+              clazzMesh?.changeTexture(elem.texturePath);
+            }
+          }
+          // Apply X texture for copied Meshes
+        } else if (elem.action === RestructureAction.CopyPaste) {
+          if (elem.meshType === EntityType.App) {
+            currentAppModel?.modelIdToMesh.forEach((mesh) => {
+              if (mesh instanceof ClazzMesh) {
+                mesh.changeTexture(elem.texturePath);
+              } else {
+                mesh.changeTexture(elem.texturePath);
+              }
+            });
+          } else if (elem.meshType === EntityType.Package) {
+            const allSubPackages = getSubPackagesOfPackage(elem.pckg as Package, true);
+            const allClassesInPackage = getClassesInPackage(elem.pckg as Package, true);
+
+            const componentMesh = currentAppModel?.modelIdToMesh.get(elem.pckg?.id as string);
+
+            componentMesh?.changeTexture(elem.texturePath);
+            currentAppModel?.modelIdToMesh.forEach((mesh) => {
+              allSubPackages.forEach((pckg) => {
+                const isCorrectComponent = mesh instanceof ComponentMesh && mesh.dataModel.id === pckg.id;
+                if (isCorrectComponent) {
+                  mesh.changeTexture(elem.texturePath);
+                }
+              });
+
+              allClassesInPackage.forEach((clazz) => {
+                const isCorrectClass = mesh instanceof ClazzMesh && mesh.dataModel.id === clazz.id;
+                if (isCorrectClass) {
+                  mesh.changeTexture(elem.texturePath);
+                }
+              });
+            });
+          } else if (elem.meshType === EntityType.Clazz) {
+            const clazzMesh = currentAppModel?.modelIdToMesh.get(elem.clazz?.id as string);
+            clazzMesh?.changeTexture(elem.texturePath);
+          }
+          // Apply Slash texture for inserted Meshes
+        } else if (elem.action === RestructureAction.CutInsert) {
+          if (elem.meshType === EntityType.Package) {
+            const appliedTexture = get()._findAppliedTexture(elem.pckg as Package);
+            if (!appliedTexture) {
+              const allSubPackages = getSubPackagesOfPackage(elem.pckg as Package, true);
+              const allClassesInPackage = getClassesInPackage(elem.pckg as Package, true);
+              const componentMesh = currentAppModel?.modelIdToMesh.get(elem.pckg?.id as string);
+              componentMesh?.changeTexture(elem.texturePath);
+              currentAppModel?.modelIdToMesh.forEach((mesh) => {
+                allSubPackages.forEach((pckg) => {
+                  const isCorrectComponent = mesh instanceof ComponentMesh && mesh.dataModel.id === pckg.id;
+                  if (isCorrectComponent) {
+                    mesh.changeTexture(elem.texturePath);
+                  }
+                });
+
+                allClassesInPackage.forEach((clazz) => {
+                  const isCorrectClass = mesh instanceof ClazzMesh && mesh.dataModel.id === clazz.id;
+                  if (isCorrectClass) {
+                    mesh.changeTexture(elem.texturePath);
+                  }
+                });
+              });
+            }
+          } else if (elem.meshType === EntityType.Clazz) {
+            const appliedTexture = get()._findAppliedTexture(elem.clazz as Class);
+            if (!appliedTexture) {
+              const clazzMesh = currentAppModel?.modelIdToMesh.get(elem.clazz?.id as string);
+              clazzMesh?.changeTexture(elem.texturePath);
+            }
+          }
+        }
+      });
+    }
+  },
+
+  _findAppliedTexture: (elem: Application | Package | Class, action?: RestructureAction) => {
+    return get().meshModelTextureMappings.find(
+      (entry) =>
+        (entry.app === elem || entry.pckg === elem || entry.clazz === elem) &&
+        (entry.action === RestructureAction.Create || entry.action === action)
+    );
+  },
+
+  addCollaborativeSubPackage: (pckgId: string) => {
+    const pckg = getPackageById(get().landscapeData?.structureLandscapeData as StructureLandscapeData, pckgId);
+    get().addSubPackage(pckg as Package, true);
+  },
+
+  addSubPackage: (pckg: Package, collabMode: boolean = false) => {
+    if (get().landscapeData?.structureLandscapeData) {
+      if (!collabMode)
+        useMessageSenderStore
+          .getState()
+          .sendRestructureCreateOrDeleteMessage(
+            EntityType.SubPackage,
+            RestructureAction.Create,
+            null,
+            null,
+            pckg.id,
+            false
+          );
+
+      const app = get().getAppFromPackage(pckg);
+      if (app) {
+        let subPackage = createPackage('newPackage' + get().newMeshCounter, 'New Package ' + get().newMeshCounter);
+        const newClass = createClass('newClass' + get().newMeshCounter, 'New Class ' + get().newMeshCounter);
+        newClass.parent = subPackage;
+        subPackage.parent = pckg;
+        subPackage.classes.push(newClass as Class);
+        subPackage = get()._addOriginOfData(subPackage);
+        pckg.subPackages.push(subPackage);
 
         // Create Changelog Entry
-        useChangelogStore
-          .getState()
-          .createPackageEntry(app, newPckg, newClass as Class);
+        useChangelogStore.getState().createPackageEntry(app, subPackage, newClass as Class);
 
         set({
           meshModelTextureMappings: [
@@ -1706,7 +1269,7 @@ export const useLandscapeRestructureStore = create<LandscapeRestructureState>(
               meshType: EntityType.Package,
               texturePath: 'images/plus.png',
               app: app as Application,
-              pckg: newPckg as Package,
+              pckg: subPackage as Package,
               clazz: newClass as Class,
             },
           ],
@@ -1719,1260 +1282,1080 @@ export const useLandscapeRestructureStore = create<LandscapeRestructureState>(
           get().landscapeData?.dynamicLandscapeData
         );
       }
-      set({ newMeshCounter: get().newMeshCounter++ });
-    },
+    }
+    set({ newMeshCounter: get().newMeshCounter++ });
+  },
 
-    addCollaborativeClass: (pckgId: string) => {
-      const pckg = getPackageById(
-        get().landscapeData?.structureLandscapeData as StructureLandscapeData,
-        pckgId
-      );
-      get().addClass(pckg as Package, true);
-    },
+  addCollaborativePackage: (appId: string) => {
+    const app = getApplicationInLandscapeById(
+      get().landscapeData?.structureLandscapeData as StructureLandscapeData,
+      appId
+    );
+    get().addPackage(app as Application, true);
+  },
 
-    addClass: (pckg: Package, collabMode: boolean = false) => {
-      if (get().landscapeData?.structureLandscapeData) {
-        if (!collabMode)
-          useMessageSenderStore
-            .getState()
-            .sendRestructureCreateOrDeleteMessage(
-              EntityType.Clazz,
-              RestructureAction.Create,
-              null,
-              null,
-              pckg.id,
-              false
-            );
-
-        const app = get().getAppFromPackage(pckg);
-        if (app) {
-          const clazz = createClass(
-            'newClass' + get().newMeshCounter,
-            'New Class ' + get().newMeshCounter
-          );
-          clazz.parent = pckg;
-          clazz.originOfData = TypeOfAnalysis.Static;
-          pckg.classes.push(clazz as Class);
-
-          // Create Changelog Entry
-          useChangelogStore.getState().createClassEntry(app, clazz as Class);
-
-          set({
-            meshModelTextureMappings: [
-              ...get().meshModelTextureMappings,
-              {
-                action: RestructureAction.Create,
-                meshType: EntityType.Clazz,
-                texturePath: 'images/plus.png',
-                app: app as Application,
-                pckg: clazz.parent as Package,
-                clazz: clazz as Class,
-              },
-            ],
-          });
-
-          eventEmitter.emit('showChangeLog');
-          eventEmitter.emit(
-            'restructureLandscapeData',
-            get().landscapeData?.structureLandscapeData,
-            get().landscapeData?.dynamicLandscapeData
-          );
-        }
-      }
-      set({ newMeshCounter: get().newMeshCounter++ });
-    },
-
-    deleteCollaborativeApplication: (appId: string, undo: boolean) => {
-      const app = getApplicationInLandscapeById(
-        get().landscapeData?.structureLandscapeData as StructureLandscapeData,
-        appId
-      );
-      get().deleteApp(app as Application, true, undo);
-    },
-
-    deleteApp: (
-      app: Application,
-      collabMode: boolean = false,
-      undo: boolean = false
-    ) => {
-      if (get().landscapeData?.structureLandscapeData) {
-        if (!collabMode)
-          useMessageSenderStore
-            .getState()
-            .sendRestructureCreateOrDeleteMessage(
-              EntityType.App,
-              RestructureAction.Delete,
-              null,
-              null,
-              app.id,
-              undo
-            );
-
-        let shouldUndo = undo;
-        if (
-          !shouldUndo &&
-          (app.id.includes('newApp') || app.id.includes('duplicated'))
-        ) {
-          shouldUndo = true;
-        }
-        // Create wrapper for Communication, since it can change inside the function
-        const wrapper = {
-          comms: get().allAggregatedCommunications,
-          deletedComms: [],
-        };
-
-        if (!shouldUndo) {
-          const classesInApplication = getAllClassesInApplication(app);
-          removeAffectedCommunications(classesInApplication, wrapper);
-          get()._processDeletedAppData(app);
-
-          // Updating deleted communications
-
-          let newCompletelyDeletedAggregatedCommunications = new Map(
-            get().completelyDeletedAggregatedCommunications
-          );
-          newCompletelyDeletedAggregatedCommunications.set(
+  addPackage: (app: Application, collabMode: boolean = false) => {
+    if (get().landscapeData?.structureLandscapeData) {
+      if (!collabMode)
+        useMessageSenderStore
+          .getState()
+          .sendRestructureCreateOrDeleteMessage(
+            EntityType.Package,
+            RestructureAction.Create,
+            null,
+            null,
             app.id,
-            wrapper.deletedComms
+            false
           );
-          set({
-            completelyDeletedAggregatedCommunications:
-              newCompletelyDeletedAggregatedCommunications,
-          });
-        } else {
-          removeApplication(get().landscapeData!.structureLandscapeData, app);
 
-          // Removes the duplicate texture and comms
-          if (app.id.includes('duplicated')) get().undoDuplicateApp(app);
+      let newPckg = createPackage('newPackage' + get().newMeshCounter, 'New Package ' + get().newMeshCounter);
+      const newClass = createClass('newClass' + get().newMeshCounter, 'New Class ' + get().newMeshCounter);
+      newClass.parent = newPckg;
+      newPckg.classes.push(newClass as Class);
+      newPckg = get()._addOriginOfData(newPckg);
+      app.packages.push(newPckg);
 
-          // Removes existing Changelog entry
-          useChangelogStore.getState().deleteAppEntry(app, true);
-
-          // Remove all meshes of the application
-          const appObject3D: ApplicationObject3D | undefined =
-            useApplicationRendererStore.getState().getApplicationById(app.id);
-          if (appObject3D) {
-            appObject3D.removeAll();
-            appObject3D.removeAllCommunication();
-          }
-        }
-
-        eventEmitter.emit('showChangeLog');
-        eventEmitter.emit(
-          'restructureLandscapeData',
-          get().landscapeData?.structureLandscapeData,
-          get().landscapeData?.dynamicLandscapeData
-        );
-      }
-    },
-
-    _processDeletedAppData: (app: Application) => {
       // Create Changelog Entry
-      useChangelogStore.getState().deleteAppEntry(app);
-
-      // Store all datamodels that are deleted
-      get().storeDeletedAppData(app);
+      useChangelogStore.getState().createPackageEntry(app, newPckg, newClass as Class);
 
       set({
         meshModelTextureMappings: [
           ...get().meshModelTextureMappings,
           {
-            action: RestructureAction.Delete,
-            meshType: EntityType.App,
-            texturePath: 'images/minus.png',
-            app: app,
+            action: RestructureAction.Create,
+            meshType: EntityType.Package,
+            texturePath: 'images/plus.png',
+            app: app as Application,
+            pckg: newPckg as Package,
+            clazz: newClass as Class,
           },
         ],
       });
-    },
 
-    deleteCollaborativePackage: (pckgId: string, undo: boolean) => {
-      const pckg = getPackageById(
-        get().landscapeData?.structureLandscapeData as StructureLandscapeData,
-        pckgId
+      eventEmitter.emit('showChangeLog');
+      eventEmitter.emit(
+        'restructureLandscapeData',
+        get().landscapeData?.structureLandscapeData,
+        get().landscapeData?.dynamicLandscapeData
       );
-      get().deletePackage(pckg as Package, true, undo);
-    },
+    }
+    set({ newMeshCounter: get().newMeshCounter++ });
+  },
 
-    deletePackage: (
-      pckg: Package,
-      collabMode: boolean = false,
-      undo: boolean = false
-    ) => {
-      if (get().landscapeData?.structureLandscapeData) {
-        if (!collabMode)
-          useMessageSenderStore
-            .getState()
-            .sendRestructureCreateOrDeleteMessage(
-              EntityType.Package,
-              RestructureAction.Delete,
-              null,
-              null,
-              pckg.id,
-              undo
-            );
+  addCollaborativeClass: (pckgId: string) => {
+    const pckg = getPackageById(get().landscapeData?.structureLandscapeData as StructureLandscapeData, pckgId);
+    get().addClass(pckg as Package, true);
+  },
 
-        const app = get().getApp(pckg) as Application;
+  addClass: (pckg: Package, collabMode: boolean = false) => {
+    if (get().landscapeData?.structureLandscapeData) {
+      if (!collabMode)
+        useMessageSenderStore
+          .getState()
+          .sendRestructureCreateOrDeleteMessage(EntityType.Clazz, RestructureAction.Create, null, null, pckg.id, false);
 
-        let shouldUndo = undo;
+      const app = get().getAppFromPackage(pckg);
+      if (app) {
+        const clazz = createClass('newClass' + get().newMeshCounter, 'New Class ' + get().newMeshCounter);
+        clazz.parent = pckg;
+        clazz.originOfData = TypeOfAnalysis.Static;
+        pckg.classes.push(clazz as Class);
 
-        if (
-          (!shouldUndo && pckg.id.includes('newPackage')) ||
-          pckg.id.includes('copied')
-        ) {
-          shouldUndo = true;
+        // Create Changelog Entry
+        useChangelogStore.getState().createClassEntry(app, clazz as Class);
+
+        set({
+          meshModelTextureMappings: [
+            ...get().meshModelTextureMappings,
+            {
+              action: RestructureAction.Create,
+              meshType: EntityType.Clazz,
+              texturePath: 'images/plus.png',
+              app: app as Application,
+              pckg: clazz.parent as Package,
+              clazz: clazz as Class,
+            },
+          ],
+        });
+
+        eventEmitter.emit('showChangeLog');
+        eventEmitter.emit(
+          'restructureLandscapeData',
+          get().landscapeData?.structureLandscapeData,
+          get().landscapeData?.dynamicLandscapeData
+        );
+      }
+    }
+    set({ newMeshCounter: get().newMeshCounter++ });
+  },
+
+  deleteCollaborativeApplication: (appId: string, undo: boolean) => {
+    const app = getApplicationInLandscapeById(
+      get().landscapeData?.structureLandscapeData as StructureLandscapeData,
+      appId
+    );
+    get().deleteApp(app as Application, true, undo);
+  },
+
+  deleteApp: (app: Application, collabMode: boolean = false, undo: boolean = false) => {
+    if (get().landscapeData?.structureLandscapeData) {
+      if (!collabMode)
+        useMessageSenderStore
+          .getState()
+          .sendRestructureCreateOrDeleteMessage(EntityType.App, RestructureAction.Delete, null, null, app.id, undo);
+
+      let shouldUndo = undo;
+      if (!shouldUndo && (app.id.includes('newApp') || app.id.includes('duplicated'))) {
+        shouldUndo = true;
+      }
+      // Create wrapper for Communication, since it can change inside the function
+      const wrapper = {
+        comms: get().allAggregatedCommunications,
+        deletedComms: [],
+      };
+
+      if (!shouldUndo) {
+        const classesInApplication = getAllClassesInApplication(app);
+        removeAffectedCommunications(classesInApplication, wrapper);
+        get()._processDeletedAppData(app);
+
+        // Updating deleted communications
+
+        let newCompletelyDeletedAggregatedCommunications = new Map(get().completelyDeletedAggregatedCommunications);
+        newCompletelyDeletedAggregatedCommunications.set(app.id, wrapper.deletedComms);
+        set({
+          completelyDeletedAggregatedCommunications: newCompletelyDeletedAggregatedCommunications,
+        });
+      } else {
+        removeApplication(get().landscapeData!.structureLandscapeData, app);
+
+        // Removes the duplicate texture and comms
+        if (app.id.includes('duplicated')) get().undoDuplicateApp(app);
+
+        // Removes existing Changelog entry
+        useChangelogStore.getState().deleteAppEntry(app, true);
+
+        // Remove all meshes of the application
+        const appObject3D: ApplicationObject3D | undefined = useApplicationRendererStore
+          .getState()
+          .getApplicationById(app.id);
+        if (appObject3D) {
+          appObject3D.removeAll();
+          appObject3D.removeAllCommunication();
         }
+      }
 
-        // Create wrapper for Communication and the Mesh to delete, since it can change inside the function
-        const wrapper = {
-          comms: get().allAggregatedCommunications,
-          deletedComms: [],
-        };
+      eventEmitter.emit('showChangeLog');
+      eventEmitter.emit(
+        'restructureLandscapeData',
+        get().landscapeData?.structureLandscapeData,
+        get().landscapeData?.dynamicLandscapeData
+      );
+    }
+  },
 
-        if (!shouldUndo) {
-          const classesInPackge = getClassesInPackage(pckg);
-          removeAffectedCommunications(classesInPackge, wrapper);
+  _processDeletedAppData: (app: Application) => {
+    // Create Changelog Entry
+    useChangelogStore.getState().deleteAppEntry(app);
 
-          let newCompletelyDeletedAggregatedCommunications = new Map(
-            get().completelyDeletedAggregatedCommunications
-          );
-          newCompletelyDeletedAggregatedCommunications.set(
+    // Store all datamodels that are deleted
+    get().storeDeletedAppData(app);
+
+    set({
+      meshModelTextureMappings: [
+        ...get().meshModelTextureMappings,
+        {
+          action: RestructureAction.Delete,
+          meshType: EntityType.App,
+          texturePath: 'images/minus.png',
+          app: app,
+        },
+      ],
+    });
+  },
+
+  deleteCollaborativePackage: (pckgId: string, undo: boolean) => {
+    const pckg = getPackageById(get().landscapeData?.structureLandscapeData as StructureLandscapeData, pckgId);
+    get().deletePackage(pckg as Package, true, undo);
+  },
+
+  deletePackage: (pckg: Package, collabMode: boolean = false, undo: boolean = false) => {
+    if (get().landscapeData?.structureLandscapeData) {
+      if (!collabMode)
+        useMessageSenderStore
+          .getState()
+          .sendRestructureCreateOrDeleteMessage(
+            EntityType.Package,
+            RestructureAction.Delete,
+            null,
+            null,
             pckg.id,
-            wrapper.deletedComms
+            undo
           );
-          set({
-            completelyDeletedAggregatedCommunications:
-              newCompletelyDeletedAggregatedCommunications,
-          });
 
-          // Create Changelog Entry
-          if (app && pckg.parent) {
-            useChangelogStore
-              .getState()
-              .deleteSubPackageEntry(app, pckg, false);
-          } else if (app && !pckg.parent) {
-            useChangelogStore.getState().deletePackageEntry(app, pckg, false);
-          }
+      const app = get().getApp(pckg) as Application;
 
-          get().storeDeletedPackageData(pckg);
+      let shouldUndo = undo;
 
-          set({
-            meshModelTextureMappings: [
-              ...get().meshModelTextureMappings,
-              {
-                action: RestructureAction.Delete,
-                meshType: EntityType.Package,
-                texturePath: 'images/minus.png',
-                app: app as Application,
-                pckg: pckg,
-              },
-            ],
-          });
-        } else {
-          if (!canDeletePackage(pckg, app as Application)) {
-            useToastHandlerStore
-              .getState()
-              .showErrorToastMessage('Package cannot be removed');
-            return;
-          }
-          removePackageFromApplication(pckg, app as Application);
+      if ((!shouldUndo && pckg.id.includes('newPackage')) || pckg.id.includes('copied')) {
+        shouldUndo = true;
+      }
 
-          // Only necessary, when we delete a copy
-          if (pckg.id.includes('copied')) get().undoCopyPackage(app, pckg);
+      // Create wrapper for Communication and the Mesh to delete, since it can change inside the function
+      const wrapper = {
+        comms: get().allAggregatedCommunications,
+        deletedComms: [],
+      };
 
-          // Removes existing Changelog Entry
-          if (pckg.parent) {
-            useChangelogStore
-              .getState()
-              .deleteSubPackageEntry(app as Application, pckg, true);
-          } else {
-            useChangelogStore
-              .getState()
-              .deletePackageEntry(app as Application, pckg, true);
-          }
+      if (!shouldUndo) {
+        const classesInPackge = getClassesInPackage(pckg);
+        removeAffectedCommunications(classesInPackge, wrapper);
+
+        let newCompletelyDeletedAggregatedCommunications = new Map(get().completelyDeletedAggregatedCommunications);
+        newCompletelyDeletedAggregatedCommunications.set(pckg.id, wrapper.deletedComms);
+        set({
+          completelyDeletedAggregatedCommunications: newCompletelyDeletedAggregatedCommunications,
+        });
+
+        // Create Changelog Entry
+        if (app && pckg.parent) {
+          useChangelogStore.getState().deleteSubPackageEntry(app, pckg, false);
+        } else if (app && !pckg.parent) {
+          useChangelogStore.getState().deletePackageEntry(app, pckg, false);
         }
 
-        eventEmitter.emit('showChangeLog');
-        eventEmitter.emit(
-          'restructureLandscapeData',
-          get().landscapeData?.structureLandscapeData,
-          get().landscapeData?.dynamicLandscapeData
-        );
+        get().storeDeletedPackageData(pckg);
+
+        set({
+          meshModelTextureMappings: [
+            ...get().meshModelTextureMappings,
+            {
+              action: RestructureAction.Delete,
+              meshType: EntityType.Package,
+              texturePath: 'images/minus.png',
+              app: app as Application,
+              pckg: pckg,
+            },
+          ],
+        });
+      } else {
+        if (!canDeletePackage(pckg, app as Application)) {
+          useToastHandlerStore.getState().showErrorToastMessage('Package cannot be removed');
+          return;
+        }
+        removePackageFromApplication(pckg, app as Application);
+
+        // Only necessary, when we delete a copy
+        if (pckg.id.includes('copied')) get().undoCopyPackage(app, pckg);
+
+        // Removes existing Changelog Entry
+        if (pckg.parent) {
+          useChangelogStore.getState().deleteSubPackageEntry(app as Application, pckg, true);
+        } else {
+          useChangelogStore.getState().deletePackageEntry(app as Application, pckg, true);
+        }
       }
-    },
 
-    /**
-     * Stores all data models associated with a deleted application. These data models are added to the `deletedDataModels` array
-     * for potential future restoration.
-     *
-     * @param app The application that has been deleted.
-     */
-    storeDeletedAppData: (app: Application) => {
-      const allPackages = getAllPackagesInApplication(app);
-      const allClasses = getAllClassesInApplication(app);
-      set({ deletedDataModels: [...get().deletedDataModels, app] });
-      allPackages.forEach((pckg) => {
-        set({ deletedDataModels: [...get().deletedDataModels, pckg] });
-      });
-      allClasses.forEach((clazz) => {
-        set({ deletedDataModels: [...get().deletedDataModels, clazz] });
-      });
-    },
-
-    /**
-     * Restores the data models of a deleted application. It searches the `deletedDataModels`
-     * array for the application, its associated packages, and classes, and then removes them from the
-     * `deletedDataModels` array, effectively restoring them to their inital state.
-     *
-     * @param app The application that is going to be restored.
-     */
-    restoreDeletedAppData: (app: Application) => {
-      set({
-        deletedDataModels: [...get().deletedDataModels.filter((d) => d != app)],
-      });
-      const allPackages = getAllPackagesInApplication(app);
-      const allClasses = getAllClassesInApplication(app);
-      allPackages.forEach((pckg) => {
-        set({
-          deletedDataModels: get().deletedDataModels.filter((d) => d != pckg),
-        });
-      });
-      allClasses.forEach((clazz) => {
-        set({
-          deletedDataModels: get().deletedDataModels.filter((d) => d != clazz),
-        });
-      });
-    },
-
-    /**
-     * Stores all data models associated with a deleted package. These data models are added to the `deletedDataModels`
-     * array for potential future restoration.
-     *
-     * @param pckg The package that has been deleted or is intended to be deleted.
-     */
-    storeDeletedPackageData: (pckg: Package) => {
-      const allPackages = getSubPackagesOfPackage(pckg, true);
-      const allClasses = getClassesInPackage(pckg, true);
-      set({ deletedDataModels: [...get().deletedDataModels, pckg] });
-      allPackages.forEach((pckg) => {
-        set({ deletedDataModels: [...get().deletedDataModels, pckg] });
-      });
-      allClasses.forEach((clazz) => {
-        set({ deletedDataModels: [...get().deletedDataModels, clazz] });
-      });
-    },
-
-    /**
-     * Restores the data models of a deleted package. It searches the `deletedDataModels`
-     * array for the package, its associated subpackages, and classes, and then removes them from the
-     * `deletedDataModels` array, effectively restoring them to their inital state.
-     *
-     * @param pckg The package that is going to be restored.
-     */
-    restoreDeletedPackageData(pckg: Package) {
-      set({
-        deletedDataModels: [
-          ...get().deletedDataModels.filter((d) => d != pckg),
-        ],
-      });
-      const allPackages = getSubPackagesOfPackage(pckg, true);
-      const allClasses = getClassesInPackage(pckg, true);
-      allPackages.forEach((pckg) => {
-        set({
-          deletedDataModels: get().deletedDataModels.filter((d) => d != pckg),
-        });
-      });
-      allClasses.forEach((clazz) => {
-        set({
-          deletedDataModels: get().deletedDataModels.filter((d) => d != clazz),
-        });
-      });
-    },
-
-    deleteCollaborativeClass: (clazzId: string, undo: boolean) => {
-      const clazz = getClassById(
-        get().landscapeData?.structureLandscapeData as StructureLandscapeData,
-        clazzId
+      eventEmitter.emit('showChangeLog');
+      eventEmitter.emit(
+        'restructureLandscapeData',
+        get().landscapeData?.structureLandscapeData,
+        get().landscapeData?.dynamicLandscapeData
       );
-      get().deleteClass(clazz as Class, true, undo);
-    },
+    }
+  },
 
-    deleteClass: (
-      clazz: Class,
-      collabMode: boolean = false,
-      undo: boolean = false
-    ) => {
-      if (get().landscapeData?.structureLandscapeData) {
-        if (!collabMode)
-          useMessageSenderStore
-            .getState()
-            .sendRestructureCreateOrDeleteMessage(
-              EntityType.Clazz,
-              RestructureAction.Delete,
-              null,
-              null,
-              clazz.id,
-              undo
-            );
+  /**
+   * Stores all data models associated with a deleted application. These data models are added to the `deletedDataModels` array
+   * for potential future restoration.
+   *
+   * @param app The application that has been deleted.
+   */
+  storeDeletedAppData: (app: Application) => {
+    const allPackages = getAllPackagesInApplication(app);
+    const allClasses = getAllClassesInApplication(app);
+    set({ deletedDataModels: [...get().deletedDataModels, app] });
+    allPackages.forEach((pckg) => {
+      set({ deletedDataModels: [...get().deletedDataModels, pckg] });
+    });
+    allClasses.forEach((clazz) => {
+      set({ deletedDataModels: [...get().deletedDataModels, clazz] });
+    });
+  },
 
-        const application = getApplicationFromClass(
-          get().landscapeData!.structureLandscapeData,
-          clazz
-        );
+  /**
+   * Restores the data models of a deleted application. It searches the `deletedDataModels`
+   * array for the application, its associated packages, and classes, and then removes them from the
+   * `deletedDataModels` array, effectively restoring them to their inital state.
+   *
+   * @param app The application that is going to be restored.
+   */
+  restoreDeletedAppData: (app: Application) => {
+    set({
+      deletedDataModels: [...get().deletedDataModels.filter((d) => d != app)],
+    });
+    const allPackages = getAllPackagesInApplication(app);
+    const allClasses = getAllClassesInApplication(app);
+    allPackages.forEach((pckg) => {
+      set({
+        deletedDataModels: get().deletedDataModels.filter((d) => d != pckg),
+      });
+    });
+    allClasses.forEach((clazz) => {
+      set({
+        deletedDataModels: get().deletedDataModels.filter((d) => d != clazz),
+      });
+    });
+  },
 
-        let shouldUndo = undo;
+  /**
+   * Stores all data models associated with a deleted package. These data models are added to the `deletedDataModels`
+   * array for potential future restoration.
+   *
+   * @param pckg The package that has been deleted or is intended to be deleted.
+   */
+  storeDeletedPackageData: (pckg: Package) => {
+    const allPackages = getSubPackagesOfPackage(pckg, true);
+    const allClasses = getClassesInPackage(pckg, true);
+    set({ deletedDataModels: [...get().deletedDataModels, pckg] });
+    allPackages.forEach((pckg) => {
+      set({ deletedDataModels: [...get().deletedDataModels, pckg] });
+    });
+    allClasses.forEach((clazz) => {
+      set({ deletedDataModels: [...get().deletedDataModels, clazz] });
+    });
+  },
 
-        if (
-          !shouldUndo &&
-          (clazz.id.includes('newClass') || clazz.id.includes('copied'))
-        ) {
-          shouldUndo = true;
-        }
+  /**
+   * Restores the data models of a deleted package. It searches the `deletedDataModels`
+   * array for the package, its associated subpackages, and classes, and then removes them from the
+   * `deletedDataModels` array, effectively restoring them to their inital state.
+   *
+   * @param pckg The package that is going to be restored.
+   */
+  restoreDeletedPackageData(pckg: Package) {
+    set({
+      deletedDataModels: [...get().deletedDataModels.filter((d) => d != pckg)],
+    });
+    const allPackages = getSubPackagesOfPackage(pckg, true);
+    const allClasses = getClassesInPackage(pckg, true);
+    allPackages.forEach((pckg) => {
+      set({
+        deletedDataModels: get().deletedDataModels.filter((d) => d != pckg),
+      });
+    });
+    allClasses.forEach((clazz) => {
+      set({
+        deletedDataModels: get().deletedDataModels.filter((d) => d != clazz),
+      });
+    });
+  },
 
-        // Create wrapper for Communication and the Mesh to delete, since it can change inside the function
-        const wrapper = {
-          comms: get().allAggregatedCommunications,
-          deletedComms: [],
-        };
+  deleteCollaborativeClass: (clazzId: string, undo: boolean) => {
+    const clazz = getClassById(get().landscapeData?.structureLandscapeData as StructureLandscapeData, clazzId);
+    get().deleteClass(clazz as Class, true, undo);
+  },
 
-        if (!shouldUndo) {
-          removeAffectedCommunications([clazz], wrapper);
+  deleteClass: (clazz: Class, collabMode: boolean = false, undo: boolean = false) => {
+    if (get().landscapeData?.structureLandscapeData) {
+      if (!collabMode)
+        useMessageSenderStore
+          .getState()
+          .sendRestructureCreateOrDeleteMessage(EntityType.Clazz, RestructureAction.Delete, null, null, clazz.id, undo);
 
-          let newCompletelyDeletedAggregatedCommunications = new Map(
-            get().completelyDeletedAggregatedCommunications
-          );
-          newCompletelyDeletedAggregatedCommunications.set(
-            clazz.id,
-            wrapper.deletedComms
-          );
-          set({
-            completelyDeletedAggregatedCommunications:
-              newCompletelyDeletedAggregatedCommunications,
-          });
+      const application = getApplicationFromClass(get().landscapeData!.structureLandscapeData, clazz);
 
-          set({
-            meshModelTextureMappings: [
-              ...get().meshModelTextureMappings,
-              {
-                action: RestructureAction.Delete,
-                meshType: EntityType.Clazz,
-                texturePath: 'images/minus.png',
-                app: application as Application,
-                clazz: clazz,
-              },
-            ],
-          });
+      let shouldUndo = undo;
 
-          // Create Changelog Entry
-          useChangelogStore
-            .getState()
-            .deleteClassEntry(application as Application, clazz, false);
-
-          set({ deletedDataModels: [...get().deletedDataModels, clazz] });
-        } else {
-          if (!canDeleteClass(clazz)) {
-            useToastHandlerStore
-              .getState()
-              .showErrorToastMessage('Class cannot be removed');
-            return;
-          }
-
-          removeClassFromPackage(clazz);
-
-          if (clazz.id.includes('copied'))
-            get().undoCopyClass(application as Application, clazz);
-
-          // Removing existing Create Entry
-          useChangelogStore
-            .getState()
-            .deleteClassEntry(application as Application, clazz, true);
-        }
-
-        eventEmitter.emit('showChangeLog');
-        eventEmitter.emit(
-          'restructureLandscapeData',
-          get().landscapeData?.structureLandscapeData,
-          get().landscapeData?.dynamicLandscapeData
-        );
+      if (!shouldUndo && (clazz.id.includes('newClass') || clazz.id.includes('copied'))) {
+        shouldUndo = true;
       }
-    },
 
-    cutPackage(pckg: Package) {
-      set({ clipboard: pckg.name });
-      set({ clippedMesh: pckg });
-    },
+      // Create wrapper for Communication and the Mesh to delete, since it can change inside the function
+      const wrapper = {
+        comms: get().allAggregatedCommunications,
+        deletedComms: [],
+      };
 
-    cutClass(clazz: Class) {
-      set({ clipboard: clazz.name });
-      set({ clippedMesh: clazz });
-    },
+      if (!shouldUndo) {
+        removeAffectedCommunications([clazz], wrapper);
 
-    resetClipboard() {
-      set({ clipboard: '' });
-      set({ clippedMesh: null });
-    },
+        let newCompletelyDeletedAggregatedCommunications = new Map(get().completelyDeletedAggregatedCommunications);
+        newCompletelyDeletedAggregatedCommunications.set(clazz.id, wrapper.deletedComms);
+        set({
+          completelyDeletedAggregatedCommunications: newCompletelyDeletedAggregatedCommunications,
+        });
 
-    pasteCollaborativePackage: (
-      destinationEntity: string,
-      destinationId: string,
-      clippedEntityId: string
-    ) => {
+        set({
+          meshModelTextureMappings: [
+            ...get().meshModelTextureMappings,
+            {
+              action: RestructureAction.Delete,
+              meshType: EntityType.Clazz,
+              texturePath: 'images/minus.png',
+              app: application as Application,
+              clazz: clazz,
+            },
+          ],
+        });
+
+        // Create Changelog Entry
+        useChangelogStore.getState().deleteClassEntry(application as Application, clazz, false);
+
+        set({ deletedDataModels: [...get().deletedDataModels, clazz] });
+      } else {
+        if (!canDeleteClass(clazz)) {
+          useToastHandlerStore.getState().showErrorToastMessage('Class cannot be removed');
+          return;
+        }
+
+        removeClassFromPackage(clazz);
+
+        if (clazz.id.includes('copied')) get().undoCopyClass(application as Application, clazz);
+
+        // Removing existing Create Entry
+        useChangelogStore.getState().deleteClassEntry(application as Application, clazz, true);
+      }
+
+      eventEmitter.emit('showChangeLog');
+      eventEmitter.emit(
+        'restructureLandscapeData',
+        get().landscapeData?.structureLandscapeData,
+        get().landscapeData?.dynamicLandscapeData
+      );
+    }
+  },
+
+  cutPackage(pckg: Package) {
+    set({ clipboard: pckg.name });
+    set({ clippedMesh: pckg });
+  },
+
+  cutClass(clazz: Class) {
+    set({ clipboard: clazz.name });
+    set({ clippedMesh: clazz });
+  },
+
+  resetClipboard() {
+    set({ clipboard: '' });
+    set({ clippedMesh: null });
+  },
+
+  pasteCollaborativePackage: (destinationEntity: string, destinationId: string, clippedEntityId: string) => {
+    set({
+      clippedMesh: getPackageById(
+        get().landscapeData?.structureLandscapeData as StructureLandscapeData,
+        clippedEntityId
+      ) as Package,
+    });
+
+    if (destinationEntity === 'APP') {
+      const app = getApplicationInLandscapeById(
+        get().landscapeData?.structureLandscapeData as StructureLandscapeData,
+        destinationId
+      );
+      get().pastePackage(app as Application, true);
+    } else {
+      const pckg = getPackageById(get().landscapeData?.structureLandscapeData as StructureLandscapeData, destinationId);
+      get().pastePackage(pckg as Package, true);
+    }
+  },
+
+  pasteCollaborativeClass: (destinationId: string, clippedEntityId: string) => {
+    set({
+      clippedMesh: getClassById(
+        get().landscapeData?.structureLandscapeData as StructureLandscapeData,
+        clippedEntityId
+      ) as Class,
+    });
+
+    const pckg = getPackageById(get().landscapeData?.structureLandscapeData as StructureLandscapeData, destinationId);
+    get().pasteClass(pckg as Package, true);
+  },
+
+  insertCollaborativePackagerOrClass: (
+    destinationEntity: string,
+    destinationId: string,
+    clippedEntity: string,
+    clippedEntityId: string
+  ) => {
+    if (clippedEntity === 'PACKAGE') {
       set({
         clippedMesh: getPackageById(
           get().landscapeData?.structureLandscapeData as StructureLandscapeData,
           clippedEntityId
         ) as Package,
       });
-
-      if (destinationEntity === 'APP') {
-        const app = getApplicationInLandscapeById(
-          get().landscapeData?.structureLandscapeData as StructureLandscapeData,
-          destinationId
-        );
-        get().pastePackage(app as Application, true);
-      } else {
-        const pckg = getPackageById(
-          get().landscapeData?.structureLandscapeData as StructureLandscapeData,
-          destinationId
-        );
-        get().pastePackage(pckg as Package, true);
-      }
-    },
-
-    pasteCollaborativeClass: (
-      destinationId: string,
-      clippedEntityId: string
-    ) => {
+    } else {
       set({
         clippedMesh: getClassById(
           get().landscapeData?.structureLandscapeData as StructureLandscapeData,
           clippedEntityId
         ) as Class,
       });
+    }
 
-      const pckg = getPackageById(
+    if (destinationEntity === 'APP') {
+      const app = getApplicationInLandscapeById(
         get().landscapeData?.structureLandscapeData as StructureLandscapeData,
         destinationId
       );
-      get().pasteClass(pckg as Package, true);
-    },
+      get().movePackageOrClass(app as Application, true);
+    } else {
+      const pckg = getPackageById(get().landscapeData?.structureLandscapeData as StructureLandscapeData, destinationId);
+      get().movePackageOrClass(pckg as Package, true);
+    }
+  },
 
-    insertCollaborativePackagerOrClass: (
-      destinationEntity: string,
-      destinationId: string,
-      clippedEntity: string,
-      clippedEntityId: string
-    ) => {
-      if (clippedEntity === 'PACKAGE') {
-        set({
-          clippedMesh: getPackageById(
-            get().landscapeData
-              ?.structureLandscapeData as StructureLandscapeData,
-            clippedEntityId
-          ) as Package,
-        });
-      } else {
-        set({
-          clippedMesh: getClassById(
-            get().landscapeData
-              ?.structureLandscapeData as StructureLandscapeData,
-            clippedEntityId
-          ) as Class,
-        });
-      }
+  getApp(appChild: Package | Class) {
+    const landscapeData = get().landscapeData?.structureLandscapeData as StructureLandscapeData;
+    if (isPackage(appChild)) {
+      if (appChild.parent) return getApplicationFromSubPackage(landscapeData, appChild.id);
+      else return getApplicationFromPackage(landscapeData, appChild.id);
+    }
 
-      if (destinationEntity === 'APP') {
-        const app = getApplicationInLandscapeById(
-          get().landscapeData?.structureLandscapeData as StructureLandscapeData,
-          destinationId
-        );
-        get().movePackageOrClass(app as Application, true);
-      } else {
-        const pckg = getPackageById(
-          get().landscapeData?.structureLandscapeData as StructureLandscapeData,
-          destinationId
-        );
-        get().movePackageOrClass(pckg as Package, true);
-      }
-    },
+    if (isClass(appChild)) return getApplicationFromClass(landscapeData, appChild);
 
-    getApp(appChild: Package | Class) {
-      const landscapeData = get().landscapeData
-        ?.structureLandscapeData as StructureLandscapeData;
-      if (isPackage(appChild)) {
-        if (appChild.parent)
-          return getApplicationFromSubPackage(landscapeData, appChild.id);
-        else return getApplicationFromPackage(landscapeData, appChild.id);
-      }
+    return undefined;
+  },
 
-      if (isClass(appChild))
-        return getApplicationFromClass(landscapeData, appChild);
-
-      return undefined;
-    },
-
-    pastePackage: (
-      destination: Application | Package,
-      collabMode: boolean = false
-    ) => {
-      if (get().landscapeData?.structureLandscapeData) {
-        if (!collabMode) {
-          if (isApplication(destination)) {
-            useMessageSenderStore
-              .getState()
-              .sendRestructureCopyAndPastePackageMessage(
-                EntityType.App,
-                destination.id,
-                get().clippedMesh?.id as string
-              );
-          } else if (isPackage(destination)) {
-            useMessageSenderStore
-              .getState()
-              .sendRestructureCopyAndPastePackageMessage(
-                EntityType.Package,
-                destination.id,
-                get().clippedMesh?.id as string
-              );
-          }
-        }
-        const app = get().getApp(get().clippedMesh as Package) as Application;
-
-        const copiedAggregatedCommunications: AggregatedCommunication[] = [];
-
-        const wrapper = {
-          idCounter: get().newMeshCounter,
-          comms: get().allAggregatedCommunications,
-          copiedComms: copiedAggregatedCommunications,
-        };
-
-        // Copy the clipped package
-        const copiedPackage = copyPackageContent(get().clippedMesh as Package);
-        if (isPackage(destination)) copiedPackage.parent = destination;
-
-        const meshTextureMapping: Partial<MeshModelTextureMapping> = {
-          action: RestructureAction.CopyPaste,
-          texturePath: 'images/x.png',
-          meshType: EntityType.Package,
-          pckg: copiedPackage,
-        };
-
-        pastePackage(
-          get().landscapeData!.structureLandscapeData,
-          copiedPackage,
-          destination,
-          wrapper
-        );
-
-        changeID(
-          get().landscapeData!.structureLandscapeData,
-          { entity: copiedPackage },
-          'copied' + get().newMeshCounter + '|'
-        );
-
-        set({ newMeshCounter: get().newMeshCounter++ });
-
-        if (get().clippedMesh?.parent) {
-          useChangelogStore
-            .getState()
-            .copySubPackageEntry(
-              app,
-              copiedPackage,
-              destination,
-              get().clippedMesh as Package,
-              get().landscapeData!.structureLandscapeData
-            );
-        } else {
-          useChangelogStore
-            .getState()
-            .copyPackageEntry(
-              app,
-              copiedPackage,
-              destination,
-              get().clippedMesh as Package,
-              get().landscapeData!.structureLandscapeData
-            );
-        }
-
+  pastePackage: (destination: Application | Package, collabMode: boolean = false) => {
+    if (get().landscapeData?.structureLandscapeData) {
+      if (!collabMode) {
         if (isApplication(destination)) {
-          meshTextureMapping.app = destination;
-          set({
-            meshModelTextureMappings: [
-              ...get().meshModelTextureMappings,
-              meshTextureMapping as MeshModelTextureMapping,
-            ],
-          });
-        } else if (isPackage(destination)) {
-          const destinationApp = get().getApp(destination);
-          meshTextureMapping.app = destinationApp;
-          set({
-            meshModelTextureMappings: [
-              ...get().meshModelTextureMappings,
-              meshTextureMapping as MeshModelTextureMapping,
-            ],
-          });
-        }
-
-        const key = 'COPIED|' + copiedPackage.id;
-
-        let newCopiedAggregatedCommunications = new Map(
-          get().copiedAggregatedCommunications
-        );
-        newCopiedAggregatedCommunications.set(key, wrapper.copiedComms);
-        set({
-          copiedAggregatedCommunications: newCopiedAggregatedCommunications,
-        });
-
-        eventEmitter.emit('showChangeLog');
-        eventEmitter.emit(
-          'restructureLandscapeData',
-          get().landscapeData?.structureLandscapeData,
-          get().landscapeData?.dynamicLandscapeData
-        );
-      }
-    },
-
-    pasteClass: (destination: Package, collabMode: boolean = false) => {
-      if (get().landscapeData?.structureLandscapeData) {
-        if (!collabMode) {
           useMessageSenderStore
             .getState()
-            .sendRestructureCopyAndPasteClassMessage(
+            .sendRestructureCopyAndPastePackageMessage(EntityType.App, destination.id, get().clippedMesh?.id as string);
+        } else if (isPackage(destination)) {
+          useMessageSenderStore
+            .getState()
+            .sendRestructureCopyAndPastePackageMessage(
+              EntityType.Package,
               destination.id,
               get().clippedMesh?.id as string
             );
         }
-        const app = get().getApp(get().clippedMesh as Class) as Application;
+      }
+      const app = get().getApp(get().clippedMesh as Package) as Application;
 
-        const copiedAggregatedCommunications: AggregatedCommunication[] = [];
+      const copiedAggregatedCommunications: AggregatedCommunication[] = [];
 
-        const wrapper = {
-          idCounter: get().newMeshCounter,
-          comms: get().allAggregatedCommunications,
-          copiedComms: copiedAggregatedCommunications,
-        };
+      const wrapper = {
+        idCounter: get().newMeshCounter,
+        comms: get().allAggregatedCommunications,
+        copiedComms: copiedAggregatedCommunications,
+      };
 
-        // Copy the clipped class
-        const copiedClass = copyClassContent(get().clippedMesh as Class);
-        copiedClass.parent = destination;
+      // Copy the clipped package
+      const copiedPackage = copyPackageContent(get().clippedMesh as Package);
+      if (isPackage(destination)) copiedPackage.parent = destination;
 
-        const meshTextureMapping: Partial<MeshModelTextureMapping> = {
-          action: RestructureAction.CopyPaste,
-          texturePath: 'images/x.png',
-          meshType: EntityType.Clazz,
-          clazz: copiedClass,
-        };
+      const meshTextureMapping: Partial<MeshModelTextureMapping> = {
+        action: RestructureAction.CopyPaste,
+        texturePath: 'images/x.png',
+        meshType: EntityType.Package,
+        pckg: copiedPackage,
+      };
 
-        pasteClass(
-          get().landscapeData!.structureLandscapeData,
-          copiedClass,
-          destination,
-          wrapper
-        );
+      pastePackage(get().landscapeData!.structureLandscapeData, copiedPackage, destination, wrapper);
 
-        changeID(
-          get().landscapeData!.structureLandscapeData,
-          { entity: copiedClass },
-          'copied' + get().newMeshCounter + '|'
-        );
+      changeID(
+        get().landscapeData!.structureLandscapeData,
+        { entity: copiedPackage },
+        'copied' + get().newMeshCounter + '|'
+      );
 
-        set({ newMeshCounter: get().newMeshCounter++ });
+      set({ newMeshCounter: get().newMeshCounter++ });
 
+      if (get().clippedMesh?.parent) {
         useChangelogStore
           .getState()
-          .copyClassEntry(
+          .copySubPackageEntry(
             app,
-            copiedClass,
+            copiedPackage,
             destination,
-            get().clippedMesh as Class,
+            get().clippedMesh as Package,
             get().landscapeData!.structureLandscapeData
           );
+      } else {
+        useChangelogStore
+          .getState()
+          .copyPackageEntry(
+            app,
+            copiedPackage,
+            destination,
+            get().clippedMesh as Package,
+            get().landscapeData!.structureLandscapeData
+          );
+      }
 
+      if (isApplication(destination)) {
+        meshTextureMapping.app = destination;
+        set({
+          meshModelTextureMappings: [...get().meshModelTextureMappings, meshTextureMapping as MeshModelTextureMapping],
+        });
+      } else if (isPackage(destination)) {
         const destinationApp = get().getApp(destination);
         meshTextureMapping.app = destinationApp;
         set({
+          meshModelTextureMappings: [...get().meshModelTextureMappings, meshTextureMapping as MeshModelTextureMapping],
+        });
+      }
+
+      const key = 'COPIED|' + copiedPackage.id;
+
+      let newCopiedAggregatedCommunications = new Map(get().copiedAggregatedCommunications);
+      newCopiedAggregatedCommunications.set(key, wrapper.copiedComms);
+      set({
+        copiedAggregatedCommunications: newCopiedAggregatedCommunications,
+      });
+
+      eventEmitter.emit('showChangeLog');
+      eventEmitter.emit(
+        'restructureLandscapeData',
+        get().landscapeData?.structureLandscapeData,
+        get().landscapeData?.dynamicLandscapeData
+      );
+    }
+  },
+
+  pasteClass: (destination: Package, collabMode: boolean = false) => {
+    if (get().landscapeData?.structureLandscapeData) {
+      if (!collabMode) {
+        useMessageSenderStore
+          .getState()
+          .sendRestructureCopyAndPasteClassMessage(destination.id, get().clippedMesh?.id as string);
+      }
+      const app = get().getApp(get().clippedMesh as Class) as Application;
+
+      const copiedAggregatedCommunications: AggregatedCommunication[] = [];
+
+      const wrapper = {
+        idCounter: get().newMeshCounter,
+        comms: get().allAggregatedCommunications,
+        copiedComms: copiedAggregatedCommunications,
+      };
+
+      // Copy the clipped class
+      const copiedClass = copyClassContent(get().clippedMesh as Class);
+      copiedClass.parent = destination;
+
+      const meshTextureMapping: Partial<MeshModelTextureMapping> = {
+        action: RestructureAction.CopyPaste,
+        texturePath: 'images/x.png',
+        meshType: EntityType.Clazz,
+        clazz: copiedClass,
+      };
+
+      pasteClass(get().landscapeData!.structureLandscapeData, copiedClass, destination, wrapper);
+
+      changeID(
+        get().landscapeData!.structureLandscapeData,
+        { entity: copiedClass },
+        'copied' + get().newMeshCounter + '|'
+      );
+
+      set({ newMeshCounter: get().newMeshCounter++ });
+
+      useChangelogStore
+        .getState()
+        .copyClassEntry(
+          app,
+          copiedClass,
+          destination,
+          get().clippedMesh as Class,
+          get().landscapeData!.structureLandscapeData
+        );
+
+      const destinationApp = get().getApp(destination);
+      meshTextureMapping.app = destinationApp;
+      set({
+        meshModelTextureMappings: [...get().meshModelTextureMappings, meshTextureMapping as MeshModelTextureMapping],
+      });
+
+      const key = 'COPIED|' + copiedClass.id;
+
+      let newCopiedAggregatedCommunications = new Map(get().copiedAggregatedCommunications);
+      newCopiedAggregatedCommunications.set(key, wrapper.copiedComms);
+      set({
+        copiedAggregatedCommunications: newCopiedAggregatedCommunications,
+      });
+
+      eventEmitter.emit('showChangeLog');
+      eventEmitter.emit(
+        'restructureLandscapeData',
+        get().landscapeData?.structureLandscapeData,
+        get().landscapeData?.dynamicLandscapeData
+      );
+    }
+  },
+
+  // INFO: originOfData had to be added for packages and classes
+  //       to fix crashing on adding or pasting packages/classes
+  _addOriginOfData: (entity: Package) => {
+    let newEntity = { ...entity };
+
+    if (newEntity.originOfData === undefined) {
+      newEntity.originOfData = TypeOfAnalysis.Static;
+    }
+
+    let clazzes = newEntity.classes;
+    clazzes.forEach((clazz) => {
+      if (clazz.originOfData === undefined) {
+        clazz.originOfData = TypeOfAnalysis.Static;
+      }
+    });
+    newEntity.classes = clazzes;
+
+    let subpackages: Package[] = [];
+    newEntity.subPackages.forEach((sp) => {
+      const subpackage = get()._addOriginOfData(sp);
+      subpackages.push(subpackage);
+    });
+    newEntity.subPackages = subpackages;
+
+    return newEntity;
+  },
+
+  movePackageOrClass: (destination: Application | Package, collabMode: boolean = false) => {
+    if (get().landscapeData?.structureLandscapeData) {
+      if (!collabMode) {
+        get()._sendCutInsertMessage(destination);
+      }
+
+      const app = get().getApp(get().clippedMesh as Package | Class);
+
+      const updatedAggregatedCommunications: AggregatedCommunication[] = [];
+
+      // Create wrapper for Communication and the Mesh to delete, since it can change inside the function
+      const wrapper = {
+        comms: get().allAggregatedCommunications,
+        meshTodelete: get().clippedMesh as Package,
+        updatedComms: updatedAggregatedCommunications,
+      };
+
+      const meshTextureMapping: Partial<MeshModelTextureMapping> = {
+        action: RestructureAction.CutInsert,
+        texturePath: '/images/slash.png',
+      };
+
+      // Distinguish between clipped Package and clipped Class
+      if (isPackage(get().clippedMesh)) {
+        // Copy the clipped package
+        let cuttedPackage = copyPackageContent(get().clippedMesh as Package);
+        cuttedPackage.parent = get().clippedMesh!.parent;
+
+        cuttedPackage = get()._addOriginOfData(cuttedPackage);
+
+        // Set the texture to correct mesh
+        meshTextureMapping.meshType = EntityType.Package;
+        meshTextureMapping.pckg = cuttedPackage;
+
+        movePackage(get().landscapeData!.structureLandscapeData, cuttedPackage, destination, wrapper);
+
+        // Create Changelog Entry
+        if (get().clippedMesh!.parent && app) {
+          useChangelogStore
+            .getState()
+            .moveSubPackageEntry(
+              app,
+              cuttedPackage,
+              destination,
+              wrapper.meshTodelete,
+              get().landscapeData!.structureLandscapeData
+            );
+        } else if (!get().clippedMesh!.parent && app) {
+          useChangelogStore
+            .getState()
+            .movePackageEntry(
+              app,
+              cuttedPackage,
+              destination,
+              wrapper.meshTodelete,
+              get().landscapeData!.structureLandscapeData
+            );
+        }
+
+        changeID(get().landscapeData!.structureLandscapeData, { entity: get().clippedMesh! }, 'removed|');
+
+        set({
           meshModelTextureMappings: [
             ...get().meshModelTextureMappings,
-            meshTextureMapping as MeshModelTextureMapping,
+            {
+              action: RestructureAction.Delete,
+              meshType: EntityType.Package,
+              texturePath: 'images/minus.png',
+              app: app as Application,
+              pckg: get().clippedMesh as Package,
+            },
+          ],
+        });
+        get().storeDeletedPackageData(get().clippedMesh as Package);
+      } else if (isClass(get().clippedMesh) && app) {
+        // Copy the clipped class
+        const cuttedClass = copyClassContent(get().clippedMesh as Class);
+        cuttedClass.parent = get().clippedMesh!.parent;
+
+        // Set the texture to correct mesh
+        meshTextureMapping.meshType = EntityType.Clazz;
+        meshTextureMapping.clazz = cuttedClass;
+
+        moveClass(get().landscapeData!.structureLandscapeData, cuttedClass, destination as Package, wrapper);
+
+        // Create Changelog Entry
+        useChangelogStore
+          .getState()
+          .moveClassEntry(
+            app,
+            cuttedClass,
+            destination as Package,
+            get().clippedMesh!,
+            get().landscapeData!.structureLandscapeData
+          );
+
+        changeID(get().landscapeData!.structureLandscapeData, { entity: get().clippedMesh! }, 'removed|');
+
+        set({
+          meshModelTextureMappings: [
+            ...get().meshModelTextureMappings,
+            {
+              action: RestructureAction.Delete,
+              meshType: EntityType.Clazz,
+              texturePath: 'images/minus.png',
+              app: app as Application,
+              pckg: get().clippedMesh!.parent,
+              clazz: get().clippedMesh as Class,
+            },
           ],
         });
 
-        const key = 'COPIED|' + copiedClass.id;
-
-        let newCopiedAggregatedCommunications = new Map(
-          get().copiedAggregatedCommunications
-        );
-        newCopiedAggregatedCommunications.set(key, wrapper.copiedComms);
         set({
-          copiedAggregatedCommunications: newCopiedAggregatedCommunications,
+          deletedDataModels: [...get().deletedDataModels, get().clippedMesh as Class],
         });
-
-        eventEmitter.emit('showChangeLog');
-        eventEmitter.emit(
-          'restructureLandscapeData',
-          get().landscapeData?.structureLandscapeData,
-          get().landscapeData?.dynamicLandscapeData
-        );
-      }
-    },
-
-    // INFO: originOfData had to be added for packages and classes
-    //       to fix crashing on adding or pasting packages/classes
-    _addOriginOfData: (entity: Package) => {
-      let newEntity = { ...entity };
-
-      if (newEntity.originOfData === undefined) {
-        newEntity.originOfData = TypeOfAnalysis.Static;
       }
 
-      let clazzes = newEntity.classes;
-      clazzes.forEach((clazz) => {
-        if (clazz.originOfData === undefined) {
-          clazz.originOfData = TypeOfAnalysis.Static;
-        }
+      // const key = this.changeLog.changeLogEntries.at(-1)?.id;
+      const key = 'CUTINSERT|' + get().clippedMesh?.id;
+
+      let newUpdatedAggregatedCommunications = new Map(get().updatedAggregatedCommunications);
+      newUpdatedAggregatedCommunications.set(key, wrapper.updatedComms);
+      set({
+        updatedAggregatedCommunications: newUpdatedAggregatedCommunications,
       });
-      newEntity.classes = clazzes;
 
-      let subpackages: Package[] = [];
-      newEntity.subPackages.forEach((sp) => {
-        const subpackage = get()._addOriginOfData(sp);
-        subpackages.push(subpackage);
-      });
-      newEntity.subPackages = subpackages;
+      get().resetClipboard();
 
-      return newEntity;
-    },
-
-    movePackageOrClass: (
-      destination: Application | Package,
-      collabMode: boolean = false
-    ) => {
-      if (get().landscapeData?.structureLandscapeData) {
-        if (!collabMode) {
-          get()._sendCutInsertMessage(destination);
-        }
-
-        const app = get().getApp(get().clippedMesh as Package | Class);
-
-        const updatedAggregatedCommunications: AggregatedCommunication[] = [];
-
-        // Create wrapper for Communication and the Mesh to delete, since it can change inside the function
-        const wrapper = {
-          comms: get().allAggregatedCommunications,
-          meshTodelete: get().clippedMesh as Package,
-          updatedComms: updatedAggregatedCommunications,
-        };
-
-        const meshTextureMapping: Partial<MeshModelTextureMapping> = {
-          action: RestructureAction.CutInsert,
-          texturePath: '/images/slash.png',
-        };
-
-        // Distinguish between clipped Package and clipped Class
-        if (isPackage(get().clippedMesh)) {
-          // Copy the clipped package
-          let cuttedPackage = copyPackageContent(get().clippedMesh as Package);
-          cuttedPackage.parent = get().clippedMesh!.parent;
-
-          cuttedPackage = get()._addOriginOfData(cuttedPackage);
-
-          // Set the texture to correct mesh
-          meshTextureMapping.meshType = EntityType.Package;
-          meshTextureMapping.pckg = cuttedPackage;
-
-          movePackage(
-            get().landscapeData!.structureLandscapeData,
-            cuttedPackage,
-            destination,
-            wrapper
-          );
-
-          // Create Changelog Entry
-          if (get().clippedMesh!.parent && app) {
-            useChangelogStore
-              .getState()
-              .moveSubPackageEntry(
-                app,
-                cuttedPackage,
-                destination,
-                wrapper.meshTodelete,
-                get().landscapeData!.structureLandscapeData
-              );
-          } else if (!get().clippedMesh!.parent && app) {
-            useChangelogStore
-              .getState()
-              .movePackageEntry(
-                app,
-                cuttedPackage,
-                destination,
-                wrapper.meshTodelete,
-                get().landscapeData!.structureLandscapeData
-              );
-          }
-
-          changeID(
-            get().landscapeData!.structureLandscapeData,
-            { entity: get().clippedMesh! },
-            'removed|'
-          );
-
-          set({
-            meshModelTextureMappings: [
-              ...get().meshModelTextureMappings,
-              {
-                action: RestructureAction.Delete,
-                meshType: EntityType.Package,
-                texturePath: 'images/minus.png',
-                app: app as Application,
-                pckg: get().clippedMesh as Package,
-              },
-            ],
-          });
-          get().storeDeletedPackageData(get().clippedMesh as Package);
-        } else if (isClass(get().clippedMesh) && app) {
-          // Copy the clipped class
-          const cuttedClass = copyClassContent(get().clippedMesh as Class);
-          cuttedClass.parent = get().clippedMesh!.parent;
-
-          // Set the texture to correct mesh
-          meshTextureMapping.meshType = EntityType.Clazz;
-          meshTextureMapping.clazz = cuttedClass;
-
-          moveClass(
-            get().landscapeData!.structureLandscapeData,
-            cuttedClass,
-            destination as Package,
-            wrapper
-          );
-
-          // Create Changelog Entry
-          useChangelogStore
-            .getState()
-            .moveClassEntry(
-              app,
-              cuttedClass,
-              destination as Package,
-              get().clippedMesh!,
-              get().landscapeData!.structureLandscapeData
-            );
-
-          changeID(
-            get().landscapeData!.structureLandscapeData,
-            { entity: get().clippedMesh! },
-            'removed|'
-          );
-
-          set({
-            meshModelTextureMappings: [
-              ...get().meshModelTextureMappings,
-              {
-                action: RestructureAction.Delete,
-                meshType: EntityType.Clazz,
-                texturePath: 'images/minus.png',
-                app: app as Application,
-                pckg: get().clippedMesh!.parent,
-                clazz: get().clippedMesh as Class,
-              },
-            ],
-          });
-
-          set({
-            deletedDataModels: [
-              ...get().deletedDataModels,
-              get().clippedMesh as Class,
-            ],
-          });
-        }
-
-        // const key = this.changeLog.changeLogEntries.at(-1)?.id;
-        const key = 'CUTINSERT|' + get().clippedMesh?.id;
-
-        let newUpdatedAggregatedCommunications = new Map(
-          get().updatedAggregatedCommunications
-        );
-        newUpdatedAggregatedCommunications.set(key, wrapper.updatedComms);
+      if (isApplication(destination)) {
+        meshTextureMapping.app = destination;
         set({
-          updatedAggregatedCommunications: newUpdatedAggregatedCommunications,
+          meshModelTextureMappings: [...get().meshModelTextureMappings, meshTextureMapping as MeshModelTextureMapping],
         });
-
-        get().resetClipboard();
-
-        if (isApplication(destination)) {
-          meshTextureMapping.app = destination;
-          set({
-            meshModelTextureMappings: [
-              ...get().meshModelTextureMappings,
-              meshTextureMapping as MeshModelTextureMapping,
-            ],
-          });
-        } else if (isPackage(destination)) {
-          const destinationApp = get().getApp(destination);
-          meshTextureMapping.app = destinationApp;
-          set({
-            meshModelTextureMappings: [
-              ...get().meshModelTextureMappings,
-              meshTextureMapping as MeshModelTextureMapping,
-            ],
-          });
-        }
-
-        eventEmitter.emit('showChangeLog');
-        eventEmitter.emit(
-          'restructureLandscapeData',
-          get().landscapeData?.structureLandscapeData,
-          get().landscapeData?.dynamicLandscapeData
-        );
+      } else if (isPackage(destination)) {
+        const destinationApp = get().getApp(destination);
+        meshTextureMapping.app = destinationApp;
+        set({
+          meshModelTextureMappings: [...get().meshModelTextureMappings, meshTextureMapping as MeshModelTextureMapping],
+        });
       }
-    },
 
-    undoBundledEntries: (bundledCreateEntries: BaseChangeLogEntry[]) => {
-      const entry = bundledCreateEntries.at(0);
+      eventEmitter.emit('showChangeLog');
+      eventEmitter.emit(
+        'restructureLandscapeData',
+        get().landscapeData?.structureLandscapeData,
+        get().landscapeData?.dynamicLandscapeData
+      );
+    }
+  },
+
+  undoBundledEntries: (bundledCreateEntries: BaseChangeLogEntry[]) => {
+    const entry = bundledCreateEntries.at(0);
+    if (entry instanceof AppChangeLogEntry) {
+      const { app } = entry;
+
+      get().deleteApp(app as Application, false, true);
+    } else if (entry instanceof PackageChangeLogEntry || entry instanceof SubPackageChangeLogEntry) {
+      const { pckg } = entry;
+
+      get().deletePackage(pckg as Package, false, true);
+    }
+    useChangelogStore.getState().removeEntries(bundledCreateEntries);
+  },
+
+  undoEntry: (entry: BaseChangeLogEntry) => {
+    if (entry.action === RestructureAction.Create) {
       if (entry instanceof AppChangeLogEntry) {
         const { app } = entry;
-
         get().deleteApp(app as Application, false, true);
-      } else if (
-        entry instanceof PackageChangeLogEntry ||
-        entry instanceof SubPackageChangeLogEntry
-      ) {
+      } else if (entry instanceof ClassChangeLogEntry) {
+        const { clazz } = entry;
+        get().deleteClass(clazz as Class, false, true);
+      } else if (entry instanceof PackageChangeLogEntry || entry instanceof SubPackageChangeLogEntry) {
         const { pckg } = entry;
-
         get().deletePackage(pckg as Package, false, true);
+      } else if (entry instanceof CommunicationChangeLogEntry) {
+        const { communication } = entry;
+        get().deleteCommunication(communication as AggregatedCommunication, true, false);
       }
-      useChangelogStore.getState().removeEntries(bundledCreateEntries);
-    },
+    }
 
-    undoEntry: (entry: BaseChangeLogEntry) => {
-      if (entry.action === RestructureAction.Create) {
-        if (entry instanceof AppChangeLogEntry) {
-          const { app } = entry;
-          get().deleteApp(app as Application, false, true);
-        } else if (entry instanceof ClassChangeLogEntry) {
-          const { clazz } = entry;
-          get().deleteClass(clazz as Class, false, true);
-        } else if (
-          entry instanceof PackageChangeLogEntry ||
-          entry instanceof SubPackageChangeLogEntry
-        ) {
-          const { pckg } = entry;
-          get().deletePackage(pckg as Package, false, true);
-        } else if (entry instanceof CommunicationChangeLogEntry) {
-          const { communication } = entry;
-          get().deleteCommunication(
-            communication as AggregatedCommunication,
-            true,
-            false
-          );
-        }
+    if (entry.action === RestructureAction.Rename) {
+      if (entry instanceof AppChangeLogEntry) {
+        const { app, originalAppName } = entry;
+        get().renameApplication(originalAppName as string, app?.id as string, false, true);
+      } else if (entry instanceof PackageChangeLogEntry) {
+        const { pckg, originalPckgName } = entry;
+        get().renamePackage(originalPckgName as string, pckg?.id as string, false, true);
+      } else if (entry instanceof SubPackageChangeLogEntry) {
+        const { pckg, originalPckgName } = entry;
+        get().renameSubPackage(originalPckgName as string, pckg?.id as string, false, true);
+      } else if (entry instanceof ClassChangeLogEntry) {
+        const { app, clazz, originalClazzName } = entry;
+        get().renameClass(originalClazzName as string, clazz?.id as string, app?.id as string, false, true);
+      } else if (entry instanceof CommunicationChangeLogEntry) {
+        const { communication, originalOperationName } = entry;
+        get().renameOperation(communication as AggregatedCommunication, originalOperationName as string, false, true);
       }
+    }
 
-      if (entry.action === RestructureAction.Rename) {
-        if (entry instanceof AppChangeLogEntry) {
-          const { app, originalAppName } = entry;
-          get().renameApplication(
-            originalAppName as string,
-            app?.id as string,
-            false,
-            true
-          );
-        } else if (entry instanceof PackageChangeLogEntry) {
-          const { pckg, originalPckgName } = entry;
-          get().renamePackage(
-            originalPckgName as string,
-            pckg?.id as string,
-            false,
-            true
-          );
-        } else if (entry instanceof SubPackageChangeLogEntry) {
-          const { pckg, originalPckgName } = entry;
-          get().renameSubPackage(
-            originalPckgName as string,
-            pckg?.id as string,
-            false,
-            true
-          );
-        } else if (entry instanceof ClassChangeLogEntry) {
-          const { app, clazz, originalClazzName } = entry;
-          get().renameClass(
-            originalClazzName as string,
-            clazz?.id as string,
-            app?.id as string,
-            false,
-            true
-          );
-        } else if (entry instanceof CommunicationChangeLogEntry) {
-          const { communication, originalOperationName } = entry;
-          get().renameOperation(
-            communication as AggregatedCommunication,
-            originalOperationName as string,
-            false,
-            true
-          );
-        }
-      }
-
-      if (entry.action === RestructureAction.Delete) {
-        if (entry instanceof AppChangeLogEntry) {
-          const { app } = entry;
-          useChangelogStore.getState().restoreDeletedEntries(app?.id as string);
-          get().restoreApplication(app as Application, true, false);
-          return;
-        } else if (
-          entry instanceof PackageChangeLogEntry ||
-          entry instanceof SubPackageChangeLogEntry
-        ) {
-          const { pckg } = entry;
-          useChangelogStore.getState().restoreDeletedEntries(pckg.id as string);
-          get().restorePackage(pckg as Package, true, false);
-        } else if (entry instanceof ClassChangeLogEntry) {
-          const { app, clazz } = entry;
-          useChangelogStore
-            .getState()
-            .restoreDeletedEntries(clazz.id as string);
-          get().restoreClass(app as Application, clazz as Class, true, false);
-        } else if (entry instanceof CommunicationChangeLogEntry) {
-          const { communication } = entry;
-          useChangelogStore
-            .getState()
-            .restoreDeletedEntries(communication.id as string);
-          get().deleteCommunication(
-            communication as AggregatedCommunication,
-            true,
-            false
-          );
-        }
-
-        useChangelogStore.getState().removeEntry(entry);
-      }
-
-      if (entry.action === RestructureAction.CopyPaste) {
-        if (entry instanceof AppChangeLogEntry) {
-          const { app } = entry;
-          get().deleteApp(app as Application, false, true);
-        } else if (
-          entry instanceof PackageChangeLogEntry ||
-          entry instanceof SubPackageChangeLogEntry
-        ) {
-          const { pckg } = entry;
-
-          get().deletePackage(pckg as Package, false, true);
-        } else if (entry instanceof ClassChangeLogEntry) {
-          const { clazz } = entry;
-          get().deleteClass(clazz, false, true);
-        }
-      }
-
-      if (entry.action === RestructureAction.CutInsert) {
-        if (
-          entry instanceof PackageChangeLogEntry ||
-          entry instanceof SubPackageChangeLogEntry
-        ) {
-          const { original, pckg } = entry;
-          get().deletePackage(pckg as Package, false, true);
-          if (isApplication(original)) {
-            get().restoreApplication(original, true, false);
-          } else if (isPackage(original)) {
-            get().restorePackage(original, true, false);
-          }
-          //this.removeInsertTexture(pckg as Package);
-        } else if (entry instanceof ClassChangeLogEntry) {
-          const { original, clazz } = entry;
-
-          // TODO Not working correctly if we created communications. Need to update the affected and created communication (set the source/target class back)
-          get().deleteClass(clazz as Class, false, true);
-          if (isApplication(original)) {
-            get().restoreApplication(original, true, false);
-          } else if (isPackage(original)) {
-            get().restorePackage(original, true, false);
-          } else if (isClass(original)) {
-            const originApp = getApplicationFromClass(
-              get().landscapeData
-                ?.structureLandscapeData as StructureLandscapeData,
-              original
-            );
-            get().restoreClass(
-              originApp as Application,
-              original as Class,
-              true,
-              false
-            );
-          }
-        }
+    if (entry.action === RestructureAction.Delete) {
+      if (entry instanceof AppChangeLogEntry) {
+        const { app } = entry;
+        useChangelogStore.getState().restoreDeletedEntries(app?.id as string);
+        get().restoreApplication(app as Application, true, false);
+        return;
+      } else if (entry instanceof PackageChangeLogEntry || entry instanceof SubPackageChangeLogEntry) {
+        const { pckg } = entry;
+        useChangelogStore.getState().restoreDeletedEntries(pckg.id as string);
+        get().restorePackage(pckg as Package, true, false);
+      } else if (entry instanceof ClassChangeLogEntry) {
+        const { app, clazz } = entry;
+        useChangelogStore.getState().restoreDeletedEntries(clazz.id as string);
+        get().restoreClass(app as Application, clazz as Class, true, false);
+      } else if (entry instanceof CommunicationChangeLogEntry) {
+        const { communication } = entry;
+        useChangelogStore.getState().restoreDeletedEntries(communication.id as string);
+        get().deleteCommunication(communication as AggregatedCommunication, true, false);
       }
 
       useChangelogStore.getState().removeEntry(entry);
-      eventEmitter.emit('showChangeLog');
-    },
+    }
 
-    removeMeshModelTextureMapping: (
-      action: RestructureAction,
-      entityType: EntityType,
-      app: Application,
-      pckg?: Package,
-      clazz?: Class
-    ) => {
-      const undoMapping = get().meshModelTextureMappings.find(
-        (mapping) =>
-          mapping.action === action &&
-          mapping.meshType === entityType &&
-          mapping.app.id === app.id &&
-          mapping.pckg?.id === pckg?.id &&
-          mapping.clazz?.id === clazz?.id
-      );
-      set({
-        meshModelTextureMappings: get().meshModelTextureMappings.filter(
-          (m) => m != (undoMapping as MeshModelTextureMapping)
-        ),
-      });
-    },
+    if (entry.action === RestructureAction.CopyPaste) {
+      if (entry instanceof AppChangeLogEntry) {
+        const { app } = entry;
+        get().deleteApp(app as Application, false, true);
+      } else if (entry instanceof PackageChangeLogEntry || entry instanceof SubPackageChangeLogEntry) {
+        const { pckg } = entry;
 
-    _sendCutInsertMessage: (destination: Application | Package) => {
-      if (isApplication(destination)) {
-        if (isPackage(get().clippedMesh))
-          useMessageSenderStore
-            .getState()
-            .sendRestructureCutAndInsertMessage(
-              EntityType.App,
-              destination.id,
-              EntityType.Package,
-              get().clippedMesh?.id as string
-            );
-        else
-          useMessageSenderStore
-            .getState()
-            .sendRestructureCutAndInsertMessage(
-              EntityType.App,
-              destination.id,
-              EntityType.Clazz,
-              get().clippedMesh?.id as string
-            );
-      } else {
-        if (isPackage(get().clippedMesh))
-          useMessageSenderStore
-            .getState()
-            .sendRestructureCutAndInsertMessage(
-              EntityType.Package,
-              destination.id,
-              EntityType.Package,
-              get().clippedMesh?.id as string
-            );
-        else
-          useMessageSenderStore
-            .getState()
-            .sendRestructureCutAndInsertMessage(
-              EntityType.Package,
-              destination.id,
-              EntityType.Clazz,
-              get().clippedMesh?.id as string
-            );
+        get().deletePackage(pckg as Package, false, true);
+      } else if (entry instanceof ClassChangeLogEntry) {
+        const { clazz } = entry;
+        get().deleteClass(clazz, false, true);
       }
-    },
+    }
 
-    setCanvas: (canvas) => set({ canvas: canvas }),
+    if (entry.action === RestructureAction.CutInsert) {
+      if (entry instanceof PackageChangeLogEntry || entry instanceof SubPackageChangeLogEntry) {
+        const { original, pckg } = entry;
+        get().deletePackage(pckg as Package, false, true);
+        if (isApplication(original)) {
+          get().restoreApplication(original, true, false);
+        } else if (isPackage(original)) {
+          get().restorePackage(original, true, false);
+        }
+        //this.removeInsertTexture(pckg as Package);
+      } else if (entry instanceof ClassChangeLogEntry) {
+        const { original, clazz } = entry;
 
-    setAllAggregatedCommunications: (allAggregatedCommunications) =>
-      set({ allAggregatedCommunications: allAggregatedCommunications }),
-  })
-);
+        // TODO Not working correctly if we created communications. Need to update the affected and created communication (set the source/target class back)
+        get().deleteClass(clazz as Class, false, true);
+        if (isApplication(original)) {
+          get().restoreApplication(original, true, false);
+        } else if (isPackage(original)) {
+          get().restorePackage(original, true, false);
+        } else if (isClass(original)) {
+          const originApp = getApplicationFromClass(
+            get().landscapeData?.structureLandscapeData as StructureLandscapeData,
+            original
+          );
+          get().restoreClass(originApp as Application, original as Class, true, false);
+        }
+      }
+    }
+
+    useChangelogStore.getState().removeEntry(entry);
+    eventEmitter.emit('showChangeLog');
+  },
+
+  removeMeshModelTextureMapping: (
+    action: RestructureAction,
+    entityType: EntityType,
+    app: Application,
+    pckg?: Package,
+    clazz?: Class
+  ) => {
+    const undoMapping = get().meshModelTextureMappings.find(
+      (mapping) =>
+        mapping.action === action &&
+        mapping.meshType === entityType &&
+        mapping.app.id === app.id &&
+        mapping.pckg?.id === pckg?.id &&
+        mapping.clazz?.id === clazz?.id
+    );
+    set({
+      meshModelTextureMappings: get().meshModelTextureMappings.filter(
+        (m) => m != (undoMapping as MeshModelTextureMapping)
+      ),
+    });
+  },
+
+  _sendCutInsertMessage: (destination: Application | Package) => {
+    if (isApplication(destination)) {
+      if (isPackage(get().clippedMesh))
+        useMessageSenderStore
+          .getState()
+          .sendRestructureCutAndInsertMessage(
+            EntityType.App,
+            destination.id,
+            EntityType.Package,
+            get().clippedMesh?.id as string
+          );
+      else
+        useMessageSenderStore
+          .getState()
+          .sendRestructureCutAndInsertMessage(
+            EntityType.App,
+            destination.id,
+            EntityType.Clazz,
+            get().clippedMesh?.id as string
+          );
+    } else {
+      if (isPackage(get().clippedMesh))
+        useMessageSenderStore
+          .getState()
+          .sendRestructureCutAndInsertMessage(
+            EntityType.Package,
+            destination.id,
+            EntityType.Package,
+            get().clippedMesh?.id as string
+          );
+      else
+        useMessageSenderStore
+          .getState()
+          .sendRestructureCutAndInsertMessage(
+            EntityType.Package,
+            destination.id,
+            EntityType.Clazz,
+            get().clippedMesh?.id as string
+          );
+    }
+  },
+
+  setCanvas: (canvas) => set({ canvas: canvas }),
+
+  setAllAggregatedCommunications: (allAggregatedCommunications) =>
+    set({ allAggregatedCommunications: allAggregatedCommunications }),
+}));
 
 function removeCopiedAggregatedCommunication(key: string) {
   useLandscapeRestructureStore.setState((prev) => {

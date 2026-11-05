@@ -8,11 +8,7 @@ export interface AnnotationDataArgs {
   wasMoved: boolean;
   isAssociated: boolean;
   entityId?: string;
-  entity?:
-    | City
-    | District
-    | Building
-    | AggregatedCommunication;
+  entity?: City | District | Building | AggregatedCommunication;
   menuId: string | null;
   hovered: boolean;
   annotationText: string;
@@ -40,11 +36,7 @@ export default class AnnotationData {
 
   entityId?: string;
 
-  entity?:
-    | City
-    | District
-    | Building
-    | AggregatedCommunication;
+  entity?: City | District | Building | AggregatedCommunication;
 
   menuId: string | null;
 

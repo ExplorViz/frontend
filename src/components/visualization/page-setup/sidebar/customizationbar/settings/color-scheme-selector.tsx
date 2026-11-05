@@ -1,10 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { ColorSchemeId } from 'explorviz-frontend/src/utils/settings/color-schemes';
 
-export default function ColorSchemeSelector({
-  colorSchemes,
-  applyColorScheme,
-}: ColorSchemeProps) {
+export default function ColorSchemeSelector({ colorSchemes, applyColorScheme }: ColorSchemeProps) {
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef: React.MutableRefObject<any> = useRef(null);
 
@@ -43,10 +40,7 @@ export default function ColorSchemeSelector({
         Color Presets
       </button>
 
-      <div
-        className={`dropdown-menu dropdown-menu-right ${isOpen ? 'show' : ''}`}
-        aria-labelledby="dropdownMenuButton"
-      >
+      <div className={`dropdown-menu dropdown-menu-right ${isOpen ? 'show' : ''}`} aria-labelledby="dropdownMenuButton">
         {colorSchemes.map((colorScheme) => (
           <div
             key={colorScheme.id}

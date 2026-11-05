@@ -1,12 +1,6 @@
 import { useCommitTreeStateStore } from 'explorviz-frontend/src/stores/commit-tree-state';
-import {
-  Building,
-  MetricValue,
-} from 'explorviz-frontend/src/utils/landscape-schemes/flat-landscape';
-import {
-  BuildingMetricMapping,
-  SelectedBuildingMetric,
-} from 'explorviz-frontend/src/utils/settings/settings-schemas';
+import { Building, MetricValue } from 'explorviz-frontend/src/utils/landscape-schemes/flat-landscape';
+import { BuildingMetricMapping, SelectedBuildingMetric } from 'explorviz-frontend/src/utils/settings/settings-schemas';
 
 export type MetricBounds = {
   min: number;
@@ -97,16 +91,10 @@ let cachedDiffMode = false;
  * on the identity of the underlying store state.
  */
 export function isCommitComparisonDiffMode(): boolean {
-  const repositoryName =
-    useCommitTreeStateStore.getState()._currentSelectedRepositoryName;
-  const selectedCommits = useCommitTreeStateStore
-    .getState()
-    .getSelectedCommits();
+  const repositoryName = useCommitTreeStateStore.getState()._currentSelectedRepositoryName;
+  const selectedCommits = useCommitTreeStateStore.getState().getSelectedCommits();
 
-  if (
-    cachedDiffModeCommits === selectedCommits &&
-    cachedDiffModeRepository === repositoryName
-  ) {
+  if (cachedDiffModeCommits === selectedCommits && cachedDiffModeRepository === repositoryName) {
     return cachedDiffMode;
   }
 
@@ -126,8 +114,7 @@ export function getBuildingMetricValueForSizing(
     return 0;
   }
 
-  const shouldUseComparisonDiff =
-    useCommitComparisonDiff && building.commitComparison !== undefined;
+  const shouldUseComparisonDiff = useCommitComparisonDiff && building.commitComparison !== undefined;
 
   return getMetricValueForSizing(metric, shouldUseComparisonDiff);
 }
@@ -146,17 +133,13 @@ export function getMetricValueForSizing(
   return Math.abs(current - previous);
 }
 
-export function getBuildingMetricValueForHeatmap(
-  building: Building,
-  metricKey: string
-): number | null {
+export function getBuildingMetricValueForHeatmap(building: Building, metricKey: string): number | null {
   const metric = building.metrics?.[metricKey];
   if (!metric) {
     return null;
   }
 
-  const shouldUseComparisonDiff =
-    isCommitComparisonDiffMode() && building.commitComparison !== undefined;
+  const shouldUseComparisonDiff = isCommitComparisonDiffMode() && building.commitComparison !== undefined;
 
   if (!shouldUseComparisonDiff) {
     if (metric.current === null || metric.current === undefined) {
@@ -169,10 +152,7 @@ export function getBuildingMetricValueForHeatmap(
   return getMetricValueForSizing(metric, true);
 }
 
-export function formatBuildingMetricDisplayName(
-  metric: string,
-  useDiffSuffix: boolean
-): string {
+export function formatBuildingMetricDisplayName(metric: string, useDiffSuffix: boolean): string {
   if (!useDiffSuffix || metric === SelectedBuildingMetric.None) {
     return metric;
   }
@@ -180,10 +160,7 @@ export function formatBuildingMetricDisplayName(
   return `${metric} diff`;
 }
 
-export function getMetricBoundsForHeatmap(
-  buildings: Building[],
-  metricKey: string
-): MetricBounds {
+export function getMetricBoundsForHeatmap(buildings: Building[], metricKey: string): MetricBounds {
   if (buildings.length === 0) {
     return { min: 0, max: 0 };
   }
@@ -210,10 +187,7 @@ export function getMetricBoundsForHeatmap(
   return bounds;
 }
 
-const cachedEdgesBySource = new WeakMap<
-  number[],
-  { buckets: number; edges: number[] }
->();
+const cachedEdgesBySource = new WeakMap<number[], { buckets: number; edges: number[] }>();
 
 export function getBucketEdges(sorted: number[], buckets: number): number[] {
   const cached = cachedEdgesBySource.get(sorted);
@@ -223,10 +197,7 @@ export function getBucketEdges(sorted: number[], buckets: number): number[] {
 
   const edges: number[] = [];
   for (let i = 1; i <= buckets; i++) {
-    const index = Math.min(
-      sorted.length - 1,
-      Math.max(0, Math.ceil((i / buckets) * sorted.length) - 1)
-    );
+    const index = Math.min(sorted.length - 1, Math.max(0, Math.ceil((i / buckets) * sorted.length) - 1));
     edges.push(sorted[index]);
   }
 
@@ -267,32 +238,19 @@ export function applyMetricMapping(
       return 0;
     }
     const normalized = (logValue - logMin) / logRange;
-    const contrasted = Math.min(
-      1,
-      Math.max(0, 0.5 + (normalized - 0.5) * LOGARITHMIC_MAPPING_CONTRAST)
-    );
+    const contrasted = Math.min(1, Math.max(0, 0.5 + (normalized - 0.5) * LOGARITHMIC_MAPPING_CONTRAST));
     return contrasted * logMax * LOGARITHMIC_MAPPING_SCALE;
   }
 
   return safeValue;
 }
 
-export function getMetricMappingMultiplier(
-  metric: MetricKey,
-  mapping: BuildingMetricMapping
-): number {
+export function getMetricMappingMultiplier(metric: MetricKey, mapping: BuildingMetricMapping): number {
   return metricMappingMultipliers[mapping][metric];
 }
 
-export function getMetricBoundsForBuildings(
-  buildings: Building[],
-  metricKey: string
-): MetricBounds {
-  if (
-    !metricKey ||
-    metricKey === SelectedBuildingMetric.None ||
-    buildings.length === 0
-  ) {
+export function getMetricBoundsForBuildings(buildings: Building[], metricKey: string): MetricBounds {
+  if (!metricKey || metricKey === SelectedBuildingMetric.None || buildings.length === 0) {
     return { min: 0, max: 0, sortedValues: [] };
   }
   const useCommitComparisonDiff = isCommitComparisonDiffMode();
@@ -301,11 +259,7 @@ export function getMetricBoundsForBuildings(
   let max = -Infinity;
 
   for (const building of buildings) {
-    const safeValue = getBuildingMetricValueForSizing(
-      building,
-      metricKey,
-      useCommitComparisonDiff
-    );
+    const safeValue = getBuildingMetricValueForSizing(building, metricKey, useCommitComparisonDiff);
     values.push(safeValue);
     if (safeValue < min) min = safeValue;
     if (safeValue > max) max = safeValue;
@@ -329,16 +283,10 @@ export function invalidateBuildingMetricBoundsCache(): void {
   cachedMetricBounds.clear();
 }
 
-export function getCachedBuildingMetricBounds(
-  buildings: Record<string, Building>,
-  metricKey: string
-): MetricBounds {
+export function getCachedBuildingMetricBounds(buildings: Record<string, Building>, metricKey: string): MetricBounds {
   const useCommitComparisonDiff = isCommitComparisonDiffMode();
 
-  if (
-    cachedBoundsBuildingsRef !== buildings ||
-    cachedBoundsUseCommitComparisonDiff !== useCommitComparisonDiff
-  ) {
+  if (cachedBoundsBuildingsRef !== buildings || cachedBoundsUseCommitComparisonDiff !== useCommitComparisonDiff) {
     cachedBoundsBuildingsRef = buildings;
     cachedBoundsUseCommitComparisonDiff = useCommitComparisonDiff;
     cachedBoundsBuildingList = Object.values(buildings);
@@ -350,10 +298,7 @@ export function getCachedBuildingMetricBounds(
     return cachedBounds;
   }
 
-  const bounds = getMetricBoundsForBuildings(
-    cachedBoundsBuildingList,
-    metricKey
-  );
+  const bounds = getMetricBoundsForBuildings(cachedBoundsBuildingList, metricKey);
   cachedMetricBounds.set(metricKey, bounds);
   return bounds;
 }

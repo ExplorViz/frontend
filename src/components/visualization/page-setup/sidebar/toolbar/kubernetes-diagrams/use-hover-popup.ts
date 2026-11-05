@@ -2,7 +2,12 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 
 type HoveredNode = { name: string; clientX: number; clientY: number };
 /** A popup that has been explicitly pinned. `left`/`top` are viewport px (position: fixed). */
-export type LockedPopup = { id: string; name: string; left: number; top: number };
+export type LockedPopup = {
+  id: string;
+  name: string;
+  left: number;
+  top: number;
+};
 
 const SHOW_DELAY_MS = 1000;
 const HIDE_DELAY_MS = 1000;
@@ -29,44 +34,47 @@ export function useHoverPopup() {
     lockedPopupNamesRef.current = new Set(lockedPopups.map((p) => p.name));
   }, [lockedPopups]);
 
-  const handleDiagramMouseOver = useCallback(
-    (e: React.MouseEvent<HTMLDivElement>) => {
-      const nodeEl = (e.target as Element).closest('[data-node-name]');
-      const nodeName = nodeEl?.getAttribute('data-node-name') ?? null;
-      if (nodeName === lastHoveredNameRef.current) return;
+  const handleDiagramMouseOver = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
+    const nodeEl = (e.target as Element).closest('[data-node-name]');
+    const nodeName = nodeEl?.getAttribute('data-node-name') ?? null;
+    if (nodeName === lastHoveredNameRef.current) return;
 
-      if (hideTimeoutRef.current) { clearTimeout(hideTimeoutRef.current); hideTimeoutRef.current = null; }
-      if (hoverTimeoutRef.current) { clearTimeout(hoverTimeoutRef.current); hoverTimeoutRef.current = null; }
+    if (hideTimeoutRef.current) {
+      clearTimeout(hideTimeoutRef.current);
+      hideTimeoutRef.current = null;
+    }
+    if (hoverTimeoutRef.current) {
+      clearTimeout(hoverTimeoutRef.current);
+      hoverTimeoutRef.current = null;
+    }
 
-      lastHoveredNameRef.current = nodeName;
+    lastHoveredNameRef.current = nodeName;
 
-      // Only show popup for graph nodes (parent element id contains "node")
-      const isNode = nodeEl?.parentElement?.getAttribute('id')?.includes('node');
+    // Only show popup for graph nodes (parent element id contains "node")
+    const isNode = nodeEl?.parentElement?.getAttribute('id')?.includes('node');
 
-      if (isNode && nodeName && !lockedPopupNamesRef.current.has(nodeName)) {
-        const { clientX, clientY } = e;
-        hoverTimeoutRef.current = setTimeout(() => {
-          setWasMoved(false);
-          wasMovedRef.current = false;
-          setHoveredNode({ name: nodeName, clientX, clientY });
-          // Auto-close after delay; cancelled by movePopup if the user drags the popup.
-          hideTimeoutRef.current = setTimeout(() => {
-            setHoveredNode(null);
-            hideTimeoutRef.current = null;
-          }, HIDE_DELAY_MS);
-        }, SHOW_DELAY_MS);
-      } else {
+    if (isNode && nodeName && !lockedPopupNamesRef.current.has(nodeName)) {
+      const { clientX, clientY } = e;
+      hoverTimeoutRef.current = setTimeout(() => {
+        setWasMoved(false);
+        wasMovedRef.current = false;
+        setHoveredNode({ name: nodeName, clientX, clientY });
+        // Auto-close after delay; cancelled by movePopup if the user drags the popup.
         hideTimeoutRef.current = setTimeout(() => {
-          if (!wasMovedRef.current) {
-            setHoveredNode(null);
-            setWasMoved(false);
-          }
+          setHoveredNode(null);
           hideTimeoutRef.current = null;
         }, HIDE_DELAY_MS);
-      }
-    },
-    []
-  );
+      }, SHOW_DELAY_MS);
+    } else {
+      hideTimeoutRef.current = setTimeout(() => {
+        if (!wasMovedRef.current) {
+          setHoveredNode(null);
+          setWasMoved(false);
+        }
+        hideTimeoutRef.current = null;
+      }, HIDE_DELAY_MS);
+    }
+  }, []);
 
   const handlePopupMouseEnter = useCallback(() => {
     if (hideTimeoutRef.current) {

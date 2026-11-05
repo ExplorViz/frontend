@@ -6,12 +6,7 @@ import {
   CITY_GEOMETRY_OPTIONS,
   CityGeometryType,
 } from 'explorviz-frontend/src/utils/settings/settings-schemas';
-import {
-  Accordion,
-  Alert,
-  ToggleButton,
-  ToggleButtonGroup,
-} from 'react-bootstrap';
+import { Accordion, Alert, ToggleButton, ToggleButtonGroup } from 'react-bootstrap';
 import ColorPicker from '../../settings/color-picker';
 
 interface CityModelConfigProps {
@@ -20,38 +15,21 @@ interface CityModelConfigProps {
   formatValueLabel?(value: string): string | undefined;
 }
 
-export default function CityModelConfig({
-  overrideGroupKey,
-  values,
-  formatValueLabel,
-}: CityModelConfigProps) {
-  const cityColorOverrides = useUserSettingsStore(
-    (state) => state.visualizationSettings.cityColorOverrides
-  );
+export default function CityModelConfig({ overrideGroupKey, values, formatValueLabel }: CityModelConfigProps) {
+  const cityColorOverrides = useUserSettingsStore((state) => state.visualizationSettings.cityColorOverrides);
 
   return (
     <Accordion className="building-config-language-accordion">
       {values.map((value) => (
-        <Accordion.Item
-          eventKey={value}
-          key={value}
-          className="building-config-language-item"
-        >
+        <Accordion.Item eventKey={value} key={value} className="building-config-language-item">
           <Accordion.Header>
             <span className="building-config-language-header">
-              <ColorIndicator
-                color={cityColorOverrides.value[overrideGroupKey][value]}
-              />
-              <span className="building-config-language-name">
-                {formatValueLabel?.(value) ?? value}
-              </span>
+              <ColorIndicator color={cityColorOverrides.value[overrideGroupKey][value]} />
+              <span className="building-config-language-name">{formatValueLabel?.(value) ?? value}</span>
             </span>
           </Accordion.Header>
           <Accordion.Body>
-            <CityModelConfigItem
-              overrideGroupKey={overrideGroupKey}
-              value={value}
-            />
+            <CityModelConfigItem overrideGroupKey={overrideGroupKey} value={value} />
           </Accordion.Body>
         </Accordion.Item>
       ))}
@@ -64,16 +42,9 @@ interface CityModelConfigItemProps {
   value: string;
 }
 
-function CityModelConfigItem({
-  overrideGroupKey,
-  value,
-}: CityModelConfigItemProps) {
-  const cityColorOverrides = useUserSettingsStore(
-    (state) => state.visualizationSettings.cityColorOverrides
-  );
-  const cityGeometryOverrides = useUserSettingsStore(
-    (state) => state.visualizationSettings.cityGeometryOverrides
-  );
+function CityModelConfigItem({ overrideGroupKey, value }: CityModelConfigItemProps) {
+  const cityColorOverrides = useUserSettingsStore((state) => state.visualizationSettings.cityColorOverrides);
+  const cityGeometryOverrides = useUserSettingsStore((state) => state.visualizationSettings.cityGeometryOverrides);
   const updateSetting = useUserSettingsStore((state) => state.updateSetting);
 
   const selectedColor = cityColorOverrides.value[overrideGroupKey][value];
@@ -90,8 +61,7 @@ function CityModelConfigItem({
   };
 
   const handleResetColor = () => {
-    const defaultValue =
-      defaultVizSettings.cityColorOverrides.value[overrideGroupKey][value];
+    const defaultValue = defaultVizSettings.cityColorOverrides.value[overrideGroupKey][value];
     handleChangeColor(defaultValue);
   };
 
@@ -106,8 +76,7 @@ function CityModelConfigItem({
   };
 
   const handleResetGeometry = () => {
-    const defaultValue =
-      defaultVizSettings.cityGeometryOverrides.value[overrideGroupKey][value];
+    const defaultValue = defaultVizSettings.cityGeometryOverrides.value[overrideGroupKey][value];
     handleChangeGeometry(defaultValue);
   };
 
@@ -119,9 +88,7 @@ function CityModelConfigItem({
           label="City color"
           initialValue={null}
           value={selectedColor}
-          onChange={(v) =>
-            v !== null ? handleChangeColor(v) : handleResetColor()
-          }
+          onChange={(v) => (v !== null ? handleChangeColor(v) : handleResetColor())}
         />
       </div>
 
@@ -131,8 +98,7 @@ function CityModelConfigItem({
           <div className="inline">
             <AlertIcon /> <b>Note</b>
             <div className="d-block">
-              Geometry overrides are only applied to empty cities since internal
-              city layouting requires a box geometry.
+              Geometry overrides are only applied to empty cities since internal city layouting requires a box geometry.
             </div>
           </div>
         </Alert>
@@ -148,9 +114,7 @@ function CityModelConfigItem({
               id={`${value}-${geometry}`}
               value={geometry}
               type="radio"
-              variant={
-                selectedGeometry === geometry ? 'primary' : 'outline-secondary'
-              }
+              variant={selectedGeometry === geometry ? 'primary' : 'outline-secondary'}
               onChange={() => handleChangeGeometry(geometry)}
               className="building-config-geometry-button"
             >
@@ -158,11 +122,7 @@ function CityModelConfigItem({
             </ToggleButton>
           ))}
         </ToggleButtonGroup>
-        <button
-          type="button"
-          className="btn btn-link btn-sm building-config-reset-link"
-          onClick={handleResetGeometry}
-        >
+        <button type="button" className="btn btn-link btn-sm building-config-reset-link" onClick={handleResetGeometry}>
           Reset geometry
         </button>
       </div>

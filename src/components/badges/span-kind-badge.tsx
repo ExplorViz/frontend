@@ -22,19 +22,9 @@ interface SpanKindBadgeProps {
 }
 
 /** Colored badge indicating the {@link Span.kind} of an OpenTelemetry span. */
-export default function SpanKindBadge({
-  kind,
-  pill,
-  className,
-  style,
-}: SpanKindBadgeProps) {
+export default function SpanKindBadge({ kind, pill, className, style }: SpanKindBadgeProps) {
   return (
-    <Badge
-      bg={spanKindToBsColor(kind)}
-      pill={pill}
-      className={className}
-      style={style}
-    >
+    <Badge bg={spanKindToBsColor(kind)} pill={pill} className={className} style={style}>
       <samp>{kind.toUpperCase()}</samp>
     </Badge>
   );

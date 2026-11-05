@@ -1,9 +1,6 @@
 import { useAuthStore } from 'explorviz-frontend/src/stores/auth';
 import { getMetricsServiceUrl } from 'explorviz-frontend/src/utils/landscape-http-request-util';
-import {
-  isMetricOverview,
-  MetricsPointKind,
-} from 'explorviz-frontend/src/utils/landscape-schemes/telemetry/metrics';
+import { isMetricOverview, MetricsPointKind } from 'explorviz-frontend/src/utils/landscape-schemes/telemetry/metrics';
 import { useCallback } from 'react';
 
 export interface MetricsSearchParams {
@@ -85,9 +82,7 @@ export default function useRuntimeMetricsFetch() {
         throw new Error('Metrics service URL not configured');
       }
 
-      const requestUrl = new URL(
-        `${metricsServiceUrl}/v3/landscapes/${params.landscapeTokenId}/metrics`
-      );
+      const requestUrl = new URL(`${metricsServiceUrl}/v3/landscapes/${params.landscapeTokenId}/metrics`);
 
       const queryParams = new URLSearchParams();
       for (const [key, value] of Object.entries(params)) {
@@ -122,14 +117,9 @@ export default function useRuntimeMetricsFetch() {
       }
 
       const receivedMetrics = JSON.parse(await response.text(), (k, v) => {
-        return k === 'timeUnixNano' || k === 'startTimeUnixNano'
-          ? BigInt(v)
-          : v;
+        return k === 'timeUnixNano' || k === 'startTimeUnixNano' ? BigInt(v) : v;
       });
-      if (
-        !Array.isArray(receivedMetrics) ||
-        !receivedMetrics.every(isMetricOverview)
-      ) {
+      if (!Array.isArray(receivedMetrics) || !receivedMetrics.every(isMetricOverview)) {
         console.error(`JSON fails type guard ${isMetricOverview.name}`, {
           json: receivedMetrics,
         });

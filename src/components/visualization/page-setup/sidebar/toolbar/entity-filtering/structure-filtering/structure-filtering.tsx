@@ -1,4 +1,4 @@
-import { forwardRef, useImperativeHandle, useMemo, useRef } from 'react';
+import { useImperativeHandle, useMemo, useRef } from 'react';
 
 import BuildingMetricFiltering, {
   BuildingMetricFilteringHandle,
@@ -10,10 +10,7 @@ import {
   compileBuildingFilter,
   countRemainingBuildings,
 } from 'explorviz-frontend/src/utils/city-rendering/building-filter';
-import {
-  Building,
-  FlatLandscape,
-} from 'explorviz-frontend/src/utils/landscape-schemes/flat-landscape';
+import { Building, FlatLandscape } from 'explorviz-frontend/src/utils/landscape-schemes/flat-landscape';
 import { BUILDING_METRIC_NAMES } from 'explorviz-frontend/src/utils/settings/settings-schemas';
 import { useShallow } from 'zustand/react/shallow';
 
@@ -26,12 +23,9 @@ export type StructureFilteringHandle = {
   reset: () => void;
 };
 
-const getMetricValue = (building: Building, metricKey: string): number =>
-  building.metrics?.[metricKey]?.current ?? 0;
+const getMetricValue = (building: Building, metricKey: string): number => building.metrics?.[metricKey]?.current ?? 0;
 
-const getMetricBounds = (
-  landscape: FlatLandscape
-): Record<string, { min: number; max: number }> => {
+const getMetricBounds = (landscape: FlatLandscape): Record<string, { min: number; max: number }> => {
   const buildings = Object.values(landscape.buildings);
   const metricBounds: Record<string, { min: number; max: number }> = {};
 
@@ -55,19 +49,15 @@ const getMetricBounds = (
   return metricBounds;
 };
 
-const StructureFiltering = forwardRef<
-  StructureFilteringHandle,
-  StructureFilteringProps
->(function StructureFiltering({ flatLandscapeData: _flatLandscapeData }, ref) {
-  const pauseVisualizationUpdating = useRenderingServiceStore(
-    (state) => state.pauseVisualizationUpdating
-  );
-  const hiddenModelTypes = useVisualizationStore(
-    (state) => state.hiddenModelTypes
-  );
-  const hiddenLanguages = useVisualizationStore(
-    (state) => state.hiddenLanguages
-  );
+const StructureFiltering = function StructureFiltering({
+  ref,
+  flatLandscapeData: _flatLandscapeData,
+}: StructureFilteringProps & {
+  ref?: React.RefObject<StructureFilteringHandle | null>;
+}) {
+  const pauseVisualizationUpdating = useRenderingServiceStore((state) => state.pauseVisualizationUpdating);
+  const hiddenModelTypes = useVisualizationStore((state) => state.hiddenModelTypes);
+  const hiddenLanguages = useVisualizationStore((state) => state.hiddenLanguages);
   const {
     filterMode,
     inclusionExpressions,
@@ -93,13 +83,8 @@ const StructureFiltering = forwardRef<
   const filterSourceFlatLandscape = baselineFlatLandscape ?? _flatLandscapeData;
 
   const buildingMetricRef = useRef<BuildingMetricFilteringHandle>(null);
-  const metricBounds = useMemo(
-    () => getMetricBounds(filterSourceFlatLandscape),
-    [filterSourceFlatLandscape]
-  );
-  const initialBuildingCount = Object.keys(
-    filterSourceFlatLandscape.buildings
-  ).length;
+  const metricBounds = useMemo(() => getMetricBounds(filterSourceFlatLandscape), [filterSourceFlatLandscape]);
+  const initialBuildingCount = Object.keys(filterSourceFlatLandscape.buildings).length;
 
   // Deriving these inline made them new arrays on every render, which defeated
   // the memo below and re-scanned every building whenever this panel rendered.
@@ -167,6 +152,6 @@ const StructureFiltering = forwardRef<
       />
     </>
   );
-});
+};
 
 export default StructureFiltering;

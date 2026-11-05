@@ -12,9 +12,7 @@ import Form from 'react-bootstrap/Form';
 interface BuildingComparisonFilterDropdownProps {
   readonly visibility: BuildingComparisonVisibility;
   readonly disabled: boolean;
-  readonly onVisibilityChange: (
-    visibility: BuildingComparisonVisibility
-  ) => void;
+  readonly onVisibilityChange: (visibility: BuildingComparisonVisibility) => void;
 }
 
 export default function BuildingComparisonFilterDropdown({
@@ -34,10 +32,7 @@ export default function BuildingComparisonFilterDropdown({
 
   useEffect(() => {
     const handleClickOutside = ({ target }: MouseEvent) => {
-      if (
-        dropdownRef.current &&
-        !dropdownRef.current.contains(target as HTMLElement)
-      ) {
+      if (dropdownRef.current && !dropdownRef.current.contains(target as HTMLElement)) {
         setIsOpen(false);
       }
     };
@@ -48,26 +43,16 @@ export default function BuildingComparisonFilterDropdown({
     };
   }, []);
 
-  const toggleCategory = (
-    comparison: CommitComparison,
-    checked: boolean
-  ): void => {
-    onVisibilityChange(
-      setBuildingComparisonVisibility(visibility, comparison, checked)
-    );
+  const toggleCategory = (comparison: CommitComparison, checked: boolean): void => {
+    onVisibilityChange(setBuildingComparisonVisibility(visibility, comparison, checked));
   };
 
   return (
-    <div
-      ref={dropdownRef}
-      className="commit-tree-building-filter-dropdown dropdown"
-    >
+    <div ref={dropdownRef} className="commit-tree-building-filter-dropdown dropdown">
       <button
         type="button"
         className={`btn btn-outline-secondary btn-sm dropdown-toggle commit-tree-building-filter-toggle${
-          isFilterActive && !disabled
-            ? ' commit-tree-building-filter-toggle--active'
-            : ''
+          isFilterActive && !disabled ? ' commit-tree-building-filter-toggle--active' : ''
         }`}
         aria-haspopup="true"
         aria-expanded={isOpen}
@@ -86,9 +71,7 @@ export default function BuildingComparisonFilterDropdown({
         Filter Buildings
       </button>
       <div
-        className={`dropdown-menu commit-tree-building-filter-menu${
-          isOpen && !disabled ? ' show' : ''
-        }`}
+        className={`dropdown-menu commit-tree-building-filter-menu${isOpen && !disabled ? ' show' : ''}`}
         onClick={(event) => event.stopPropagation()}
       >
         {BUILDING_COMPARISON_CATEGORIES.map(({ key, label }) => (

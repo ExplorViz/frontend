@@ -7,7 +7,7 @@ import { useSpectateUserStore } from '../src/stores/collaboration/spectate-user'
 const { players } = vi.hoisted(() => ({
   players: [{ id: 'remote', getState: vi.fn() }],
 }));
-vi.mock('../src/components/collaboration/playroom-players-context', () => ({
+vi.mock('../src/components/collaboration/playroom-players-context-store', () => ({
   usePlayroomPlayers: () => players,
 }));
 vi.mock('playroomkit', () => ({ myPlayer: () => undefined }));
@@ -30,12 +30,8 @@ it('copies remote projection and its inverse on a frame, then stops on deactivat
   renderer = await create(<SpectateCameraController />, { camera });
   await renderer.advanceFrames(1, 1 / 60);
   expect(camera.projectionMatrix.equals(remote.projectionMatrix)).toBe(true);
-  const identity = camera.projectionMatrix
-    .clone()
-    .multiply(camera.projectionMatrixInverse);
-  identity.elements.forEach((value, i) =>
-    expect(value).toBeCloseTo(new Matrix4().elements[i])
-  );
+  const identity = camera.projectionMatrix.clone().multiply(camera.projectionMatrixInverse);
+  identity.elements.forEach((value, i) => expect(value).toBeCloseTo(new Matrix4().elements[i]));
   expect(camera.position.equals(originalPosition)).toBe(true);
   await act(async () => useSpectateUserStore.getState().deactivate());
   const previous = camera.projectionMatrix.clone();
@@ -47,14 +43,9 @@ it('copies remote projection and its inverse on a frame, then stops on deactivat
 it.each(['inactive', 'missing player', 'missing projection', 'orthographic'])(
   'preserves the camera for %s',
   async (scenario) => {
-    const camera =
-      scenario === 'orthographic'
-        ? new OrthographicCamera()
-        : new PerspectiveCamera();
+    const camera = scenario === 'orthographic' ? new OrthographicCamera() : new PerspectiveCamera();
     if (scenario !== 'inactive')
-      useSpectateUserStore
-        .getState()
-        .activate(scenario === 'missing player' ? 'unknown' : 'remote');
+      useSpectateUserStore.getState().activate(scenario === 'missing player' ? 'unknown' : 'remote');
     renderer = await create(<SpectateCameraController />, { camera });
     // R3F sizes the camera during root creation; compare subsequent frames.
     const original = camera.projectionMatrix.clone();

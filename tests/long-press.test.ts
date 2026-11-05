@@ -30,24 +30,21 @@ it('fires once at the configured delay with both page and viewport coordinates',
   expect(end.preventDefault).toHaveBeenCalledOnce();
 });
 
-it.each(['end', 'move-x', 'move-y', 'unmount'])(
-  'cancels a pending long press on %s',
-  (action) => {
-    const callback = vi.fn();
-    const { result, unmount } = renderHook(() => useLongPress(callback));
-    result.current.onTouchStart(touch());
-    if (action === 'end') {
-      const end = touch();
-      result.current.onTouchEnd(end);
-      expect(end.preventDefault).not.toHaveBeenCalled();
-    }
-    if (action === 'move-x') result.current.onTouchMove(touch(136, 200));
-    if (action === 'move-y') result.current.onTouchMove(touch(100, 236));
-    if (action === 'unmount') unmount();
-    act(() => vi.runAllTimers());
-    expect(callback).not.toHaveBeenCalled();
+it.each(['end', 'move-x', 'move-y', 'unmount'])('cancels a pending long press on %s', (action) => {
+  const callback = vi.fn();
+  const { result, unmount } = renderHook(() => useLongPress(callback));
+  result.current.onTouchStart(touch());
+  if (action === 'end') {
+    const end = touch();
+    result.current.onTouchEnd(end);
+    expect(end.preventDefault).not.toHaveBeenCalled();
   }
-);
+  if (action === 'move-x') result.current.onTouchMove(touch(136, 200));
+  if (action === 'move-y') result.current.onTouchMove(touch(100, 236));
+  if (action === 'unmount') unmount();
+  act(() => vi.runAllTimers());
+  expect(callback).not.toHaveBeenCalled();
+});
 
 it('tolerates small movement and restarts the timer on a new touch', () => {
   const callback = vi.fn();

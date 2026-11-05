@@ -1,8 +1,5 @@
 /** Formats a failed HTTP response without consuming the caller's response body. */
-export async function getResponseErrorMessage(
-  response: Response,
-  fallback = 'Something went wrong'
-): Promise<string> {
+export async function getResponseErrorMessage(response: Response, fallback = 'Something went wrong'): Promise<string> {
   let message = '';
   try {
     const body = (await response.clone().text()).trim();

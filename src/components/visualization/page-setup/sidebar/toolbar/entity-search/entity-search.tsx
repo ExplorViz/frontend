@@ -1,16 +1,13 @@
+import { keyedItems } from 'explorviz-frontend/src/utils/keyed-items';
 import { useEffect, useImperativeHandle, useMemo, useRef, useState } from 'react';
 
 import { FOCUS_ENTITY_SEARCH_EVENT } from 'explorviz-frontend/src/components/visualization/page-setup/sidebar/toolbar/toolbar-context';
 import { useCameraControlsStore } from 'explorviz-frontend/src/stores/camera-controls-store';
 import { highlightById } from 'explorviz-frontend/src/utils/city-rendering/highlighting';
 import getPossibleEntityNames from 'explorviz-frontend/src/utils/search-logic';
-import { pingByModelId } from 'explorviz-frontend/src/view-objects/3d/city/animated-ping-r3f';
+import { pingByModelId } from 'explorviz-frontend/src/view-objects/3d/city/ping-animation';
 import Button from 'react-bootstrap/Button';
-import Select, {
-  MultiValue,
-  MultiValueGenericProps,
-  SelectInstance,
-} from 'react-select';
+import Select, { MultiValue, MultiValueGenericProps, SelectInstance } from 'react-select';
 
 interface EntitySearchEntry {
   modelId: string;
@@ -51,19 +48,14 @@ const EntitySearch = function EntitySearch({ ref, ..._ }) {
     // Highlight all occurrences of the search string in the suggested options
     const parts = fqnStr.split(new RegExp(`(${searchString})`, 'gi'));
 
-    return parts.map((part, index) =>
-      part.toLowerCase() === searchString.toLowerCase() ? (
-        <strong key={index}>{part}</strong>
-      ) : (
-        part
-      )
+    return keyedItems(parts, (part) => part).map(({ item: part, key }) =>
+      part.toLowerCase() === searchString.toLowerCase() ? <strong key={key}>{part}</strong> : part
     );
   };
 
   const onChange = (newSelectedOptions: MultiValue<EntitySearchEntry>) => {
     const newlySelectedItems = newSelectedOptions.filter(
-      (newItem: EntitySearchEntry) =>
-        !selected.some((existingItem) => existingItem.fqn === newItem.fqn)
+      (newItem: EntitySearchEntry) => !selected.some((existingItem) => existingItem.fqn === newItem.fqn)
     );
 
     newlySelectedItems.forEach((item: EntitySearchEntry) => {
@@ -91,10 +83,7 @@ const EntitySearch = function EntitySearch({ ref, ..._ }) {
   };
 
   const optionLookup = useMemo(
-    () =>
-      new Map(
-        entityNames.map((entry: EntitySearchEntry) => [entry.modelId, entry])
-      ),
+    () => new Map(entityNames.map((entry: EntitySearchEntry) => [entry.modelId, entry])),
     [entityNames]
   );
 
@@ -106,11 +95,7 @@ const EntitySearch = function EntitySearch({ ref, ..._ }) {
       setMenuOpen(!selectAll);
       if (selectAll) {
         const newlySelectedItems = names.filter(
-          (newItem) =>
-            !selected.some(
-              (existingItem: EntitySearchEntry) =>
-                existingItem.fqn === newItem.fqn
-            )
+          (newItem) => !selected.some((existingItem: EntitySearchEntry) => existingItem.fqn === newItem.fqn)
         );
         newlySelectedItems.forEach((item) => pingByModelId(item.modelId));
         setSelected(names);
@@ -118,16 +103,9 @@ const EntitySearch = function EntitySearch({ ref, ..._ }) {
     },
     selectEntities: (ids: string[]) => {
       const matches =
-        optionLookup.size > 0
-          ? (ids
-              .map((id) => optionLookup.get(id))
-              .filter(Boolean) as EntitySearchEntry[])
-          : [];
+        optionLookup.size > 0 ? (ids.map((id) => optionLookup.get(id)).filter(Boolean) as EntitySearchEntry[]) : [];
       const newlySelectedItems = matches.filter(
-        (item) =>
-          !selected.some(
-            (existingItem: EntitySearchEntry) => existingItem.fqn === item.fqn
-          )
+        (item) => !selected.some((existingItem: EntitySearchEntry) => existingItem.fqn === item.fqn)
       );
       newlySelectedItems.forEach((item) => pingByModelId(item.modelId));
       if (matches.length > 0) {
@@ -164,17 +142,10 @@ const EntitySearch = function EntitySearch({ ref, ..._ }) {
         hideSelectedOptions={false}
       />
       <div className="mt-3 col text-center">
-        <Button
-          variant="outline-secondary"
-          onClick={highlightAllSelectedEntities}
-        >
+        <Button variant="outline-secondary" onClick={highlightAllSelectedEntities}>
           Hightlight All
         </Button>
-        <Button
-          className="mx-2"
-          variant="outline-secondary"
-          onClick={pingAllSelectedEntities}
-        >
+        <Button className="mx-2" variant="outline-secondary" onClick={pingAllSelectedEntities}>
           Ping All
         </Button>
       </div>
@@ -183,20 +154,14 @@ const EntitySearch = function EntitySearch({ ref, ..._ }) {
 };
 
 // Show selected options as clickable links
-function CustomMultiValueLabel(
-  props: MultiValueGenericProps<EntitySearchEntry>
-) {
+function CustomMultiValueLabel(props: MultiValueGenericProps<EntitySearchEntry>) {
   const { data, innerProps } = props;
   const onClick = () => {
     focusEntity(data.modelId);
   };
 
   return (
-    <div
-      {...innerProps}
-      onClick={onClick}
-      onMouseDown={(e) => e.stopPropagation()}
-    >
+    <div {...innerProps} onClick={onClick} onMouseDown={(e) => e.stopPropagation()}>
       <a href="#" style={{ padding: '0px 4px 0px 8px' }}>
         {data.className ?? data.fqn ?? ''}
       </a>

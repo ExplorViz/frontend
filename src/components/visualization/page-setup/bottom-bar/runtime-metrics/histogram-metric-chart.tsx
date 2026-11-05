@@ -1,13 +1,5 @@
 import { HistogramMetricValues } from 'explorviz-frontend/src/utils/landscape-schemes/telemetry/metrics';
-import {
-  Bar,
-  BarChart,
-  CartesianGrid,
-  ResponsiveContainer,
-  Tooltip,
-  XAxis,
-  YAxis,
-} from 'recharts';
+import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 
 interface HistogramMetricChartProps {
   values: HistogramMetricValues;
@@ -37,15 +29,11 @@ export default function HistogramMetricChart({
     };
   });
 
-  const formatXAxisTick = (value: any, index: number) =>
-    data.length > 14 ? data[index].labelShort : value;
+  const formatXAxisTick = (value: any, index: number) => (data.length > 14 ? data[index].labelShort : value);
 
   return (
     <ResponsiveContainer width="100%" height={height}>
-      <BarChart
-        data={data}
-        margin={{ top: 20, right: 10, left: 20, bottom: 20 }}
-      >
+      <BarChart data={data} margin={{ top: 20, right: 10, left: 20, bottom: 20 }}>
         <CartesianGrid strokeDasharray="3 3" vertical={false} />
         <XAxis
           dataKey="label"
@@ -71,14 +59,8 @@ export default function HistogramMetricChart({
           }}
         />
         <Tooltip
-          labelFormatter={(label) =>
-            data.length > 1
-              ? `Bucket: ${label}`
-              : `Measurements: ${values.count}`
-          }
-          formatter={(value) =>
-            data.length > 1 ? [value, 'Count'] : [values.sum, 'Sum']
-          }
+          labelFormatter={(label) => (data.length > 1 ? `Bucket: ${label}` : `Measurements: ${values.count}`)}
+          formatter={(value) => (data.length > 1 ? [value, 'Count'] : [values.sum, 'Sum'])}
         />
 
         <Bar dataKey="value" maxBarSize={100} fill="#3182bd" />

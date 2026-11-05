@@ -11,9 +11,7 @@ interface TimestampState {
   getLatestTimestampByCommitOrFallback: (commit: string) => bigint;
   updateSelectedTimestamp: (timestamp: Map<string, bigint[]>) => void;
   setSelectedTimestamps: (newTimestamps: Timestamp[], commit?: string) => void;
-  setAllSelectedTimestamps: (
-    commitToSelectedTimestamps: Map<string, Timestamp[]>
-  ) => void;
+  setAllSelectedTimestamps: (commitToSelectedTimestamps: Map<string, Timestamp[]>) => void;
   resetSelectedTimestamps: () => void;
   resetState: () => void;
 }
@@ -37,11 +35,7 @@ export const useTimestampStore = create<TimestampState>((set, get) => ({
       }
     }
 
-    if (
-      !returnValue &&
-      get().timestamp.size > 0 &&
-      get().timestamp.values().next()
-    ) {
+    if (!returnValue && get().timestamp.size > 0 && get().timestamp.values().next()) {
       // this is the case when only dynamic is being visualized
 
       returnValue = get().timestamp.values().next().value![0];
@@ -55,24 +49,16 @@ export const useTimestampStore = create<TimestampState>((set, get) => ({
     eventEmitter.emit(NEW_SELECTED_TIMESTAMP_EVENT, get().timestamp);
   },
 
-  setSelectedTimestamps: (
-    newTimestamps: Timestamp[],
-    commit = CROSS_COMMIT_IDENTIFIER
-  ) => {
+  setSelectedTimestamps: (newTimestamps: Timestamp[], commit = CROSS_COMMIT_IDENTIFIER) => {
     set((state) => ({
-      commitToSelectedTimestamps: new Map(state.commitToSelectedTimestamps).set(
-        commit,
-        newTimestamps
-      ),
+      commitToSelectedTimestamps: new Map(state.commitToSelectedTimestamps).set(commit, newTimestamps),
     }));
   },
 
-  setAllSelectedTimestamps: (
-    commitToSelectedTimestamps: Map<string, Timestamp[]>
-  ) => set({ commitToSelectedTimestamps: commitToSelectedTimestamps }),
+  setAllSelectedTimestamps: (commitToSelectedTimestamps: Map<string, Timestamp[]>) =>
+    set({ commitToSelectedTimestamps: commitToSelectedTimestamps }),
 
   resetSelectedTimestamps: () => set({ commitToSelectedTimestamps: new Map() }),
 
-  resetState: () =>
-    set({ timestamp: new Map(), commitToSelectedTimestamps: new Map() }),
+  resetState: () => set({ timestamp: new Map(), commitToSelectedTimestamps: new Map() }),
 }));

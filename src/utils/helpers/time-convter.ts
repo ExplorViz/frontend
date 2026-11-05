@@ -10,7 +10,5 @@ export default function convertDate(date: string) {
   const year = date.slice(0, 4);
 
   // returns always a months ahead. Therefore, substract one month.
-  return new Date(
-    Date.UTC(Number(year), Number(month) - 1, Number(day))
-  ).valueOf();
+  return new Date(Date.UTC(Number(year), Number(month) - 1, Number(day))).valueOf();
 }

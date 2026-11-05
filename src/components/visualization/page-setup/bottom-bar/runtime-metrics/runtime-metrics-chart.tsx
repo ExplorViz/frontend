@@ -7,11 +7,8 @@ import { useModelStore } from 'explorviz-frontend/src/stores/repos/model-reposit
 import { useToastHandlerStore } from 'explorviz-frontend/src/stores/toast-handler';
 import { getMetricsServiceUrl } from 'explorviz-frontend/src/utils/landscape-http-request-util';
 import { isCity } from 'explorviz-frontend/src/utils/landscape-schemes/flat-landscape';
-import {
-  isMetricValues,
-  MetricValues,
-} from 'explorviz-frontend/src/utils/landscape-schemes/telemetry/metrics';
-import { pingByModelId } from 'explorviz-frontend/src/view-objects/3d/city/animated-ping-r3f';
+import { isMetricValues, MetricValues } from 'explorviz-frontend/src/utils/landscape-schemes/telemetry/metrics';
+import { pingByModelId } from 'explorviz-frontend/src/view-objects/3d/city/ping-animation';
 import pluralize from 'pluralize';
 import { use, useEffect, useState } from 'react';
 import { Dropdown, DropdownButton, Form } from 'react-bootstrap';
@@ -45,28 +42,19 @@ export default function RuntimeMetricsChart() {
   const setSelectedEntity = bottomBarContext.setSelectedMetricEntity;
 
   const isSum = metric?.pointKind === 'sum';
-  const isHistogram =
-    metric?.pointKind === 'histogram' || metric?.pointKind === 'exp_histogram';
+  const isHistogram = metric?.pointKind === 'histogram' || metric?.pointKind === 'exp_histogram';
 
   const cities = useModelStore((state) => state.cities);
   const buildings = useModelStore((state) => state.buildings);
-  const telemetryKeyToEntityId = useModelStore(
-    (state) => state.telemetryKeyToEntityId
-  );
+  const telemetryKeyToEntityId = useModelStore((state) => state.telemetryKeyToEntityId);
   const landscapeToken = useLandscapeTokenStore((state) => state.token);
   const accessToken = useAuthStore((state) => state.accessToken);
   const lookAtEntity = useCameraControlsStore((state) => state.lookAtEntity);
-  const showErrorToastMessage = useToastHandlerStore(
-    (state) => state.showErrorToastMessage
-  );
+  const showErrorToastMessage = useToastHandlerStore((state) => state.showErrorToastMessage);
 
-  const [metricValues, setMetricValues] = useState<
-    MetricValues | null | undefined
-  >(undefined);
+  const [metricValues, setMetricValues] = useState<MetricValues | null | undefined>(undefined);
   const [window, setWindow] = useState<MetricsWindow>('1h');
-  const [aggregation, setAggregation] = useState<MetricsAggregation>(
-    isSum || isHistogram ? 'sum' : 'avg'
-  );
+  const [aggregation, setAggregation] = useState<MetricsAggregation>(isSum || isHistogram ? 'sum' : 'avg');
   const [alwaysShowZero, setAlwaysShowZero] = useState<boolean>(true);
   const [isLogScale, setIsLogScale] = useState<boolean>(false);
 
@@ -85,10 +73,7 @@ export default function RuntimeMetricsChart() {
       .filter((e) => e !== undefined) ?? []
   ).sort((a, b) => (a.fqn ?? a.name).localeCompare(b.fqn ?? b.name));
 
-  const entitiesByServiceName = Map.groupBy(
-    entities,
-    (entity) => cities[entity.parentCityId].name
-  );
+  const entitiesByServiceName = Map.groupBy(entities, (entity) => cities[entity.parentCityId].name);
 
   useEffect(() => {
     const fetchMetricValues = async () => {
@@ -111,9 +96,7 @@ export default function RuntimeMetricsChart() {
         return;
       }
 
-      const requestUrl = new URL(
-        `${metricsServiceUrl}/v3/landscapes/${landscapeToken.value}/metric`
-      );
+      const requestUrl = new URL(`${metricsServiceUrl}/v3/landscapes/${landscapeToken.value}/metric`);
 
       const queryParams = new URLSearchParams();
       queryParams.set('name', metric.name);
@@ -147,9 +130,7 @@ export default function RuntimeMetricsChart() {
       }
 
       if (!response.ok) {
-        showErrorToastMessage(
-          `Received non-ok response status ${response.status}`
-        );
+        showErrorToastMessage(`Received non-ok response status ${response.status}`);
         setMetricValues(null);
         return;
       }
@@ -167,20 +148,10 @@ export default function RuntimeMetricsChart() {
     };
 
     fetchMetricValues();
-  }, [
-    metric,
-    selectedEntity,
-    window,
-    aggregation,
-    landscapeToken,
-    accessToken,
-    showErrorToastMessage,
-  ]);
+  }, [metric, selectedEntity, window, aggregation, landscapeToken, accessToken, showErrorToastMessage]);
 
   const handleEntitySelect = (selectedEntityId: string | null) => {
-    const entity =
-      entities.find((e) => e.id === selectedEntityId) ??
-      services.find((s) => s.id === selectedEntityId);
+    const entity = entities.find((e) => e.id === selectedEntityId) ?? services.find((s) => s.id === selectedEntityId);
     setSelectedEntity(entity ?? null);
 
     if (entity) {
@@ -192,9 +163,7 @@ export default function RuntimeMetricsChart() {
   if (!metric) {
     return (
       <div className="timeline-no-timestamps-outer">
-        <div className="timeline-no-timestamps-inner">
-          No metric is selected
-        </div>
+        <div className="timeline-no-timestamps-inner">No metric is selected</div>
       </div>
     );
   }
@@ -227,10 +196,7 @@ export default function RuntimeMetricsChart() {
         <span className="text-muted text-truncate">{metric.description}</span>
       </div>
 
-      <div
-        className="d-grid"
-        style={{ gridTemplateColumns: 'max-content 1fr' }}
-      >
+      <div className="d-grid" style={{ gridTemplateColumns: 'max-content 1fr' }}>
         <div
           className="d-grid align-self-center align-items-center row-gap-2 column-gap-2 pe-3"
           style={{
@@ -260,22 +226,14 @@ export default function RuntimeMetricsChart() {
             </>
           )}
 
-          <span className={isHistogram ? 'text-muted' : undefined}>
-            Window:
-          </span>
-          <DropdownButton
-            id="metric-window-dropdown"
-            title={window}
-            disabled={isHistogram}
-          >
+          <span className={isHistogram ? 'text-muted' : undefined}>Window:</span>
+          <DropdownButton id="metric-window-dropdown" title={window} disabled={isHistogram}>
             <Dropdown.Item onClick={() => setWindow('1h')}>1h</Dropdown.Item>
             <Dropdown.Item onClick={() => setWindow('4h')}>4h</Dropdown.Item>
             <Dropdown.Item onClick={() => setWindow('24h')}>24h</Dropdown.Item>
           </DropdownButton>
 
-          <span className={isSum || isHistogram ? 'text-muted' : undefined}>
-            Aggregation:
-          </span>
+          <span className={isSum || isHistogram ? 'text-muted' : undefined}>Aggregation:</span>
           <div className="d-flex align-items-center">
             <DropdownButton
               id="metric-window-dropdown"
@@ -315,8 +273,7 @@ export default function RuntimeMetricsChart() {
         </div>
         {metricValues && (
           <>
-            {(metricValues.pointKind === 'gauge' ||
-              metricValues.pointKind === 'sum') && (
+            {(metricValues.pointKind === 'gauge' || metricValues.pointKind === 'sum') && (
               <GaugeMetricChart
                 values={metricValues}
                 window={window}
@@ -326,19 +283,13 @@ export default function RuntimeMetricsChart() {
               />
             )}
             {metricValues.pointKind === 'histogram' && (
-              <HistogramMetricChart
-                values={metricValues}
-                unit={formattedUnit}
-                isLogScale={isLogScale}
-              />
+              <HistogramMetricChart values={metricValues} unit={formattedUnit} isLogScale={isLogScale} />
             )}
           </>
         )}
         {metricValues === null && (
           <div className="timeline-no-timestamps-outer mt-3">
-            <div className="timeline-no-timestamps-inner">
-              No data for metric available
-            </div>
+            <div className="timeline-no-timestamps-inner">No data for metric available</div>
           </div>
         )}
       </div>

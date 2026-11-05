@@ -8,22 +8,14 @@ interface SidebarArgs {
   readonly expandToRight?: boolean;
 }
 
-export default function SidebarResizer({
-  buttonName,
-  containerName,
-  sidebarName,
-  expandToRight,
-}: SidebarArgs) {
+export default function SidebarResizer({ buttonName, containerName, sidebarName, expandToRight }: SidebarArgs) {
   const setSidebarWidth = useCallback(
     (widthInPercent: number) => {
       const sidebar = document.getElementById(sidebarName);
 
       if (sidebar && widthInPercent > 20) {
         sidebar.style.maxWidth = `${widthInPercent}%`;
-        localStorage.setItem(
-          sidebarName + 'WithInPercent',
-          widthInPercent.toString()
-        );
+        localStorage.setItem(sidebarName + 'WithInPercent', widthInPercent.toString());
       }
     },
     [sidebarName]
@@ -39,8 +31,7 @@ export default function SidebarResizer({
           widthInPercent = ((targetX + buttonOffset) / window.innerWidth) * 100;
         } else {
           const buttonOffset = 30;
-          widthInPercent =
-            100 - ((targetX - buttonOffset) / window.innerWidth) * 100;
+          widthInPercent = 100 - ((targetX - buttonOffset) / window.innerWidth) * 100;
         }
 
         setSidebarWidth(widthInPercent);
@@ -104,9 +95,7 @@ export default function SidebarResizer({
       }
     }
 
-    const sidebarWidthInPercent = Number(
-      localStorage.getItem(sidebarName + 'WithInPercent')
-    );
+    const sidebarWidthInPercent = Number(localStorage.getItem(sidebarName + 'WithInPercent'));
 
     if (typeof sidebarWidthInPercent === 'number') {
       setSidebarWidth(sidebarWidthInPercent);

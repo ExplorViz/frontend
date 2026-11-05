@@ -1,14 +1,9 @@
 import AggregatedCommunication from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/aggregated-communication';
 import { Comm } from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/communication';
-import {
-  Building,
-  City,
-  District,
-} from 'explorviz-frontend/src/utils/landscape-schemes/flat-landscape';
+import { Building, City, District } from 'explorviz-frontend/src/utils/landscape-schemes/flat-landscape';
 import { create } from 'zustand';
 
-export type EntityType =
-  'city' | 'district' | 'building' | 'communication' | null;
+export type EntityType = 'city' | 'district' | 'building' | 'communication' | null;
 
 interface ModelRepositoryState {
   cities: Record<string, City>;
@@ -24,13 +19,9 @@ interface ModelRepositoryState {
   getDistrict: (id: string) => District | undefined;
   getBuilding: (id: string) => Building | undefined;
   getBuildingCommunication: (id: string) => Comm | undefined;
-  getAggregatedCommunication: (
-    id: string
-  ) => AggregatedCommunication | undefined;
+  getAggregatedCommunication: (id: string) => AggregatedCommunication | undefined;
   getCommunication: (id: string) => Comm | AggregatedCommunication | undefined;
-  getModel: (
-    id: string
-  ) => City | District | Building | AggregatedCommunication | undefined;
+  getModel: (id: string) => City | District | Building | AggregatedCommunication | undefined;
   getEntityType: (id: string) => EntityType;
 
   // Getter functions for all models
@@ -54,9 +45,7 @@ interface ModelRepositoryState {
   setDistricts: (districts: District[]) => void;
   setBuildings: (buildings: Building[]) => void;
   setBuildingCommunications: (communications: Comm[]) => void;
-  setAggregatedCommunications: (
-    communications: AggregatedCommunication[]
-  ) => void;
+  setAggregatedCommunications: (communications: AggregatedCommunication[]) => void;
 
   setAllModels: (data: {
     cities: City[];
@@ -111,31 +100,24 @@ export const useModelStore = create<ModelRepositoryState>((set, get) => ({
   getBuilding: (id) => get().buildings[id],
   getBuildingCommunication: (id) => get().buildingCommunications[id],
   getAggregatedCommunication: (id) => get().aggregatedCommunications[id],
-  getCommunication: (id) =>
-    get().buildingCommunications[id] || get().aggregatedCommunications[id],
+  getCommunication: (id) => get().buildingCommunications[id] || get().aggregatedCommunications[id],
 
   // Getter functions for all models
   getAllCities: () => Object.values(get().cities),
   getAllDistricts: () => Object.values(get().districts),
   getAllBuildings: () => Object.values(get().buildings),
-  getAllBuildingCommunications: () =>
-    Object.values(get().buildingCommunications),
-  getAllAggregatedCommunications: () =>
-    Object.values(get().aggregatedCommunications),
+  getAllBuildingCommunications: () => Object.values(get().buildingCommunications),
+  getAllAggregatedCommunications: () => Object.values(get().aggregatedCommunications),
 
   getModel: (id) =>
-    get().cities[id] ||
-    get().districts[id] ||
-    get().buildings[id] ||
-    get().aggregatedCommunications[id],
+    get().cities[id] || get().districts[id] || get().buildings[id] || get().aggregatedCommunications[id],
 
   getEntityType: (id) => {
     const state = get();
     if (state.cities[id]) return 'city';
     if (state.districts[id]) return 'district';
     if (state.buildings[id]) return 'building';
-    if (state.buildingCommunications[id] || state.aggregatedCommunications[id])
-      return 'communication';
+    if (state.buildingCommunications[id] || state.aggregatedCommunications[id]) return 'communication';
     return null;
   },
 
@@ -143,28 +125,19 @@ export const useModelStore = create<ModelRepositoryState>((set, get) => ({
   addCity: (id, city) =>
     set((state) => ({
       cities: { ...state.cities, [id]: city },
-      telemetryKeyToEntityId: new Map(state.telemetryKeyToEntityId).set(
-        city.telemetryKey,
-        city.id
-      ),
+      telemetryKeyToEntityId: new Map(state.telemetryKeyToEntityId).set(city.telemetryKey, city.id),
     })),
 
   addDistrict: (id, district) =>
     set((state) => ({
       districts: { ...state.districts, [id]: district },
-      telemetryKeyToEntityId: new Map(state.telemetryKeyToEntityId).set(
-        district.telemetryKey,
-        district.id
-      ),
+      telemetryKeyToEntityId: new Map(state.telemetryKeyToEntityId).set(district.telemetryKey, district.id),
     })),
 
   addBuilding: (id, building) =>
     set((state) => ({
       buildings: { ...state.buildings, [id]: building },
-      telemetryKeyToEntityId: new Map(state.telemetryKeyToEntityId).set(
-        building.telemetryKey,
-        building.id
-      ),
+      telemetryKeyToEntityId: new Map(state.telemetryKeyToEntityId).set(building.telemetryKey, building.id),
     })),
 
   addBuildingCommunication: (id, communication) =>
@@ -219,16 +192,12 @@ export const useModelStore = create<ModelRepositoryState>((set, get) => ({
 
   setBuildingCommunications: (communications) =>
     set(() => ({
-      buildingCommunications: Object.fromEntries(
-        communications.map((c) => [c.id, c])
-      ),
+      buildingCommunications: Object.fromEntries(communications.map((c) => [c.id, c])),
     })),
 
   setAggregatedCommunications: (communications) =>
     set(() => ({
-      aggregatedCommunications: Object.fromEntries(
-        communications.map((c) => [c.id, c])
-      ),
+      aggregatedCommunications: Object.fromEntries(communications.map((c) => [c.id, c])),
     })),
 
   setAllModels: ({ cities, districts, buildings, buildingCommunications }) =>
@@ -236,9 +205,7 @@ export const useModelStore = create<ModelRepositoryState>((set, get) => ({
       cities: Object.fromEntries(cities.map((city) => [city.id, city])),
       districts: Object.fromEntries(districts.map((d) => [d.id, d])),
       buildings: Object.fromEntries(buildings.map((b) => [b.id, b])),
-      buildingCommunications: Object.fromEntries(
-        buildingCommunications.map((c) => [c.id, c])
-      ),
+      buildingCommunications: Object.fromEntries(buildingCommunications.map((c) => [c.id, c])),
       telemetryKeyToEntityId: new Map([
         ...cities.map((c) => [c.telemetryKey, c.id] as const),
         ...districts.map((d) => [d.telemetryKey, d.id] as const),
@@ -252,11 +219,7 @@ export const useModelStore = create<ModelRepositoryState>((set, get) => ({
       const { [id]: _, ...cities } = state.cities;
       return {
         cities: cities,
-        telemetryKeyToEntityId: new Map(
-          [...state.telemetryKeyToEntityId].filter(
-            ([, entityId]) => entityId !== id
-          )
-        ),
+        telemetryKeyToEntityId: new Map([...state.telemetryKeyToEntityId].filter(([, entityId]) => entityId !== id)),
       };
     }),
 
@@ -265,11 +228,7 @@ export const useModelStore = create<ModelRepositoryState>((set, get) => ({
       const { [id]: _, ...districts } = state.districts;
       return {
         districts: districts,
-        telemetryKeyToEntityId: new Map(
-          [...state.telemetryKeyToEntityId].filter(
-            ([, entityId]) => entityId !== id
-          )
-        ),
+        telemetryKeyToEntityId: new Map([...state.telemetryKeyToEntityId].filter(([, entityId]) => entityId !== id)),
       };
     }),
 
@@ -278,25 +237,19 @@ export const useModelStore = create<ModelRepositoryState>((set, get) => ({
       const { [id]: _, ...buildings } = state.buildings;
       return {
         buildings: buildings,
-        telemetryKeyToEntityId: new Map(
-          [...state.telemetryKeyToEntityId].filter(
-            ([, entityId]) => entityId !== id
-          )
-        ),
+        telemetryKeyToEntityId: new Map([...state.telemetryKeyToEntityId].filter(([, entityId]) => entityId !== id)),
       };
     }),
 
   removeBuildingCommunication: (id) =>
     set((state) => {
-      const { [id]: _, ...buildingCommunications } =
-        state.buildingCommunications;
+      const { [id]: _, ...buildingCommunications } = state.buildingCommunications;
       return { buildingCommunications };
     }),
 
   removeAggregatedCommunication: (id) =>
     set((state) => {
-      const { [id]: _, ...aggregatedCommunications } =
-        state.aggregatedCommunications;
+      const { [id]: _, ...aggregatedCommunications } = state.aggregatedCommunications;
       return { aggregatedCommunications };
     }),
 
@@ -304,9 +257,7 @@ export const useModelStore = create<ModelRepositoryState>((set, get) => ({
   clearAllCities: () =>
     set((state) => {
       const newTelemetryKeyMap = new Map([...state.telemetryKeyToEntityId]);
-      Object.values(state.cities).forEach((c) =>
-        newTelemetryKeyMap.delete(c.telemetryKey)
-      );
+      Object.values(state.cities).forEach((c) => newTelemetryKeyMap.delete(c.telemetryKey));
       return {
         cities: {},
         telemetryKeyToEntityId: newTelemetryKeyMap,
@@ -315,23 +266,17 @@ export const useModelStore = create<ModelRepositoryState>((set, get) => ({
   clearAllDistricts: () =>
     set((state) => {
       const newTelemetryKeyMap = new Map([...state.telemetryKeyToEntityId]);
-      Object.values(state.districts).forEach((d) =>
-        newTelemetryKeyMap.delete(d.telemetryKey)
-      );
+      Object.values(state.districts).forEach((d) => newTelemetryKeyMap.delete(d.telemetryKey));
       return { districts: {}, telemetryKeyToEntityId: newTelemetryKeyMap };
     }),
   clearAllBuildings: () =>
     set((state) => {
       const newTelemetryKeyMap = new Map([...state.telemetryKeyToEntityId]);
-      Object.values(state.buildings).forEach((b) =>
-        newTelemetryKeyMap.delete(b.telemetryKey)
-      );
+      Object.values(state.buildings).forEach((b) => newTelemetryKeyMap.delete(b.telemetryKey));
       return { buildings: {}, telemetryKeyToEntityId: newTelemetryKeyMap };
     }),
-  clearAllBuildingCommunications: () =>
-    set(() => ({ buildingCommunications: {} })),
-  clearAllAggregatedCommunications: () =>
-    set(() => ({ aggregatedCommunications: {} })),
+  clearAllBuildingCommunications: () => set(() => ({ buildingCommunications: {} })),
+  clearAllAggregatedCommunications: () => set(() => ({ aggregatedCommunications: {} })),
 
   // Clear everything
   clearAll: () =>

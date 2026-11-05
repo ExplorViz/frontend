@@ -32,16 +32,10 @@ export class MethodGroup extends THREE.Group {
     for (let index = 0; index < functionSeparation.length; index++) {
       const element = functionSeparation[index];
       const functionHeight =
-        (parentGeo.parameters.height /
-          functionSeparation.reduce((sum, current) => sum + current, 0)) *
-        element;
+        (parentGeo.parameters.height / functionSeparation.reduce((sum, current) => sum + current, 0)) * element;
 
       // Compute geometry with width and height
-      const box = new THREE.BoxGeometry(
-        parentLayout.width / 8,
-        functionHeight,
-        parentLayout.depth / 8
-      );
+      const box = new THREE.BoxGeometry(parentLayout.width / 8, functionHeight, parentLayout.depth / 8);
 
       // Compute material and colors for method mesh
       const boxMaterial = new THREE.MeshBasicMaterial();
@@ -49,24 +43,14 @@ export class MethodGroup extends THREE.Group {
       const minColor = Math.min(rNumber, gNumber, bNumber);
       const heighColor = maxColor + minColor;
       rNumber = Math.abs(heighColor - rNumber) % 255;
-      gNumber =
-        heighColor % 2 == 0 ? Math.abs(heighColor - gNumber) % 255 : gNumber;
-      bNumber =
-        heighColor % 3 == 0 ? Math.abs(heighColor - bNumber) % 255 : bNumber;
-      boxMaterial.color.set(
-        new THREE.Color(rNumber / 255, gNumber / 255, bNumber / 255)
-      );
+      gNumber = heighColor % 2 == 0 ? Math.abs(heighColor - gNumber) % 255 : gNumber;
+      bNumber = heighColor % 3 == 0 ? Math.abs(heighColor - bNumber) % 255 : bNumber;
+      boxMaterial.color.set(new THREE.Color(rNumber / 255, gNumber / 255, bNumber / 255));
 
       // Create mesh and set its position
-      const methodHeightMesh = new MethodMesh(
-        box,
-        boxMaterial,
-        this.dataModel.methods[index]
-      );
+      const methodHeightMesh = new MethodMesh(box, boxMaterial, this.dataModel.methods[index]);
       methodHeightMesh.position.setX(methodHeightMesh.position.x + 0.85);
-      methodHeightMesh.position.setY(
-        -parentGeo.parameters.height / 2 + functionHeight / 2 + yPos
-      );
+      methodHeightMesh.position.setY(-parentGeo.parameters.height / 2 + functionHeight / 2 + yPos);
       yPos = yPos + functionHeight;
 
       // Add mesh that represents method

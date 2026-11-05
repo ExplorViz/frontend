@@ -11,10 +11,7 @@ interface CopilotErrorBoundaryState {
   hasError: boolean;
 }
 
-export class CopilotErrorBoundary extends Component<
-  CopilotErrorBoundaryProps,
-  CopilotErrorBoundaryState
-> {
+export class CopilotErrorBoundary extends Component<CopilotErrorBoundaryProps, CopilotErrorBoundaryState> {
   state: CopilotErrorBoundaryState = { hasError: false };
 
   static getDerivedStateFromError(): CopilotErrorBoundaryState {
@@ -22,11 +19,7 @@ export class CopilotErrorBoundary extends Component<
   }
 
   componentDidCatch(error: Error, errorInfo: ErrorInfo) {
-    console.error(
-      'CopilotKit crashed; chat features are disabled.',
-      error,
-      errorInfo
-    );
+    console.error('CopilotKit crashed; chat features are disabled.', error, errorInfo);
     this.props.onError?.(error);
   }
 

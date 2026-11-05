@@ -7,16 +7,10 @@ import { useSnapshotTokenStore } from 'explorviz-frontend/src/stores/snapshot-to
 import { useInitNavigation } from 'explorviz-frontend/src/stores/store-router';
 import { isLoginSkipped } from 'explorviz-frontend/src/utils/auth-config';
 import { useEffect, useState } from 'react';
-import {
-  createSearchParams,
-  Outlet,
-  useNavigate,
-  useSearchParams,
-} from 'react-router-dom';
+import { createSearchParams, Outlet, useNavigate, useSearchParams } from 'react-router-dom';
 
 export default function Application() {
-  const [checkedLandscapeToken, setCheckedLandscapeToken] =
-    useState<boolean>(false);
+  const [checkedLandscapeToken, setCheckedLandscapeToken] = useState<boolean>(false);
   const [searchParams, _] = useSearchParams();
 
   const user = useAuthStore((state) => state.user);
@@ -24,9 +18,7 @@ export default function Application() {
   const setSnapshotToken = useSnapshotTokenStore((state) => state.setToken);
   const landscapeToken = useLandscapeTokenStore((state) => state.token);
   const setLandscapeToken = useLandscapeTokenStore((state) => state.setToken);
-  const retrieveTokens = useLandscapeTokenStore(
-    (state) => state.retrieveTokens
-  );
+  const retrieveTokens = useLandscapeTokenStore((state) => state.retrieveTokens);
 
   const navigate = useNavigate();
 
@@ -78,18 +70,13 @@ export default function Application() {
           navigate('/landscapes');
         }
       } else {
-        if (
-          !searchParams.get('landscapeToken') ||
-          landscapeToken?.value === searchParams.get('landscapeToken')
-        ) {
+        if (!searchParams.get('landscapeToken') || landscapeToken?.value === searchParams.get('landscapeToken')) {
           setCheckedLandscapeToken(true);
           return;
         }
         try {
           const tokens = await retrieveTokens();
-          const selectedToken = tokens.find(
-            (token) => token.value === searchParams.get('landscapeToken')
-          );
+          const selectedToken = tokens.find((token) => token.value === searchParams.get('landscapeToken'));
 
           if (selectedToken) {
             setLandscapeToken(selectedToken);

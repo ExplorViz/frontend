@@ -22,20 +22,12 @@ interface LocalUserMarkerProps {
   markerAnchorRef: RefObject<MinimapMarkerAnchor>;
 }
 
-export default function LocalUserMarker({
-  minimapScene,
-  mainCameraControls,
-  markerAnchorRef,
-}: LocalUserMarkerProps) {
+export default function LocalUserMarker({ minimapScene, mainCameraControls, markerAnchorRef }: LocalUserMarkerProps) {
   const markerRef = useRef<THREE.Group>(null);
   const userTargetRef = useRef(new THREE.Vector3());
-  const zoom = useUserSettingsStore(
-    (state) => state.visualizationSettings.minimapZoom
-  );
+  const zoom = useUserSettingsStore((state) => state.visualizationSettings.minimapZoom);
 
-  const minimapMode = useUserSettingsStore(
-    (state) => state.visualizationSettings.minimapMode.value
-  );
+  const minimapMode = useUserSettingsStore((state) => state.visualizationSettings.minimapMode.value);
 
   useFrame((state) => {
     if (!markerRef.current || !mainCameraControls.current) return;
@@ -75,22 +67,12 @@ export default function LocalUserMarker({
       {minimapMode !== 'target' && (
         <mesh position={[0, 0, 0]} renderOrder={999}>
           <coneGeometry args={[0.3, 0.7, 32]} />
-          <meshBasicMaterial
-            color="red"
-            toneMapped={false}
-            depthTest={false}
-            depthWrite={false}
-          />
+          <meshBasicMaterial color="red" toneMapped={false} depthTest={false} depthWrite={false} />
         </mesh>
       )}
       <mesh position={[0, -0.25, 0]} renderOrder={999}>
         <circleGeometry args={[0.3, 32]} />
-        <meshBasicMaterial
-          color="red"
-          toneMapped={false}
-          depthTest={false}
-          depthWrite={false}
-        />
+        <meshBasicMaterial color="red" toneMapped={false} depthTest={false} depthWrite={false} />
       </mesh>
     </group>,
     minimapScene as any

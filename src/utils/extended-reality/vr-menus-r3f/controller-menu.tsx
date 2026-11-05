@@ -4,15 +4,11 @@ import { Button } from '@react-three/uikit-default';
 import { useXRInputSourceState, XRSpace } from '@react-three/xr';
 import { useState } from 'react';
 
-export default function ControllerMenu({
-  handedness = 'right' as 'left' | 'right',
-}) {
+export default function ControllerMenu({ handedness = 'right' as 'left' | 'right' }) {
   const [visible, setVisible] = useState(false);
   const controller = useXRInputSourceState('controller', handedness);
-  const space =
-    controller?.inputSource.gripSpace ?? controller?.inputSource.targetRaySpace;
-  const buttonAX =
-    controller?.gamepad[handedness === 'right' ? 'a-button' : 'x-button'];
+  const space = controller?.inputSource.gripSpace ?? controller?.inputSource.targetRaySpace;
+  const buttonAX = controller?.gamepad[handedness === 'right' ? 'a-button' : 'x-button'];
   // const thumbstick = controller?.gamepad['xr-standard-thumbstick'];
   // const numberOfItems = 2;
   // let [selectedItem, setSelectedItem] = useState(0);
@@ -36,17 +32,9 @@ export default function ControllerMenu({
 
   return (
     <XRSpace space={space}>
-      <group
-        position={[0, 0.15, -0.15]}
-        rotation={[(340 * Math.PI) / 180, 0, 0]}
-      >
+      <group position={[0, 0.15, -0.15]} rotation={[(340 * Math.PI) / 180, 0, 0]}>
         {visible && (
-          <Container
-            sizeX={0.2}
-            sizeY={0.2}
-            pixelSize={0.001}
-            backgroundColor="black"
-          >
+          <Container sizeX={0.2} sizeY={0.2} pixelSize={0.001} backgroundColor="black">
             <Container overflow="scroll">
               <Text fontSize={22} color="white">
                 Menu

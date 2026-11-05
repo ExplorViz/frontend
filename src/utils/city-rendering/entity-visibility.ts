@@ -6,11 +6,7 @@ import { useModelStore } from 'explorviz-frontend/src/stores/repos/model-reposit
 import { useVisibilityServiceStore } from 'explorviz-frontend/src/stores/visibility-service';
 import { useVisualizationStore } from 'explorviz-frontend/src/stores/visualization-store';
 import { isBuildingHiddenByClosedDistricts } from 'explorviz-frontend/src/utils/city-rendering/district-tree';
-import {
-  Building,
-  Language,
-  ModelType,
-} from 'explorviz-frontend/src/utils/landscape-schemes/flat-landscape';
+import { Building, Language, ModelType } from 'explorviz-frontend/src/utils/landscape-schemes/flat-landscape';
 import { TypeOfAnalysis } from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
 import { normalizeLanguage } from 'explorviz-frontend/src/utils/language-utils';
 import { useMemo } from 'react';
@@ -34,11 +30,8 @@ export type EvolutionAnimationSnapshot = {
 
 function computeIsDiffMode(): boolean {
   const selectedCommits = useCommitTreeStateStore.getState()._selectedCommits;
-  const currentSelectedRepositoryName =
-    useCommitTreeStateStore.getState()._currentSelectedRepositoryName;
-  return (
-    (selectedCommits.get(currentSelectedRepositoryName)?.length || 0) === 2
-  );
+  const currentSelectedRepositoryName = useCommitTreeStateStore.getState()._currentSelectedRepositoryName;
+  return (selectedCommits.get(currentSelectedRepositoryName)?.length || 0) === 2;
 }
 
 let cachedAnimationSnapshot: EvolutionAnimationSnapshot | null = null;
@@ -48,8 +41,7 @@ let cachedAnimationSnapshot: EvolutionAnimationSnapshot | null = null;
  * the snapshot object is reused as long as the underlying store is unchanged.
  */
 export function getEvolutionAnimationSnapshot(): EvolutionAnimationSnapshot {
-  const { totalCount, buildingVisualStates } =
-    useEvolutionAnimationStore.getState();
+  const { totalCount, buildingVisualStates } = useEvolutionAnimationStore.getState();
 
   if (
     cachedAnimationSnapshot === null ||
@@ -113,8 +105,7 @@ export function resolveBuildingForVisibility(
   building?: Building,
   animation: EvolutionAnimationSnapshot = getEvolutionAnimationSnapshot()
 ): Building | undefined {
-  const baseBuilding =
-    building ?? useModelStore.getState().getBuilding(buildingId);
+  const baseBuilding = building ?? useModelStore.getState().getBuilding(buildingId);
   if (!baseBuilding) {
     return undefined;
   }
@@ -133,20 +124,13 @@ function isBuildingVisibleExceptClosedDistrictCollapse(
   building?: Building,
   animation: EvolutionAnimationSnapshot = getEvolutionAnimationSnapshot()
 ): boolean {
-  const baseBuilding = resolveBuildingForVisibility(
-    buildingId,
-    context,
-    building,
-    animation
-  );
+  const baseBuilding = resolveBuildingForVisibility(buildingId, context, building, animation);
   if (!baseBuilding) {
     return false;
   }
 
   const visual = getBuildingVisualOverlay(buildingId, animation);
-  if (
-    visual !== undefined ? visual.isPlaceholder : baseBuilding.isPlaceholder
-  ) {
+  if (visual !== undefined ? visual.isPlaceholder : baseBuilding.isPlaceholder) {
     return false;
   }
 
@@ -161,8 +145,7 @@ function isBuildingVisibleExceptClosedDistrictCollapse(
     return false;
   }
 
-  const commitComparison =
-    visual?.commitComparison ?? baseBuilding.commitComparison;
+  const commitComparison = visual?.commitComparison ?? baseBuilding.commitComparison;
 
   if (context.isDiffMode || context.evoConfig.renderOnlyDifferences) {
     return commitComparison != null;
@@ -193,22 +176,13 @@ function districtSubtreeHasRelevantBuilding(
   }
 
   for (const buildingId of district.buildingIds) {
-    if (
-      isBuildingVisibleExceptClosedDistrictCollapse(
-        buildingId,
-        context,
-        undefined,
-        animation
-      )
-    ) {
+    if (isBuildingVisibleExceptClosedDistrictCollapse(buildingId, context, undefined, animation)) {
       return true;
     }
   }
 
   for (const childDistrictId of district.districtIds) {
-    if (
-      districtSubtreeHasRelevantBuilding(childDistrictId, context, animation)
-    ) {
+    if (districtSubtreeHasRelevantBuilding(childDistrictId, context, animation)) {
       return true;
     }
   }
@@ -221,10 +195,7 @@ export function isDistrictVisible(
   context: EntityVisibilityContext,
   animation: EvolutionAnimationSnapshot = getEvolutionAnimationSnapshot()
 ): boolean {
-  if (
-    context.hiddenDistrictIds.has(districtId) ||
-    context.removedDistrictIds.has(districtId)
-  ) {
+  if (context.hiddenDistrictIds.has(districtId) || context.removedDistrictIds.has(districtId)) {
     return false;
   }
 
@@ -260,27 +231,17 @@ export function isBuildingVisible(
   building?: Building,
   animation: EvolutionAnimationSnapshot = getEvolutionAnimationSnapshot()
 ): boolean {
-  const baseBuilding =
-    building ?? useModelStore.getState().getBuilding(buildingId);
+  const baseBuilding = building ?? useModelStore.getState().getBuilding(buildingId);
   if (!baseBuilding) {
     return false;
   }
 
-  if (
-    isBuildingHiddenByClosedDistricts(
-      buildingId,
-      context.closedDistrictIds,
-      baseBuilding
-    )
-  ) {
+  if (isBuildingHiddenByClosedDistricts(buildingId, context.closedDistrictIds, baseBuilding)) {
     return false;
   }
 
   const visual = getBuildingVisualOverlay(buildingId, animation);
-  const isPlaceholder =
-    visual !== undefined
-      ? visual.isPlaceholder
-      : baseBuilding.isPlaceholder === true;
+  const isPlaceholder = visual !== undefined ? visual.isPlaceholder : baseBuilding.isPlaceholder === true;
   if (isPlaceholder) {
     return false;
   }
@@ -296,8 +257,7 @@ export function isBuildingVisible(
     return false;
   }
 
-  const commitComparison =
-    visual?.commitComparison ?? baseBuilding.commitComparison;
+  const commitComparison = visual?.commitComparison ?? baseBuilding.commitComparison;
 
   if (context.isDiffMode || context.evoConfig.renderOnlyDifferences) {
     return commitComparison != null;
@@ -392,19 +352,12 @@ export function useEntityVisibilityContext(): EntityVisibilityContext {
     }))
   );
 
-  const evoConfig = useVisibilityServiceStore(
-    (state) => state._evolutionModeRenderingConfiguration
-  );
+  const evoConfig = useVisibilityServiceStore((state) => state._evolutionModeRenderingConfiguration);
 
-  const selectedCommits = useCommitTreeStateStore(
-    (state) => state._selectedCommits
-  );
-  const currentSelectedRepositoryName = useCommitTreeStateStore(
-    (state) => state._currentSelectedRepositoryName
-  );
+  const selectedCommits = useCommitTreeStateStore((state) => state._selectedCommits);
+  const currentSelectedRepositoryName = useCommitTreeStateStore((state) => state._currentSelectedRepositoryName);
 
-  const isDiffMode =
-    (selectedCommits.get(currentSelectedRepositoryName)?.length || 0) === 2;
+  const isDiffMode = (selectedCommits.get(currentSelectedRepositoryName)?.length || 0) === 2;
 
   return useMemo(
     () =>

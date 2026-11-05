@@ -1,4 +1,4 @@
-import { pingPosition } from 'explorviz-frontend/src/view-objects/3d/city/animated-ping-r3f';
+import { pingPosition } from 'explorviz-frontend/src/view-objects/3d/city/ping-animation';
 import { RPC } from 'playroomkit';
 import { useEffect } from 'react';
 import * as THREE from 'three';

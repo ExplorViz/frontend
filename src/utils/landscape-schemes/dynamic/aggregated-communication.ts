@@ -1,8 +1,4 @@
-import {
-  Building,
-  City,
-  District,
-} from 'explorviz-frontend/src/utils/landscape-schemes/flat-landscape';
+import { Building, City, District } from 'explorviz-frontend/src/utils/landscape-schemes/flat-landscape';
 import isObject from 'explorviz-frontend/src/utils/object-helpers';
 import { Comm } from './communication';
 
@@ -73,10 +69,6 @@ export default class AggregatedCommunication {
   }
 }
 
-export function isAggregatedCommunication(
-  x: any
-): x is AggregatedCommunication {
-  return (
-    isObject(x) && Object.prototype.hasOwnProperty.call(x, 'baseCommunications')
-  );
+export function isAggregatedCommunication(x: any): x is AggregatedCommunication {
+  return isObject(x) && Object.prototype.hasOwnProperty.call(x, 'baseCommunications');
 }

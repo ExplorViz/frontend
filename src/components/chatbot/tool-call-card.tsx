@@ -1,7 +1,7 @@
 import { InfoIcon, SearchIcon, ToolsIcon } from '@primer/octicons-react';
 import { usePopupHandlerStore } from 'explorviz-frontend/src/stores/popup-handler';
 import { useModelStore } from 'explorviz-frontend/src/stores/repos/model-repository';
-import { pingByModelId } from 'explorviz-frontend/src/view-objects/3d/city/animated-ping-r3f';
+import { pingByModelId } from 'explorviz-frontend/src/view-objects/3d/city/ping-animation';
 import { useEffect, useState } from 'react';
 import { Button } from 'react-bootstrap';
 
@@ -60,15 +60,9 @@ export function ToolCallCard({
   onClick,
 }: ToolCallCardProps) {
   const disabled = !component?.id && !onClick;
-  const city = component?.id
-    ? useModelStore.getState().getCity(component?.id)
-    : undefined;
-  const district = component?.id
-    ? useModelStore.getState().getDistrict(component?.id)
-    : undefined;
-  const building = component?.id
-    ? useModelStore.getState().getBuilding(component?.id)
-    : undefined;
+  const city = component?.id ? useModelStore.getState().getCity(component?.id) : undefined;
+  const district = component?.id ? useModelStore.getState().getDistrict(component?.id) : undefined;
+  const building = component?.id ? useModelStore.getState().getBuilding(component?.id) : undefined;
   const displayComponent =
     component?.name ||
     (city?.name && `city ${city.name}`) ||
@@ -83,20 +77,10 @@ export function ToolCallCard({
         variant={errorMessage ? 'danger' : 'primary'}
         disabled={disabled}
         onClick={
-          onClick ||
-          (() =>
-            showPopup
-              ? addPopup({ entityId: component!.id! })
-              : pingByModelId(component?.id!))
+          onClick || (() => (showPopup ? addPopup({ entityId: component!.id! }) : pingByModelId(component?.id!)))
         }
       >
-        {disabled ? (
-          <ToolsIcon size={14} />
-        ) : showPopup ? (
-          <InfoIcon size={14} />
-        ) : (
-          <SearchIcon size={14} />
-        )}
+        {disabled ? <ToolsIcon size={14} /> : showPopup ? <InfoIcon size={14} /> : <SearchIcon size={14} />}
       </Button>
       {message}
       {displayComponent && ` ${displayComponent}`}

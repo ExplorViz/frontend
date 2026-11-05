@@ -3,12 +3,8 @@ import { useChangelogStore } from 'explorviz-frontend/src/stores/changelog';
 import { useLandscapeRestructureStore } from 'explorviz-frontend/src/stores/landscape-restructure';
 
 export default function UndoRestructure() {
-  const canUndo = useLandscapeRestructureStore(
-    (state) => state.restructureMode
-  );
-  const undoBundledEntries = useLandscapeRestructureStore(
-    (state) => state.undoBundledEntries
-  );
+  const canUndo = useLandscapeRestructureStore((state) => state.restructureMode);
+  const undoBundledEntries = useLandscapeRestructureStore((state) => state.undoBundledEntries);
   const undoEntry = useLandscapeRestructureStore((state) => state.undoEntry);
   const changeLogEntries = useChangelogStore((state) => state.changeLogEntries);
   const isCreateBundle = useChangelogStore((state) => state.isCreateBundle);

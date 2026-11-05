@@ -25,8 +25,7 @@
   box-sizing: border-box;
   width: calc(var(--button-container-size) * 0.5);
   height: calc(var(--button-container-size) * 0.5);
-  border-width: calc(var(--button-container-size) * 0.25) 0px
-    calc(var(--button-container-size) * 0.25)
+  border-width: calc(var(--button-container-size) * 0.25) 0px calc(var(--button-container-size) * 0.25)
     calc(var(--button-container-size) * 0.5);
   border-color: transparent transparent transparent var(--bs-light, #f8f9fa);
 }

@@ -17,12 +17,7 @@ class GlobalBundlingService {
     return this.instance;
   }
 
-  addEdge(
-    edgeId: string,
-    startPoint: THREE.Vector3,
-    endPoint: THREE.Vector3,
-    _options?: any
-  ): void {
+  addEdge(edgeId: string, startPoint: THREE.Vector3, endPoint: THREE.Vector3, _options?: any): void {
     if (this.registeredEdges.has(edgeId)) return;
 
     this.registeredEdges.add(edgeId);

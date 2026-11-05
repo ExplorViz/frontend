@@ -9,9 +9,7 @@ import * as THREE from 'three';
 const BACKGROUND_SPHERE_PADDING = 0.75;
 
 /** Matches the background sphere in immersive-sphere.tsx. */
-export function getImmersiveBackgroundSphereRadius(
-  userSphereRadius: number
-): number {
+export function getImmersiveBackgroundSphereRadius(userSphereRadius: number): number {
   return userSphereRadius + BACKGROUND_SPHERE_PADDING;
 }
 
@@ -62,16 +60,12 @@ export function getImmersiveTargetWorldPosition(
 ): THREE.Vector3 | null {
   try {
     const { centerLocal, scale } = readInstanceTransform(mesh, instanceId);
-    const roofLocal = centerLocal
-      .clone()
-      .add(new THREE.Vector3(0, scale.y / 2, 0));
+    const roofLocal = centerLocal.clone().add(new THREE.Vector3(0, scale.y / 2, 0));
 
     const target = roofLocal.clone();
     mesh.localToWorld(target);
 
-    const lift =
-      getImmersiveBackgroundSphereRadius(userSphereRadius) +
-      SPHERE_CLEARANCE_ABOVE_ROOF;
+    const lift = getImmersiveBackgroundSphereRadius(userSphereRadius) + SPHERE_CLEARANCE_ABOVE_ROOF;
     target.addScaledVector(getMeshUp(mesh), lift);
 
     return target;
@@ -109,12 +103,7 @@ export function getImmersiveGrownBuildingHeight(
 /**
  * World-space feet position under the immersive camera (roof target).
  */
-export function getImmersiveFeetWorldPosition(
-  mesh: InstancedMesh2,
-  cameraWorld: THREE.Vector3
-): THREE.Vector3 {
+export function getImmersiveFeetWorldPosition(mesh: InstancedMesh2, cameraWorld: THREE.Vector3): THREE.Vector3 {
   mesh.updateWorldMatrix(true, false);
-  return cameraWorld
-    .clone()
-    .addScaledVector(getMeshUp(mesh), -IMMERSIVE_EYE_HEIGHT);
+  return cameraWorld.clone().addScaledVector(getMeshUp(mesh), -IMMERSIVE_EYE_HEIGHT);
 }

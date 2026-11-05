@@ -1,9 +1,6 @@
 import { useAuthStore } from 'explorviz-frontend/src/stores/auth';
 import { getTraceServiceUrl } from 'explorviz-frontend/src/utils/landscape-http-request-util';
-import {
-  isSpan,
-  Span,
-} from 'explorviz-frontend/src/utils/landscape-schemes/telemetry/traces';
+import { isSpan, Span } from 'explorviz-frontend/src/utils/landscape-schemes/telemetry/traces';
 import { useCallback } from 'react';
 
 export interface SpanSearchParams {
@@ -94,9 +91,7 @@ export default function useSpanFetch() {
         throw new Error('Trace service URL not configured');
       }
 
-      const requestUrl = new URL(
-        `${traceServiceUrl}/v3/landscapes/${params.landscapeTokenId}/spans`
-      );
+      const requestUrl = new URL(`${traceServiceUrl}/v3/landscapes/${params.landscapeTokenId}/spans`);
 
       const queryParams = new URLSearchParams();
       for (const [key, value] of Object.entries(params)) {

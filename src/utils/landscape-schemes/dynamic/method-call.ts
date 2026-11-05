@@ -1,11 +1,5 @@
-import {
-  Building,
-  City,
-} from 'explorviz-frontend/src/utils/landscape-schemes/flat-landscape';
-import {
-  Application,
-  Class,
-} from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
+import { Building, City } from 'explorviz-frontend/src/utils/landscape-schemes/flat-landscape';
+import { Application, Class } from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
 
 export default class MethodCall {
   id: string = '';

@@ -23,9 +23,7 @@ describe('model repository', () => {
       expect(store().getModel(model.id)).toEqual(model);
       expect(store().getEntityType(model.id)).toBe(type);
       expect(store().getCityForModel(model.id)).toEqual(city);
-      expect(store().telemetryKeyToEntityId.get(model.telemetryKey)).toBe(
-        model.id
-      );
+      expect(store().telemetryKeyToEntityId.get(model.telemetryKey)).toBe(model.id);
     }
     expect(store().getCommunication('call')).toEqual(communication);
     expect(store().getEntityType('call')).toBe('communication');
@@ -38,24 +36,17 @@ describe('model repository', () => {
     ['City', city],
     ['District', district],
     ['Building', building],
-  ] as const)(
-    'adds, renames where supported, and removes a %s with its telemetry lookup',
-    (kind, model) => {
-      // Keep the three public APIs explicit so their parameter types stay checked.
-      if (kind === 'City') store().addCity(model.id, city);
-      if (kind === 'District') store().addDistrict(model.id, district);
-      if (kind === 'Building') store().addBuilding(model.id, building);
-      expect(store().getModel(model.id)).toEqual(model);
-      expect(store().telemetryKeyToEntityId.get(model.telemetryKey)).toBe(
-        model.id
-      );
-      store()[`remove${kind}`](model.id);
-      expect(store().getModel(model.id)).toBeUndefined();
-      expect(store().telemetryKeyToEntityId.has(model.telemetryKey)).toBe(
-        false
-      );
-    }
-  );
+  ] as const)('adds, renames where supported, and removes a %s with its telemetry lookup', (kind, model) => {
+    // Keep the three public APIs explicit so their parameter types stay checked.
+    if (kind === 'City') store().addCity(model.id, city);
+    if (kind === 'District') store().addDistrict(model.id, district);
+    if (kind === 'Building') store().addBuilding(model.id, building);
+    expect(store().getModel(model.id)).toEqual(model);
+    expect(store().telemetryKeyToEntityId.get(model.telemetryKey)).toBe(model.id);
+    store()[`remove${kind}`](model.id);
+    expect(store().getModel(model.id)).toBeUndefined();
+    expect(store().telemetryKeyToEntityId.has(model.telemetryKey)).toBe(false);
+  });
 
   it('renames cities immutably and ignores missing IDs', () => {
     populate();
@@ -91,9 +82,7 @@ describe('model repository', () => {
     expect(store().getBuilding(building.id)).toEqual(building);
     store().clearAllCities();
     expect(store().getAllCities()).toEqual([]);
-    expect(store().telemetryKeyToEntityId.get(building.telemetryKey)).toBe(
-      building.id
-    );
+    expect(store().telemetryKeyToEntityId.get(building.telemetryKey)).toBe(building.id);
     store().clearAllDistricts();
     store().clearAllBuildings();
     expect(store().telemetryKeyToEntityId.size).toBe(0);
@@ -101,9 +90,7 @@ describe('model repository', () => {
 
   it('adds, replaces, removes and clears communications', () => {
     store().addBuildingCommunication(communication.id, communication);
-    expect(store().getBuildingCommunication(communication.id)).toEqual(
-      communication
-    );
+    expect(store().getBuildingCommunication(communication.id)).toEqual(communication);
     store().removeBuildingCommunication(communication.id);
     expect(store().getCommunication(communication.id)).toBeUndefined();
     store().setBuildingCommunications([communication]);

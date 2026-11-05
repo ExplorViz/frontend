@@ -23,35 +23,19 @@ interface FoundationPopupProps {
 export default function FoundationPopup({ popupData }: FoundationPopupProps) {
   const city = useLiveCity(popupData.entityId) ?? (popupData.entity as City);
   const uuid = useMemo(() => generateUuidv4(), []);
-  const selectedCommits = useCommitTreeStateStore(
-    (state) => state._selectedCommits
-  );
-  const currentSelectedRepositoryName = useCommitTreeStateStore(
-    (state) => state._currentSelectedRepositoryName
-  );
+  const selectedCommits = useCommitTreeStateStore((state) => state._selectedCommits);
+  const currentSelectedRepositoryName = useCommitTreeStateStore((state) => state._currentSelectedRepositoryName);
   const remoteUrl = useEvolutionDataRepositoryStore(
-    (state) =>
-      state._repoNameCommitTreeMap.get(currentSelectedRepositoryName)?.remoteUrl
+    (state) => state._repoNameCommitTreeMap.get(currentSelectedRepositoryName)?.remoteUrl
   );
   const sourceReferenceCommitHash = useMemo(
-    () =>
-      getSourceReferenceCommitHash(
-        selectedCommits,
-        currentSelectedRepositoryName
-      ),
+    () => getSourceReferenceCommitHash(selectedCommits, currentSelectedRepositoryName),
     [selectedCommits, currentSelectedRepositoryName]
   );
-  const isStatic =
-    city.originOfData === TypeOfAnalysis.Static ||
-    city.originOfData === TypeOfAnalysis.StaticAndRuntime;
-  const repositoryTreeUrl = buildRepositoryTreeUrl(
-    remoteUrl,
-    sourceReferenceCommitHash
-  );
+  const isStatic = city.originOfData === TypeOfAnalysis.Static || city.originOfData === TypeOfAnalysis.StaticAndRuntime;
+  const repositoryTreeUrl = buildRepositoryTreeUrl(remoteUrl, sourceReferenceCommitHash);
   const showSourceLink = isStatic && !!city.id;
-  const sourceLinkTooltip = repositoryTreeUrl
-    ? 'Open repository'
-    : 'Repository unavailable';
+  const sourceLinkTooltip = repositoryTreeUrl ? 'Open repository' : 'Repository unavailable';
   const visibleEntityCounts = useVisibleEntityCounts({
     directDistrictIds: city.districtIds,
     containedDistrictIds: city.allContainedDistrictIds,
@@ -62,12 +46,8 @@ export default function FoundationPopup({ popupData }: FoundationPopupProps) {
     (state) => state.visualizationSettings.buildingLayoutAlgorithm.value
   );
   const showDistrictCounts = buildingLayoutAlgorithm === 'None';
-  const directDistrictCount = showDistrictCounts
-    ? visibleEntityCounts.directDistrictCount
-    : 0;
-  const containedDistrictCount = showDistrictCounts
-    ? visibleEntityCounts.containedDistrictCount
-    : 0;
+  const directDistrictCount = showDistrictCounts ? visibleEntityCounts.directDistrictCount : 0;
+  const containedDistrictCount = showDistrictCounts ? visibleEntityCounts.containedDistrictCount : 0;
 
   return (
     <>
@@ -75,11 +55,7 @@ export default function FoundationPopup({ popupData }: FoundationPopupProps) {
         <div className="d-flex align-items-center justify-content-center gap-2">
           <div className="text-center text-break fw-bold pl-1">{city.name}</div>
           {showSourceLink && (
-            <LinkButton
-              url={repositoryTreeUrl}
-              disabled={!repositoryTreeUrl}
-              tooltip={sourceLinkTooltip}
-            />
+            <LinkButton url={repositoryTreeUrl} disabled={!repositoryTreeUrl} tooltip={sourceLinkTooltip} />
           )}
         </div>
       </h3>
@@ -101,43 +77,31 @@ export default function FoundationPopup({ popupData }: FoundationPopupProps) {
                 {city.originOfData && (
                   <tr>
                     <td className="fw-bold">Origin</td>
-                    <td className="text-right text-break pl-1">
-                      {city.originOfData}
-                    </td>
+                    <td className="text-right text-break pl-1">{city.originOfData}</td>
                   </tr>
                 )}
 
                 <tr>
                   <td className="fw-bold">Direct Districts</td>
-                  <td className="text-right text-break pl-1">
-                    {directDistrictCount}
-                  </td>
+                  <td className="text-right text-break pl-1">{directDistrictCount}</td>
                 </tr>
                 <tr>
                   <td className="fw-bold">Contained Districts</td>
-                  <td className="text-right text-break pl-1">
-                    {containedDistrictCount}
-                  </td>
+                  <td className="text-right text-break pl-1">{containedDistrictCount}</td>
                 </tr>
                 <tr>
                   <td className="fw-bold">Direct Buildings</td>
-                  <td className="text-right text-break pl-1">
-                    {visibleEntityCounts.directBuildingCount}
-                  </td>
+                  <td className="text-right text-break pl-1">{visibleEntityCounts.directBuildingCount}</td>
                 </tr>
                 <tr>
                   <td className="fw-bold">Contained Buildings</td>
-                  <td className="text-right text-break pl-1">
-                    {visibleEntityCounts.containedBuildingCount}
-                  </td>
+                  <td className="text-right text-break pl-1">{visibleEntityCounts.containedBuildingCount}</td>
                 </tr>
               </tbody>
             </Table>
           </Tab>
           <Tab eventKey="metrics" title="Metrics">
-            <AggregatedBuildingMetricsTable
-              buildingIds={city.allContainedBuildingIds}
-            />
+            <AggregatedBuildingMetricsTable buildingIds={city.allContainedBuildingIds} />
           </Tab>
           <Tab eventKey="files" title="Files">
             <FilesTab buildingIds={city.allContainedBuildingIds} />

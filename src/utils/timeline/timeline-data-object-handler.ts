@@ -28,17 +28,11 @@ const getAutoEvolutionRenderingConfiguration = (
   );
   const hasSelectedCommit = totalSelectedCommitCount > 0;
 
-  const hasSelectedTimestamp = Array.from(selectedTimestamps.values()).some(
-    (timestamps) => timestamps.length > 0
-  );
+  const hasSelectedTimestamp = Array.from(selectedTimestamps.values()).some((timestamps) => timestamps.length > 0);
 
-  const hasTwoCommitsInAnyRepository = Array.from(
-    selectedCommits.values()
-  ).some((commits) => commits.length >= 2);
+  const hasTwoCommitsInAnyRepository = Array.from(selectedCommits.values()).some((commits) => commits.length >= 2);
 
-  const hasAtMostOneCommitPerRepository = Array.from(
-    selectedCommits.values()
-  ).every((commits) => commits.length <= 1);
+  const hasAtMostOneCommitPerRepository = Array.from(selectedCommits.values()).every((commits) => commits.length <= 1);
 
   if (hasSelectedTimestamp && !hasSelectedCommit) {
     return {
@@ -64,11 +58,7 @@ const getAutoEvolutionRenderingConfiguration = (
     };
   }
 
-  if (
-    !hasSelectedTimestamp &&
-    hasSelectedCommit &&
-    hasAtMostOneCommitPerRepository
-  ) {
+  if (!hasSelectedTimestamp && hasSelectedCommit && hasAtMostOneCommitPerRepository) {
     return {
       renderDynamic: false,
       renderStatic: true,
@@ -95,13 +85,8 @@ export default class TimelineDataObjectHandler {
 
   // @action
 
-  timelineClicked = async (
-    commitToSelectedTimestampMap: Map<string, Timestamp[]>
-  ) => {
-    for (const [
-      commitId,
-      selectedTimestamps,
-    ] of commitToSelectedTimestampMap.entries()) {
+  timelineClicked = async (commitToSelectedTimestampMap: Map<string, Timestamp[]>) => {
+    for (const [commitId, selectedTimestamps] of commitToSelectedTimestampMap.entries()) {
       const timelineData = this.timelineDataObject.get(commitId);
 
       if (!timelineData) {
@@ -110,10 +95,7 @@ export default class TimelineDataObjectHandler {
 
       const isSameSelection =
         selectedTimestamps.length === timelineData.selectedTimestamps.length &&
-        selectedTimestamps.every(
-          (ts, i) =>
-            ts.fromUnixNano === timelineData.selectedTimestamps[i].fromUnixNano
-        );
+        selectedTimestamps.every((ts, i) => ts.fromUnixNano === timelineData.selectedTimestamps[i].fromUnixNano);
 
       if (isSameSelection) {
         // No update for this timeline
@@ -127,56 +109,36 @@ export default class TimelineDataObjectHandler {
 
     if (
       useRenderingServiceStore.getState()._analysisMode === 'evolution' ||
-      useRenderingServiceStore.getState()._analysisMode ===
-        'evolution comparison'
+      useRenderingServiceStore.getState()._analysisMode === 'evolution comparison'
     ) {
       useRenderingServiceStore.getState()._userInitiatedStaticDynamicCombination = true;
     }
 
-    const selectedCommits = useCommitTreeStateStore
-      .getState()
-      .getSelectedCommits();
-    const previousConfig = useVisibilityServiceStore
-      .getState()
-      .getCloneOfEvolutionModeRenderingConfiguration();
-    const autoConfig = getAutoEvolutionRenderingConfiguration(
-      selectedCommits,
-      commitToSelectedTimestampMap
-    );
+    const selectedCommits = useCommitTreeStateStore.getState().getSelectedCommits();
+    const previousConfig = useVisibilityServiceStore.getState().getCloneOfEvolutionModeRenderingConfiguration();
+    const autoConfig = getAutoEvolutionRenderingConfiguration(selectedCommits, commitToSelectedTimestampMap);
     const mergedConfig = {
       ...autoConfig,
       buildingComparisonVisibility: previousConfig.buildingComparisonVisibility,
     };
-    useVisibilityServiceStore
-      .getState()
-      .applyEvolutionModeRenderingConfiguration(mergedConfig);
-    useRenderingServiceStore
-      .getState()
-      .setAnalysisModeFromEvolutionRenderingConfig(mergedConfig);
+    useVisibilityServiceStore.getState().applyEvolutionModeRenderingConfiguration(mergedConfig);
+    useRenderingServiceStore.getState().setAnalysisModeFromEvolutionRenderingConfig(mergedConfig);
 
-    useRenderingServiceStore
-      .getState()
-      .triggerRenderingForGivenTimestamps(commitToSelectedTimestampMap);
+    useRenderingServiceStore.getState().triggerRenderingForGivenTimestamps(commitToSelectedTimestampMap);
   };
 
   // #endregion
 
   // #region Timeline Setter
 
-  updateHighlightedMarkerColorForSelectedCommits(
-    isVisualizationPaused: boolean
-  ) {
+  updateHighlightedMarkerColorForSelectedCommits(isVisualizationPaused: boolean) {
     this.timelineDataObject.forEach((dataForCommit) => {
-      dataForCommit.highlightedMarkerColor = isVisualizationPaused
-        ? PAUSED_COLOR
-        : UNPAUSED_COLOR;
+      dataForCommit.highlightedMarkerColor = isVisualizationPaused ? PAUSED_COLOR : UNPAUSED_COLOR;
     });
   }
 
   updateTimestampsForCommit(timestamps: Timestamp[], commitId: string) {
-    const timelineDataForCommit =
-      this.timelineDataObject.get(commitId) ??
-      this.createEmptyTimelineDataForCommitObj();
+    const timelineDataForCommit = this.timelineDataObject.get(commitId) ?? this.createEmptyTimelineDataForCommitObj();
 
     timelineDataForCommit.timestamps = timestamps;
     this.setTimelineDataForCommit(timelineDataForCommit, commitId);
@@ -189,10 +151,7 @@ export default class TimelineDataObjectHandler {
     }
   }
 
-  updateHighlightedMarkerColorForCommit(
-    highlightedMarkerColor: 'blue' | 'red',
-    commitId: string
-  ) {
+  updateHighlightedMarkerColorForCommit(highlightedMarkerColor: 'blue' | 'red', commitId: string) {
     const timelineDataForCommit = this.timelineDataObject.get(commitId);
     if (timelineDataForCommit) {
       timelineDataForCommit.highlightedMarkerColor = highlightedMarkerColor;
@@ -223,10 +182,7 @@ export default class TimelineDataObjectHandler {
     };
   }
 
-  private setTimelineDataForCommit(
-    timelineDataForCommit: TimelineDataForCommit,
-    commitId: string
-  ) {
+  private setTimelineDataForCommit(timelineDataForCommit: TimelineDataForCommit, commitId: string) {
     this.timelineDataObject.set(commitId, timelineDataForCommit);
   }
 

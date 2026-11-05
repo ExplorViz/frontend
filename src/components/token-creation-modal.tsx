@@ -19,13 +19,8 @@ const emptyFormState = (): LandscapeTokenCreateParams => ({
   secret: '',
 });
 
-export default function TokenCreationModal({
-  show,
-  handleClose,
-  createToken,
-}: TokenCreationModalProps) {
-  const [formState, setFormState] =
-    useState<LandscapeTokenCreateParams>(emptyFormState);
+export default function TokenCreationModal({ show, handleClose, createToken }: TokenCreationModalProps) {
+  const [formState, setFormState] = useState<LandscapeTokenCreateParams>(emptyFormState);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [prevShow, setPrevShow] = useState(show);
 
@@ -73,9 +68,7 @@ export default function TokenCreationModal({
               type="text"
               autoFocus
               value={formState.alias}
-              onChange={(e) =>
-                setFormState((prev) => ({ ...prev, alias: e.target.value }))
-              }
+              onChange={(e) => setFormState((prev) => ({ ...prev, alias: e.target.value }))}
             />
           </Form.Group>
           <Form.Group controlId="tokenValue" className="mb-3">
@@ -84,13 +77,9 @@ export default function TokenCreationModal({
               type="text"
               placeholder="Leave empty to generate automatically"
               value={formState.value ?? ''}
-              onChange={(e) =>
-                setFormState((prev) => ({ ...prev, value: e.target.value }))
-              }
+              onChange={(e) => setFormState((prev) => ({ ...prev, value: e.target.value }))}
             />
-            <Form.Text className="text-muted">
-              Specify a custom token value or leave empty to generate one.
-            </Form.Text>
+            <Form.Text className="text-muted">Specify a custom token value or leave empty to generate one.</Form.Text>
           </Form.Group>
           <Form.Group controlId="tokenSecret" className="mb-3">
             <Form.Label>Token Secret (optional)</Form.Label>
@@ -98,23 +87,15 @@ export default function TokenCreationModal({
               type="text"
               placeholder="Leave empty to generate automatically"
               value={formState.secret ?? ''}
-              onChange={(e) =>
-                setFormState((prev) => ({ ...prev, secret: e.target.value }))
-              }
+              onChange={(e) => setFormState((prev) => ({ ...prev, secret: e.target.value }))}
             />
-            <Form.Text className="text-muted">
-              Specify a custom token secret or leave empty to generate one.
-            </Form.Text>
+            <Form.Text className="text-muted">Specify a custom token secret or leave empty to generate one.</Form.Text>
           </Form.Group>
           <Modal.Footer>
             <Button variant="outline-secondary" onClick={handleClose}>
               Cancel
             </Button>
-            <Button
-              type="submit"
-              variant="outline-primary"
-              disabled={isSubmitting}
-            >
+            <Button type="submit" variant="outline-primary" disabled={isSubmitting}>
               Create
             </Button>
           </Modal.Footer>

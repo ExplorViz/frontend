@@ -1,15 +1,7 @@
-import React, {
-  ReactNode,
-  useCallback,
-  useEffect,
-  useMemo,
-  useState,
-} from 'react';
+import React, { ReactNode, useCallback, useEffect, useMemo, useState } from 'react';
 import { Button, Form, Modal } from 'react-bootstrap';
 
-import useLongPress, {
-  type LongPressPosition,
-} from 'explorviz-frontend/src/hooks/useLongPress';
+import useLongPress, { type LongPressPosition } from 'explorviz-frontend/src/hooks/useLongPress';
 import { useAnnotationHandlerStore } from 'explorviz-frontend/src/stores/annotation-handler';
 import { useCameraControlsStore } from 'explorviz-frontend/src/stores/camera-controls-store';
 import { useLocalUserStore } from 'explorviz-frontend/src/stores/collaboration/local-user';
@@ -31,12 +23,9 @@ import {
   unhighlightById,
 } from 'explorviz-frontend/src/utils/city-rendering/highlighting';
 import { subscribeContextMenuFromWorld } from 'explorviz-frontend/src/utils/context-menu-bridge';
-import {
-  type ContextMenuHitEntity,
-  contextMenuPickAt,
-} from 'explorviz-frontend/src/utils/context-menu-world-pick';
+import { type ContextMenuHitEntity, contextMenuPickAt } from 'explorviz-frontend/src/utils/context-menu-world-pick';
 import { requestRenameCity } from 'explorviz-frontend/src/utils/landscape-http-request-util';
-import { pingByModelId } from 'explorviz-frontend/src/view-objects/3d/city/animated-ping-r3f';
+import { pingByModelId } from 'explorviz-frontend/src/view-objects/3d/city/ping-animation';
 
 export type ContextMenuItem = {
   id: string;
@@ -58,9 +47,7 @@ export default function ContextMenu({ children }: ContextMenuProps) {
   const [renameCityName, setRenameCityName] = useState('');
   const [isRenaming, setIsRenaming] = useState(false);
 
-  const closedDistrictIds = useVisualizationStore(
-    (state) => state.closedDistrictIds
-  );
+  const closedDistrictIds = useVisualizationStore((state) => state.closedDistrictIds);
   const isCommRendered = useConfigurationStore((state) => state.isCommRendered);
 
   const hide = useCallback(() => {
@@ -93,9 +80,7 @@ export default function ContextMenu({ children }: ContextMenuProps) {
     }
     const trimmedName = renameCityName.trim();
     if (!trimmedName) {
-      useToastHandlerStore
-        .getState()
-        .showErrorToastMessage('City name cannot be empty.');
+      useToastHandlerStore.getState().showErrorToastMessage('City name cannot be empty.');
       return;
     }
 
@@ -110,18 +95,12 @@ export default function ContextMenu({ children }: ContextMenuProps) {
     try {
       const result = await requestRenameCity(renameCityId, trimmedName);
       useModelStore.getState().updateCityName(renameCityId, result.name);
-      useRenderingServiceStore
-        .getState()
-        .updateCityName(renameCityId, result.name);
-      useToastHandlerStore
-        .getState()
-        .showSuccessToastMessage('City renamed successfully.');
+      useRenderingServiceStore.getState().updateCityName(renameCityId, result.name);
+      useToastHandlerStore.getState().showSuccessToastMessage('City renamed successfully.');
       setRenameCityId(null);
       setRenameCityName('');
     } catch {
-      useToastHandlerStore
-        .getState()
-        .showErrorToastMessage('Failed to rename city.');
+      useToastHandlerStore.getState().showErrorToastMessage('Failed to rename city.');
     } finally {
       setIsRenaming(false);
     }
@@ -129,10 +108,7 @@ export default function ContextMenu({ children }: ContextMenuProps) {
 
   const pingAnnotations = useCallback(() => {
     const annotationHandlerStore = useAnnotationHandlerStore.getState();
-    const allAnnotations = [
-      ...annotationHandlerStore.annotationData,
-      ...annotationHandlerStore.minimizedAnnotations,
-    ];
+    const allAnnotations = [...annotationHandlerStore.annotationData, ...annotationHandlerStore.minimizedAnnotations];
 
     const annotatedEntityIds = new Set<string>();
     allAnnotations.forEach((annotation) => {
@@ -155,19 +131,14 @@ export default function ContextMenu({ children }: ContextMenuProps) {
     useCameraControlsStore.getState().resetCamera();
   }, []);
 
-  const setVisualizationMode = useLocalUserStore(
-    (state) => state.setVisualizationMode
-  );
+  const setVisualizationMode = useLocalUserStore((state) => state.setVisualizationMode);
 
   const backgroundMenuItems: ContextMenuItem[] = useMemo(
     () => [
       { id: 'bg-reset-view', title: 'Reset View', action: resetView },
       {
         id: 'bg-open-close-all-districts',
-        title:
-          closedDistrictIds.size > 0
-            ? 'Open All Districts'
-            : 'Close All Districts',
+        title: closedDistrictIds.size > 0 ? 'Open All Districts' : 'Close All Districts',
         action: () => {
           if (closedDistrictIds.size > 0) {
             EntityManipulation.openAllDistrictsInLandscape();
@@ -180,11 +151,7 @@ export default function ContextMenu({ children }: ContextMenuProps) {
         id: 'bg-hide-add-comm',
         title: isCommRendered ? 'Hide Communication' : 'Add Communication',
         action: () =>
-          useConfigurationStore
-            .getState()
-            .setIsCommRendered(
-              !useConfigurationStore.getState().isCommRendered
-            ),
+          useConfigurationStore.getState().setIsCommRendered(!useConfigurationStore.getState().isCommRendered),
       },
       {
         id: 'bg-clear-highlight',
@@ -204,13 +171,7 @@ export default function ContextMenu({ children }: ContextMenuProps) {
         },
       },
     ],
-    [
-      closedDistrictIds,
-      resetView,
-      isCommRendered,
-      pingAnnotations,
-      setVisualizationMode,
-    ]
+    [closedDistrictIds, resetView, isCommRendered, pingAnnotations, setVisualizationMode]
   );
 
   const getFoundationMenuItems = (cityId: string) => {
@@ -218,13 +179,8 @@ export default function ContextMenu({ children }: ContextMenuProps) {
     if (!city) {
       return backgroundMenuItems;
     }
-    const cityHasClosedDistrict = cityHasClosedDistricts(
-      cityId,
-      closedDistrictIds
-    );
-    const foundationIsHighlighted = useVisualizationStore
-      .getState()
-      .highlightedEntityIds.has(city.id);
+    const cityHasClosedDistrict = cityHasClosedDistricts(cityId, closedDistrictIds);
+    const foundationIsHighlighted = useVisualizationStore.getState().highlightedEntityIds.has(city.id);
     return [
       {
         id: `city-rename-${cityId}`,
@@ -233,9 +189,7 @@ export default function ContextMenu({ children }: ContextMenuProps) {
       },
       {
         id: `city-open-close-districts-${cityId}`,
-        title: cityHasClosedDistrict
-          ? 'Open All Districts in City'
-          : 'Close All Districts in City',
+        title: cityHasClosedDistrict ? 'Open All Districts in City' : 'Close All Districts in City',
         action: () => {
           if (cityHasClosedDistrict) {
             EntityManipulation.openAllDistrictsInCity(city);
@@ -246,9 +200,7 @@ export default function ContextMenu({ children }: ContextMenuProps) {
       },
       {
         id: `city-highlight-foundation-${cityId}`,
-        title: foundationIsHighlighted
-          ? 'Unhighlight Foundation'
-          : 'Highlight Foundation',
+        title: foundationIsHighlighted ? 'Unhighlight Foundation' : 'Highlight Foundation',
         action: () => {
           if (foundationIsHighlighted) {
             unhighlightById(city.id);
@@ -266,9 +218,7 @@ export default function ContextMenu({ children }: ContextMenuProps) {
       return backgroundMenuItems;
     }
     const isClosed = isDistrictClosed(districtId, closedDistrictIds);
-    const districtIsHighlighted = useVisualizationStore
-      .getState()
-      .highlightedEntityIds.has(districtId);
+    const districtIsHighlighted = useVisualizationStore.getState().highlightedEntityIds.has(districtId);
     return [
       {
         id: `district-open-close-${districtId}`,
@@ -294,9 +244,7 @@ export default function ContextMenu({ children }: ContextMenuProps) {
         : []),
       {
         id: `district-highlight-${districtId}`,
-        title: districtIsHighlighted
-          ? 'Unhighlight District'
-          : 'Highlight District',
+        title: districtIsHighlighted ? 'Unhighlight District' : 'Highlight District',
         action: () => {
           if (districtIsHighlighted) {
             unhighlightById(districtId);
@@ -309,9 +257,7 @@ export default function ContextMenu({ children }: ContextMenuProps) {
   };
 
   const getBuildingMenuItems = (buildingId: string) => {
-    const isBuildingHighlighted = useVisualizationStore
-      .getState()
-      .highlightedEntityIds.has(buildingId);
+    const isBuildingHighlighted = useVisualizationStore.getState().highlightedEntityIds.has(buildingId);
     return [
       {
         id: `building-show-info-${buildingId}`,
@@ -322,9 +268,7 @@ export default function ContextMenu({ children }: ContextMenuProps) {
       },
       {
         id: `building-highlight-${buildingId}`,
-        title: isBuildingHighlighted
-          ? 'Unhighlight Building'
-          : 'Highlight Building',
+        title: isBuildingHighlighted ? 'Unhighlight Building' : 'Highlight Building',
         action: () => {
           if (isBuildingHighlighted) {
             unhighlightById(buildingId);
@@ -357,8 +301,7 @@ export default function ContextMenu({ children }: ContextMenuProps) {
     reveal();
   };
 
-  const { onTouchStart, onTouchMove, onTouchEnd } =
-    useLongPress(handleLongPress);
+  const { onTouchStart, onTouchMove, onTouchEnd } = useLongPress(handleLongPress);
 
   const onContextMenu = (event: React.MouseEvent) => {
     event.preventDefault();
@@ -401,19 +344,11 @@ export default function ContextMenu({ children }: ContextMenuProps) {
           }}
         >
           {menuItems.map((item) => (
-            <ContextMenuRow
-              key={item.id}
-              title={item.title}
-              onSelect={item.action}
-            />
+            <ContextMenuRow key={item.id} title={item.title} onSelect={item.action} />
           ))}
         </ul>
       )}
-      <Modal
-        show={renameCityId !== null}
-        onHide={closeRenameCityDialog}
-        centered
-      >
+      <Modal show={renameCityId !== null} onHide={closeRenameCityDialog} centered>
         <Modal.Header closeButton>
           <Modal.Title>Rename City</Modal.Title>
         </Modal.Header>
@@ -437,11 +372,7 @@ export default function ContextMenu({ children }: ContextMenuProps) {
           </Form>
         </Modal.Body>
         <Modal.Footer>
-          <Button
-            variant="secondary"
-            onClick={closeRenameCityDialog}
-            disabled={isRenaming}
-          >
+          <Button variant="secondary" onClick={closeRenameCityDialog} disabled={isRenaming}>
             Cancel
           </Button>
           <Button
@@ -465,11 +396,7 @@ interface ContextMenuRowProps {
 
 function ContextMenuRow({ title, onSelect }: ContextMenuRowProps) {
   return (
-    <li
-      className="context-menu-item select-none"
-      style={{ cursor: 'pointer' }}
-      onClick={onSelect}
-    >
+    <li className="context-menu-item select-none" style={{ cursor: 'pointer' }} onClick={onSelect}>
       {title}
     </li>
   );

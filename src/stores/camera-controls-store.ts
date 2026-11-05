@@ -10,10 +10,7 @@ interface CameraControlsState {
   pendingSnapshotCamera: SnapshotCamera | null;
   setCameraControlsRef: (ref: React.RefObject<CameraControls | null>) => void;
   captureSnapshotCamera: () => SnapshotCamera;
-  applySnapshotCamera: (
-    camera: SnapshotCamera,
-    enableTransition?: boolean
-  ) => boolean;
+  applySnapshotCamera: (camera: SnapshotCamera, enableTransition?: boolean) => boolean;
   tryApplyPendingSnapshotCamera: () => boolean;
   lookAtEntity: (entityId: string, offset?: number) => void;
   moveCameraTo: (
@@ -24,118 +21,112 @@ interface CameraControlsState {
   resetCamera: () => void;
 }
 
-export const INITIAL_CAMERA_POSITION: [x: number, y: number, z: number] = [
-  10, 10, 10,
-];
+export const INITIAL_CAMERA_POSITION: [x: number, y: number, z: number] = [10, 10, 10];
 
-export const useCameraControlsStore = create<CameraControlsState>(
-  (set, get) => ({
-    cameraControlsRef: null,
-    pendingSnapshotCamera: null,
+export const useCameraControlsStore = create<CameraControlsState>((set, get) => ({
+  cameraControlsRef: null,
+  pendingSnapshotCamera: null,
 
-    setCameraControlsRef: (ref: React.RefObject<CameraControls | null>) => {
-      set({ cameraControlsRef: ref });
-    },
+  setCameraControlsRef: (ref: React.RefObject<CameraControls | null>) => {
+    set({ cameraControlsRef: ref });
+  },
 
-    captureSnapshotCamera: (): SnapshotCamera => {
-      const controls = get().cameraControlsRef?.current;
-      if (controls) {
-        const position = new THREE.Vector3();
-        const target = new THREE.Vector3();
-        controls.getPosition(position);
-        controls.getTarget(target);
-        return {
-          x: position.x,
-          y: position.y,
-          z: position.z,
-          targetX: target.x,
-          targetY: target.y,
-          targetZ: target.z,
-        };
-      }
-
+  captureSnapshotCamera: (): SnapshotCamera => {
+    const controls = get().cameraControlsRef?.current;
+    if (controls) {
+      const position = new THREE.Vector3();
+      const target = new THREE.Vector3();
+      controls.getPosition(position);
+      controls.getTarget(target);
       return {
-        x: 10,
-        y: 10,
-        z: 10,
-        targetX: 0,
-        targetY: 0,
-        targetZ: 0,
+        x: position.x,
+        y: position.y,
+        z: position.z,
+        targetX: target.x,
+        targetY: target.y,
+        targetZ: target.z,
       };
-    },
+    }
 
-    applySnapshotCamera: (camera, enableTransition = false) => {
-      const controls = get().cameraControlsRef?.current;
-      if (!controls) {
-        set({ pendingSnapshotCamera: camera });
-        return false;
-      }
+    return {
+      x: 10,
+      y: 10,
+      z: 10,
+      targetX: 0,
+      targetY: 0,
+      targetZ: 0,
+    };
+  },
 
+  applySnapshotCamera: (camera, enableTransition = false) => {
+    const controls = get().cameraControlsRef?.current;
+    if (!controls) {
       set({ pendingSnapshotCamera: camera });
+      return false;
+    }
 
-      controls.setLookAt(
-        camera.x,
-        camera.y,
-        camera.z,
-        camera.targetX ?? 0,
-        camera.targetY ?? 0,
-        camera.targetZ ?? 0,
+    set({ pendingSnapshotCamera: camera });
+
+    controls.setLookAt(
+      camera.x,
+      camera.y,
+      camera.z,
+      camera.targetX ?? 0,
+      camera.targetY ?? 0,
+      camera.targetZ ?? 0,
+      enableTransition
+    );
+    controls.update(0);
+    return true;
+  },
+
+  tryApplyPendingSnapshotCamera: () => {
+    const pending = get().pendingSnapshotCamera;
+    if (!pending) {
+      return false;
+    }
+    return get().applySnapshotCamera(pending, false);
+  },
+
+  moveCameraTo: (
+    position: [x: number, y: number, z: number],
+    target: [x: number, y: number, z: number] = [0, 0, 0],
+    enableTransition = true
+  ) => {
+    const { cameraControlsRef } = get();
+    if (cameraControlsRef?.current) {
+      cameraControlsRef.current.setLookAt(
+        position[0],
+        position[1],
+        position[2],
+        target[0],
+        target[1],
+        target[2],
         enableTransition
       );
-      controls.update(0);
-      return true;
-    },
+      cameraControlsRef.current.normalizeRotations();
+    }
+  },
 
-    tryApplyPendingSnapshotCamera: () => {
-      const pending = get().pendingSnapshotCamera;
-      if (!pending) {
-        return false;
-      }
-      return get().applySnapshotCamera(pending, false);
-    },
+  lookAtEntity: (entityId: string, offset = 2) => {
+    const { moveCameraTo } = get();
+    const position = getWorldPositionOfModel(entityId);
+    if (position) {
+      moveCameraTo(
+        [position.x + offset, position.y + offset, position.z + offset],
+        [position.x, position.y, position.z]
+      );
+    }
+  },
 
-    moveCameraTo: (
-      position: [x: number, y: number, z: number],
-      target: [x: number, y: number, z: number] = [0, 0, 0],
-      enableTransition = true
-    ) => {
-      const { cameraControlsRef } = get();
-      if (cameraControlsRef?.current) {
-        cameraControlsRef.current.setLookAt(
-          position[0],
-          position[1],
-          position[2],
-          target[0],
-          target[1],
-          target[2],
-          enableTransition
-        );
-        cameraControlsRef.current.normalizeRotations();
-      }
-    },
-
-    lookAtEntity: (entityId: string, offset = 2) => {
-      const { moveCameraTo } = get();
-      const position = getWorldPositionOfModel(entityId);
-      if (position) {
-        moveCameraTo(
-          [position.x + offset, position.y + offset, position.z + offset],
-          [position.x, position.y, position.z]
-        );
-      }
-    },
-
-    resetCamera: () => {
-      const { moveCameraTo } = get();
-      moveCameraTo(INITIAL_CAMERA_POSITION, [0, 0, 0]);
-    },
-  })
-);
+  resetCamera: () => {
+    const { moveCameraTo } = get();
+    moveCameraTo(INITIAL_CAMERA_POSITION, [0, 0, 0]);
+  },
+}));
 
 // Hook to initialize camera controls
-export const useCameraControls = (
-  cameraControlsRef: React.RefObject<CameraControls | null>
-) => {
+export const useCameraControls = (cameraControlsRef: React.RefObject<CameraControls | null>) => {
   const { setCameraControlsRef } = useCameraControlsStore();
 
   useEffect(() => {

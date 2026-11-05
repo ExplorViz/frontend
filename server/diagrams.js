@@ -33,15 +33,11 @@ function run(cmd, args) {
 
 async function writeUploadedFile(buffer, originalname) {
   const ext = path.extname(originalname) || '.yaml';
-  const filePath = path.join(
-    os.tmpdir(),
-    `kubediagram-upload-${crypto.randomUUID()}${ext}`
-  );
+  const filePath = path.join(os.tmpdir(), `kubediagram-upload-${crypto.randomUUID()}${ext}`);
 
   await fs.promises.writeFile(filePath, buffer);
   return filePath;
 }
-
 
 async function runDirectAndStream(cmd, args, res) {
   const output = tmpSvgPath();
@@ -88,17 +84,17 @@ async function streamSvgFile(output, res) {
 }
 
 diagramsRouter.post('/', upload.single('file'), async (req, res) => {
-  const type = req.body?.type
+  const type = req.body?.type;
   const inputPath = req.body?.path;
   const file = req.file;
-  
+
   if (!type) {
     return res.status(400).json({ error: 'Missing diagram type' });
   }
 
   if (!file && !inputPath) {
     return res.status(400).json({
-      error: 'Either path or file must be provided'
+      error: 'Either path or file must be provided',
     });
   }
 
@@ -106,10 +102,7 @@ diagramsRouter.post('/', upload.single('file'), async (req, res) => {
 
   try {
     if (file) {
-      effectivePath = await writeUploadedFile(
-        file.buffer,
-        file.originalname
-      );
+      effectivePath = await writeUploadedFile(file.buffer, file.originalname);
     } else {
       effectivePath = inputPath;
     }
@@ -120,19 +113,13 @@ diagramsRouter.post('/', upload.single('file'), async (req, res) => {
         break;
 
       case 'kustomize':
-        await runShellAndStream(
-          `kubectl kustomize ${effectivePath} | kube-diagrams -`,
-          res
-        );
+        await runShellAndStream(`kubectl kustomize ${effectivePath} | kube-diagrams -`, res);
         break;
 
       // TODO: it is also possible to generate a Diagram based on a Helm Chart using helm-diagrams
       // https://github.com/philippemerle/KubeDiagrams/tree/main?tab=readme-ov-file#helm-diagrams
       case 'helmfile':
-        await runShellAndStream(
-          `helmfile template -f ${effectivePath} | kube-diagrams -`,
-          res
-        );
+        await runShellAndStream(`helmfile template -f ${effectivePath} | kube-diagrams -`, res);
         break;
 
       // TODO: namespace & all-namespaces not working,

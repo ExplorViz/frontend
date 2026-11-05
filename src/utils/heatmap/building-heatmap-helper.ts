@@ -38,19 +38,12 @@ export function getMetricValues(
   const isBuildingModel = (x: Class | Building): x is Building =>
     Object.prototype.hasOwnProperty.call(x, 'parentCityId');
 
-  const getMetricValueFromModel = (
-    model: Class | Building,
-    metricName: string
-  ): number | null => {
+  const getMetricValueFromModel = (model: Class | Building, metricName: string): number | null => {
     if (isBuildingModel(model)) {
       return getBuildingMetricValueForHeatmap(model, metricName);
     }
 
-    return (
-      (model as Class & Record<string, number | null | undefined>)[
-        metricName
-      ] ?? null
-    );
+    return (model as Class & Record<string, number | null | undefined>)[metricName] ?? null;
   };
 
   switch (classHeatmapMetric.name) {

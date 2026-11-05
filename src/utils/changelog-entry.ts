@@ -108,34 +108,19 @@ export class PackageChangeLogEntry extends BaseChangeLogEntry {
     this.createdWithApp = appEntry;
   }
 
-  setDestination(
-    destination: Application | Package,
-    landscapeData: StructureLandscapeData
-  ) {
+  setDestination(destination: Application | Package, landscapeData: StructureLandscapeData) {
     if (isPackage(destination)) {
       this.destinationPckg = destination;
-      if (destination.parent)
-        this.destinationApp = getApplicationFromSubPackage(
-          landscapeData,
-          destination.id
-        );
-      else
-        this.destinationApp = getApplicationFromPackage(
-          landscapeData,
-          destination.id
-        );
+      if (destination.parent) this.destinationApp = getApplicationFromSubPackage(landscapeData, destination.id);
+      else this.destinationApp = getApplicationFromPackage(landscapeData, destination.id);
     } else {
       this.destinationApp = destination;
     }
   }
 
-  updateOriginApp(
-    destination: Application | Package,
-    landscapeData: StructureLandscapeData
-  ) {
+  updateOriginApp(destination: Application | Package, landscapeData: StructureLandscapeData) {
     if (isPackage(destination)) {
-      if (destination.parent)
-        this.app = getApplicationFromSubPackage(landscapeData, destination.id);
+      if (destination.parent) this.app = getApplicationFromSubPackage(landscapeData, destination.id);
       else this.app = getApplicationFromPackage(landscapeData, destination.id);
     } else {
       this.app = destination;
@@ -192,34 +177,19 @@ export class SubPackageChangeLogEntry extends BaseChangeLogEntry {
     }
   }
 
-  setDestination(
-    destination: Application | Package,
-    landscapeData: StructureLandscapeData
-  ) {
+  setDestination(destination: Application | Package, landscapeData: StructureLandscapeData) {
     if (isPackage(destination)) {
       this.destinationPckg = destination;
-      if (destination.parent)
-        this.destinationApp = getApplicationFromSubPackage(
-          landscapeData,
-          destination.id
-        );
-      else
-        this.destinationApp = getApplicationFromPackage(
-          landscapeData,
-          destination.id
-        );
+      if (destination.parent) this.destinationApp = getApplicationFromSubPackage(landscapeData, destination.id);
+      else this.destinationApp = getApplicationFromPackage(landscapeData, destination.id);
     } else {
       this.destinationApp = destination;
     }
   }
 
-  updateOriginApp(
-    destination: Application | Package,
-    landscapeData: StructureLandscapeData
-  ) {
+  updateOriginApp(destination: Application | Package, landscapeData: StructureLandscapeData) {
     if (isPackage(destination)) {
-      if (destination.parent)
-        this.app = getApplicationFromSubPackage(landscapeData, destination.id);
+      if (destination.parent) this.app = getApplicationFromSubPackage(landscapeData, destination.id);
       else this.app = getApplicationFromPackage(landscapeData, destination.id);
     } else {
       this.app = destination;
@@ -255,9 +225,7 @@ export class ClassChangeLogEntry extends BaseChangeLogEntry {
     this.originalClazzName = clazz.name;
   }
 
-  set _createdWithPackage(
-    packageEntry: PackageChangeLogEntry | SubPackageChangeLogEntry
-  ) {
+  set _createdWithPackage(packageEntry: PackageChangeLogEntry | SubPackageChangeLogEntry) {
     this.createdWithPackage = packageEntry;
   }
 
@@ -280,22 +248,13 @@ export class ClassChangeLogEntry extends BaseChangeLogEntry {
 
   setDestination(destination: Package, landscapeData: StructureLandscapeData) {
     this.destinationPckg = destination;
-    if (destination.parent)
-      this.destinationApp = getApplicationFromSubPackage(
-        landscapeData,
-        destination.id
-      );
-    else
-      this.destinationApp = getApplicationFromPackage(
-        landscapeData,
-        destination.id
-      );
+    if (destination.parent) this.destinationApp = getApplicationFromSubPackage(landscapeData, destination.id);
+    else this.destinationApp = getApplicationFromPackage(landscapeData, destination.id);
   }
 
   updateOriginApp(destination: Package, landscapeData: StructureLandscapeData) {
     this.pckg = destination;
-    if (destination.parent)
-      this.app = getApplicationFromSubPackage(landscapeData, destination.id);
+    if (destination.parent) this.app = getApplicationFromSubPackage(landscapeData, destination.id);
     else this.app = getApplicationFromPackage(landscapeData, destination.id);
   }
 

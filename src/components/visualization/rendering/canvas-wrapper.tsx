@@ -2,13 +2,7 @@ import { Magnify } from '@malte-hansen/magnify-r3f';
 import { CameraControls, PerspectiveCamera, Stats } from '@react-three/drei';
 import { Canvas, useLoader, useThree } from '@react-three/fiber';
 import type { XRStore } from '@react-three/xr';
-import {
-  createXRStore,
-  IfInSessionMode,
-  TeleportTarget,
-  XR,
-  XROrigin,
-} from '@react-three/xr';
+import { createXRStore, IfInSessionMode, TeleportTarget, XR, XROrigin } from '@react-three/xr';
 import { CollaborationKickRPC } from 'explorviz-frontend/src/components/collaboration/collaboration-kick-RPC';
 import { PlayroomPlayersProvider } from 'explorviz-frontend/src/components/collaboration/playroom-players-context';
 import { CollaborationAnnotationSync } from 'explorviz-frontend/src/components/collaboration/sync/collaboration-annotation-sync';
@@ -30,10 +24,7 @@ import {
   CLICK_PREVENTION_DEFAULTS,
   maxPointerDriftDuringDelay,
 } from 'explorviz-frontend/src/hooks/useClickPreventionOnDoubleClick';
-import {
-  INITIAL_CAMERA_POSITION,
-  useCameraControls,
-} from 'explorviz-frontend/src/stores/camera-controls-store';
+import { INITIAL_CAMERA_POSITION, useCameraControls } from 'explorviz-frontend/src/stores/camera-controls-store';
 import { useConfigurationStore } from 'explorviz-frontend/src/stores/configuration';
 import { useImmersiveViewStore } from 'explorviz-frontend/src/stores/immersive-view-store';
 import { useLayoutStore } from 'explorviz-frontend/src/stores/layout-store';
@@ -65,15 +56,7 @@ import ImmersiveInterface from 'explorviz-frontend/src/view-objects/3d/city/Imme
 import TraceReplayOverlayR3F from 'explorviz-frontend/src/view-objects/3d/city/trace-replay-overlay-r3f';
 import ClusterCentroidsR3F from 'explorviz-frontend/src/view-objects/3d/cluster-centroids-r3f';
 import LandscapeR3F from 'explorviz-frontend/src/view-objects/3d/landscape/landscape-r3f';
-import {
-  type MouseEvent as ReactMouseEvent,
-  Suspense,
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from 'react';
+import { type MouseEvent as ReactMouseEvent, Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import * as THREE from 'three';
 import { useShallow } from 'zustand/react/shallow';
 import ContextMenuWorldPickRegister from './context-menu-world-pick-register';
@@ -106,23 +89,24 @@ export default function CanvasWrapper({
   const layoutMap = useLayoutStore((state) => state.fullLayoutMap);
   const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
   // Stable store: createXRStore() during render leaked WebGL contexts via IWER.
-  const [desktopXrStore] = useState(() =>
-    createXRStore({ offerSession: false, emulate: false })
-  );
+  const [desktopXrStore] = useState(() => createXRStore({ offerSession: false, emulate: false }));
   const resolvedXrStore = xrStore ?? desktopXrStore;
 
-  const floorTexture = useLoader(
-    THREE.TextureLoader,
-    'extended-reality/images/materials/floor.jpg'
-  );
-  floorTexture.repeat.set(200, 200);
-  floorTexture.wrapS = floorTexture.wrapT = THREE.RepeatWrapping;
+  const loadedFloorTexture = useLoader(THREE.TextureLoader, 'extended-reality/images/materials/floor.jpg');
+  // Configure a clone so the shared, cached loader result stays untouched.
+  const floorTexture = useMemo(() => {
+    const texture = loadedFloorTexture.clone();
+    texture.repeat.set(200, 200);
+    texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
+    texture.needsUpdate = true;
+    return texture;
+  }, [loadedFloorTexture]);
 
   const hapSystemManager = HAPSystemManager.getInstance();
   const lastFlatLandscapeIdsRef = useRef<string[]>([]);
   const layoutGenerationRef = useRef(0);
 
-  const directionalLightRef = useRef(null);
+  const [directionalLight, setDirectionalLight] = useState<THREE.DirectionalLight | null>(null);
 
   const {
     cityLayoutAlgorithm,
@@ -171,10 +155,8 @@ export default function CanvasWrapper({
     magnifierAntialias,
   } = useUserSettingsStore(
     useShallow((state) => ({
-      cityLayoutAlgorithm:
-        state.visualizationSettings.cityLayoutAlgorithm.value,
-      districtLayoutAlgorithm:
-        state.visualizationSettings.districtLayoutAlgorithm.value,
+      cityLayoutAlgorithm: state.visualizationSettings.cityLayoutAlgorithm.value,
+      districtLayoutAlgorithm: state.visualizationSettings.districtLayoutAlgorithm.value,
       cityLabelMargin: state.visualizationSettings.cityLabelMargin,
       cityAspectRatio: state.visualizationSettings.cityAspectRatio,
       cityDistance: state.visualizationSettings.cityDistance,
@@ -186,27 +168,19 @@ export default function CanvasWrapper({
       cameraNear: state.visualizationSettings.cameraNear.value,
       castShadows: state.visualizationSettings.castShadows.value,
       buildingFootprint: state.visualizationSettings.buildingFootprint,
-      buildingLayoutAlgorithm:
-        state.visualizationSettings.buildingLayoutAlgorithm.value,
+      buildingLayoutAlgorithm: state.visualizationSettings.buildingLayoutAlgorithm.value,
       buildingMargin: state.visualizationSettings.buildingMargin.value,
-      buildingWidthMetric:
-        state.visualizationSettings.buildingWidthMetric.value,
-      buildingMetricMapping:
-        state.visualizationSettings.buildingMetricMapping.value,
-      buildingWidthMultiplier:
-        state.visualizationSettings.buildingWidthMultiplier.value,
-      buildingDepthMetric:
-        state.visualizationSettings.buildingDepthMetric.value,
-      buildingDepthMultiplier:
-        state.visualizationSettings.buildingDepthMultiplier.value,
+      buildingWidthMetric: state.visualizationSettings.buildingWidthMetric.value,
+      buildingMetricMapping: state.visualizationSettings.buildingMetricMapping.value,
+      buildingWidthMultiplier: state.visualizationSettings.buildingWidthMultiplier.value,
+      buildingDepthMetric: state.visualizationSettings.buildingDepthMetric.value,
+      buildingDepthMultiplier: state.visualizationSettings.buildingDepthMultiplier.value,
       closedDistrictHeight: state.visualizationSettings.closedDistrictHeight,
-      districtLabelPlacement:
-        state.visualizationSettings.districtLabelPlacement.value,
+      districtLabelPlacement: state.visualizationSettings.districtLabelPlacement.value,
       colors: state.colors,
       openedDistrictHeight: state.visualizationSettings.openedDistrictHeight,
       enableClustering: state.visualizationSettings.enableClustering.value,
-      autoOpenCloseDistricts:
-        state.visualizationSettings.autoOpenCloseDistricts.value,
+      autoOpenCloseDistricts: state.visualizationSettings.autoOpenCloseDistricts.value,
       districtLabelMargin: state.visualizationSettings.districtLabelMargin,
       districtPadding: state.visualizationSettings.districtPadding,
       sceneBackgroundColor: state.visualizationSettings.backgroundColor.value,
@@ -215,21 +189,16 @@ export default function CanvasWrapper({
       showLightHelper: state.visualizationSettings.showLightHelper.value,
       spiralCenterOffset: state.visualizationSettings.spiralCenterOffset.value,
       spiralGap: state.visualizationSettings.spiralGap.value,
-      leftMouseButtonAction:
-        state.visualizationSettings.leftMouseButtonAction.value,
+      leftMouseButtonAction: state.visualizationSettings.leftMouseButtonAction.value,
       mouseWheelAction: state.visualizationSettings.mouseWheelAction.value,
-      rightMouseButtonAction:
-        state.visualizationSettings.rightMouseButtonAction.value,
-      middleMouseButtonAction:
-        state.visualizationSettings.middleMouseButtonAction.value,
+      rightMouseButtonAction: state.visualizationSettings.rightMouseButtonAction.value,
+      middleMouseButtonAction: state.visualizationSettings.middleMouseButtonAction.value,
       isMagnifierActive: state.visualizationSettings.isMagnifierActive.value,
       magnifierZoom: state.visualizationSettings.magnifierZoom.value,
       magnifierExponent: state.visualizationSettings.magnifierExponent.value,
       magnifierRadius: state.visualizationSettings.magnifierRadius.value,
-      magnifierOutlineColor:
-        state.visualizationSettings.magnifierOutlineColor.value,
-      magnifierOutlineThickness:
-        state.visualizationSettings.magnifierOutlineThickness.value,
+      magnifierOutlineColor: state.visualizationSettings.magnifierOutlineColor.value,
+      magnifierOutlineThickness: state.visualizationSettings.magnifierOutlineThickness.value,
       magnifierAntialias: state.visualizationSettings.magnifierAntialias.value,
       visualizationSettings: state.visualizationSettings,
     }))
@@ -275,11 +244,7 @@ export default function CanvasWrapper({
       const parentCityId = element.parentCityId;
       if (!parentCityId || !layoutMap.has(parentCityId)) {
         // Fallback: use layout center
-        return new THREE.Vector3(
-          layout.center.x,
-          layout.position.y + level * 20,
-          layout.center.z
-        );
+        return new THREE.Vector3(layout.center.x, layout.position.y + level * 20, layout.center.z);
       }
       const cityLayout = layoutMap.get(parentCityId)!;
 
@@ -312,20 +277,14 @@ export default function CanvasWrapper({
     // Use requestAnimationFrame to defer HAP tree building
     // This prevents blocking the main thread during initial render
     const handle = requestAnimationFrame(() => {
-      hapSystemManager.buildLandscapeHAPTree(
-        allApplications,
-        getHAPPosition,
-        getLevel
-      );
+      hapSystemManager.buildLandscapeHAPTree(allApplications, getHAPPosition, getLevel);
     });
 
     return () => cancelAnimationFrame(handle);
   }, [layoutMap, allApplications, getHAPPosition, getLevel, hapSystemManager]);
 
   const cameraControlsRef = useRef<CameraControls>(null!);
-  const immersiveCameraLocked = useImmersiveViewStore(
-    (state) => state.cameraLocked
-  );
+  const immersiveCameraLocked = useImmersiveViewStore((state) => state.cameraLocked);
 
   // Initialize camera controls store
   useCameraControls(cameraControlsRef);
@@ -390,12 +349,8 @@ export default function CanvasWrapper({
       return;
     }
 
-    const currentFlatLandscapeIds = getAllIdsOfFlatLandscape(
-      landscapeData.flatLandscapeData
-    );
-    if (
-      areArraysEqual(currentFlatLandscapeIds, lastFlatLandscapeIdsRef.current)
-    ) {
+    const currentFlatLandscapeIds = getAllIdsOfFlatLandscape(landscapeData.flatLandscapeData);
+    if (areArraysEqual(currentFlatLandscapeIds, lastFlatLandscapeIdsRef.current)) {
       return;
     }
     lastFlatLandscapeIdsRef.current = currentFlatLandscapeIds;
@@ -419,42 +374,26 @@ export default function CanvasWrapper({
       .filter((building) => !removedDistrictIds.has(building.id));
     const buildingIds = new Set(allBuildings.map((building) => building.id));
 
-    const communicationIds = new Set(
-      Object.values(buildingCommunications).map((comm) => comm.id)
-    );
+    const communicationIds = new Set(Object.values(buildingCommunications).map((comm) => comm.id));
 
-    const entityIds = new Set([
-      ...districtIds,
-      ...buildingIds,
-      ...communicationIds,
-    ]);
+    const entityIds = new Set([...districtIds, ...buildingIds, ...communicationIds]);
 
     // Remove all ids that are no longer part of the landscape
     useVisualizationStore.getState().actions.filterEntityIds(entityIds);
-  }, [
-    landscapeData,
-    buildingCommunications,
-    removedDistrictIds,
-    hapSystemManager,
-  ]);
+  }, [landscapeData, buildingCommunications, removedDistrictIds, hapSystemManager]);
 
   const updateLayout = useCallback(async () => {
     if (!landscapeData) return;
 
     const generation = ++layoutGenerationRef.current;
-    const layoutMap = await layoutLandscape(
-      landscapeData.flatLandscapeData,
-      removedDistrictIds
-    );
+    const layoutMap = await layoutLandscape(landscapeData.flatLandscapeData, removedDistrictIds);
     if (generation !== layoutGenerationRef.current) {
       return;
     }
     // Pass the structure along: on first load the model store is not populated
     // yet, and without it every entity type resolves to null and the layouts
     // are dropped.
-    useLayoutStore
-      .getState()
-      .updateLayouts(layoutMap, landscapeData.flatLandscapeData);
+    useLayoutStore.getState().updateLayouts(layoutMap, landscapeData.flatLandscapeData);
   }, [landscapeData, removedDistrictIds]);
 
   useEffect(() => {
@@ -493,9 +432,7 @@ export default function CanvasWrapper({
     };
   }, [resetVisualizationState]);
 
-  const minimapEnabled = useUserSettingsStore(
-    (state) => state.visualizationSettings.isMinimapEnabled.value
-  );
+  const minimapEnabled = useUserSettingsStore((state) => state.visualizationSettings.isMinimapEnabled.value);
 
   const { rightClickDelayMs, allowedDelta } = CLICK_PREVENTION_DEFAULTS;
   const emptyContextMenuTimeoutRef = useRef<number | null>(null);
@@ -510,10 +447,7 @@ export default function CanvasWrapper({
     emptyContextMenuDriftCleanupRef.current = null;
   }, []);
 
-  useEffect(
-    () => () => clearPendingEmptyContextMenu(),
-    [clearPendingEmptyContextMenu]
-  );
+  useEffect(() => () => clearPendingEmptyContextMenu(), [clearPendingEmptyContextMenu]);
 
   const onCanvasContextMenu = useCallback(
     (e: ReactMouseEvent<HTMLDivElement>) => {
@@ -525,9 +459,7 @@ export default function CanvasWrapper({
       clearPendingEmptyContextMenu();
       e.preventDefault();
 
-      const { cleanup, getMaxDistance } = maxPointerDriftDuringDelay(
-        e.nativeEvent
-      );
+      const { cleanup, getMaxDistance } = maxPointerDriftDuringDelay(e.nativeEvent);
       emptyContextMenuDriftCleanupRef.current = cleanup;
 
       emptyContextMenuTimeoutRef.current = window.setTimeout(() => {
@@ -567,9 +499,7 @@ export default function CanvasWrapper({
         >
           <PlayroomPlayersProvider>
             <ContextMenuWorldPickRegister />
-            <ImmersiveCameraHandler
-              controlsRef={cameraControlsRef}
-            ></ImmersiveCameraHandler>
+            <ImmersiveCameraHandler controlsRef={cameraControlsRef}></ImmersiveCameraHandler>
             {xrStore ? null : (
               <>
                 <CameraControls
@@ -577,9 +507,7 @@ export default function CanvasWrapper({
                   dollySpeed={0.3}
                   draggingSmoothTime={0.05}
                   maxDistance={immersiveCameraLocked ? 0.01 : 250}
-                  maxPolarAngle={
-                    immersiveCameraLocked ? Math.PI : 0.5 * Math.PI
-                  }
+                  maxPolarAngle={immersiveCameraLocked ? Math.PI : 0.5 * Math.PI}
                   makeDefault
                   minDistance={immersiveCameraLocked ? 0 : 1}
                   mouseButtons={
@@ -592,9 +520,7 @@ export default function CanvasWrapper({
                         }
                       : {
                           left: getMouseMapping(leftMouseButtonAction) as any,
-                          middle: getMouseMapping(
-                            middleMouseButtonAction
-                          ) as any,
+                          middle: getMouseMapping(middleMouseButtonAction) as any,
                           wheel: getMouseMapping(mouseWheelAction) as any,
                           right: getMouseMapping(rightMouseButtonAction) as any,
                         }
@@ -612,22 +538,14 @@ export default function CanvasWrapper({
                 <CameraLayerHandler />
                 <SnapshotCameraRestore />
 
-                {minimapEnabled && (
-                  <MinimapView
-                    mainCameraControls={cameraControlsRef}
-                    landscapeData={landscapeData}
-                  />
-                )}
+                {minimapEnabled && <MinimapView mainCameraControls={cameraControlsRef} landscapeData={landscapeData} />}
                 {isMagnifierActive && (
                   <Magnify
                     position={mousePos}
                     zoom={magnifierZoom}
                     exp={magnifierExponent}
                     radius={magnifierRadius}
-                    outlineColor={parseInt(
-                      magnifierOutlineColor.replace('#', ''),
-                      16
-                    )}
+                    outlineColor={parseInt(magnifierOutlineColor.replace('#', ''), 16)}
                     outlineThickness={magnifierOutlineThickness}
                     antialias={magnifierAntialias}
                   />
@@ -644,11 +562,7 @@ export default function CanvasWrapper({
                 </XROrigin>
                 <TeleportTarget onTeleport={setPosition}>
                   <Suspense>
-                    <mesh
-                      name="floor"
-                      position={[0, -0.1, 0]}
-                      rotation={[-Math.PI / 2, 0, 0]}
-                    >
+                    <mesh name="floor" position={[0, -0.1, 0]} rotation={[-Math.PI / 2, 0, 0]}>
                       <planeGeometry attach="geometry" args={[200, 200]} />
                       <meshBasicMaterial attach="material" map={floorTexture} />
                     </mesh>
@@ -669,9 +583,7 @@ export default function CanvasWrapper({
                       <CommunicationR3F
                         key={communication.id}
                         communicationModel={communication}
-                        applicationElement={useModelStore
-                          .getState()
-                          .getCityForModel(communication.sourceEntity.id)}
+                        applicationElement={useModelStore.getState().getCityForModel(communication.sourceEntity.id)}
                         layoutMap={layoutMap}
                       />
                     ))}
@@ -679,24 +591,18 @@ export default function CanvasWrapper({
               </EntityVisibilityProvider>
               <RemoteImmersiveIndicators />
               {enableClustering && <ClusterCentroidsR3F />}
-              {enableClustering && autoOpenCloseDistricts && (
-                <AutoDistrictOpenerR3F />
-              )}
+              {enableClustering && autoOpenCloseDistricts && <AutoDistrictOpenerR3F />}
               <AnimatedPing />
               <TraceReplayOverlayR3F />
               <ambientLight />
               <directionalLight
                 name="DirectionalLight"
-                ref={directionalLightRef}
+                ref={setDirectionalLight}
                 intensity={2}
                 position={[5, 10, -20]}
                 castShadow={castShadows}
               />
-              {showLightHelper && directionalLightRef.current && (
-                <directionalLightHelper
-                  args={[directionalLightRef.current, 2, 0x0000ff]}
-                />
-              )}
+              {showLightHelper && directionalLight && <directionalLightHelper args={[directionalLight, 2, 0x0000ff]} />}
               {showFpsCounter && (
                 <>
                   <Stats showPanel={0} className="stats0" />

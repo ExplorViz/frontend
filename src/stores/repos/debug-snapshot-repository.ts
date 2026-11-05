@@ -8,38 +8,24 @@ export type DebugSnapshot = {
 interface DebugSnapshotRepositoryState {
   landscapeTokenToDebugSnapshotMap: Map<string, Map<bigint, DebugSnapshot>>; // landscapeToken -> (timestamp.epochMilli -> DebugSnapshot)
 
-  saveDebugSnapshots: (
-    landscapeToken: string,
-    debugSnapshots: DebugSnapshot[]
-  ) => void;
+  saveDebugSnapshots: (landscapeToken: string, debugSnapshots: DebugSnapshot[]) => void;
 
-  saveDebugSnapshot: (
-    landscapeToken: string,
-    debugSnapshot: DebugSnapshot
-  ) => void;
+  saveDebugSnapshot: (landscapeToken: string, debugSnapshot: DebugSnapshot) => void;
 }
 
-export const useDebugSnapshotRepositoryStore =
-  create<DebugSnapshotRepositoryState>((set, get) => ({
-    landscapeTokenToDebugSnapshotMap: new Map(), // tracked
+export const useDebugSnapshotRepositoryStore = create<DebugSnapshotRepositoryState>((set, get) => ({
+  landscapeTokenToDebugSnapshotMap: new Map(), // tracked
 
-    saveDebugSnapshots: (
-      landscapeToken: string,
-      debugSnapshots: DebugSnapshot[]
-    ) => {
-      for (const snapshot of debugSnapshots) {
-        get().saveDebugSnapshot(landscapeToken, snapshot);
-      }
-    },
-    saveDebugSnapshot: (
-      landscapeToken: string,
-      debugSnapshot: DebugSnapshot
-    ) => {
-      const outerMap = get().landscapeTokenToDebugSnapshotMap;
-      const snapshots =
-        outerMap.get(landscapeToken) ?? new Map<bigint, DebugSnapshot>();
+  saveDebugSnapshots: (landscapeToken: string, debugSnapshots: DebugSnapshot[]) => {
+    for (const snapshot of debugSnapshots) {
+      get().saveDebugSnapshot(landscapeToken, snapshot);
+    }
+  },
+  saveDebugSnapshot: (landscapeToken: string, debugSnapshot: DebugSnapshot) => {
+    const outerMap = get().landscapeTokenToDebugSnapshotMap;
+    const snapshots = outerMap.get(landscapeToken) ?? new Map<bigint, DebugSnapshot>();
 
-      snapshots.set(debugSnapshot.timestamp.fromUnixNano, debugSnapshot);
-      outerMap.set(landscapeToken, snapshots);
-    },
-  }));
+    snapshots.set(debugSnapshot.timestamp.fromUnixNano, debugSnapshot);
+    outerMap.set(landscapeToken, snapshots);
+  },
+}));

@@ -52,53 +52,34 @@ export default function CommitChartFilters({
   appliedMetricChangeThreshold,
   onFiltersApplied,
 }: CommitChartFiltersProps) {
-  const appliedFilters = useCommitTreeStateStore(
-    (state) => state._commitTreeFilters
-  );
-  const setCommitTreeFilters = useCommitTreeStateStore(
-    (state) => state.setCommitTreeFilters
-  );
+  const appliedFilters = useCommitTreeStateStore((state) => state._commitTreeFilters);
+  const setCommitTreeFilters = useCommitTreeStateStore((state) => state.setCommitTreeFilters);
   const fetchAndStoreRepositoryCommitTrees = useEvolutionDataRepositoryStore(
     (state) => state.fetchAndStoreRepositoryCommitTrees
   );
 
   const [draftFrom, setDraftFrom] = useState('');
   const [draftTo, setDraftTo] = useState('');
-  const [draftSampling, setDraftSampling] = useState<CommitSampling>(
-    DEFAULT_COMMIT_TREE_FILTERS.sampling
+  const [draftSampling, setDraftSampling] = useState<CommitSampling>(DEFAULT_COMMIT_TREE_FILTERS.sampling);
+  const [draftFirstParentOnly, setDraftFirstParentOnly] = useState(DEFAULT_COMMIT_TREE_FILTERS.firstParentOnly);
+  const [draftMetricChangeThresholdInput, setDraftMetricChangeThresholdInput] = useState(
+    String(DEFAULT_METRIC_CHANGE_THRESHOLD)
   );
-  const [draftFirstParentOnly, setDraftFirstParentOnly] = useState(
-    DEFAULT_COMMIT_TREE_FILTERS.firstParentOnly
-  );
-  const [draftMetricChangeThresholdInput, setDraftMetricChangeThresholdInput] =
-    useState(String(DEFAULT_METRIC_CHANGE_THRESHOLD));
   const [isApplying, setIsApplying] = useState(false);
 
   useEffect(() => {
-    setDraftFrom(
-      appliedFilters.fromTimestamp != null
-        ? toISO(appliedFilters.fromTimestamp)
-        : ''
-    );
-    setDraftTo(
-      appliedFilters.toTimestamp != null
-        ? toISO(appliedFilters.toTimestamp)
-        : ''
-    );
+    setDraftFrom(appliedFilters.fromTimestamp != null ? toISO(appliedFilters.fromTimestamp) : '');
+    setDraftTo(appliedFilters.toTimestamp != null ? toISO(appliedFilters.toTimestamp) : '');
     setDraftSampling(appliedFilters.sampling);
     setDraftFirstParentOnly(appliedFilters.firstParentOnly);
     setDraftMetricChangeThresholdInput(String(appliedMetricChangeThreshold));
   }, [appliedFilters, appliedMetricChangeThreshold]);
 
-  const draftMetricChangeThreshold = parseMetricChangeThreshold(
-    draftMetricChangeThresholdInput
-  );
+  const draftMetricChangeThreshold = parseMetricChangeThreshold(draftMetricChangeThresholdInput);
 
   const hasDraftChanges =
-    (draftFrom ? fromISO(draftFrom) : undefined) !==
-      appliedFilters.fromTimestamp ||
-    (draftTo ? fromISOEnd(draftTo) : undefined) !==
-      appliedFilters.toTimestamp ||
+    (draftFrom ? fromISO(draftFrom) : undefined) !== appliedFilters.fromTimestamp ||
+    (draftTo ? fromISOEnd(draftTo) : undefined) !== appliedFilters.toTimestamp ||
     draftSampling !== appliedFilters.sampling ||
     draftFirstParentOnly !== appliedFilters.firstParentOnly ||
     draftMetricChangeThreshold !== appliedMetricChangeThreshold;
@@ -108,15 +89,10 @@ export default function CommitChartFilters({
     firstParentOnly: draftFirstParentOnly,
     ...(draftFrom ? { fromTimestamp: fromISO(draftFrom) } : {}),
     ...(draftTo ? { toTimestamp: fromISOEnd(draftTo) } : {}),
-    ...(appliedFilters.authorKeys !== undefined
-      ? { authorKeys: appliedFilters.authorKeys }
-      : {}),
+    ...(appliedFilters.authorKeys !== undefined ? { authorKeys: appliedFilters.authorKeys } : {}),
   });
 
-  const applyFilters = async (
-    filters: CommitTreeFilters,
-    metricChangeThreshold: number
-  ) => {
+  const applyFilters = async (filters: CommitTreeFilters, metricChangeThreshold: number) => {
     setIsApplying(true);
     try {
       setCommitTreeFilters(filters);
@@ -142,18 +118,13 @@ export default function CommitChartFilters({
     await applyFilters(
       {
         ...DEFAULT_COMMIT_TREE_FILTERS,
-        ...(appliedFilters.authorKeys !== undefined
-          ? { authorKeys: appliedFilters.authorKeys }
-          : {}),
+        ...(appliedFilters.authorKeys !== undefined ? { authorKeys: appliedFilters.authorKeys } : {}),
       },
       DEFAULT_METRIC_CHANGE_THRESHOLD
     );
   };
 
-  const hasActiveFilters = hasActiveCommitTreeFilters(
-    appliedFilters,
-    appliedMetricChangeThreshold
-  );
+  const hasActiveFilters = hasActiveCommitTreeFilters(appliedFilters, appliedMetricChangeThreshold);
 
   if (!expanded) {
     return null;
@@ -161,10 +132,7 @@ export default function CommitChartFilters({
 
   return (
     <div className="commit-metrics-chart-filter-panel">
-      <div
-        id="commit-chart-filter-row"
-        className="commit-metrics-chart-filter-row"
-      >
+      <div id="commit-chart-filter-row" className="commit-metrics-chart-filter-row">
         <label className="commit-metrics-chart-control">
           <span className="commit-metrics-chart-control-label">From</span>
           <Form.Control
@@ -191,9 +159,7 @@ export default function CommitChartFilters({
           <span className="commit-metrics-chart-control-label">Sampling</span>
           <select
             value={draftSampling}
-            onChange={(event) =>
-              setDraftSampling(event.target.value as CommitSampling)
-            }
+            onChange={(event) => setDraftSampling(event.target.value as CommitSampling)}
             aria-label="Commit sampling interval"
             className="commit-metrics-chart-select commit-metrics-chart-sampling-select"
           >
@@ -205,17 +171,13 @@ export default function CommitChartFilters({
           </select>
         </label>
         <label className="commit-metrics-chart-control">
-          <span className="commit-metrics-chart-control-label">
-            Min. change
-          </span>
+          <span className="commit-metrics-chart-control-label">Min. change</span>
           <input
             type="number"
             min={0}
             step="any"
             value={draftMetricChangeThresholdInput}
-            onChange={(event) =>
-              setDraftMetricChangeThresholdInput(event.target.value)
-            }
+            onChange={(event) => setDraftMetricChangeThresholdInput(event.target.value)}
             disabled={selectedMetric === NONE_METRIC}
             aria-label="Minimum metric change to show a commit"
             title={

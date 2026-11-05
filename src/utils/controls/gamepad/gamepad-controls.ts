@@ -53,19 +53,13 @@ export type GamepadInteractionCallbacks = {
   select?(intersection: THREE.Intersection): void;
   interact?(intersection: THREE.Intersection): void;
   inspect?(intersection: THREE.Intersection, canvasPos: Position2D): void;
-  ping?(
-    obj: THREE.Object3D | null,
-    pingPosition: THREE.Vector3,
-    durationInMs?: number
-  ): void;
+  ping?(obj: THREE.Object3D | null, pingPosition: THREE.Vector3, durationInMs?: number): void;
 };
 
 export default class GamepadControls {
   private connectedGamepads: any = {};
   private gamepadAvailable = false;
-  private gamepadEnabled =
-    useUserSettingsStore.getState().visualizationSettings.enableGamepadControls
-      .value;
+  private gamepadEnabled = useUserSettingsStore.getState().visualizationSettings.enableGamepadControls.value;
   private mapping = gamepadMappings[0];
 
   private camera: THREE.Camera;
@@ -80,12 +74,7 @@ export default class GamepadControls {
   // By default, these are OrbitControls by three.js
   private controls: any;
 
-  constructor(
-    camera: THREE.Camera,
-    scene: THREE.Scene,
-    controls: any,
-    callbacks: GamepadInteractionCallbacks
-  ) {
+  constructor(camera: THREE.Camera, scene: THREE.Scene, controls: any, callbacks: GamepadInteractionCallbacks) {
     this.camera = camera;
     this.scene = scene;
     this.controls = controls;
@@ -98,16 +87,8 @@ export default class GamepadControls {
     if (typeof navigator.getGamepads !== 'function') {
       console.error('Gamepad API might not be supported on this browser.');
     } else {
-      window.addEventListener(
-        'gamepadconnected',
-        this.onGamepadConnected.bind(this),
-        false
-      );
-      window.addEventListener(
-        'gamepaddisconnected',
-        this.onGamepadDisconnected.bind(this),
-        false
-      );
+      window.addEventListener('gamepadconnected', this.onGamepadConnected.bind(this), false);
+      window.addEventListener('gamepaddisconnected', this.onGamepadDisconnected.bind(this), false);
     }
 
     for (let button = 0; button < NUMBER_OF_BUTTONS; button++) {
@@ -148,8 +129,7 @@ export default class GamepadControls {
 
     // Update button presses
     for (let button = 0; button < NUMBER_OF_BUTTONS; button++) {
-      this.buttonJustPressed[button] =
-        !this.buttonPressed[button] && this.isButtonPressed(Number(button));
+      this.buttonJustPressed[button] = !this.buttonPressed[button] && this.isButtonPressed(Number(button));
       this.buttonPressed[button] = this.isButtonPressed(Number(button));
     }
 
@@ -163,16 +143,11 @@ export default class GamepadControls {
 
     // The more the stick is pressed, the faster the camera should move
     const EXPONENT = 6;
-    const AXIS_SCALE = Math.sqrt(
-      STICK_LEFT_H ** EXPONENT + STICK_LEFT_V ** EXPONENT
-    );
+    const AXIS_SCALE = Math.sqrt(STICK_LEFT_H ** EXPONENT + STICK_LEFT_V ** EXPONENT);
 
     // Scale directional vector with speed constant. Note we do not want to
     // apply vertical movement if camera faces downward
-    this.moveDirection
-      .normalize()
-      .multiplyScalar(AXIS_SCALE)
-      .multiplyScalar(SPEED_HORIZONTAL);
+    this.moveDirection.normalize().multiplyScalar(AXIS_SCALE).multiplyScalar(SPEED_HORIZONTAL);
 
     this.controls.pan(-this.moveDirection.x, -this.moveDirection.y);
 
@@ -249,9 +224,7 @@ export default class GamepadControls {
 
   private getGamepad(): Gamepad | null {
     const gamepads = navigator.getGamepads();
-    const selectedGamepadIndex =
-      useUserSettingsStore.getState().visualizationSettings.selectedGamepadIndex
-        .value;
+    const selectedGamepadIndex = useUserSettingsStore.getState().visualizationSettings.selectedGamepadIndex.value;
 
     if (!gamepads || !gamepads[selectedGamepadIndex]) {
       console.error('No connected gamepad could be found');

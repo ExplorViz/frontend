@@ -9,17 +9,11 @@ export default function VscodeExtensionSettings() {
   const isConnected = useIdeWebsocketFacadeStore((state) => state.isConnected);
   const roomName = useIdeWebsocketFacadeStore((state) => state.roomName);
 
-  const numConnectedIDEs = useIdeWebsocketFacadeStore(
-    (state) => state.numConnectedIDEs
-  );
+  const numConnectedIDEs = useIdeWebsocketFacadeStore((state) => state.numConnectedIDEs);
 
-  const restartConnection = useIdeWebsocketFacadeStore(
-    (state) => state.restartConnection
-  );
+  const restartConnection = useIdeWebsocketFacadeStore((state) => state.restartConnection);
 
-  const showInfoToastMessage = useToastHandlerStore(
-    (state) => state.showInfoToastMessage
-  );
+  const showInfoToastMessage = useToastHandlerStore((state) => state.showInfoToastMessage);
 
   const connectToIDE = () => {
     showInfoToastMessage('Connect to IDE');
@@ -38,10 +32,7 @@ export default function VscodeExtensionSettings() {
               trigger={['hover', 'focus']}
               overlay={<Tooltip> Copy room name to clipboard</Tooltip>}
             >
-              <CopyButton
-                text={roomName}
-                successMessage="Room name copied to clipboard"
-              ></CopyButton>
+              <CopyButton text={roomName} successMessage="Room name copied to clipboard"></CopyButton>
             </OverlayTrigger>
           </div>
           <div>
@@ -54,12 +45,7 @@ export default function VscodeExtensionSettings() {
       )}
 
       <div className="d-grid gap-2">
-        <Button
-          title="Connect"
-          onClick={connectToIDE}
-          variant="outline-secondary"
-          className="w-100"
-        >
+        <Button title="Connect" onClick={connectToIDE} variant="outline-secondary" className="w-100">
           Connect IDE
         </Button>
       </div>

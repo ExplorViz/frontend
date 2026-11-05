@@ -3,9 +3,7 @@ import AttributesTable from 'explorviz-frontend/src/components/attributes-table'
 import DualRangeSlider from 'explorviz-frontend/src/components/dual-range-slider';
 import EntitySelect from 'explorviz-frontend/src/components/entity-select';
 import HelpTooltip from 'explorviz-frontend/src/components/help-tooltip';
-import useLogFetch, {
-  LogSearchParams,
-} from 'explorviz-frontend/src/hooks/fetch/useLogFetch';
+import useLogFetch, { LogSearchParams } from 'explorviz-frontend/src/hooks/fetch/useLogFetch';
 import useLogSeverityFetch from 'explorviz-frontend/src/hooks/fetch/useLogSeverityFetch';
 import { useCameraControlsStore } from 'explorviz-frontend/src/stores/camera-controls-store';
 import { useLandscapeTokenStore } from 'explorviz-frontend/src/stores/landscape-token';
@@ -16,32 +14,15 @@ import {
   unixNanosecondsToDatetimeLocal,
 } from 'explorviz-frontend/src/utils/datetime/datetime-local-convert';
 import { Log } from 'explorviz-frontend/src/utils/landscape-schemes/telemetry/logs';
-import { pingByModelId } from 'explorviz-frontend/src/view-objects/3d/city/animated-ping-r3f';
+import { pingByModelId } from 'explorviz-frontend/src/view-objects/3d/city/ping-animation';
 import React, { use, useCallback, useEffect, useState } from 'react';
-import {
-  Accordion,
-  Badge,
-  Button,
-  Card,
-  Form,
-  OverlayTrigger,
-  Spinner,
-  Tooltip,
-} from 'react-bootstrap';
+import { Accordion, Badge, Button, Card, Form, OverlayTrigger, Spinner, Tooltip } from 'react-bootstrap';
 import { List, RowComponentProps, useDynamicRowHeight } from 'react-window';
 import { useInfiniteLoader } from 'react-window-infinite-loader';
 import { ToolbarContext } from '../toolbar-context';
 
 function severityNumberToName(severityNumber: number) {
-  const labels = [
-    'unspecified',
-    'trace',
-    'debug',
-    'info',
-    'warn',
-    'error',
-    'fatal',
-  ];
+  const labels = ['unspecified', 'trace', 'debug', 'info', 'warn', 'error', 'fatal'];
 
   return labels[Math.ceil(severityNumber / 4)] ?? 'invalid';
 }
@@ -68,30 +49,21 @@ const defaultSearchParams: LogSearchParams = {
 const PAGINATION_SIZE = 50;
 
 export default function LogSearch() {
-  const cities = Object.values(useModelStore((state) => state.cities)).toSorted(
-    (a, b) => a.name.localeCompare(b.name)
-  );
+  const cities = Object.values(useModelStore((state) => state.cities)).toSorted((a, b) => a.name.localeCompare(b.name));
   const landscapeToken = useLandscapeTokenStore((state) => state.token);
-  const showErrorToastMessage = useToastHandlerStore(
-    (state) => state.showErrorToastMessage
-  );
+  const showErrorToastMessage = useToastHandlerStore((state) => state.showErrorToastMessage);
 
   const toolbarContext = use(ToolbarContext);
   const searchRequest = toolbarContext.telemetrySearchState.logSearchRequest;
 
   const [logs, setLogs] = useState<Log[] | null>(null);
-  const [searchParams, setSearchParams] =
-    useState<LogSearchParams>(defaultSearchParams);
-  const [lastSubmittedParams, setLastSubmittedParams] =
-    useState<LogSearchParams | null>(null);
+  const [searchParams, setSearchParams] = useState<LogSearchParams>(defaultSearchParams);
+  const [lastSubmittedParams, setLastSubmittedParams] = useState<LogSearchParams | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [allItemsLoaded, setAllItemsLoaded] = useState<boolean>(false);
-  const [prevSearchRequest, setPrevSearchRequest] =
-    useState<LogSearchParams | null>(null);
+  const [prevSearchRequest, setPrevSearchRequest] = useState<LogSearchParams | null>(null);
   const [isSeverityAsNumber, setIsSeverityAsNumber] = useState<boolean>(true);
-  const [severityTextValues, setSeverityTextValues] = useState<string[] | null>(
-    null
-  );
+  const [severityTextValues, setSeverityTextValues] = useState<string[] | null>(null);
 
   const fetchLogs = useLogFetch();
   const fetchLogSeverities = useLogSeverityFetch();
@@ -112,9 +84,7 @@ export default function LogSearch() {
           limit: PAGINATION_SIZE,
         });
 
-        setLogs((state) =>
-          state === null ? receivedLogs : [...state, ...receivedLogs]
-        );
+        setLogs((state) => (state === null ? receivedLogs : [...state, ...receivedLogs]));
 
         setIsLoading(false);
         if (receivedLogs.length < PAGINATION_SIZE) {
@@ -123,9 +93,7 @@ export default function LogSearch() {
       } catch (error) {
         setIsLoading(false);
         setAllItemsLoaded(true);
-        showErrorToastMessage(
-          `Failed to retrieve logs: ${error instanceof Error ? error.message : error}`
-        );
+        showErrorToastMessage(`Failed to retrieve logs: ${error instanceof Error ? error.message : error}`);
       }
     },
     [landscapeToken, fetchLogs, showErrorToastMessage]
@@ -166,10 +134,7 @@ export default function LogSearch() {
   };
 
   const handleSeverityTextSelectFocus: React.FocusEventHandler = async () => {
-    if (
-      !landscapeToken ||
-      (severityTextValues !== null && severityTextValues.length > 0)
-    ) {
+    if (!landscapeToken || (severityTextValues !== null && severityTextValues.length > 0)) {
       return;
     }
 
@@ -227,9 +192,7 @@ export default function LogSearch() {
             <Form.Control
               name="messageBody"
               value={searchParams.messageBody ?? ''}
-              onChange={(e) =>
-                updateSearchParams({ messageBody: e.target.value })
-              }
+              onChange={(e) => updateSearchParams({ messageBody: e.target.value })}
               placeholder='e.g. "successful", "network error", &hellip;'
               className="mb-2"
             />
@@ -246,9 +209,7 @@ export default function LogSearch() {
                 </>
               }
               checked={searchParams.includeAttributeKeys ?? false}
-              onChange={(e) =>
-                updateSearchParams({ includeAttributeKeys: e.target.checked })
-              }
+              onChange={(e) => updateSearchParams({ includeAttributeKeys: e.target.checked })}
               inline
             />
             <Form.Check
@@ -264,9 +225,7 @@ export default function LogSearch() {
                 </>
               }
               checked={searchParams.includeAttributeValues ?? false}
-              onChange={(e) =>
-                updateSearchParams({ includeAttributeValues: e.target.checked })
-              }
+              onChange={(e) => updateSearchParams({ includeAttributeValues: e.target.checked })}
               inline
             />
           </Form.Group>
@@ -282,9 +241,7 @@ export default function LogSearch() {
             <Form.Select
               name="serviceName"
               value={searchParams.serviceName ?? ''}
-              onChange={(e) =>
-                updateSearchParams({ serviceName: e.target.value })
-              }
+              onChange={(e) => updateSearchParams({ serviceName: e.target.value })}
             >
               <option value="">Any</option>
               {cities.length > 0 && (
@@ -364,31 +321,21 @@ export default function LogSearch() {
                   lowerFormName="minSeverity"
                   upperFormName="maxSeverity"
                   value={[searchParams.minSeverity, searchParams.maxSeverity]}
-                  onChange={([min, max]) =>
-                    updateSearchParams({ minSeverity: min, maxSeverity: max })
-                  }
+                  onChange={([min, max]) => updateSearchParams({ minSeverity: min, maxSeverity: max })}
                   disabled={isLoading}
-                  getTooltipText={(val) =>
-                    `${val} (${severityNumberToName(val)})`
-                  }
+                  getTooltipText={(val) => `${val} (${severityNumberToName(val)})`}
                 />
               ) : (
                 <Form.Select
                   name="severityText"
                   onFocus={handleSeverityTextSelectFocus}
                   value={searchParams.severityText ?? ''}
-                  onChange={(e) =>
-                    updateSearchParams({ severityText: e.target.value })
-                  }
+                  onChange={(e) => updateSearchParams({ severityText: e.target.value })}
                 >
                   <option value="">Any</option>
-                  {severityTextValues && severityTextValues.length > 0 && (
-                    <option disabled>────────</option>
-                  )}
+                  {severityTextValues && severityTextValues.length > 0 && <option disabled>────────</option>}
                   {severityTextValues ? (
-                    severityTextValues.map((severity) => (
-                      <option key={severity}>{severity}</option>
-                    ))
+                    severityTextValues.map((severity) => <option key={severity}>{severity}</option>)
                   ) : (
                     <option disabled>Loading &hellip;</option>
                   )}
@@ -445,17 +392,12 @@ export default function LogSearch() {
             <Form.Group className="mb-3 col-md-6">
               <Form.Label>
                 Trace ID{' '}
-                <HelpTooltip
-                  title="Only match logs that are associated with a specific trace."
-                  placement="top"
-                />
+                <HelpTooltip title="Only match logs that are associated with a specific trace." placement="top" />
               </Form.Label>
               <Form.Control
                 name="traceId"
                 value={searchParams.traceId ?? ''}
-                onChange={(e) =>
-                  updateSearchParams({ traceId: e.target.value })
-                }
+                onChange={(e) => updateSearchParams({ traceId: e.target.value })}
                 placeholder="e.g. 5b8aa5a2d2c872e8321cf37308d69df2"
               ></Form.Control>
             </Form.Group>
@@ -463,10 +405,7 @@ export default function LogSearch() {
             <Form.Group className="mb-3 col-md-6">
               <Form.Label>
                 Span ID{' '}
-                <HelpTooltip
-                  title="Only match logs that are associated with a specific span."
-                  placement="top"
-                />
+                <HelpTooltip title="Only match logs that are associated with a specific span." placement="top" />
               </Form.Label>
               <Form.Control
                 name="spanId"
@@ -494,8 +433,7 @@ export default function LogSearch() {
                 label="Newest"
                 checked={searchParams.sortBy === 'newest'}
                 onChange={(e) => {
-                  if (e.target.checked)
-                    updateSearchParams({ sortBy: 'newest' });
+                  if (e.target.checked) updateSearchParams({ sortBy: 'newest' });
                 }}
               />
               <Form.Check
@@ -506,8 +444,7 @@ export default function LogSearch() {
                 label="Oldest"
                 checked={searchParams.sortBy === 'oldest'}
                 onChange={(e) => {
-                  if (e.target.checked)
-                    updateSearchParams({ sortBy: 'oldest' });
+                  if (e.target.checked) updateSearchParams({ sortBy: 'oldest' });
                 }}
               />
               <Form.Check
@@ -518,19 +455,14 @@ export default function LogSearch() {
                 label="Severity"
                 checked={searchParams.sortBy === 'severity'}
                 onChange={(e) => {
-                  if (e.target.checked)
-                    updateSearchParams({ sortBy: 'severity' });
+                  if (e.target.checked) updateSearchParams({ sortBy: 'severity' });
                 }}
               />
             </div>
           </Form.Group>
 
           <Button type="submit" className="d-flex align-items-center gap-2">
-            {isLoading ? (
-              <Spinner animation="border" size="sm" />
-            ) : (
-              <SearchIcon />
-            )}
+            {isLoading ? <Spinner animation="border" size="sm" /> : <SearchIcon />}
             <div>Search Logs</div>
           </Button>
         </Form>
@@ -575,13 +507,9 @@ function LogItem({
 }>) {
   const cities = useModelStore((state) => state.cities);
   const buildings = useModelStore((state) => state.buildings);
-  const telemetryKeyToEntityId = useModelStore(
-    (state) => state.telemetryKeyToEntityId
-  );
+  const telemetryKeyToEntityId = useModelStore((state) => state.telemetryKeyToEntityId);
   const lookAtEntity = useCameraControlsStore((state) => state.lookAtEntity);
-  const showErrorToastMessage = useToastHandlerStore(
-    (state) => state.showErrorToastMessage
-  );
+  const showErrorToastMessage = useToastHandlerStore((state) => state.showErrorToastMessage);
 
   const toolbarContext = use(ToolbarContext);
 
@@ -598,9 +526,7 @@ function LogItem({
 
     const city = Object.values(cities).find((c) => c.name === log.serviceName);
     if (!city) {
-      showErrorToastMessage(
-        'The service could not be found in the current visualization'
-      );
+      showErrorToastMessage('The service could not be found in the current visualization');
       return;
     }
 
@@ -642,23 +568,15 @@ function LogItem({
   return (
     <div style={style}>
       <Accordion.Item className="mb-2 me-2 border rounded-0" eventKey={log.id}>
-        <Accordion.Button
-          className="border-0 rounded-0"
-          style={{ padding: '8px 12px' }}
-        >
+        <Accordion.Button className="border-0 rounded-0" style={{ padding: '8px 12px' }}>
           <small>
-            <Badge
-              pill
-              bg={severityNameToBsColor(severityName)}
-              className="me-2"
-            >
+            <Badge pill bg={severityNameToBsColor(severityName)} className="me-2">
               <samp>{severityName.at(0)?.toUpperCase()}</samp>
             </Badge>
           </small>
           <samp className="text-truncate">
             <small>
-              <code>{unixNanosecondsToDatetimeLocal(log.timeUnixNano)}</code>{' '}
-              {`${log.messageBody}`}
+              <code>{unixNanosecondsToDatetimeLocal(log.timeUnixNano)}</code> {`${log.messageBody}`}
             </small>
           </samp>
         </Accordion.Button>
@@ -676,10 +594,7 @@ function LogItem({
                 <dt>Severity</dt>
                 <dd>
                   <Badge bg={severityNameToBsColor(severityName)}>
-                    {log.severity}{' '}
-                    <code className="text-light">
-                      ({severityName.toUpperCase()})
-                    </code>
+                    {log.severity} <code className="text-light">({severityName.toUpperCase()})</code>
                   </Badge>
                 </dd>
 
@@ -708,9 +623,7 @@ function LogItem({
                       <OverlayTrigger
                         placement={'top'}
                         trigger={['hover', 'focus']}
-                        overlay={
-                          <Tooltip>Highlight entity in visualization</Tooltip>
-                        }
+                        overlay={<Tooltip>Highlight entity in visualization</Tooltip>}
                       >
                         <small>
                           <a href="#" onClick={handleEntityClick}>
@@ -722,16 +635,9 @@ function LogItem({
                       <OverlayTrigger
                         placement={'top'}
                         trigger={['hover', 'focus']}
-                        overlay={
-                          <Tooltip>Search all logs for this entity</Tooltip>
-                        }
+                        overlay={<Tooltip>Search all logs for this entity</Tooltip>}
                       >
-                        <Button
-                          variant="light"
-                          size="sm"
-                          className="ms-1"
-                          onClick={handleSearchEntityClick}
-                        >
+                        <Button variant="light" size="sm" className="ms-1" onClick={handleSearchEntityClick}>
                           <SearchIcon />
                         </Button>
                       </OverlayTrigger>
@@ -746,9 +652,7 @@ function LogItem({
                       <OverlayTrigger
                         placement={'top'}
                         trigger={['hover', 'focus']}
-                        overlay={
-                          <Tooltip>Highlight service in visualization</Tooltip>
-                        }
+                        overlay={<Tooltip>Highlight service in visualization</Tooltip>}
                       >
                         <small>
                           <a href="#" onClick={handleServiceNameClick}>
@@ -760,16 +664,9 @@ function LogItem({
                       <OverlayTrigger
                         placement={'top'}
                         trigger={['hover', 'focus']}
-                        overlay={
-                          <Tooltip>Search all logs for this service</Tooltip>
-                        }
+                        overlay={<Tooltip>Search all logs for this service</Tooltip>}
                       >
-                        <Button
-                          variant="light"
-                          size="sm"
-                          className="ms-1"
-                          onClick={handleSearchServiceClick}
-                        >
+                        <Button variant="light" size="sm" className="ms-1" onClick={handleSearchServiceClick}>
                           <SearchIcon />
                         </Button>
                       </OverlayTrigger>
@@ -784,9 +681,7 @@ function LogItem({
                       <OverlayTrigger
                         placement={'top'}
                         trigger={['hover', 'focus']}
-                        overlay={
-                          <Tooltip>Search all logs for this trace</Tooltip>
-                        }
+                        overlay={<Tooltip>Search all logs for this trace</Tooltip>}
                       >
                         <small>
                           <a href="#" onClick={handleTraceIdClick}>
@@ -805,9 +700,7 @@ function LogItem({
                       <OverlayTrigger
                         placement={'top'}
                         trigger={['hover', 'focus']}
-                        overlay={
-                          <Tooltip>Search all logs for this trace</Tooltip>
-                        }
+                        overlay={<Tooltip>Search all logs for this trace</Tooltip>}
                       >
                         <small>
                           <a href="#" onClick={handleSpanIdClick}>

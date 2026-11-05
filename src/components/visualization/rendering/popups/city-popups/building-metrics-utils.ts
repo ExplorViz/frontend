@@ -4,9 +4,7 @@ import { SOCIAL_METRICS } from 'explorviz-frontend/src/utils/landscape-schemes/s
 
 export const NULL_METRIC_DISPLAY = '—';
 
-export function coerceMetricNumber(
-  value: number | null | undefined
-): number | null {
+export function coerceMetricNumber(value: number | null | undefined): number | null {
   if (value == null) {
     return null;
   }
@@ -24,9 +22,7 @@ export function formatInteger(value: number | null | undefined): string {
   return Math.round(numericValue).toLocaleString('en-US');
 }
 
-export function formatWithUpToTwoDecimals(
-  value: number | null | undefined
-): string {
+export function formatWithUpToTwoDecimals(value: number | null | undefined): string {
   const numericValue = coerceMetricNumber(value);
   if (numericValue === null) {
     return NULL_METRIC_DISPLAY;
@@ -53,9 +49,7 @@ export function formatSizeMetric(valueInBytes: number): string {
   return `${formatWithUpToTwoDecimals(valueInBytes)} Bytes`;
 }
 
-export function getMetricNumericValue(
-  value: MetricValue | number | string | null | undefined
-): number | null {
+export function getMetricNumericValue(value: MetricValue | number | string | null | undefined): number | null {
   if (value == null) {
     return null;
   }
@@ -67,9 +61,7 @@ export function getMetricNumericValue(
   return coerceMetricNumber(value.current);
 }
 
-export function getMetricPreviousNumericValue(
-  value: MetricValue | number | string | null | undefined
-): number | null {
+export function getMetricPreviousNumericValue(value: MetricValue | number | string | null | undefined): number | null {
   if (value == null || typeof value !== 'object') {
     return null;
   }
@@ -77,10 +69,7 @@ export function getMetricPreviousNumericValue(
   return coerceMetricNumber(value.previous);
 }
 
-export function formatMetricValue(
-  name: string,
-  value: number | null | undefined
-): string {
+export function formatMetricValue(name: string, value: number | null | undefined): string {
   if (name.trim().toLowerCase() === 'size') {
     const numericValue = coerceMetricNumber(value);
     if (numericValue === null) {
@@ -97,13 +86,8 @@ export function formatMetricValue(
   return formatInteger(value);
 }
 
-export function accumulateBuildingMetrics(
-  buildingIds: string[]
-): Record<string, MetricValue> {
-  const aggregated = new Map<
-    string,
-    { current: number; previous: number; hasPrevious: boolean }
-  >();
+export function accumulateBuildingMetrics(buildingIds: string[]): Record<string, MetricValue> {
+  const aggregated = new Map<string, { current: number; previous: number; hasPrevious: boolean }>();
 
   buildingIds.forEach((buildingId) => {
     const building = useModelStore.getState().getBuilding(buildingId);
@@ -131,14 +115,12 @@ export function accumulateBuildingMetrics(
   });
 
   return Object.fromEntries(
-    [...aggregated.entries()].map(
-      ([name, { current, previous, hasPrevious }]) => [
-        name,
-        {
-          current,
-          previous: hasPrevious ? previous : undefined,
-        },
-      ]
-    )
+    [...aggregated.entries()].map(([name, { current, previous, hasPrevious }]) => [
+      name,
+      {
+        current,
+        previous: hasPrevious ? previous : undefined,
+      },
+    ])
   );
 }

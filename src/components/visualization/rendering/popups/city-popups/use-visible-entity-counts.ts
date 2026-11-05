@@ -60,30 +60,14 @@ export function useVisibleEntityCounts({
 }
 
 export function countVisibleEntities(
-  {
-    directDistrictIds,
-    containedDistrictIds,
-    directBuildingIds,
-    containedBuildingIds,
-  }: VisibleEntityCountsInput,
+  { directDistrictIds, containedDistrictIds, directBuildingIds, containedBuildingIds }: VisibleEntityCountsInput,
   context: EntityVisibilityContext,
   animation: EvolutionAnimationSnapshot = getEvolutionAnimationSnapshot()
 ): VisibleEntityCounts {
   return {
     directDistrictCount: countVisibleDistrictIds(directDistrictIds, context),
-    containedDistrictCount: countVisibleDistrictIds(
-      containedDistrictIds,
-      context
-    ),
-    directBuildingCount: countVisibleBuildingIds(
-      directBuildingIds,
-      context,
-      animation
-    ),
-    containedBuildingCount: countVisibleBuildingIds(
-      containedBuildingIds,
-      context,
-      animation
-    ),
+    containedDistrictCount: countVisibleDistrictIds(containedDistrictIds, context),
+    directBuildingCount: countVisibleBuildingIds(directBuildingIds, context, animation),
+    containedBuildingCount: countVisibleBuildingIds(containedBuildingIds, context, animation),
   };
 }

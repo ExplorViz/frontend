@@ -1,10 +1,6 @@
 import { useEvolutionAnimationStore } from 'explorviz-frontend/src/components/visualization/page-setup/bottom-bar/animation/evolution-animation-store.ts';
 import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
-import {
-  Building,
-  City,
-  FlatLandscape,
-} from 'explorviz-frontend/src/utils/landscape-schemes/flat-landscape';
+import { Building, City, FlatLandscape } from 'explorviz-frontend/src/utils/landscape-schemes/flat-landscape';
 import BoxLayout from 'explorviz-frontend/src/utils/layout/box-layout';
 
 type SpiralState = {
@@ -21,10 +17,7 @@ type SpiralConfig = {
   segmentAddition: number;
 };
 
-function collectCityBuildings(
-  flatLandscape: FlatLandscape,
-  city: City
-): Building[] {
+function collectCityBuildings(flatLandscape: FlatLandscape, city: City): Building[] {
   const buildingsById = new Map<string, Building>();
 
   for (const buildingId of city.allContainedBuildingIds) {
@@ -59,18 +52,11 @@ function collectCityBuildings(
     .map((entry) => entry.building);
 }
 
-export function countCityBuildings(
-  flatLandscape: FlatLandscape,
-  city: City
-): number {
+export function countCityBuildings(flatLandscape: FlatLandscape, city: City): number {
   return collectCityBuildings(flatLandscape, city).length;
 }
 
-function advanceInSpiral(
-  spiralState: SpiralState,
-  spiralConfig: SpiralConfig,
-  advanceSteps: number = 1
-) {
+function advanceInSpiral(spiralState: SpiralState, spiralConfig: SpiralConfig, advanceSteps: number = 1) {
   for (let i = 0; i < advanceSteps; i++) {
     if (spiralState.stepsRemaining > 0) {
       // Move in current direction
@@ -124,9 +110,7 @@ export function calculateSpiralSideLength(
 
   const MARGIN_FACTOR = 1.25;
   const sideLength =
-    Math.sqrt(
-      (buildingCount + spiralCenterOffset) * (spiralGap + 1) * MARGIN_FACTOR
-    ) *
+    Math.sqrt((buildingCount + spiralCenterOffset) * (spiralGap + 1) * MARGIN_FACTOR) *
     (buildingFootprint + buildingMargin);
 
   return sideLength;
@@ -219,11 +203,7 @@ export function applySpiralLayoutToClasses(
       segmentAddition: SPIRAL_GAP,
     };
 
-    spiralState = advanceInSpiral(
-      spiralState,
-      spiralConfig,
-      SPIRAL_CENTER_OFFSET
-    );
+    spiralState = advanceInSpiral(spiralState, spiralConfig, SPIRAL_CENTER_OFFSET);
 
     buildings.forEach((building, _) => {
       const classLayout = new BoxLayout();

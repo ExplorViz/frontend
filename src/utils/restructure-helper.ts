@@ -61,11 +61,7 @@ export function getClassInApplicationById(app: Application, id: string) {
  * @param counter A unique identifier to aid in creating unique entities.
  * @returns The newly created node with its child entities.
  */
-export function addFoundationToLandscape(
-  appName: string,
-  language: string,
-  counter: number
-) {
+export function addFoundationToLandscape(appName: string, language: string, counter: number) {
   const myNode: Node = {
     id: 'newNode ' + counter,
     ipAddress: '192.168.1.' + counter,
@@ -82,10 +78,7 @@ export function addFoundationToLandscape(
     packages: [],
   };
 
-  const newPckg = createPackage(
-    'newPackage' + counter,
-    'New Package ' + counter
-  );
+  const newPckg = createPackage('newPackage' + counter, 'New Package ' + counter);
 
   const newClass = createClass('newClass' + counter, 'New Class ' + counter);
   newClass.parent = newPckg;
@@ -186,11 +179,7 @@ export function createClass(id: string, name: string) {
  * @param methodName The name of the method.
  * @param isCopy A flag indicating if the method is a copy.
  */
-export function addMethodToClass(
-  clazz: Class,
-  methodName: string,
-  isCopy: boolean = false
-) {
+export function addMethodToClass(clazz: Class, methodName: string, isCopy: boolean = false) {
   const newMethod: Method = !isCopy
     ? {
         name: methodName,
@@ -252,21 +241,14 @@ export function copyClassContent(clazzToCopy: Class) {
  * @param landscapeStructure The landscape data which contains the app
  * @param app The application that needs to be removed
  */
-export function removeApplication(
-  landscapeStructure: StructureLandscapeData,
-  app: Application
-) {
+export function removeApplication(landscapeStructure: StructureLandscapeData, app: Application) {
   const parentNode = getNodeById(landscapeStructure, app.parentId)!;
 
   //If the node contains only of the one application, then delete the whole node, otherwise remove application from node.
   if (parentNode.applications.length <= 1) {
-    landscapeStructure.nodes = landscapeStructure.nodes.filter(
-      (node) => node.id != parentNode.id
-    );
+    landscapeStructure.nodes = landscapeStructure.nodes.filter((node) => node.id != parentNode.id);
   } else {
-    parentNode.applications = parentNode.applications.filter(
-      (appl) => appl.id != app.id
-    );
+    parentNode.applications = parentNode.applications.filter((appl) => appl.id != app.id);
   }
 }
 
@@ -275,16 +257,11 @@ export function removeApplication(
  * @param pckgToRemove The package that needs to be removed
  * @param app The application where the package resides in
  */
-export function removePackageFromApplication(
-  pckgToRemove: Package,
-  app: Application
-) {
+export function removePackageFromApplication(pckgToRemove: Package, app: Application) {
   const parentPackage = pckgToRemove.parent;
 
   if (parentPackage) {
-    parentPackage.subPackages = parentPackage.subPackages.filter(
-      (packg) => packg.id != pckgToRemove.id
-    );
+    parentPackage.subPackages = parentPackage.subPackages.filter((packg) => packg.id != pckgToRemove.id);
   } else {
     app.packages = app.packages.filter((pckg) => pckg.id !== pckgToRemove.id);
   }
@@ -312,9 +289,7 @@ export function canDeletePackage(pckgToRemove: Package, app: Application) {
 export function removeClassFromPackage(clazzToRemove: Class) {
   const parentPackage = clazzToRemove.parent;
   if (parentPackage) {
-    parentPackage.classes = parentPackage.classes.filter(
-      (clzz) => clzz.id != clazzToRemove.id
-    );
+    parentPackage.classes = parentPackage.classes.filter((clzz) => clzz.id != clazzToRemove.id);
   }
 }
 
@@ -345,15 +320,8 @@ export function pastePackage(
     // Get the main application containing the destimination package
     const firstPackage = getAncestorPackages(pasteToDestination);
     if (firstPackage.length > 0)
-      destinationApplication = getApplicationFromPackage(
-        landscapeStructure,
-        firstPackage[firstPackage.length - 1].id
-      );
-    else
-      destinationApplication = getApplicationFromPackage(
-        landscapeStructure,
-        pasteToDestination.id
-      );
+      destinationApplication = getApplicationFromPackage(landscapeStructure, firstPackage[firstPackage.length - 1].id);
+    else destinationApplication = getApplicationFromPackage(landscapeStructure, pasteToDestination.id);
 
     // Insert the package to be moved under the destination package
     insertPackageToPackage(pasteToDestination, copiedPackage);
@@ -388,15 +356,8 @@ export function pasteClass(
 
     // Find the application of destination package
     if (firstPackage.length > 0)
-      destinationApplication = getApplicationFromPackage(
-        landscapeStructure,
-        firstPackage[firstPackage.length - 1].id
-      );
-    else
-      destinationApplication = getApplicationFromPackage(
-        landscapeStructure,
-        pasteToDestination.id
-      );
+      destinationApplication = getApplicationFromPackage(landscapeStructure, firstPackage[firstPackage.length - 1].id);
+    else destinationApplication = getApplicationFromPackage(landscapeStructure, pasteToDestination.id);
 
     if (commsWrapper.comms.length) {
       copyCommunications([copiedClass], commsWrapper, destinationApplication);
@@ -433,15 +394,8 @@ export function movePackage(
     // Get the main application containing the destimination package
     const firstPackage = getAncestorPackages(destination);
     if (firstPackage.length > 0)
-      destinationApplication = getApplicationFromPackage(
-        landscapeStructure,
-        firstPackage[firstPackage.length - 1].id
-      );
-    else
-      destinationApplication = getApplicationFromPackage(
-        landscapeStructure,
-        destination.id
-      );
+      destinationApplication = getApplicationFromPackage(landscapeStructure, firstPackage[firstPackage.length - 1].id);
+    else destinationApplication = getApplicationFromPackage(landscapeStructure, destination.id);
 
     // Insert the package to be moved under the destination package
     insertPackageToPackage(destination, clippedPackage);
@@ -455,11 +409,7 @@ export function movePackage(
   if (wrapper.comms.length > 0) {
     const classesInPackage = getClassesInPackage(clippedPackage);
 
-    updateAffectedCommunications(
-      classesInPackage,
-      wrapper,
-      destinationApplication
-    );
+    updateAffectedCommunications(classesInPackage, wrapper, destinationApplication);
   }
 }
 
@@ -488,22 +438,11 @@ export function moveClass(
 
     // Find the application of destination package
     if (firstPackage.length > 0)
-      destinationApplication = getApplicationFromPackage(
-        landscapeStructure,
-        firstPackage[firstPackage.length - 1].id
-      );
-    else
-      destinationApplication = getApplicationFromPackage(
-        landscapeStructure,
-        clipToDestination.id
-      );
+      destinationApplication = getApplicationFromPackage(landscapeStructure, firstPackage[firstPackage.length - 1].id);
+    else destinationApplication = getApplicationFromPackage(landscapeStructure, clipToDestination.id);
 
     if (commsWrapper.comms.length) {
-      updateAffectedCommunications(
-        [clippedClass],
-        commsWrapper,
-        destinationApplication
-      );
+      updateAffectedCommunications([clippedClass], commsWrapper, destinationApplication);
     }
 
     // Add the moved class to the destination package's classes
@@ -561,10 +500,7 @@ export function changeID(
   }
 }
 
-export function restoreID(
-  wrapper: { entity: Application | Package | Class },
-  prependID: string
-) {
+export function restoreID(wrapper: { entity: Application | Package | Class }, prependID: string) {
   if (isApplication(wrapper.entity)) {
     const allPackages = getAllPackagesInApplication(wrapper.entity);
     const allClasses = getAllClassesInApplication(wrapper.entity);
@@ -648,10 +584,7 @@ function copyCommunications(
   const copiedCommsMap = new Map();
   classesInPackage.forEach((clazz) =>
     commsWrapper.comms.forEach((comms) => {
-      if (
-        comms.sourceClass.id === clazz.id ||
-        comms.targetClass.id === clazz.id
-      ) {
+      if (comms.sourceClass.id === clazz.id || comms.targetClass.id === clazz.id) {
         let copiedComms;
         // If this communication has already been copied, retrieve the copy from the map, otherwise create a new copy and store it in the map
         if (copiedCommsMap.has(comms.id)) {
@@ -695,18 +628,12 @@ function copyCommunication(commToCopy: AggregatedCommunication, idCounter: numbe
   return comm;
 }
 
-function insertPackageToApplication(
-  destinationApp: Application,
-  clippedPackage: Package
-) {
+function insertPackageToApplication(destinationApp: Application, clippedPackage: Package) {
   destinationApp.packages.push(clippedPackage);
   delete clippedPackage.parent;
 }
 
-function insertPackageToPackage(
-  destinationPckg: Package,
-  clippedPackage: Package
-) {
+function insertPackageToPackage(destinationPckg: Package, clippedPackage: Package) {
   destinationPckg.subPackages.push(clippedPackage);
   clippedPackage.parent = destinationPckg;
 }
@@ -720,8 +647,7 @@ export function removeAffectedCommunications(
 ) {
   classesInApplication.forEach((clazz) => {
     const commsToDelete = commsWrapper.comms.filter(
-      (comm) =>
-        comm.sourceClass.id === clazz.id || comm.targetClass.id === clazz.id
+      (comm) => comm.sourceClass.id === clazz.id || comm.targetClass.id === clazz.id
     );
     commsWrapper.deletedComms?.concat(commsToDelete);
   });

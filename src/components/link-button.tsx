@@ -33,14 +33,7 @@ export default function LinkButton({
 
     if (isDisabled) {
       return (
-        <Button
-          type="button"
-          variant="outline-secondary"
-          size="sm"
-          disabled
-          className={className}
-          title={tooltip}
-        >
+        <Button type="button" variant="outline-secondary" size="sm" disabled className={className} title={tooltip}>
           {content}
         </Button>
       );
@@ -63,23 +56,14 @@ export default function LinkButton({
   }
 
   const icon = (
-    <OverlayTrigger
-      placement="right"
-      trigger={['hover', 'focus']}
-      overlay={<Tooltip>{tooltip}</Tooltip>}
-    >
+    <OverlayTrigger placement="right" trigger={['hover', 'focus']} overlay={<Tooltip>{tooltip}</Tooltip>}>
       <LinkExternalIcon verticalAlign="middle" size="small" />
     </OverlayTrigger>
   );
 
   if (isDisabled) {
     return (
-      <button
-        type="button"
-        className="copy-btn button-svg-with-hover"
-        disabled
-        aria-label={tooltip}
-      >
+      <button type="button" className="copy-btn button-svg-with-hover" disabled aria-label={tooltip}>
         {icon}
       </button>
     );

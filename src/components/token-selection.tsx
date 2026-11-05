@@ -11,10 +11,7 @@ import {
 import AdditionalTokenInfo from 'explorviz-frontend/src/components/additional-token-info';
 import ShareLandscape from 'explorviz-frontend/src/components/share-landscape';
 import { useAuthStore } from 'explorviz-frontend/src/stores/auth';
-import {
-  LandscapeToken,
-  useLandscapeTokenStore,
-} from 'explorviz-frontend/src/stores/landscape-token';
+import { LandscapeToken, useLandscapeTokenStore } from 'explorviz-frontend/src/stores/landscape-token';
 import { useToastHandlerStore } from 'explorviz-frontend/src/stores/toast-handler';
 import {
   CommitTree,
@@ -41,12 +38,9 @@ export default function TokenSelection({
   deleteToken,
   reload,
 }: TokenSelectionArgs) {
-  const [sortProperty, setSortProperty] =
-    useState<keyof LandscapeToken>('value');
+  const [sortProperty, setSortProperty] = useState<keyof LandscapeToken>('value');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
-  const [editingTokenValue, setEditingTokenValue] = useState<string | null>(
-    null
-  );
+  const [editingTokenValue, setEditingTokenValue] = useState<string | null>(null);
   const [editAliasValue, setEditAliasValue] = useState<string>('');
   const editAliasInputRef = useRef<HTMLInputElement>(null);
 
@@ -61,15 +55,9 @@ export default function TokenSelection({
     input.setSelectionRange(length, length);
   }, [editingTokenValue]);
 
-  const updateTokenAlias = useLandscapeTokenStore(
-    (state) => state.updateTokenAlias
-  );
-  const showSuccessToastMessage = useToastHandlerStore(
-    (state) => state.showSuccessToastMessage
-  );
-  const showErrorToastMessage = useToastHandlerStore(
-    (state) => state.showErrorToastMessage
-  );
+  const updateTokenAlias = useLandscapeTokenStore((state) => state.updateTokenAlias);
+  const showSuccessToastMessage = useToastHandlerStore((state) => state.showSuccessToastMessage);
+  const showErrorToastMessage = useToastHandlerStore((state) => state.showErrorToastMessage);
 
   const user = useAuthStore((state) => state.user);
 
@@ -95,34 +83,23 @@ export default function TokenSelection({
     return sortOrder === 'asc' ? (valA > valB ? 1 : -1) : valA < valB ? 1 : -1;
   });
 
-  const downloadDemoSupplierFiles = async (
-    token: LandscapeToken,
-    event: React.MouseEvent
-  ) => {
+  const downloadDemoSupplierFiles = async (token: LandscapeToken, event: React.MouseEvent) => {
     event?.stopPropagation();
     // Fetch repository names first to know what else to download
-    const repoNamesResponse = await fetch(
-      `${landscapeService}/v3/landscapes/${token.value}/repositories`,
-      {
+    const repoNamesResponse = await fetch(`${landscapeService}/v3/landscapes/${token.value}/repositories`, {
+      headers: {
+        Authorization: `Bearer ${useAuthStore.getState().accessToken}`,
+      },
+    });
+
+    const repoNames: string[] = repoNamesResponse.ok ? await repoNamesResponse.json() : [];
+
+    const treePromises = repoNames.map(async (repoName) => {
+      const response = await fetch(`${landscapeService}/v3/landscapes/${token.value}/commit-tree/${repoName}`, {
         headers: {
           Authorization: `Bearer ${useAuthStore.getState().accessToken}`,
         },
-      }
-    );
-
-    const repoNames: string[] = repoNamesResponse.ok
-      ? await repoNamesResponse.json()
-      : [];
-
-    const treePromises = repoNames.map(async (repoName) => {
-      const response = await fetch(
-        `${landscapeService}/v3/landscapes/${token.value}/commit-tree/${repoName}`,
-        {
-          headers: {
-            Authorization: `Bearer ${useAuthStore.getState().accessToken}`,
-          },
-        }
-      );
+      });
       if (response.ok) {
         const tree = (await response.json()) as CommitTree;
         return { repoName, tree };
@@ -153,24 +130,17 @@ export default function TokenSelection({
       });
     });
 
-    const structurePromise = getJsonBlob(
-      `${landscapeService}/v3/landscapes/${token.value}/structure/runtime`
-    );
-    const dynamicPromise = getJsonBlob(
-      `${traceService}/v3/landscapes/${token.value}/communication`
-    );
-    const timestampPromise = getJsonBlob(
-      `${traceService}/v3/landscapes/${token.value}/timestamps`
-    );
+    const structurePromise = getJsonBlob(`${landscapeService}/v3/landscapes/${token.value}/structure/runtime`);
+    const dynamicPromise = getJsonBlob(`${traceService}/v3/landscapes/${token.value}/communication`);
+    const timestampPromise = getJsonBlob(`${traceService}/v3/landscapes/${token.value}/timestamps`);
 
     // Wait on all downloads
-    const [structureBlob, dynamicBlob, timestampBlob, commitDataResults] =
-      await Promise.all([
-        structurePromise,
-        dynamicPromise,
-        timestampPromise,
-        Promise.all(commitDataPromises),
-      ]);
+    const [structureBlob, dynamicBlob, timestampBlob, commitDataResults] = await Promise.all([
+      structurePromise,
+      dynamicPromise,
+      timestampPromise,
+      Promise.all(commitDataPromises),
+    ]);
 
     const zip = new JSZip();
     if (structureBlob) {
@@ -193,10 +163,7 @@ export default function TokenSelection({
 
     // Add commit trees
     trees.forEach(({ repoName, tree }) => {
-      zip.file(
-        `commit-tree-${repoName}.json`,
-        new Blob([JSON.stringify(tree, null, 2)], { type: 'application/json' })
-      );
+      zip.file(`commit-tree-${repoName}.json`, new Blob([JSON.stringify(tree, null, 2)], { type: 'application/json' }));
     });
 
     // Add individual commit data
@@ -222,9 +189,7 @@ export default function TokenSelection({
 
       useToastHandlerStore
         .getState()
-        .showSuccessToastMessage(
-          `Zip file with ${Object.keys(zip.files).length} JSON files ready for download.`
-        );
+        .showSuccessToastMessage(`Zip file with ${Object.keys(zip.files).length} JSON files ready for download.`);
     });
   };
 
@@ -265,10 +230,7 @@ export default function TokenSelection({
     setEditAliasValue('');
   };
 
-  const saveAlias = async (
-    token: LandscapeToken,
-    event?: React.SyntheticEvent
-  ) => {
+  const saveAlias = async (token: LandscapeToken, event?: React.SyntheticEvent) => {
     event?.stopPropagation();
     try {
       await updateTokenAlias(token.value, editAliasValue);
@@ -281,24 +243,13 @@ export default function TokenSelection({
   };
 
   return (
-    <table
-      id="token-selection-table"
-      className="table table-striped explorviz-table"
-    >
+    <table id="token-selection-table" className="table table-striped explorviz-table">
       <thead>
         <tr className="token-header-row">
-          <th
-            style={{ cursor: 'ns-resize' }}
-            scope="col"
-            onClick={() => sortBy('alias')}
-          >
+          <th style={{ cursor: 'ns-resize' }} scope="col" onClick={() => sortBy('alias')}>
             Alias
           </th>
-          <th
-            style={{ cursor: 'ns-resize' }}
-            scope="col"
-            onClick={() => sortBy('created')}
-          >
+          <th style={{ cursor: 'ns-resize' }} scope="col" onClick={() => sortBy('created')}>
             Created
           </th>
           <th scope="col"></th>
@@ -307,11 +258,7 @@ export default function TokenSelection({
       <tbody>
         {sortedTokens.length > 0 ? (
           sortedTokens.map((token) => (
-            <tr
-              key={token.alias}
-              className="token-selection-row"
-              onClick={() => selectToken(token)}
-            >
+            <tr key={token.alias} className="token-selection-row" onClick={() => selectToken(token)}>
               <td data-label="Alias">
                 {editingTokenValue === token.value ? (
                   <div className="d-flex gap-1 align-items-center">
@@ -328,18 +275,10 @@ export default function TokenSelection({
                         }
                       }}
                     />
-                    <button
-                      className="button-svg-with-hover"
-                      type="button"
-                      onClick={(e) => saveAlias(token, e)}
-                    >
+                    <button className="button-svg-with-hover" type="button" onClick={(e) => saveAlias(token, e)}>
                       <CheckIcon size="small" className="align-middle" />
                     </button>
-                    <button
-                      className="button-svg-with-hover"
-                      type="button"
-                      onClick={(e) => cancelEditing(e)}
-                    >
+                    <button className="button-svg-with-hover" type="button" onClick={(e) => cancelEditing(e)}>
                       <XIcon size="small" className="align-middle" />
                     </button>
                   </div>
@@ -347,32 +286,18 @@ export default function TokenSelection({
                   token.alias
                 )}
               </td>
-              <td className="token-timestamp-cell">
-                {new Date(token.created).toLocaleString()}
-              </td>
+              <td className="token-timestamp-cell">{new Date(token.created).toLocaleString()}</td>
               <td className="token-button-cell">
                 <ul className="token-selection-icons">
                   <li>
-                    <OverlayTrigger
-                      placement="bottom"
-                      overlay={<Tooltip>Go to Landscape</Tooltip>}
-                    >
-                      <button
-                        className="button-svg-with-hover"
-                        type="button"
-                        onClick={() => selectToken(token)}
-                      >
+                    <OverlayTrigger placement="bottom" overlay={<Tooltip>Go to Landscape</Tooltip>}>
+                      <button className="button-svg-with-hover" type="button" onClick={() => selectToken(token)}>
                         <EyeIcon size="small" className="align-middle" />
                       </button>
                     </OverlayTrigger>
                   </li>
                   <li>
-                    <OverlayTrigger
-                      placement="bottom"
-                      overlay={
-                        <Tooltip>Trigger Analysis for Landscape</Tooltip>
-                      }
-                    >
+                    <OverlayTrigger placement="bottom" overlay={<Tooltip>Trigger Analysis for Landscape</Tooltip>}>
                       <button
                         className="button-svg-with-hover"
                         type="button"
@@ -391,10 +316,7 @@ export default function TokenSelection({
                   {user?.sub === token.ownerId && (
                     <>
                       <li>
-                        <OverlayTrigger
-                          placement="bottom"
-                          overlay={<Tooltip>Edit token alias</Tooltip>}
-                        >
+                        <OverlayTrigger placement="bottom" overlay={<Tooltip>Edit token alias</Tooltip>}>
                           <button
                             className="button-svg-with-hover"
                             type="button"
@@ -405,10 +327,7 @@ export default function TokenSelection({
                         </OverlayTrigger>
                       </li>
                       <li>
-                        <OverlayTrigger
-                          placement="bottom"
-                          overlay={<Tooltip>Delete token permanently</Tooltip>}
-                        >
+                        <OverlayTrigger placement="bottom" overlay={<Tooltip>Delete token permanently</Tooltip>}>
                           <button
                             className="button-svg-with-hover"
                             type="button"
@@ -423,19 +342,14 @@ export default function TokenSelection({
                   <li>
                     <OverlayTrigger
                       placement="bottom"
-                      overlay={
-                        <Tooltip>Download JSON files for Demo Supplier</Tooltip>
-                      }
+                      overlay={<Tooltip>Download JSON files for Demo Supplier</Tooltip>}
                     >
                       <button
                         className="button-svg-with-hover"
                         type="button"
                         onClick={(e) => downloadDemoSupplierFiles(token, e)}
                       >
-                        <DesktopDownloadIcon
-                          size="small"
-                          className="align-middle"
-                        />
+                        <DesktopDownloadIcon size="small" className="align-middle" />
                       </button>
                     </OverlayTrigger>
                   </li>

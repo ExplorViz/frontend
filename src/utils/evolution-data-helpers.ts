@@ -59,9 +59,7 @@ export function getCommitDateMs(commit: CommitNode): number | null {
   return Number.isNaN(ms) ? null : ms;
 }
 
-export function getCommitAuthorLabel(
-  author: CommitAuthor | null | undefined
-): string {
+export function getCommitAuthorLabel(author: CommitAuthor | null | undefined): string {
   if (author == null) {
     return 'Unknown author';
   }
@@ -70,9 +68,7 @@ export function getCommitAuthorLabel(
     author.githubLogin ||
     author.gitUsername ||
     author.email ||
-    (author.contributorId != null
-      ? `#${author.contributorId}`
-      : 'Unknown author')
+    (author.contributorId != null ? `#${author.contributorId}` : 'Unknown author')
   );
 }
 
@@ -89,9 +85,7 @@ export function commitsHaveAuthorData(commits: CommitNode[]): boolean {
   return commits.some((commit) => commit.author != null);
 }
 
-export function getCommitTreeDateRange(
-  commitTree: CommitTree | undefined
-): { from: number; to: number } | null {
+export function getCommitTreeDateRange(commitTree: CommitTree | undefined): { from: number; to: number } | null {
   if (!commitTree) {
     return null;
   }
@@ -129,10 +123,7 @@ export function removeCommitsNotInCommitTrees(
     const visibleCommits = commits.filter((commit) =>
       commitTree?.branches.some(
         (branch) =>
-          branch.name === commit.branchName &&
-          branch.commits.some(
-            (commitNode) => commitNode.hash === commit.commitId
-          )
+          branch.name === commit.branchName && branch.commits.some((commitNode) => commitNode.hash === commit.commitId)
       )
     );
 
@@ -156,8 +147,7 @@ export function calculateCommitOffset(
   branch: Branch
 ): number {
   let counter = 0;
-  const commitTreeForSelectedRepoName =
-    repoNameCommitTreeMap.get(selectedRepoName);
+  const commitTreeForSelectedRepoName = repoNameCommitTreeMap.get(selectedRepoName);
 
   if (commitTreeForSelectedRepoName) {
     const fromCommit = branch.branchPoint.commit;
@@ -169,11 +159,7 @@ export function calculateCommitOffset(
           for (const commit of b.commits) {
             counter++;
             if (commit.hash === fromCommit) {
-              counter += calculateCommitOffset(
-                repoNameCommitTreeMap,
-                selectedRepoName,
-                b
-              );
+              counter += calculateCommitOffset(repoNameCommitTreeMap, selectedRepoName, b);
               break;
             }
           }
@@ -198,9 +184,7 @@ export function getCommitXPosition(
   const branch = commitTree.branches.find((b) => b.name === branchName);
   if (!branch) return -1;
 
-  const pointNumber = branch.commits.findIndex(
-    (commit) => commit.hash === commitId
-  );
+  const pointNumber = branch.commits.findIndex((commit) => commit.hash === commitId);
   if (pointNumber === -1) return -1;
 
   if (placement === 'time') {
@@ -208,15 +192,10 @@ export function getCommitXPosition(
     return commitDateMs ?? pointNumber;
   }
 
-  return (
-    pointNumber + calculateCommitOffset(repoNameCommitTreeMap, repoName, branch)
-  );
+  return pointNumber + calculateCommitOffset(repoNameCommitTreeMap, repoName, branch);
 }
 
-export function getCommitXValuesForBranch(
-  branch: Branch,
-  placement: CommitXAxisPlacement
-): number[] {
+export function getCommitXValuesForBranch(branch: Branch, placement: CommitXAxisPlacement): number[] {
   return buildBranchChartSeries(branch, placement, NONE_METRIC).xValues;
 }
 
@@ -239,9 +218,7 @@ export type CommitAuthorOption = {
   commitCount: number;
 };
 
-export function getCommitAuthorOptionsFromCommitTree(
-  commitTree: CommitTree | undefined
-): CommitAuthorOption[] {
+export function getCommitAuthorOptionsFromCommitTree(commitTree: CommitTree | undefined): CommitAuthorOption[] {
   if (!commitTree) {
     return [];
   }
@@ -282,10 +259,7 @@ export function getCommitAuthorOptionsFromCommitTree(
     });
 }
 
-export function isCommitVisibleWithAuthorFilter(
-  commit: CommitNode,
-  authorKeys: string[] | undefined
-): boolean {
+export function isCommitVisibleWithAuthorFilter(commit: CommitNode, authorKeys: string[] | undefined): boolean {
   if (authorKeys === undefined) {
     return true;
   }
@@ -325,11 +299,7 @@ export function meetsMetricChangeThreshold(
     return true;
   }
 
-  const magnitude = getMetricChangeMagnitude(
-    commit,
-    previousCommit,
-    metricName
-  );
+  const magnitude = getMetricChangeMagnitude(commit, previousCommit, metricName);
 
   if (!Number.isFinite(magnitude)) {
     return true;
@@ -348,12 +318,7 @@ export function isMetricChangeTriggerAtIndex(
     return false;
   }
 
-  return meetsMetricChangeThreshold(
-    branch.commits[index],
-    branch.commits[index - 1],
-    metricName,
-    threshold
-  );
+  return meetsMetricChangeThreshold(branch.commits[index], branch.commits[index - 1], metricName, threshold);
 }
 
 /**
@@ -383,10 +348,7 @@ export function getCommitIndicesMeetingMetricChangeThreshold(
   for (let index = 1; index < branch.commits.length; index++) {
     const commit = branch.commits[index];
     const previousCommit = branch.commits[index - 1];
-    if (
-      !commitHasAnalyzedMetrics(commit) ||
-      !commitHasAnalyzedMetrics(previousCommit)
-    ) {
+    if (!commitHasAnalyzedMetrics(commit) || !commitHasAnalyzedMetrics(previousCommit)) {
       continue;
     }
 
@@ -407,13 +369,8 @@ export function isCommitVisibleWithMetricChangeFilter(
   metricName: string,
   threshold: number
 ): boolean {
-  const commitIndex = branch.commits.findIndex(
-    (commit) => commit.hash === commitId
-  );
-  if (
-    commitIndex === -1 ||
-    !commitHasAnalyzedMetrics(branch.commits[commitIndex])
-  ) {
+  const commitIndex = branch.commits.findIndex((commit) => commit.hash === commitId);
+  if (commitIndex === -1 || !commitHasAnalyzedMetrics(branch.commits[commitIndex])) {
     return false;
   }
 
@@ -421,11 +378,7 @@ export function isCommitVisibleWithMetricChangeFilter(
     return true;
   }
 
-  return getCommitIndicesMeetingMetricChangeThreshold(
-    branch,
-    metricName,
-    threshold
-  ).includes(commitIndex);
+  return getCommitIndicesMeetingMetricChangeThreshold(branch, metricName, threshold).includes(commitIndex);
 }
 
 export function removeFilteredCommitsFromSelection(
@@ -447,29 +400,17 @@ export function removeFilteredCommitsFromSelection(
   }
 
   const visibleSelectedCommits = selectedForRepo.filter((commit) => {
-    const branch = commitTree.branches.find(
-      (candidate) => candidate.name === commit.branchName
-    );
+    const branch = commitTree.branches.find((candidate) => candidate.name === commit.branchName);
     if (!branch) {
       return true;
     }
 
-    const commitNode = branch.commits.find(
-      (candidate) => candidate.hash === commit.commitId
-    );
-    if (
-      commitNode &&
-      !isCommitVisibleWithAuthorFilter(commitNode, authorKeys)
-    ) {
+    const commitNode = branch.commits.find((candidate) => candidate.hash === commit.commitId);
+    if (commitNode && !isCommitVisibleWithAuthorFilter(commitNode, authorKeys)) {
       return false;
     }
 
-    return isCommitVisibleWithMetricChangeFilter(
-      branch,
-      commit.commitId,
-      metricName,
-      threshold
-    );
+    return isCommitVisibleWithMetricChangeFilter(branch, commit.commitId, metricName, threshold);
   });
 
   if (visibleSelectedCommits.length === selectedForRepo.length) {
@@ -528,33 +469,17 @@ export function buildBranchChartSeries(
   options: BranchChartSeriesOptions = {}
 ): BranchChartSeries {
   const shouldFilterByMetricChange =
-    options.metricChangeThreshold != null &&
-    options.metricChangeThreshold > 0 &&
-    metricName !== NONE_METRIC;
+    options.metricChangeThreshold != null && options.metricChangeThreshold > 0 && metricName !== NONE_METRIC;
   const indices = shouldFilterByMetricChange
-    ? getCommitIndicesMeetingMetricChangeThreshold(
-        branch,
-        metricName,
-        options.metricChangeThreshold!
-      )
+    ? getCommitIndicesMeetingMetricChangeThreshold(branch, metricName, options.metricChangeThreshold!)
     : getCommitIndicesWithAnalyzedMetrics(branch);
 
   const filteredIndices =
     options.authorKeys === undefined
       ? indices
-      : indices.filter((index) =>
-          isCommitVisibleWithAuthorFilter(
-            branch.commits[index],
-            options.authorKeys
-          )
-        );
+      : indices.filter((index) => isCommitVisibleWithAuthorFilter(branch.commits[index], options.authorKeys));
 
-  return buildBranchChartSeriesForIndices(
-    branch,
-    placement,
-    metricName,
-    filteredIndices
-  );
+  return buildBranchChartSeriesForIndices(branch, placement, metricName, filteredIndices);
 }
 
 export type BranchChartLineSegments = {
@@ -665,13 +590,7 @@ export function buildNewestCommitSelectionMap(
           continue;
         }
 
-        const x = getCommitXPosition(
-          repoNameCommitTreeMap,
-          repoName,
-          branch.name,
-          commit.hash,
-          placement
-        );
+        const x = getCommitXPosition(repoNameCommitTreeMap, repoName, branch.name, commit.hash, placement);
         if (x !== -1 && x >= bestX) {
           bestX = x;
           best = { commitId: commit.hash, branchName: branch.name };
@@ -687,31 +606,19 @@ export function buildNewestCommitSelectionMap(
   return result;
 }
 
-export function getFirstBranchWithCommits(
-  commitTree: { branches: Branch[] } | undefined
-): Branch | undefined {
-  return commitTree?.branches.find((branch) =>
-    branch.commits.some((commit) => commitHasAnalyzedMetrics(commit))
-  );
+export function getFirstBranchWithCommits(commitTree: { branches: Branch[] } | undefined): Branch | undefined {
+  return commitTree?.branches.find((branch) => branch.commits.some((commit) => commitHasAnalyzedMetrics(commit)));
 }
 
 export function branchHasAnalyzedCommits(branch: Branch): boolean {
   return branch.commits.some((commit) => commitHasAnalyzedMetrics(commit));
 }
 
-export function hasSkippedCommitsBetweenVisiblePoints(
-  originalIndices: number[]
-): boolean {
-  return originalIndices.some(
-    (index, chartIndex) =>
-      chartIndex > 0 && originalIndices[chartIndex - 1] + 1 !== index
-  );
+export function hasSkippedCommitsBetweenVisiblePoints(originalIndices: number[]): boolean {
+  return originalIndices.some((index, chartIndex) => chartIndex > 0 && originalIndices[chartIndex - 1] + 1 !== index);
 }
 
-export function getMetricValue(
-  commit: CommitNode,
-  metricName: string
-): number | null {
+export function getMetricValue(commit: CommitNode, metricName: string): number | null {
   const value = commit.metrics?.[metricName];
   return value == null || Number.isNaN(value) ? null : value;
 }
@@ -750,10 +657,7 @@ export function searchCommitsInRepository(
       }
 
       const hashMatches = commit.hash.toLowerCase().includes(normalizedQuery);
-      const tagMatches =
-        commit.tags?.some((tag) =>
-          tag.toLowerCase().includes(normalizedQuery)
-        ) ?? false;
+      const tagMatches = commit.tags?.some((tag) => tag.toLowerCase().includes(normalizedQuery)) ?? false;
 
       if (!hashMatches && !tagMatches) {
         continue;
@@ -782,20 +686,8 @@ function sortSelectedCommitsForRepo(
   }
 
   return [...selectedCommitsForRepo].sort((a, b) => {
-    const xA = getCommitXPosition(
-      repoNameCommitTreeMap,
-      repoName,
-      a.branchName,
-      a.commitId,
-      xAxisPlacement
-    );
-    const xB = getCommitXPosition(
-      repoNameCommitTreeMap,
-      repoName,
-      b.branchName,
-      b.commitId,
-      xAxisPlacement
-    );
+    const xA = getCommitXPosition(repoNameCommitTreeMap, repoName, a.branchName, a.commitId, xAxisPlacement);
+    const xB = getCommitXPosition(repoNameCommitTreeMap, repoName, b.branchName, b.commitId, xAxisPlacement);
     return xA - xB;
   });
 }
@@ -848,11 +740,7 @@ export function toggleCommitInSelection(
     xAxisPlacement
   );
 
-  return updateRepoCommitSelection(
-    selectedCommits,
-    repoName,
-    selectedCommitsForRepo
-  );
+  return updateRepoCommitSelection(selectedCommits, repoName, selectedCommitsForRepo);
 }
 
 export function addCommitToSelection(
@@ -885,9 +773,5 @@ export function addCommitToSelection(
     xAxisPlacement
   );
 
-  return updateRepoCommitSelection(
-    selectedCommits,
-    repoName,
-    selectedCommitsForRepo
-  );
+  return updateRepoCommitSelection(selectedCommits, repoName, selectedCommitsForRepo);
 }

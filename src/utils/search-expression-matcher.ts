@@ -96,9 +96,7 @@ const NEVER_MATCHING = /(?!)/;
  * still count as "an expression is set", which is what decides whether an
  * inclusion list restricts the result.
  */
-export function compileSearchExpressions(
-  expressions: readonly string[]
-): RegExp[] {
+export function compileSearchExpressions(expressions: readonly string[]): RegExp[] {
   const compiled: RegExp[] = [];
 
   for (const expression of expressions) {
@@ -111,10 +109,7 @@ export function compileSearchExpressions(
   return compiled;
 }
 
-export function matchesAnyCompiledExpression(
-  text: string,
-  compiledExpressionList: readonly RegExp[]
-): boolean {
+export function matchesAnyCompiledExpression(text: string, compiledExpressionList: readonly RegExp[]): boolean {
   for (const regex of compiledExpressionList) {
     if (regex.test(text)) {
       return true;
@@ -123,10 +118,7 @@ export function matchesAnyCompiledExpression(
   return false;
 }
 
-export function matchesSearchExpression(
-  text: string,
-  expression: string
-): boolean {
+export function matchesSearchExpression(text: string, expression: string): boolean {
   const regex = compileExpression(expression);
   if (!regex) {
     return false;
@@ -134,10 +126,7 @@ export function matchesSearchExpression(
   return regex.test(text);
 }
 
-export function isIncludedBySearchExpressions(
-  text: string,
-  inclusionExpressions: readonly string[]
-): boolean {
+export function isIncludedBySearchExpressions(text: string, inclusionExpressions: readonly string[]): boolean {
   const compiled = compileSearchExpressions(inclusionExpressions);
   if (compiled.length === 0) {
     return true;
@@ -145,12 +134,6 @@ export function isIncludedBySearchExpressions(
   return matchesAnyCompiledExpression(text, compiled);
 }
 
-export function isExcludedBySearchExpressions(
-  text: string,
-  exclusionExpressions: readonly string[]
-): boolean {
-  return matchesAnyCompiledExpression(
-    text,
-    compileSearchExpressions(exclusionExpressions)
-  );
+export function isExcludedBySearchExpressions(text: string, exclusionExpressions: readonly string[]): boolean {
+  return matchesAnyCompiledExpression(text, compileSearchExpressions(exclusionExpressions));
 }

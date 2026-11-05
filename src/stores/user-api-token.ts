@@ -17,12 +17,7 @@ export type ApiToken = {
 interface UserApiTokenState {
   retrieveApiTokens: () => Promise<ApiToken[]>;
   deleteApiToken: (apiToken: string, uId: string) => Promise<void>;
-  createApiToken: (
-    name: string,
-    token: string,
-    hostUrl: string,
-    expDate: number | null
-  ) => Promise<void>;
+  createApiToken: (name: string, token: string, hostUrl: string, expDate: number | null) => Promise<void>;
 }
 
 export const useUserApiTokenStore = create<UserApiTokenState>(() => ({
@@ -46,19 +41,12 @@ export const useUserApiTokenStore = create<UserApiTokenState>(() => ({
             resolve([]);
             useToastHandlerStore
               .getState()
-              .showErrorToastMessage(
-                await getResponseErrorMessage(
-                  response,
-                  'API-Tokens could not be loaded.'
-                )
-              );
+              .showErrorToastMessage(await getResponseErrorMessage(response, 'API-Tokens could not be loaded.'));
           }
         })
         .catch(async () => {
           resolve([]);
-          useToastHandlerStore
-            .getState()
-            .showErrorToastMessage('Server for Git APIs not available.');
+          useToastHandlerStore.getState().showErrorToastMessage('Server for Git APIs not available.');
         });
     });
   },
@@ -69,27 +57,17 @@ export const useUserApiTokenStore = create<UserApiTokenState>(() => ({
       method: 'DELETE',
     });
     if (response.ok) {
-      useToastHandlerStore
-        .getState()
-        .showSuccessToastMessage('API-Token successfully deleted.');
+      useToastHandlerStore.getState().showSuccessToastMessage('API-Token successfully deleted.');
     } else {
       useToastHandlerStore
         .getState()
         .showErrorToastMessage(
-          await getResponseErrorMessage(
-            response,
-            'Something went wrong. API-Token could not be deleted.'
-          )
+          await getResponseErrorMessage(response, 'Something went wrong. API-Token could not be deleted.')
         );
     }
   },
 
-  createApiToken: async (
-    name: string,
-    token: string,
-    hostUrl: string,
-    expDate: number | null
-  ) => {
+  createApiToken: async (name: string, token: string, hostUrl: string, expDate: number | null) => {
     const createdAt: number = new Date().getTime();
 
     const url =
@@ -100,26 +78,16 @@ export const useUserApiTokenStore = create<UserApiTokenState>(() => ({
       method: 'POST',
     });
     if (response.ok) {
-      useToastHandlerStore
-        .getState()
-        .showSuccessToastMessage('API-Token successfully saved.');
+      useToastHandlerStore.getState().showSuccessToastMessage('API-Token successfully saved.');
     } else if (response.status === 422) {
       useToastHandlerStore
         .getState()
-        .showErrorToastMessage(
-          await getResponseErrorMessage(
-            response,
-            'Token is already being used.'
-          )
-        );
+        .showErrorToastMessage(await getResponseErrorMessage(response, 'Token is already being used.'));
     } else {
       useToastHandlerStore
         .getState()
         .showErrorToastMessage(
-          await getResponseErrorMessage(
-            response,
-            'Something went wrong. API-Token could not be saved.'
-          )
+          await getResponseErrorMessage(response, 'Something went wrong. API-Token could not be saved.')
         );
     }
   },

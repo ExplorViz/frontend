@@ -42,142 +42,112 @@ export const useIdeWebsocketStore = create<IdeWebsocketStore>((set, get) => ({
       }
     });
 
-    socket.on(
-      'create-landscape',
-      async (
-        alias: string,
-        projectName: string,
-        commitId: string,
-        callback
-      ) => {
-        let uId = useAuthStore.getState().user?.sub;
+    socket.on('create-landscape', async (alias: string, projectName: string, commitId: string, callback) => {
+      let uId = useAuthStore.getState().user?.sub;
 
-        if (!uId) {
-          if (callback) callback();
-          return;
-        }
-
-        uId = encodeURI(uId);
-
-        const tokenResponse = await fetch(
-          `${userServiceUrl}/user/${uId}/token`,
-          {
-            headers: {
-              Authorization: `Bearer ${accessToken}`,
-              'Content-Type': 'application/json',
-            },
-            method: 'POST',
-            body: JSON.stringify({
-              alias,
-              isRequestedFromVSCodeExtension: true,
-              projectName: projectName,
-              commitId: commitId,
-            }),
-          }
-        );
-
-        if (!tokenResponse.ok) {
-          if (callback) callback();
-          return;
-        }
-
-        const response = await tokenResponse.json();
-
-        const payload = {
-          value: response.value,
-          secret: response.secret,
-        };
-
-        if (callback) {
-          callback(payload);
-        }
+      if (!uId) {
+        if (callback) callback();
+        return;
       }
-    );
 
-    socket.on(
-      'load-current-debug-room-list-from-frontend',
-      async (callback) => {
-        let uId = useAuthStore.getState().user?.sub;
-        if (!uId) {
-          if (callback) callback();
-          return;
-        }
-        uId = encodeURI(uId);
-        const tokenResponse = await fetch(
-          `${userServiceUrl}/user/${uId}/token`,
-          {
-            headers: {
-              Authorization: `Bearer ${accessToken}`,
-              'Content-Type': 'application/json',
-            },
-            method: 'GET',
-          }
-        );
+      uId = encodeURI(uId);
 
-        if (!tokenResponse.ok) {
-          if (callback) callback();
-          return;
-        }
-        const response = (await tokenResponse.json()) as LandscapeToken[];
-        const filteredResponse = response.filter(
-          (token) => token.isRequestedFromVSCodeExtension
-        );
-        if (callback) {
-          callback(filteredResponse);
-        }
+      const tokenResponse = await fetch(`${userServiceUrl}/user/${uId}/token`, {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+          'Content-Type': 'application/json',
+        },
+        method: 'POST',
+        body: JSON.stringify({
+          alias,
+          isRequestedFromVSCodeExtension: true,
+          projectName: projectName,
+          commitId: commitId,
+        }),
+      });
+
+      if (!tokenResponse.ok) {
+        if (callback) callback();
+        return;
       }
-    );
 
-    socket.on(
-      'frontend-create-landscape',
-      async (
-        alias: string,
-        projectName: string,
-        commitId: string,
-        callback
-      ) => {
-        let uId = useAuthStore.getState().user?.sub;
-        if (!uId) {
-          if (callback) callback();
-          return;
-        }
-        uId = encodeURI(uId);
+      const response = await tokenResponse.json();
 
-        const tokenResponse = await fetch(
-          `${userServiceUrl}/user/${uId}/token`,
-          {
-            headers: {
-              Authorization: `Bearer ${accessToken}`,
-              'Content-Type': 'application/json',
-            },
-            method: 'POST',
-            body: JSON.stringify({
-              alias,
-              isRequestedFromVSCodeExtension: true,
-              projectName: projectName,
-              commitId: commitId,
-            }),
-          }
-        );
+      const payload = {
+        value: response.value,
+        secret: response.secret,
+      };
 
-        if (!tokenResponse.ok) {
-          if (callback) callback();
-          return;
-        }
-
-        const response = await tokenResponse.json();
-        const payload = {
-          value: response.value,
-          secret: response.secret,
-        };
-
-        if (callback) {
-          callback(payload);
-          // TODO: is this the right approach to reload page of room list? If we go this way, we need to make sure that the socket connection won't be destroyed because we need to retrieve a message from the extension backend!
-          //this.router.refresh();
-        }
+      if (callback) {
+        callback(payload);
       }
-    );
+    });
+
+    socket.on('load-current-debug-room-list-from-frontend', async (callback) => {
+      let uId = useAuthStore.getState().user?.sub;
+      if (!uId) {
+        if (callback) callback();
+        return;
+      }
+      uId = encodeURI(uId);
+      const tokenResponse = await fetch(`${userServiceUrl}/user/${uId}/token`, {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+          'Content-Type': 'application/json',
+        },
+        method: 'GET',
+      });
+
+      if (!tokenResponse.ok) {
+        if (callback) callback();
+        return;
+      }
+      const response = (await tokenResponse.json()) as LandscapeToken[];
+      const filteredResponse = response.filter((token) => token.isRequestedFromVSCodeExtension);
+      if (callback) {
+        callback(filteredResponse);
+      }
+    });
+
+    socket.on('frontend-create-landscape', async (alias: string, projectName: string, commitId: string, callback) => {
+      let uId = useAuthStore.getState().user?.sub;
+      if (!uId) {
+        if (callback) callback();
+        return;
+      }
+      uId = encodeURI(uId);
+
+      const tokenResponse = await fetch(`${userServiceUrl}/user/${uId}/token`, {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+          'Content-Type': 'application/json',
+        },
+        method: 'POST',
+        body: JSON.stringify({
+          alias,
+          isRequestedFromVSCodeExtension: true,
+          projectName: projectName,
+          commitId: commitId,
+        }),
+      });
+
+      if (!tokenResponse.ok) {
+        if (callback) callback();
+        return;
+      }
+
+      const response = await tokenResponse.json();
+      const payload = {
+        value: response.value,
+        secret: response.secret,
+      };
+
+      if (callback) {
+        callback(payload);
+        // TODO: is this the right approach to reload page of room list? If we go this way, we need to make sure that the socket connection won't be destroyed because we need to retrieve a message from the extension backend!
+        //this.router.refresh();
+      }
+    });
   },
 
   // ---------- consumer methods ----------

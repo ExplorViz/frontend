@@ -7,11 +7,7 @@ export default class CrosshairMesh extends THREE.Mesh {
   constructor({ color }: { color: THREE.Color }) {
     super();
 
-    this.geometry = new THREE.SphereGeometry(
-      CROSSHAIR_RADIUS,
-      CROSSHAIR_SEGMENTS,
-      CROSSHAIR_SEGMENTS
-    );
+    this.geometry = new THREE.SphereGeometry(CROSSHAIR_RADIUS, CROSSHAIR_SEGMENTS, CROSSHAIR_SEGMENTS);
     this.material = new THREE.MeshBasicMaterial({ color });
   }
 

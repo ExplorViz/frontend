@@ -1,26 +1,11 @@
-import {
-  DeviceCameraVideoIcon,
-  PersonFillIcon,
-  SignInIcon,
-  SignOutIcon,
-  XCircleIcon,
-} from '@primer/octicons-react';
+import { DeviceCameraVideoIcon, PersonFillIcon, SignInIcon, SignOutIcon, XCircleIcon } from '@primer/octicons-react';
 import Button from 'react-bootstrap/Button';
 
 import { usePlayroomConnectionStore } from 'explorviz-frontend/src/stores/collaboration/playroom-connection-store';
 import { useSpectateUserStore } from 'explorviz-frontend/src/stores/collaboration/spectate-user';
-import {
-  getRoomCode,
-  isHost,
-  myPlayer,
-  RPC,
-  usePlayersList,
-} from 'playroomkit';
+import { getRoomCode, isHost, myPlayer, RPC, usePlayersList } from 'playroomkit';
 
-import {
-  LandscapeToken,
-  useLandscapeTokenStore,
-} from 'explorviz-frontend/src/stores/landscape-token';
+import { LandscapeToken, useLandscapeTokenStore } from 'explorviz-frontend/src/stores/landscape-token';
 import { useMultiplayerState } from 'playroomkit';
 import { useEffect, useState } from 'react';
 
@@ -32,13 +17,9 @@ export default function CollaborationControls() {
   const me = myPlayer();
 
   // Functions for starting and stopping spectating
-  const spectatedPlayerId = useSpectateUserStore(
-    (state) => state.spectatedPlayerId
-  );
+  const spectatedPlayerId = useSpectateUserStore((state) => state.spectatedPlayerId);
   const activateSpectateMode = useSpectateUserStore((state) => state.activate);
-  const deactivateSpectateMode = useSpectateUserStore(
-    (state) => state.deactivate
-  );
+  const deactivateSpectateMode = useSpectateUserStore((state) => state.deactivate);
 
   const toggleSpectate = (playerId: string) => {
     if (spectatedPlayerId === playerId) {
@@ -55,10 +36,7 @@ export default function CollaborationControls() {
     }
   };
 
-  const [globalMutedUsers, setGlobalMutedUsers] = useMultiplayerState(
-    'globalMutedUsers',
-    [] as string[]
-  );
+  const [globalMutedUsers, setGlobalMutedUsers] = useMultiplayerState('globalMutedUsers', [] as string[]);
 
   // This function is used to prevent errors while loading a not fully connected user
   const getSafeProfile = (player: any) => {
@@ -71,9 +49,7 @@ export default function CollaborationControls() {
 
   // functionality for the admin to switch between landscapes in the collaboration tab
   const [landscapeTokens, setLandscapeTokens] = useState<LandscapeToken[]>([]);
-  const setTokenByValue = useLandscapeTokenStore(
-    (state) => state.setTokenByValue
-  );
+  const setTokenByValue = useLandscapeTokenStore((state) => state.setTokenByValue);
   const currentToken = useLandscapeTokenStore((state) => state.token);
   useEffect(() => {
     if (isHost()) {
@@ -99,9 +75,7 @@ export default function CollaborationControls() {
     return (
       <div className="collaboration-controls">
         <h6 className="bold mb-3">Multiplayer (Playroom)</h6>
-        <p className="small text-muted mb-3">
-          Connect to work together with others!
-        </p>
+        <p className="small text-muted mb-3">Connect to work together with others!</p>
         <Button variant="success" className="w-100" onClick={openLobby}>
           <SignInIcon size="small" className="me-2" />
           Connect / Create Room
@@ -121,9 +95,7 @@ export default function CollaborationControls() {
       <div className="d-flex justify-content-between align-items-center mb-3">
         <div>
           <label className="bold me-2">Room-Code:</label>
-          <strong style={{ color: '#4ade80', letterSpacing: '1px' }}>
-            {getRoomCode()}
-          </strong>
+          <strong style={{ color: '#4ade80', letterSpacing: '1px' }}>{getRoomCode()}</strong>
         </div>
       </div>
 
@@ -142,10 +114,7 @@ export default function CollaborationControls() {
               style={{ backgroundColor: 'rgba(255,255,255,0.05)' }}
             >
               <div className="d-flex align-items-center">
-                <PersonFillIcon
-                  size="small"
-                  style={{ color: color, marginRight: '10px' }}
-                />
+                <PersonFillIcon size="small" style={{ color: color, marginRight: '10px' }} />
                 <span style={{ fontWeight: isMe ? 'bold' : 'normal' }}>
                   {name} {isMe ? '(You)' : ''}
                 </span>
@@ -165,25 +134,13 @@ export default function CollaborationControls() {
               {isHost() && !isMe && (
                 <Button
                   className="ml-2"
-                  variant={
-                    globalMutedUsers.includes(player.id)
-                      ? 'success'
-                      : 'outline-warning'
-                  }
+                  variant={globalMutedUsers.includes(player.id) ? 'success' : 'outline-warning'}
                   size="sm"
-                  title={
-                    globalMutedUsers.includes(player.id)
-                      ? 'Unmute in Chat'
-                      : 'Mute in Chat'
-                  }
+                  title={globalMutedUsers.includes(player.id) ? 'Unmute in Chat' : 'Mute in Chat'}
                   onClick={() => {
                     const isMuted = globalMutedUsers.includes(player.id);
                     if (isMuted) {
-                      setGlobalMutedUsers(
-                        globalMutedUsers.filter(
-                          (id: string) => id !== player.id
-                        )
-                      );
+                      setGlobalMutedUsers(globalMutedUsers.filter((id: string) => id !== player.id));
                     } else {
                       setGlobalMutedUsers([...globalMutedUsers, player.id]);
                     }
@@ -194,12 +151,7 @@ export default function CollaborationControls() {
               )}
 
               {!isMe && isHost() && (
-                <Button
-                  title="Kick Player"
-                  variant="outline-danger"
-                  size="sm"
-                  onClick={() => handleKick(player.id)}
-                >
+                <Button title="Kick Player" variant="outline-danger" size="sm" onClick={() => handleKick(player.id)}>
                   <XCircleIcon size="small" /> Kick
                 </Button>
               )}
@@ -211,12 +163,8 @@ export default function CollaborationControls() {
       {isHost() && (
         <div className="mt-4 border-top pt-3">
           <h6>Switch Landscape</h6>
-          <div
-            className="landscape-list-sync"
-            style={{ maxHeight: '200px', overflowY: 'auto' }}
-          >
-            {landscapeTokens.filter((t) => t.value !== currentToken?.value)
-              .length === 0 ? (
+          <div className="landscape-list-sync" style={{ maxHeight: '200px', overflowY: 'auto' }}>
+            {landscapeTokens.filter((t) => t.value !== currentToken?.value).length === 0 ? (
               <p style={{ fontSize: '0.8rem' }}>No more landscapes found...</p>
             ) : (
               landscapeTokens
@@ -240,9 +188,7 @@ export default function CollaborationControls() {
                     >
                       <strong>{t.alias || t.projectName || 'unnamed'}</strong>
                       <br />
-                      <small className="text-muted">
-                        {t.value.substring(0, 8)}...
-                      </small>
+                      <small className="text-muted">{t.value.substring(0, 8)}...</small>
                     </div>
                     <Button size="sm" variant="outline-primary">
                       Load
@@ -256,12 +202,7 @@ export default function CollaborationControls() {
 
       <hr />
 
-      <Button
-        title="Leave Room"
-        variant="outline-danger"
-        className="w-100 mt-2"
-        onClick={disconnect}
-      >
+      <Button title="Leave Room" variant="outline-danger" className="w-100 mt-2" onClick={disconnect}>
         <SignOutIcon size="small" className="me-2" />
         Disconnect
       </Button>

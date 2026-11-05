@@ -6,11 +6,7 @@ import { useVisualizationStore } from 'explorviz-frontend/src/stores/visualizati
 import { SerializedPopup } from 'explorviz-frontend/src/utils/collaboration/web-socket-messages/types/serialized-room';
 import eventEmitter from 'explorviz-frontend/src/utils/event-emitter';
 import AggregatedCommunication from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/aggregated-communication';
-import {
-  Building,
-  City,
-  District,
-} from 'explorviz-frontend/src/utils/landscape-schemes/flat-landscape';
+import { Building, City, District } from 'explorviz-frontend/src/utils/landscape-schemes/flat-landscape';
 import { me } from 'playroomkit';
 
 type Position2D = {
@@ -75,10 +71,7 @@ export const usePopupHandlerStore = create<PopupHandlerState>((set, get) => ({
 
   sharePopup: (popup: PopupData) => {
     set({
-      popupData: [
-        ...get().popupData.filter((pd) => pd.entityId !== popup.entityId),
-        { ...popup, sharedBy: me().id },
-      ],
+      popupData: [...get().popupData.filter((pd) => pd.entityId !== popup.entityId), { ...popup, sharedBy: me().id }],
     });
   },
 
@@ -100,25 +93,14 @@ export const usePopupHandlerStore = create<PopupHandlerState>((set, get) => ({
     useVisualizationStore.getState().actions.setHoveredEntityId(null);
   },
 
-  addPopup: ({
-    entityId,
-    entity,
-    position,
-    wasMoved,
-    pinned,
-    menuId,
-    sharedBy,
-    hovered,
-  }) => {
+  addPopup: ({ entityId, entity, position, wasMoved, pinned, menuId, sharedBy, hovered }) => {
     // TODO: Handle HTML Mesh better
     if (get().deactivated) {
       return;
     }
 
     // Check if popup for entity already exists and remove it if so (toggle)
-    const existingPopup = get().popupData.find(
-      (pd) => pd.entityId === entityId
-    );
+    const existingPopup = get().popupData.find((pd) => pd.entityId === entityId);
     if (existingPopup) {
       get().removePopup(entityId);
       return;
@@ -179,8 +161,7 @@ export const usePopupHandlerStore = create<PopupHandlerState>((set, get) => ({
               isPinned: pd.isPinned || updatedPopup.isPinned,
               sharedBy: updatedPopup.sharedBy,
               hovered: updatedPopup.hovered,
-              fileDetailedData:
-                updatedPopup.fileDetailedData ?? pd.fileDetailedData,
+              fileDetailedData: updatedPopup.fileDetailedData ?? pd.fileDetailedData,
             }
           : pd
       ),
@@ -197,10 +178,7 @@ export const usePopupHandlerStore = create<PopupHandlerState>((set, get) => ({
     for (const popup of popups) {
       const entity = useModelStore.getState().getModel(popup.entityId);
       if (!entity) {
-        console.warn(
-          'Could not restore popup, entity not found for:',
-          popup.entityId
-        );
+        console.warn('Could not restore popup, entity not found for:', popup.entityId);
         continue;
       }
 

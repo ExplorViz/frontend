@@ -1,8 +1,5 @@
 import { useFrame, useThree } from '@react-three/fiber';
-import {
-  ClusterCentroid,
-  useClusterStore,
-} from 'explorviz-frontend/src/stores/cluster-store';
+import { ClusterCentroid, useClusterStore } from 'explorviz-frontend/src/stores/cluster-store';
 import { useLayoutStore } from 'explorviz-frontend/src/stores/layout-store';
 import { useModelStore } from 'explorviz-frontend/src/stores/repos/model-repository';
 import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
@@ -24,18 +21,12 @@ const CLUSTER_BALL_SEGMENTS = 16;
  * superseded computation are discarded.
  */
 export default function ClusterCentroidsR3F() {
-  const {
-    clusterCount,
-    displayClusters,
-    enableClustering,
-    distanceUpdateFrequency,
-  } = useUserSettingsStore(
+  const { clusterCount, displayClusters, enableClustering, distanceUpdateFrequency } = useUserSettingsStore(
     useShallow((state) => ({
       enableClustering: state.visualizationSettings.enableClustering.value,
       clusterCount: state.visualizationSettings.clusterCount.value,
       displayClusters: state.visualizationSettings.displayClusters.value,
-      distanceUpdateFrequency:
-        state.visualizationSettings.distanceUpdateFrequency.value,
+      distanceUpdateFrequency: state.visualizationSettings.distanceUpdateFrequency.value,
     }))
   );
 
@@ -47,7 +38,7 @@ export default function ClusterCentroidsR3F() {
   );
 
   const { camera } = useThree();
-  const lastUpdateTimeRef = useRef<number>(performance.now());
+  const lastUpdateTimeRef = useRef<number>(0);
 
   // Each time a new computation is kicked off we increment this counter.
   // The async callback checks the counter before writing to the store so that
@@ -86,21 +77,14 @@ export default function ClusterCentroidsR3F() {
     // Capture the generation for this run so we can detect stale results
     const generation = ++generationRef.current;
 
-    const clusteringResult = await clusterEntitiesAsync(
-      [...buildingIds, ...districtIds],
-      clusterCount
-    );
+    const clusteringResult = await clusterEntitiesAsync([...buildingIds, ...districtIds], clusterCount);
 
     // Discard the result if a newer computation has already been started
     if (generation !== generationRef.current) return;
 
     useClusterStore
       .getState()
-      .setClusters(
-        clusteringResult.entityToCluster,
-        clusteringResult.centroids,
-        camera.position
-      );
+      .setClusters(clusteringResult.entityToCluster, clusteringResult.centroids, camera.position);
   }, [enableClustering, clusterCount, camera]);
 
   useEffect(() => {
@@ -111,24 +95,13 @@ export default function ClusterCentroidsR3F() {
   // setClusters is called (the previous code read getState() outside a
   // subscription, so the balls were never updated reactively).
   const centroids = useClusterStore((state) => state.centroids);
-  const clusters: ClusterCentroid[] = displayClusters
-    ? Array.from(centroids.values())
-    : [];
+  const clusters: ClusterCentroid[] = displayClusters ? Array.from(centroids.values()) : [];
 
   return (
     <group>
       {clusters.map((cluster) => (
-        <mesh
-          key={`cluster-centroid-${cluster.id}`}
-          position={cluster.position}
-        >
-          <sphereGeometry
-            args={[
-              CLUSTER_BALL_RADIUS,
-              CLUSTER_BALL_SEGMENTS,
-              CLUSTER_BALL_SEGMENTS,
-            ]}
-          />
+        <mesh key={`cluster-centroid-${cluster.id}`} position={cluster.position}>
+          <sphereGeometry args={[CLUSTER_BALL_RADIUS, CLUSTER_BALL_SEGMENTS, CLUSTER_BALL_SEGMENTS]} />
           <meshBasicMaterial color={0xff0000} />
         </mesh>
       ))}

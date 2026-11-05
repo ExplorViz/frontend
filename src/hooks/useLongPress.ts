@@ -11,10 +11,7 @@ export type LongPressPosition = Position2D & {
   clientY: number;
 };
 
-const useLongPress = (
-  onLongPress: (position: LongPressPosition) => void,
-  options: UseLongPressOptions = {}
-) => {
+const useLongPress = (onLongPress: (position: LongPressPosition) => void, options: UseLongPressOptions = {}) => {
   const { delay: LONG_PRESS_DELAY = 500, movementThreshold = 35 } = options;
 
   const touchMoved = useRef<boolean>(false);

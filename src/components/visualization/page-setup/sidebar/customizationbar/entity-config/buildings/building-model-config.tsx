@@ -14,38 +14,21 @@ interface BuildingModelConfigProps {
   formatValueLabel?(value: string): string | undefined;
 }
 
-export default function BuildingModelConfig({
-  overrideGroupKey,
-  values,
-  formatValueLabel,
-}: BuildingModelConfigProps) {
-  const buildingColorOverrides = useUserSettingsStore(
-    (state) => state.visualizationSettings.buildingColorOverrides
-  );
+export default function BuildingModelConfig({ overrideGroupKey, values, formatValueLabel }: BuildingModelConfigProps) {
+  const buildingColorOverrides = useUserSettingsStore((state) => state.visualizationSettings.buildingColorOverrides);
 
   return (
     <Accordion className="building-config-language-accordion">
       {values.map((value) => (
-        <Accordion.Item
-          eventKey={value}
-          key={value}
-          className="building-config-language-item"
-        >
+        <Accordion.Item eventKey={value} key={value} className="building-config-language-item">
           <Accordion.Header>
             <span className="building-config-language-header">
-              <ColorIndicator
-                color={buildingColorOverrides.value[overrideGroupKey][value]}
-              />
-              <span className="building-config-language-name">
-                {formatValueLabel?.(value) ?? value}
-              </span>
+              <ColorIndicator color={buildingColorOverrides.value[overrideGroupKey][value]} />
+              <span className="building-config-language-name">{formatValueLabel?.(value) ?? value}</span>
             </span>
           </Accordion.Header>
           <Accordion.Body>
-            <BuildingModelConfigItem
-              overrideGroupKey={overrideGroupKey}
-              value={value}
-            />
+            <BuildingModelConfigItem overrideGroupKey={overrideGroupKey} value={value} />
           </Accordion.Body>
         </Accordion.Item>
       ))}
@@ -58,21 +41,15 @@ interface BuildingModelConfigItemProps {
   value: string;
 }
 
-function BuildingModelConfigItem({
-  overrideGroupKey,
-  value,
-}: BuildingModelConfigItemProps) {
-  const buildingColorOverrides = useUserSettingsStore(
-    (state) => state.visualizationSettings.buildingColorOverrides
-  );
+function BuildingModelConfigItem({ overrideGroupKey, value }: BuildingModelConfigItemProps) {
+  const buildingColorOverrides = useUserSettingsStore((state) => state.visualizationSettings.buildingColorOverrides);
   const buildingGeometryOverrides = useUserSettingsStore(
     (state) => state.visualizationSettings.buildingGeometryOverrides
   );
   const updateSetting = useUserSettingsStore((state) => state.updateSetting);
 
   const selectedColor = buildingColorOverrides.value[overrideGroupKey][value];
-  const selectedGeometry =
-    buildingGeometryOverrides.value[overrideGroupKey][value];
+  const selectedGeometry = buildingGeometryOverrides.value[overrideGroupKey][value];
 
   const handleChangeColor = (newColor: string | undefined) => {
     updateSetting('buildingColorOverrides', {
@@ -85,14 +62,11 @@ function BuildingModelConfigItem({
   };
 
   const handleResetColor = () => {
-    const defaultValue =
-      defaultVizSettings.buildingColorOverrides.value[overrideGroupKey][value];
+    const defaultValue = defaultVizSettings.buildingColorOverrides.value[overrideGroupKey][value];
     handleChangeColor(defaultValue);
   };
 
-  const handleChangeGeometry = (
-    newGeometry: BuildingGeometryType | undefined
-  ) => {
+  const handleChangeGeometry = (newGeometry: BuildingGeometryType | undefined) => {
     updateSetting('buildingGeometryOverrides', {
       ...buildingGeometryOverrides.value,
       [overrideGroupKey]: {
@@ -103,10 +77,7 @@ function BuildingModelConfigItem({
   };
 
   const handleResetGeometry = () => {
-    const defaultValue =
-      defaultVizSettings.buildingGeometryOverrides.value[overrideGroupKey][
-        value
-      ];
+    const defaultValue = defaultVizSettings.buildingGeometryOverrides.value[overrideGroupKey][value];
     handleChangeGeometry(defaultValue);
   };
 
@@ -118,9 +89,7 @@ function BuildingModelConfigItem({
           label="Building color"
           initialValue={null}
           value={selectedColor}
-          onChange={(v) =>
-            v !== null ? handleChangeColor(v) : handleResetColor()
-          }
+          onChange={(v) => (v !== null ? handleChangeColor(v) : handleResetColor())}
         />
       </div>
       <div className="building-config-control-block">
@@ -137,9 +106,7 @@ function BuildingModelConfigItem({
               id={`${value}-${geometry}`}
               value={geometry}
               type="radio"
-              variant={
-                selectedGeometry === geometry ? 'primary' : 'outline-secondary'
-              }
+              variant={selectedGeometry === geometry ? 'primary' : 'outline-secondary'}
               onChange={() => handleChangeGeometry(geometry)}
               className="building-config-geometry-button"
             >
@@ -147,11 +114,7 @@ function BuildingModelConfigItem({
             </ToggleButton>
           ))}
         </ToggleButtonGroup>
-        <button
-          type="button"
-          className="btn btn-link btn-sm building-config-reset-link"
-          onClick={handleResetGeometry}
-        >
+        <button type="button" className="btn btn-link btn-sm building-config-reset-link" onClick={handleResetGeometry}>
           Reset geometry
         </button>
       </div>

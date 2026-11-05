@@ -18,9 +18,7 @@ export default function HtmlPopup({ data }: HtmlPopupProps) {
           <CopyButton text={tagName} />
         </div>
       </h3>
-      <div style={{ maxHeight: '10rem', overflowY: 'scroll' }}>
-        {boxData.htmlWithText}
-      </div>
+      <div style={{ maxHeight: '10rem', overflowY: 'scroll' }}>{boxData.htmlWithText}</div>
     </>
   );
 }

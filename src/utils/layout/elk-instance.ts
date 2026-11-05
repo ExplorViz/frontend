@@ -45,10 +45,7 @@ function createWorkerBackedElk(): ProbeableElk | null {
 
 function withTimeout<T>(promise: Promise<T>, timeoutMs: number): Promise<T> {
   return new Promise<T>((resolve, reject) => {
-    const timeout = setTimeout(
-      () => reject(new Error('ELK worker did not respond in time')),
-      timeoutMs
-    );
+    const timeout = setTimeout(() => reject(new Error('ELK worker did not respond in time')), timeoutMs);
     promise.then(
       (value) => {
         clearTimeout(timeout);
@@ -73,16 +70,10 @@ async function createElk(): Promise<ElkLayouter> {
   if (workerElk) {
     try {
       // A missing or broken worker script only surfaces once we talk to it.
-      await withTimeout(
-        workerElk.knownLayoutAlgorithms(),
-        WORKER_PROBE_TIMEOUT_MS
-      );
+      await withTimeout(workerElk.knownLayoutAlgorithms(), WORKER_PROBE_TIMEOUT_MS);
       return workerElk;
     } catch (error) {
-      console.warn(
-        'Could not start the ELK web worker, layouting on the main thread instead.',
-        error
-      );
+      console.warn('Could not start the ELK web worker, layouting on the main thread instead.', error);
       workerElk.terminateWorker?.();
     }
   }

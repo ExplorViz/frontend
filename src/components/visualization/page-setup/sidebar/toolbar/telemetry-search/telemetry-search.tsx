@@ -7,9 +7,7 @@ import MetricsSearch from './metrics-search';
 import SpanSearch from './span-search';
 
 export default function TelemetrySearch() {
-  const showErrorToastMessage = useToastHandlerStore(
-    (state) => state.showErrorToastMessage
-  );
+  const showErrorToastMessage = useToastHandlerStore((state) => state.showErrorToastMessage);
 
   const toolbarContext = use(ToolbarContext);
 
@@ -26,38 +24,16 @@ export default function TelemetrySearch() {
   return (
     <>
       <h5 className="text-center">Telemetry Search</h5>
-      <p className="text-center text-muted">
-        Find telemetry data related to landscape entities.
-      </p>
+      <p className="text-center text-muted">Find telemetry data related to landscape entities.</p>
 
-      <Tabs
-        activeKey={selectedTab}
-        defaultActiveKey="spans"
-        onSelect={handleSelect}
-        className="ml-2"
-      >
-        <Tab
-          eventKey="spans"
-          title="Spans"
-          className="border border-top-0 p-3"
-          tabClassName="text-dark"
-        >
+      <Tabs activeKey={selectedTab} defaultActiveKey="spans" onSelect={handleSelect} className="ml-2">
+        <Tab eventKey="spans" title="Spans" className="border border-top-0 p-3" tabClassName="text-dark">
           <SpanSearch />
         </Tab>
-        <Tab
-          eventKey="metrics"
-          title="Metrics"
-          className="border border-top-0 p-3"
-          tabClassName="text-dark"
-        >
+        <Tab eventKey="metrics" title="Metrics" className="border border-top-0 p-3" tabClassName="text-dark">
           <MetricsSearch />
         </Tab>
-        <Tab
-          eventKey="logs"
-          title="Logs"
-          className="border border-top-0 p-3"
-          tabClassName="text-dark"
-        >
+        <Tab eventKey="logs" title="Logs" className="border border-top-0 p-3" tabClassName="text-dark">
           <LogSearch />
         </Tab>
       </Tabs>

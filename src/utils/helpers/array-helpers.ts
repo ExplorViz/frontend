@@ -6,8 +6,7 @@ export function areArraysEqual(a: any[] | null, b: any[] | null): boolean {
 
   if (a.length !== b.length) return false;
 
-  const isObjectArray = (arr: any[]): boolean =>
-    arr.every((item) => typeof item === 'object' && item !== null);
+  const isObjectArray = (arr: any[]): boolean => arr.every((item) => typeof item === 'object' && item !== null);
 
   if (isObjectArray(a) && isObjectArray(b)) {
     return equal(a, b);

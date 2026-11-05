@@ -21,21 +21,10 @@ export default class PingMesh extends THREE.Mesh {
 
   material: THREE.MeshBasicMaterial;
 
-  constructor({
-    animationMixer,
-    color,
-  }: {
-    animationMixer: THREE.AnimationMixer;
-    color: THREE.Color;
-  }) {
+  constructor({ animationMixer, color }: { animationMixer: THREE.AnimationMixer; color: THREE.Color }) {
     super();
 
-    this.geometry = new THREE.CylinderGeometry(
-      PING_RADIUS,
-      PING_RADIUS,
-      PING_SEGMENTS,
-      PING_SEGMENTS
-    );
+    this.geometry = new THREE.CylinderGeometry(PING_RADIUS, PING_RADIUS, PING_SEGMENTS, PING_SEGMENTS);
     this.material = new THREE.MeshBasicMaterial({ color });
     this.visible = false;
     this.isPinging = false;

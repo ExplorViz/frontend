@@ -29,22 +29,12 @@ interface EntityFilteringApplierProps {
   readonly landscapeData: LandscapeData;
 }
 
-const getMetricValue = (building: Building, metricKey: string): number =>
-  building.metrics?.[metricKey]?.current ?? 0;
+const getMetricValue = (building: Building, metricKey: string): number => building.metrics?.[metricKey]?.current ?? 0;
 
-const getDefaultThresholds = (
-  metricBounds: Record<string, { min: number; max: number }>
-): Record<string, number> =>
-  Object.fromEntries(
-    Object.entries(metricBounds).map(([metricName, bounds]) => [
-      metricName,
-      bounds.min,
-    ])
-  );
+const getDefaultThresholds = (metricBounds: Record<string, { min: number; max: number }>): Record<string, number> =>
+  Object.fromEntries(Object.entries(metricBounds).map(([metricName, bounds]) => [metricName, bounds.min]));
 
-const getMetricBounds = (
-  landscape: FlatLandscape
-): Record<string, { min: number; max: number }> => {
+const getMetricBounds = (landscape: FlatLandscape): Record<string, { min: number; max: number }> => {
   const buildings = Object.values(landscape.buildings);
   const metricBounds: Record<string, { min: number; max: number }> = {};
 
@@ -95,14 +85,10 @@ function getBuildingCount(flatLandscape: FlatLandscape): number {
   return Object.keys(flatLandscape.buildings).length;
 }
 
-function shouldRefreshFilterBaseline(
-  currentBaseline: FlatLandscape,
-  candidateFlatLandscape: FlatLandscape
-): boolean {
+function shouldRefreshFilterBaseline(currentBaseline: FlatLandscape, candidateFlatLandscape: FlatLandscape): boolean {
   return (
     getBuildingCount(currentBaseline) === 0 ||
-    getBuildingCount(candidateFlatLandscape) >=
-      getBuildingCount(currentBaseline)
+    getBuildingCount(candidateFlatLandscape) >= getBuildingCount(currentBaseline)
   );
 }
 
@@ -113,32 +99,17 @@ function syncModelStoreToFlatLandscape(flatLandscape: FlatLandscape): void {
   syncLayoutStoreWithFlatLandscape(flatLandscape);
 }
 
-export default function EntityFilteringApplier({
-  landscapeData,
-}: EntityFilteringApplierProps) {
+export default function EntityFilteringApplier({ landscapeData }: EntityFilteringApplierProps) {
   const { flatLandscapeData } = landscapeData;
   const triggerRenderingForGivenLandscapeData = useRenderingServiceStore(
     (state) => state.triggerRenderingForGivenLandscapeData
   );
-  const hiddenModelTypes = useVisualizationStore(
-    (state) => state.hiddenModelTypes
-  );
-  const hiddenLanguages = useVisualizationStore(
-    (state) => state.hiddenLanguages
-  );
-  const setFilterHiddenBuildingIds = useVisualizationStore(
-    (state) => state.actions.setFilterHiddenBuildingIds
-  );
-  const commitToSelectedTimestamp = useTimestampStore(
-    (state) => state.commitToSelectedTimestamps
-  );
+  const hiddenModelTypes = useVisualizationStore((state) => state.hiddenModelTypes);
+  const hiddenLanguages = useVisualizationStore((state) => state.hiddenLanguages);
+  const setFilterHiddenBuildingIds = useVisualizationStore((state) => state.actions.setFilterHiddenBuildingIds);
+  const commitToSelectedTimestamp = useTimestampStore((state) => state.commitToSelectedTimestamps);
 
-  const {
-    filterMode,
-    inclusionExpressions,
-    exclusionExpressions,
-    metricThresholds,
-  } = useEntityFilteringStore(
+  const { filterMode, inclusionExpressions, exclusionExpressions, metricThresholds } = useEntityFilteringStore(
     useShallow((state) => ({
       filterMode: state.filterMode,
       inclusionExpressions: state.inclusionExpressions,
@@ -146,18 +117,12 @@ export default function EntityFilteringApplier({
       metricThresholds: state.metricThresholds,
     }))
   );
-  const setMetricThresholds = useEntityFilteringStore(
-    (state) => state.actions.setMetricThresholds
-  );
-  const setBaselineLanguageStats = useEntityFilteringStore(
-    (state) => state.actions.setBaselineLanguageStats
-  );
+  const setMetricThresholds = useEntityFilteringStore((state) => state.actions.setMetricThresholds);
+  const setBaselineLanguageStats = useEntityFilteringStore((state) => state.actions.setBaselineLanguageStats);
   const setBaselineLanguageFileExtensionStats = useEntityFilteringStore(
     (state) => state.actions.setBaselineLanguageFileExtensionStats
   );
-  const setBaselineFlatLandscape = useEntityFilteringStore(
-    (state) => state.actions.setBaselineFlatLandscape
-  );
+  const setBaselineFlatLandscape = useEntityFilteringStore((state) => state.actions.setBaselineFlatLandscape);
 
   const latestLandscapeDataRef = useRef<LandscapeData>(landscapeData);
   const latestFlatLandscapeDataRef = useRef<FlatLandscape>(flatLandscapeData);
@@ -167,16 +132,10 @@ export default function EntityFilteringApplier({
   const initialLandscapeData = useRef<LandscapeData>(landscapeData);
   const initialFlatLandscapeData = useRef<FlatLandscape>(flatLandscapeData);
 
-  const inclusionExpressionValues = inclusionExpressions.map(
-    (option) => option.value
-  );
-  const exclusionExpressionValues = exclusionExpressions.map(
-    (option) => option.value
-  );
+  const inclusionExpressionValues = inclusionExpressions.map((option) => option.value);
+  const exclusionExpressionValues = exclusionExpressions.map((option) => option.value);
 
-  const applyFilters = (
-    thresholds: Record<string, number> = metricThresholds
-  ) => {
+  const applyFilters = (thresholds: Record<string, number> = metricThresholds) => {
     const baselineFlatLandscape = initialFlatLandscapeData.current;
     const compiledFilter = compileBuildingFilter({
       filterMode,
@@ -186,12 +145,8 @@ export default function EntityFilteringApplier({
       exclusionExpressions: exclusionExpressionValues,
       metricThresholds: thresholds,
     });
-    const buildingIdsToFilter = collectFilteredBuildings(
-      baselineFlatLandscape.buildings,
-      compiledFilter
-    );
-    const renderedFlatLandscape =
-      useRenderingServiceStore.getState()._landscapeData?.flatLandscapeData;
+    const buildingIdsToFilter = collectFilteredBuildings(baselineFlatLandscape.buildings, compiledFilter);
+    const renderedFlatLandscape = useRenderingServiceStore.getState()._landscapeData?.flatLandscapeData;
 
     const restoreBaselineLandscape = () => {
       syncLayoutStoreWithFlatLandscape(baselineFlatLandscape);
@@ -213,10 +168,7 @@ export default function EntityFilteringApplier({
       if (filterMode === 'Hide') {
         // With no entity filters active, leave externally filtered landscapes
         // (e.g. commit-chart building comparison categories) untouched.
-        if (
-          removeModePrunedRenderedRef.current &&
-          renderedFlatLandscape !== baselineFlatLandscape
-        ) {
+        if (removeModePrunedRenderedRef.current && renderedFlatLandscape !== baselineFlatLandscape) {
           restoreBaselineLandscape();
         }
         return;
@@ -224,10 +176,7 @@ export default function EntityFilteringApplier({
 
       // Remove mode: the landscape watcher only updates communications here,
       // so we must keep the model store in sync ourselves.
-      if (
-        removeModePrunedRenderedRef.current &&
-        renderedFlatLandscape !== baselineFlatLandscape
-      ) {
+      if (removeModePrunedRenderedRef.current && renderedFlatLandscape !== baselineFlatLandscape) {
         syncModelStoreToFlatLandscape(baselineFlatLandscape);
 
         ignoreNextLandscapeUpdateRef.current = true;
@@ -240,16 +189,12 @@ export default function EntityFilteringApplier({
         return;
       }
 
-      syncModelStoreToFlatLandscape(
-        renderedFlatLandscape ?? baselineFlatLandscape
-      );
+      syncModelStoreToFlatLandscape(renderedFlatLandscape ?? baselineFlatLandscape);
       return;
     }
 
     if (filterMode === 'Hide') {
-      const idsToHide = new Set(
-        buildingIdsToFilter.map((building) => building.id)
-      );
+      const idsToHide = new Set(buildingIdsToFilter.map((building) => building.id));
       setFilterHiddenBuildingIds([...idsToHide]);
       hiddenBuildingIdsByFilterRef.current = idsToHide;
 
@@ -294,31 +239,18 @@ export default function EntityFilteringApplier({
     const buildings = Object.values(baselineFlatLandscape.buildings);
     setBaselineFlatLandscape(baselineFlatLandscape);
     setBaselineLanguageStats(getLanguageCountsFromBuildings(buildings));
-    setBaselineLanguageFileExtensionStats(
-      getLanguageFileExtensionStatsFromBuildings(buildings)
-    );
+    setBaselineLanguageFileExtensionStats(getLanguageFileExtensionStatsFromBuildings(buildings));
   };
 
-  const refreshFilterBaseline = (
-    nextLandscapeData: LandscapeData,
-    nextFlatLandscapeData: FlatLandscape
-  ) => {
-    if (
-      shouldRefreshFilterBaseline(
-        initialFlatLandscapeData.current,
-        nextFlatLandscapeData
-      )
-    ) {
+  const refreshFilterBaseline = (nextLandscapeData: LandscapeData, nextFlatLandscapeData: FlatLandscape) => {
+    if (shouldRefreshFilterBaseline(initialFlatLandscapeData.current, nextFlatLandscapeData)) {
       initialLandscapeData.current = nextLandscapeData;
       initialFlatLandscapeData.current = nextFlatLandscapeData;
       updateBaseline(nextFlatLandscapeData);
     }
   };
 
-  const resetStateForData = (
-    nextLandscapeData: LandscapeData,
-    nextFlatLandscapeData: FlatLandscape
-  ) => {
+  const resetStateForData = (nextLandscapeData: LandscapeData, nextFlatLandscapeData: FlatLandscape) => {
     if (hiddenBuildingIdsByFilterRef.current.size > 0) {
       setFilterHiddenBuildingIds([]);
       hiddenBuildingIdsByFilterRef.current = new Set();
@@ -326,10 +258,7 @@ export default function EntityFilteringApplier({
     latestLandscapeDataRef.current = nextLandscapeData;
     latestFlatLandscapeDataRef.current = nextFlatLandscapeData;
 
-    const baselineRefreshed = shouldRefreshFilterBaseline(
-      initialFlatLandscapeData.current,
-      nextFlatLandscapeData
-    );
+    const baselineRefreshed = shouldRefreshFilterBaseline(initialFlatLandscapeData.current, nextFlatLandscapeData);
     refreshFilterBaseline(nextLandscapeData, nextFlatLandscapeData);
 
     // Only re-apply entity filters when the baseline grew (e.g. new commits
@@ -350,7 +279,6 @@ export default function EntityFilteringApplier({
   useEffect(() => {
     refreshFilterBaseline(landscapeData, flatLandscapeData);
     // Seed the filter baseline before filter/landscape effects run.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
@@ -365,14 +293,7 @@ export default function EntityFilteringApplier({
 
   useEffect(() => {
     applyFilters();
-  }, [
-    filterMode,
-    hiddenModelTypes,
-    hiddenLanguages,
-    inclusionExpressions,
-    exclusionExpressions,
-    metricThresholds,
-  ]);
+  }, [filterMode, hiddenModelTypes, hiddenLanguages, inclusionExpressions, exclusionExpressions, metricThresholds]);
 
   useEffect(
     function resetForNewTimestamp() {
@@ -384,9 +305,7 @@ export default function EntityFilteringApplier({
       initialFlatLandscapeData.current = latestFlatLandscapeDataRef.current;
       removeModePrunedRenderedRef.current = false;
       updateBaseline(latestFlatLandscapeDataRef.current);
-      const defaultThresholds = getDefaultThresholds(
-        getMetricBounds(latestFlatLandscapeDataRef.current)
-      );
+      const defaultThresholds = getDefaultThresholds(getMetricBounds(latestFlatLandscapeDataRef.current));
       setMetricThresholds(defaultThresholds);
       applyFilters(defaultThresholds);
     },

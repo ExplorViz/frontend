@@ -19,10 +19,7 @@ interface BottomBarChartDropdownProps {
   onSelectView: (view: BottomBarChartView) => void;
 }
 
-export default function BottomBarChartDropdown({
-  selectedView,
-  onSelectView,
-}: BottomBarChartDropdownProps) {
+export default function BottomBarChartDropdown({ selectedView, onSelectView }: BottomBarChartDropdownProps) {
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
@@ -30,10 +27,7 @@ export default function BottomBarChartDropdown({
 
   useEffect(() => {
     const handleClickOutside = ({ target }: MouseEvent) => {
-      if (
-        dropdownRef.current &&
-        !dropdownRef.current.contains(target as HTMLElement)
-      ) {
+      if (dropdownRef.current && !dropdownRef.current.contains(target as HTMLElement)) {
         setIsOpen(false);
       }
     };
@@ -59,11 +53,7 @@ export default function BottomBarChartDropdown({
   ];
 
   return (
-    <div
-      ref={dropdownRef}
-      className="bottom-bar-chart-dropdown dropdown"
-      id="bottom-bar-chart-button-div"
-    >
+    <div ref={dropdownRef} className="bottom-bar-chart-dropdown dropdown" id="bottom-bar-chart-button-div">
       <button
         type="button"
         className="btn dropdown-toggle bottom-bar-chart-button"
@@ -73,18 +63,12 @@ export default function BottomBarChartDropdown({
       >
         {getChartViewLabel(selectedView) ?? selectedView}
       </button>
-      <div
-        className={`dropdown-menu bottom-bar-chart-dropdown-menu${
-          isOpen ? ' show' : ''
-        }`}
-      >
+      <div className={`dropdown-menu bottom-bar-chart-dropdown-menu${isOpen ? ' show' : ''}`}>
         {selectableCharts.map((chart) => (
           <button
             key={chart}
             type="button"
-            className={`dropdown-item${
-              chart === selectedView ? ' active' : ''
-            }`}
+            className={`dropdown-item${chart === selectedView ? ' active' : ''}`}
             onClick={() => handleSelect(chart)}
           >
             {getChartViewLabel(chart) ?? chart}

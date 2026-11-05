@@ -25,10 +25,7 @@ export default function LoginPage() {
     const defaultToken = import.meta.env.VITE_ONLY_SHOW_TOKEN;
     if (defaultToken && defaultToken !== 'change-token') {
       // Get user sub from store or fallback to env variable
-      const ownerId =
-        useAuthStore.getState().user?.sub ||
-        import.meta.env.VITE_DEV_USER_SUB ||
-        '9000';
+      const ownerId = useAuthStore.getState().user?.sub || import.meta.env.VITE_DEV_USER_SUB || '9000';
       const defaultLandscapeToken = {
         value: defaultToken,
         ownerId: ownerId,
@@ -60,35 +57,21 @@ export default function LoginPage() {
           <div className="login-page-card login-page-card-loading">
             <div className="login-page-loading-content">
               <div className="login-page-loading-spinner"></div>
-              <p className="login-page-loading-text">
-                Connecting to Keycloak...
-              </p>
+              <p className="login-page-loading-text">Connecting to Keycloak...</p>
             </div>
           </div>
         ) : (
           <div className="login-page-card">
             <div className="login-page-card-header">
               <div className="login-page-logo">
-                <img
-                  src="images/explorviz-logo.png"
-                  alt="ExplorViz"
-                  className="login-page-logo-image"
-                />
+                <img src="images/explorviz-logo.png" alt="ExplorViz" className="login-page-logo-image" />
               </div>
               <h1 className="login-page-title">Welcome to ExplorViz</h1>
-              <p className="login-page-subtitle">
-                Please sign in to access your visualization workspace
-              </p>
+              <p className="login-page-subtitle">Please sign in to access your visualization workspace</p>
             </div>
             <div className="login-page-card-body">
-              <button
-                className="login-page-button login-page-button-primary"
-                onClick={login}
-                type="button"
-              >
-                <span className="login-page-button-label">
-                  Sign In / Register
-                </span>
+              <button className="login-page-button login-page-button-primary" onClick={login} type="button">
+                <span className="login-page-button-label">Sign In / Register</span>
                 <span className="login-page-button-ripple"></span>
               </button>
               {isDevLoginEnabled && (
@@ -97,9 +80,7 @@ export default function LoginPage() {
                   onClick={handleSkipLogin}
                   type="button"
                 >
-                  <span className="login-page-button-label">
-                    Skip Login (Dev Mode)
-                  </span>
+                  <span className="login-page-button-label">Skip Login (Dev Mode)</span>
                   <span className="login-page-button-ripple"></span>
                 </button>
               )}

@@ -3,15 +3,9 @@ import { Badge, Table } from 'react-bootstrap';
 /**
  * A table component for displaying telemetry attributes.
  */
-export default function AttributesTable({
-  attributes,
-}: {
-  attributes: Record<string, string>;
-}) {
+export default function AttributesTable({ attributes }: { attributes: Record<string, string> }) {
   // Filter out ExplorViz-specific attributes
-  const filteredEntries = Object.entries(attributes).filter(
-    ([k]) => !k.startsWith('explorviz.')
-  );
+  const filteredEntries = Object.entries(attributes).filter(([k]) => !k.startsWith('explorviz.'));
 
   if (filteredEntries.length === 0) {
     return <small>None</small>;
@@ -28,9 +22,7 @@ export default function AttributesTable({
               </Badge>
             </td>
             <td>
-              <code className="text-secondary bg-secondary-subtle px-1 rounded-1">
-                {v}
-              </code>
+              <code className="text-secondary bg-secondary-subtle px-1 rounded-1">{v}</code>
             </td>
           </tr>
         ))}

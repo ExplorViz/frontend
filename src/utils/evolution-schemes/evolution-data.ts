@@ -26,10 +26,7 @@ export const DEFAULT_COMMIT_TREE_FILTERS: CommitTreeFilters = {
   firstParentOnly: false,
 };
 
-export function hasActiveCommitTreeFilters(
-  filters: CommitTreeFilters,
-  metricChangeThreshold = 0
-): boolean {
+export function hasActiveCommitTreeFilters(filters: CommitTreeFilters, metricChangeThreshold = 0): boolean {
   return (
     filters.fromTimestamp != null ||
     filters.toTimestamp != null ||
@@ -107,19 +104,11 @@ export function normalizeCommitNode(commit: CommitNode | string): CommitNode {
     return { hash: commit, hasAccumulatedMetrics: false };
   }
 
-  const metrics =
-    commit.metrics && Object.keys(commit.metrics).length > 0
-      ? commit.metrics
-      : undefined;
+  const metrics = commit.metrics && Object.keys(commit.metrics).length > 0 ? commit.metrics : undefined;
 
-  const tags =
-    commit.tags
-      ?.filter((tag) => tag.trim().length > 0)
-      .sort((a, b) => a.localeCompare(b)) ?? [];
+  const tags = commit.tags?.filter((tag) => tag.trim().length > 0).sort((a, b) => a.localeCompare(b)) ?? [];
 
-  const hasAccumulatedMetrics =
-    commit.hasAccumulatedMetrics ??
-    (metrics != null && Object.keys(metrics).length > 0);
+  const hasAccumulatedMetrics = commit.hasAccumulatedMetrics ?? (metrics != null && Object.keys(metrics).length > 0);
 
   const normalizedAuthor = normalizeCommitAuthor(commit.author);
 
@@ -133,9 +122,7 @@ export function normalizeCommitNode(commit: CommitNode | string): CommitNode {
   };
 }
 
-function normalizeCommitAuthor(
-  author: CommitAuthor | null | undefined
-): CommitAuthor | undefined {
+function normalizeCommitAuthor(author: CommitAuthor | null | undefined): CommitAuthor | undefined {
   if (author == null) {
     return undefined;
   }
@@ -145,12 +132,7 @@ function normalizeCommitAuthor(
   const githubLogin = author.githubLogin?.trim() || undefined;
   const email = author.email?.trim() || undefined;
 
-  if (
-    contributorId == null &&
-    gitUsername == null &&
-    githubLogin == null &&
-    email == null
-  ) {
+  if (contributorId == null && gitUsername == null && githubLogin == null && email == null) {
     return undefined;
   }
 
@@ -162,19 +144,14 @@ function normalizeCommitAuthor(
   };
 }
 
-export function normalizeCommitTree(
-  tree: Partial<CommitTree> | null | undefined,
-  repositoryName = ''
-): CommitTree {
+export function normalizeCommitTree(tree: Partial<CommitTree> | null | undefined, repositoryName = ''): CommitTree {
   return {
     name: tree?.name ?? repositoryName,
     ...(tree?.remoteUrl != null && { remoteUrl: tree.remoteUrl }),
     branches: (tree?.branches ?? []).map((branch) => ({
       name: branch.name,
       branchPoint: branch.branchPoint ?? NO_BRANCH_POINT,
-      commits: (branch.commits ?? []).map((commit) =>
-        normalizeCommitNode(commit as CommitNode | string)
-      ),
+      commits: (branch.commits ?? []).map((commit) => normalizeCommitNode(commit as CommitNode | string)),
     })),
   };
 }

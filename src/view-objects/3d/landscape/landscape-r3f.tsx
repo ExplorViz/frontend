@@ -3,17 +3,13 @@ import { useLayoutStore } from 'explorviz-frontend/src/stores/layout-store';
 import { usePingStore } from 'explorviz-frontend/src/stores/ping-store';
 import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
 import { getLandscapeCenterPosition } from 'explorviz-frontend/src/utils/layout-helper';
-import { pingPosition } from 'explorviz-frontend/src/view-objects/3d/city/animated-ping-r3f';
+import { pingPosition } from 'explorviz-frontend/src/view-objects/3d/city/ping-animation';
 import { useEffect, useState } from 'react';
 import * as THREE from 'three';
 
 const MOUSE_MIDDLE_BUTTON = 1;
 
-export default function LandscapeR3F({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default function LandscapeR3F({ children }: { children: React.ReactNode }) {
   const [position, setPosition] = useState<THREE.Vector3>(new THREE.Vector3());
   const settings = useUserSettingsStore.getState().visualizationSettings;
   const scalar = settings.landscapeScalar.value;
@@ -38,18 +34,15 @@ export default function LandscapeR3F({
     if (layout) {
       setPosition(getLandscapeCenterPosition());
     }
-  }, [
-    layout,
-    settings.openedDistrictHeight.value,
-    scalar,
-    positionX,
-    positionY,
-    positionZ,
-  ]);
+  }, [layout, settings.openedDistrictHeight.value, scalar, positionX, positionY, positionZ]);
 
-  const raycaster = useThree((state) => state.raycaster);
+  // Subscribed so the effect re-applies settings if the raycaster is replaced.
+  const currentRaycaster = useThree((state) => state.raycaster);
+  const getThreeState = useThree((state) => state.get);
 
   useEffect(() => {
+    // Read the raycaster from the store at effect time; it is mutable three.js state.
+    const raycaster = getThreeState().raycaster;
     raycaster.near = raycastNear;
     raycaster.far = raycastFar;
     raycaster.firstHitOnly = raycastFirstHit;
@@ -58,7 +51,7 @@ export default function LandscapeR3F({
     } else {
       raycaster.layers.disableAll();
     }
-  }, [raycaster, raycastEnabled, raycastFirstHit, raycastNear, raycastFar]);
+  }, [currentRaycaster, raycastEnabled, raycastFirstHit, raycastNear, raycastFar]);
 
   return (
     <group
@@ -82,9 +75,7 @@ export default function LandscapeR3F({
           }
           let candidate: NodeLike | null = e.object as unknown as NodeLike;
           while (candidate) {
-            const appName = candidate.userData?.applicationName as
-              | string
-              | undefined;
+            const appName = candidate.userData?.applicationName as string | undefined;
             if (appName) {
               usePingStore.getState().addPing(appName);
               break;

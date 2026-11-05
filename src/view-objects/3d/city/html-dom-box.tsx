@@ -43,8 +43,10 @@ export default function HtmlDomBox({
     }
   };
 
-  const [handleClickWithPrevent, handleDoubleClickWithPrevent] =
-    useClickPreventionOnDoubleClick(handleClick, handleDoubleClick);
+  const [handleClickWithPrevent, handleDoubleClickWithPrevent] = useClickPreventionOnDoubleClick(
+    handleClick,
+    handleDoubleClick
+  );
 
   return (
     <group
@@ -56,47 +58,18 @@ export default function HtmlDomBox({
       {...pointerStopHandlers}
     >
       <Box position={[135, -63, -1]} args={[290, 200, 1]} />
-      <mesh
-        position={[
-          box.position[0],
-          box.position[1],
-          box.level * distanceBetweenLevels,
-        ]}
-      >
+      <mesh position={[box.position[0], box.position[1], box.level * distanceBetweenLevels]}>
         {!clicked && <boxGeometry args={box.size} />}
-        {clicked && (
-          <boxGeometry
-            args={[
-              box.size[0],
-              box.size[1],
-              box.size[2] + distanceBetweenLevels / 2,
-            ]}
-          />
-        )}
-        <meshToonMaterial
-          map={box.texture}
-          color={box.texture ? 'white' : color}
-          transparent={true}
-          opacity={1}
-        />
-        {(clicked || box.isSubtreeRoot) && (
-          <Edges linewidth={5} scale={1} color="black" />
-        )}
+        {clicked && <boxGeometry args={[box.size[0], box.size[1], box.size[2] + distanceBetweenLevels / 2]} />}
+        <meshToonMaterial map={box.texture} color={box.texture ? 'white' : color} transparent={true} opacity={1} />
+        {(clicked || box.isSubtreeRoot) && <Edges linewidth={5} scale={1} color="black" />}
         {!clicked && <Edges linewidth={1} scale={1} color="black" />}
       </mesh>
       {box.level !== 0 && (
         <Line
           points={[
-            [
-              box.position[0],
-              box.position[1],
-              box.level * distanceBetweenLevels,
-            ],
-            [
-              box.position[0],
-              box.position[1],
-              box.level * distanceBetweenLevels - distanceBetweenLevels,
-            ],
+            [box.position[0], box.position[1], box.level * distanceBetweenLevels],
+            [box.position[0], box.position[1], box.level * distanceBetweenLevels - distanceBetweenLevels],
           ]}
           color={'black'}
           raycast={() => {}}

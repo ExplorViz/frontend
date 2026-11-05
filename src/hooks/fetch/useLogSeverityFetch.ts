@@ -17,9 +17,7 @@ export default function useLogSeverityFetch() {
         throw new Error('Log service URL not configured');
       }
 
-      const requestUrl = new URL(
-        `${logServiceUrl}/v3/landscapes/${landscapeTokenId}/log-levels`
-      );
+      const requestUrl = new URL(`${logServiceUrl}/v3/landscapes/${landscapeTokenId}/log-levels`);
 
       let response: Response;
       try {
@@ -37,10 +35,7 @@ export default function useLogSeverityFetch() {
       }
 
       const receivedSeverities = await response.json();
-      if (
-        !Array.isArray(receivedSeverities) ||
-        !receivedSeverities.every((v) => typeof v === 'string')
-      ) {
+      if (!Array.isArray(receivedSeverities) || !receivedSeverities.every((v) => typeof v === 'string')) {
         console.error(`JSON is not string array`);
         throw new Error('Received invalid response');
       }

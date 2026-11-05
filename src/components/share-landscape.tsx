@@ -1,10 +1,4 @@
-import {
-  DashIcon,
-  PlusIcon,
-  RepoForkedIcon,
-  ShareAndroidIcon,
-  TrashIcon,
-} from '@primer/octicons-react';
+import { DashIcon, PlusIcon, RepoForkedIcon, ShareAndroidIcon, TrashIcon } from '@primer/octicons-react';
 import { useAuthStore } from 'explorviz-frontend/src/stores/auth';
 import { LandscapeToken } from 'explorviz-frontend/src/stores/landscape-token';
 import { useToastHandlerStore } from 'explorviz-frontend/src/stores/toast-handler';
@@ -21,7 +15,7 @@ const userService = import.meta.env.VITE_USER_SERV_URL;
 
 export default function ShareLandscape(args: ShareLandscapeArgs) {
   const user = useAuthStore((state) => state.user);
-  const [username, setUserName] = useState<string>('');
+  const [username, setUsername] = useState<string>('');
 
   const grantAccess = async (event: React.MouseEvent) => {
     event.stopPropagation();
@@ -31,9 +25,7 @@ export default function ShareLandscape(args: ShareLandscapeArgs) {
 
       useToastHandlerStore
         .getState()
-        .showSuccessToastMessage(
-          `Access of ${username} granted for token ${args.token.value}`
-        );
+        .showSuccessToastMessage(`Access of ${username} granted for token ${args.token.value}`);
     } catch (e: any) {
       useToastHandlerStore.getState().showErrorToastMessage(e.message);
     }
@@ -46,9 +38,7 @@ export default function ShareLandscape(args: ShareLandscapeArgs) {
       args.token.sharedUsersIds.filter((value) => value !== userId);
       useToastHandlerStore
         .getState()
-        .showSuccessToastMessage(
-          `Access of ${userId} revoked for token ${args.token.value}`
-        );
+        .showSuccessToastMessage(`Access of ${userId} revoked for token ${args.token.value}`);
     } catch (e: any) {
       useToastHandlerStore.getState().showErrorToastMessage(e.message);
     }
@@ -59,9 +49,7 @@ export default function ShareLandscape(args: ShareLandscapeArgs) {
     try {
       await sendModifyAccess(args.token.value, userId, 'clone');
       args.reload();
-      useToastHandlerStore
-        .getState()
-        .showSuccessToastMessage(`Cloned token ${args.token.value}`);
+      useToastHandlerStore.getState().showSuccessToastMessage(`Cloned token ${args.token.value}`);
     } catch (e: any) {
       useToastHandlerStore.getState().showErrorToastMessage(e.message);
     }
@@ -72,32 +60,21 @@ export default function ShareLandscape(args: ShareLandscapeArgs) {
     event.stopPropagation();
   };
 
-  const sendModifyAccess = (
-    tokenId: string,
-    userId: string,
-    method: string
-  ) => {
+  const sendModifyAccess = (tokenId: string, userId: string, method: string) => {
     return new Promise<undefined>((resolve, reject) => {
       const encodedUserId = encodeURI(userId);
 
-      fetch(
-        `${userService}/token/${tokenId}/${encodedUserId}?method=${method}`,
-        {
-          headers: {
-            Authorization: `Bearer ${useAuthStore.getState().accessToken}`,
-          },
-          method: 'POST',
-        }
-      )
+      fetch(`${userService}/token/${tokenId}/${encodedUserId}?method=${method}`, {
+        headers: {
+          Authorization: `Bearer ${useAuthStore.getState().accessToken}`,
+        },
+        method: 'POST',
+      })
         .then(async (response: Response) => {
           if (response.ok) {
             resolve(undefined);
           } else if (response.status === 404) {
-            reject(
-              new Error(
-                await getResponseErrorMessage(response, 'Token not found')
-              )
-            );
+            reject(new Error(await getResponseErrorMessage(response, 'Token not found')));
           } else {
             reject(new Error(await getResponseErrorMessage(response)));
           }
@@ -107,11 +84,7 @@ export default function ShareLandscape(args: ShareLandscapeArgs) {
   };
 
   const popover = (
-    <Popover
-      id="share-landscape-popover"
-      title="Manage Access"
-      onClick={(e) => e.stopPropagation()}
-    >
+    <Popover id="share-landscape-popover" title="Manage Access" onClick={(e) => e.stopPropagation()}>
       <Popover.Header>Manage Access</Popover.Header>
       <Popover.Body>
         <table className="table table-striped" style={{ width: '100%' }}>
@@ -125,21 +98,14 @@ export default function ShareLandscape(args: ShareLandscapeArgs) {
                       <OverlayTrigger
                         placement={'bottom'}
                         trigger={['hover', 'focus']}
-                        overlay={
-                          <Tooltip id="tooltip-bottom">Revoke access</Tooltip>
-                        }
+                        overlay={<Tooltip id="tooltip-bottom">Revoke access</Tooltip>}
                       >
                         <button
                           className="button-svg-with-hover"
                           type="button"
-                          onClick={(event) =>
-                            revokeAccess(userWithAccess, event)
-                          }
+                          onClick={(event) => revokeAccess(userWithAccess, event)}
                         >
-                          <DashIcon
-                            size="small"
-                            className="octicon align-middle"
-                          />
+                          <DashIcon size="small" className="octicon align-middle" />
                         </button>
                       </OverlayTrigger>
                     </td>
@@ -153,7 +119,7 @@ export default function ShareLandscape(args: ShareLandscapeArgs) {
                       className="form-control"
                       value={username}
                       placeholder="github|12345"
-                      onChange={(e) => setUserName(e.target.value)}
+                      onChange={(e) => setUsername(e.target.value)}
                       onClick={(e) => e.stopPropagation()}
                     />
                   </td>
@@ -161,19 +127,10 @@ export default function ShareLandscape(args: ShareLandscapeArgs) {
                     <OverlayTrigger
                       placement={'bottom'}
                       trigger={['hover', 'focus']}
-                      overlay={
-                        <Tooltip id="tooltip-bottom">Grant access</Tooltip>
-                      }
+                      overlay={<Tooltip id="tooltip-bottom">Grant access</Tooltip>}
                     >
-                      <button
-                        className="button-svg-with-hover"
-                        type="button"
-                        onClick={(event) => grantAccess(event)}
-                      >
-                        <PlusIcon
-                          size="small"
-                          className="octicon align-middle"
-                        />
+                      <button className="button-svg-with-hover" type="button" onClick={(event) => grantAccess(event)}>
+                        <PlusIcon size="small" className="octicon align-middle" />
                       </button>
                     </OverlayTrigger>
                   </td>
@@ -187,19 +144,14 @@ export default function ShareLandscape(args: ShareLandscapeArgs) {
                     <OverlayTrigger
                       placement={'bottom'}
                       trigger={['hover', 'focus']}
-                      overlay={
-                        <Tooltip id="tooltip-bottom">Revoke own access</Tooltip>
-                      }
+                      overlay={<Tooltip id="tooltip-bottom">Revoke own access</Tooltip>}
                     >
                       <button
                         className="button-svg-with-hover"
                         type="button"
                         onClick={(event) => revokeAccess(user!.sub, event)}
                       >
-                        <TrashIcon
-                          size="small"
-                          className="octicon align-middle"
-                        />
+                        <TrashIcon size="small" className="octicon align-middle" />
                       </button>
                     </OverlayTrigger>
                   </td>
@@ -210,21 +162,14 @@ export default function ShareLandscape(args: ShareLandscapeArgs) {
                     <OverlayTrigger
                       placement={'bottom'}
                       trigger={['hover', 'focus']}
-                      overlay={
-                        <Tooltip id="tooltip-bottom">
-                          Clone token to gain write access
-                        </Tooltip>
-                      }
+                      overlay={<Tooltip id="tooltip-bottom">Clone token to gain write access</Tooltip>}
                     >
                       <button
                         className="button-svg-with-hover"
                         type="button"
                         onClick={(event) => cloneToken(user!.sub, event)}
                       >
-                        <RepoForkedIcon
-                          size="small"
-                          className="octicon align-middle"
-                        />
+                        <RepoForkedIcon size="small" className="octicon align-middle" />
                       </button>
                     </OverlayTrigger>
                   </td>
@@ -245,17 +190,8 @@ export default function ShareLandscape(args: ShareLandscapeArgs) {
         overlay={<Tooltip id="tooltip-bottom">Manage access to token</Tooltip>}
       >
         <div>
-          <OverlayTrigger
-            trigger="click"
-            placement="right"
-            overlay={popover}
-            rootClose
-          >
-            <button
-              className="button-svg-with-hover"
-              type="button"
-              onClick={(event) => handleShareClick(event)}
-            >
+          <OverlayTrigger trigger="click" placement="right" overlay={popover} rootClose>
+            <button className="button-svg-with-hover" type="button" onClick={(event) => handleShareClick(event)}>
               <ShareAndroidIcon size="small" className="octicon align-middle" />
             </button>
           </OverlayTrigger>

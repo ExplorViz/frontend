@@ -12,9 +12,7 @@ export default function EmbeddedBrowser({ city }: { city: City }) {
   const iFrameRef = useRef<HTMLIFrameElement>(null);
   const [html, setHtml] = useState<HTMLElement | undefined>(undefined);
 
-  const defaultUrl = city.name.includes('PetClinic')
-    ? 'http://localhost:18080'
-    : 'http://localhost:4200';
+  const defaultUrl = city.name.includes('PetClinic') ? 'http://localhost:18080' : 'http://localhost:4200';
   const [url, setUrl] = useState<string>(defaultUrl);
 
   const sizeX = 1000;
@@ -43,8 +41,7 @@ export default function EmbeddedBrowser({ city }: { city: City }) {
   const updateHtml = () => {
     let iFrameHtml: HTMLElement | undefined;
     try {
-      iFrameHtml =
-        iFrameRef.current?.contentWindow?.document.getRootNode() as HTMLElement;
+      iFrameHtml = iFrameRef.current?.contentWindow?.document.getRootNode() as HTMLElement;
     } catch (error) {
       toastHandlerActions.showErrorToastMessage('Could not inspect iFrame');
       setHtml(undefined);
@@ -56,13 +53,7 @@ export default function EmbeddedBrowser({ city }: { city: City }) {
   return (
     <>
       <Box position={[142, 155, -1]} args={[290, 200, 1]} />
-      <Root
-        positionBottom={positionBottom}
-        positionLeft={positionLeft}
-        sizeX={sizeX}
-        sizeY={sizeY}
-        pixelSize={scale}
-      >
+      <Root positionBottom={positionBottom} positionLeft={positionLeft} sizeX={sizeX} sizeY={sizeY} pixelSize={scale}>
         <Container flexDirection="row" alignItems="flex-start" gap={10}>
           <Input
             onValueChange={(value) => {
@@ -117,6 +108,9 @@ export default function EmbeddedBrowser({ city }: { city: City }) {
             width={1920}
             height={1080}
             src={url}
+            // allow-scripts + allow-same-origin is intentional: embedded apps need their own storage/cookies
+            // and updateHtml() inspects iframe.contentWindow.document.
+            // eslint-disable-next-line react-dom/no-unsafe-iframe-sandbox
             sandbox="allow-forms allow-modals allow-popups allow-scripts allow-same-origin"
             ref={iFrameRef}
           />

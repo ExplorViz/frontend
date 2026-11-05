@@ -42,13 +42,7 @@ interface KMeansOutput {
  * centroid described by (cx, cy, cz).
  * Using squared distance avoids Math.sqrt in the assignment hot-path.
  */
-function sqDist(
-  points: Float32Array,
-  pi: number,
-  cx: number,
-  cy: number,
-  cz: number
-): number {
+function sqDist(points: Float32Array, pi: number, cx: number, cy: number, cz: number): number {
   const dx = points[pi * 3] - cx;
   const dy = points[pi * 3 + 1] - cy;
   const dz = points[pi * 3 + 2] - cz;
@@ -59,11 +53,7 @@ function sqDist(
  * k-means++ initialization.
  * Returns a Float32Array of length k*3 with the initial centroid coordinates.
  */
-function initializeCentroids(
-  points: Float32Array,
-  n: number,
-  k: number
-): Float32Array {
+function initializeCentroids(points: Float32Array, n: number, k: number): Float32Array {
   const centroids = new Float32Array(k * 3);
   const minDistSq = new Float32Array(n);
 
@@ -216,20 +206,9 @@ function kMeansRaw(
 // ---------------------------------------------------------------------------
 
 self.onmessage = (event: MessageEvent<KMeansInput>) => {
-  const {
-    id,
-    points,
-    k,
-    maxIterations = 30,
-    convergenceThreshold = 0.01,
-  } = event.data;
+  const { id, points, k, maxIterations = 30, convergenceThreshold = 0.01 } = event.data;
 
-  const { assignments, centroids } = kMeansRaw(
-    points,
-    k,
-    maxIterations,
-    convergenceThreshold
-  );
+  const { assignments, centroids } = kMeansRaw(points, k, maxIterations, convergenceThreshold);
 
   const output: KMeansOutput = { id, assignments, centroids };
 

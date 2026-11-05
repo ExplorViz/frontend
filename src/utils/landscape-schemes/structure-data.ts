@@ -120,9 +120,10 @@ export function getApplicationsFromNodes(nodes: Node[]) {
   return applications;
 }
 
-export function getAllPackagesAndClassesFromLandscape(
-  landscapeStructure: StructureLandscapeData
-): { packages: Package[]; classes: Class[] } {
+export function getAllPackagesAndClassesFromLandscape(landscapeStructure: StructureLandscapeData): {
+  packages: Package[];
+  classes: Class[];
+} {
   const packages: Package[] = [];
   const classes: Class[] = [];
 
@@ -142,10 +143,7 @@ export function getAllPackagesAndClassesFromLandscape(
   return { packages, classes };
 }
 
-export function getNodeById(
-  landscapeStructure: StructureLandscapeData,
-  id: string
-) {
+export function getNodeById(landscapeStructure: StructureLandscapeData, id: string) {
   return landscapeStructure.nodes.find((node) => node.id === id);
 }
 
@@ -153,8 +151,7 @@ export function preProcessAndEnhanceStructureLandscape(
   landscapeStructure: StructureLandscapeData,
   typeOfAnalysis: TypeOfAnalysis
 ) {
-  const entitiesForIdHashing: Set<Class | Package | Application | Node> =
-    new Set();
+  const entitiesForIdHashing: Set<Class | Package | Application | Node> = new Set();
 
   function createNodeId(node: Node) {
     if (isNode(node)) {
@@ -170,15 +167,9 @@ export function preProcessAndEnhanceStructureLandscape(
     entitiesForIdHashing.add(app);
   }
 
-  function createPackageIdsAndFqns(
-    component: Package,
-    parentId: string,
-    parentFqn = ''
-  ) {
+  function createPackageIdsAndFqns(component: Package, parentId: string, parentFqn = '') {
     component.id = `${parentId}.component-${component.name}`;
-    component.fqn = parentFqn
-      ? `${parentFqn}.${component.name}`
-      : component.name;
+    component.fqn = parentFqn ? `${parentFqn}.${component.name}` : component.name;
     entitiesForIdHashing.add(component);
     if (component.subPackages) {
       component.subPackages.forEach((subComponent) => {
@@ -205,9 +196,7 @@ export function preProcessAndEnhanceStructureLandscape(
 
   function addParentToPackage(child: Package, parent: Package) {
     child.parent = parent;
-    child.subPackages.forEach((subChild) =>
-      addParentToPackage(subChild, child)
-    );
+    child.subPackages.forEach((subChild) => addParentToPackage(subChild, child));
   }
 
   function addParentToClazzes(component: Package) {
@@ -239,8 +228,7 @@ export function preProcessAndEnhanceStructureLandscape(
   }
 
   /* const a = performance.now(); */
-  const enhancedlandscapeStructure: StructureLandscapeData =
-    structuredClone(landscapeStructure);
+  const enhancedlandscapeStructure: StructureLandscapeData = structuredClone(landscapeStructure);
 
   enhancedlandscapeStructure.nodes.forEach((node) => {
     createNodeId(node);

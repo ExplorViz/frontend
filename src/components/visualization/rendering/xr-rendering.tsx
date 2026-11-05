@@ -12,11 +12,7 @@ interface XrRenderingProps {
   onSessionEnded?: () => void;
 }
 
-export default function XrRendering({
-  landscapeData,
-  onSessionStarted,
-  onSessionEnded,
-}: XrRenderingProps) {
+export default function XrRendering({ landscapeData, onSessionStarted, onSessionEnded }: XrRenderingProps) {
   const [xrStore] = useState<XRStore>(() =>
     createXRStore({
       controller: {
@@ -101,10 +97,7 @@ export default function XrRendering({
         setAutoEnterAttempted(true);
         return true;
       } catch (error) {
-        if (
-          error instanceof Error &&
-          error.message.includes('not connected to three.js')
-        ) {
+        if (error instanceof Error && error.message.includes('not connected to three.js')) {
           // XR not ready yet, will retry
           return false;
         }
@@ -122,9 +115,7 @@ export default function XrRendering({
       if (success || attemptCount >= MAX_ENTER_ATTEMPTS) {
         clearInterval(retryInterval);
         if (attemptCount >= MAX_ENTER_ATTEMPTS && !autoEnterAttempted) {
-          console.warn(
-            'Could not auto-enter VR: XR system did not initialize in time'
-          );
+          console.warn('Could not auto-enter VR: XR system did not initialize in time');
           setAutoEnterAttempted(true);
         }
       }
@@ -176,22 +167,12 @@ export default function XrRendering({
       <CanvasWrapper landscapeData={landscapeData} xrStore={xrStore} />
       <div className="xr-controls">
         {vrSupported && (
-          <button
-            type="button"
-            className="btn btn-primary"
-            onClick={enterVR}
-            disabled={!landscapeData}
-          >
+          <button type="button" className="btn btn-primary" onClick={enterVR} disabled={!landscapeData}>
             Enter VR
           </button>
         )}
         {arSupported && (
-          <button
-            type="button"
-            className="btn btn-primary"
-            onClick={enterAR}
-            disabled={!landscapeData}
-          >
+          <button type="button" className="btn btn-primary" onClick={enterAR} disabled={!landscapeData}>
             Enter AR
           </button>
         )}

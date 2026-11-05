@@ -70,349 +70,287 @@ interface VisibilityServiceState {
   ) => void;
 }
 
-export const useVisibilityServiceStore = create<VisibilityServiceState>(
-  (set, get) => ({
-    _evolutionModeRenderingConfiguration: {
-      renderDynamic: true,
-      renderStatic: true,
-      renderOnlyDifferences: false,
-      buildingComparisonVisibility: ALL_BUILDING_COMPARISONS_VISIBLE,
-    },
+export const useVisibilityServiceStore = create<VisibilityServiceState>((set, get) => ({
+  _evolutionModeRenderingConfiguration: {
+    renderDynamic: true,
+    renderStatic: true,
+    renderOnlyDifferences: false,
+    buildingComparisonVisibility: ALL_BUILDING_COMPARISONS_VISIBLE,
+  },
 
-    getCloneOfEvolutionModeRenderingConfiguration: () => {
-      // return clone so that we don't unintentionally alter the object via
-      // the getter
-      return structuredClone(get()._evolutionModeRenderingConfiguration);
-    },
+  getCloneOfEvolutionModeRenderingConfiguration: () => {
+    // return clone so that we don't unintentionally alter the object via
+    // the getter
+    return structuredClone(get()._evolutionModeRenderingConfiguration);
+  },
 
-    applyEvolutionModeRenderingConfiguration: (
-      newEvolutionModeRenderingConfiguration: EvolutionModeRenderingConfiguration
-    ) => {
-      set({
-        _evolutionModeRenderingConfiguration:
-          newEvolutionModeRenderingConfiguration,
-      });
-      return;
+  applyEvolutionModeRenderingConfiguration: (
+    newEvolutionModeRenderingConfiguration: EvolutionModeRenderingConfiguration
+  ) => {
+    set({
+      _evolutionModeRenderingConfiguration: newEvolutionModeRenderingConfiguration,
+    });
+    return;
 
-      const { renderDynamic, renderStatic, renderOnlyDifferences } =
-        newEvolutionModeRenderingConfiguration;
+    const { renderDynamic, renderStatic, renderOnlyDifferences } = newEvolutionModeRenderingConfiguration;
 
-      const needToChangeDynamic =
-        renderDynamic !=
-        get()._evolutionModeRenderingConfiguration.renderDynamic;
-      const needToChangeStatic =
-        renderStatic != get()._evolutionModeRenderingConfiguration.renderStatic;
-      const needToChangeDifferenceRendering =
-        renderOnlyDifferences !=
-        get()._evolutionModeRenderingConfiguration.renderOnlyDifferences;
+    const needToChangeDynamic = renderDynamic != get()._evolutionModeRenderingConfiguration.renderDynamic;
+    const needToChangeStatic = renderStatic != get()._evolutionModeRenderingConfiguration.renderStatic;
+    const needToChangeDifferenceRendering =
+      renderOnlyDifferences != get()._evolutionModeRenderingConfiguration.renderOnlyDifferences;
 
-      const staticAndDynamicStructureLandscapeData:
-        | StructureLandscapeData
-        | undefined =
-        useRenderingServiceStore.getState()._landscapeData
-          ?.structureLandscapeData;
+    const staticAndDynamicStructureLandscapeData: StructureLandscapeData | undefined =
+      useRenderingServiceStore.getState()._landscapeData?.structureLandscapeData;
 
-      for (const applicationObject3D of useApplicationRendererStore
-        .getState()
-        .openApplicationsMap.values()) {
-        const hideVis = (
-          type: TypeOfAnalysis,
-          keepMeshesNecessaryForDifference: boolean = false
-        ) =>
-          get()._hideVisualization(
-            applicationObject3D,
-            staticAndDynamicStructureLandscapeData,
-            type,
-            keepMeshesNecessaryForDifference
-          );
-        const showVis = (type: TypeOfAnalysis, showCommLines: boolean) =>
-          get()._showVisualization(
-            applicationObject3D,
-            staticAndDynamicStructureLandscapeData,
-            type,
-            showCommLines,
-            renderOnlyDifferences
-          );
+    for (const applicationObject3D of useApplicationRendererStore.getState().openApplicationsMap.values()) {
+      const hideVis = (type: TypeOfAnalysis, keepMeshesNecessaryForDifference: boolean = false) =>
+        get()._hideVisualization(
+          applicationObject3D,
+          staticAndDynamicStructureLandscapeData,
+          type,
+          keepMeshesNecessaryForDifference
+        );
+      const showVis = (type: TypeOfAnalysis, showCommLines: boolean) =>
+        get()._showVisualization(
+          applicationObject3D,
+          staticAndDynamicStructureLandscapeData,
+          type,
+          showCommLines,
+          renderOnlyDifferences
+        );
 
-        if (!renderDynamic && !renderStatic) {
-          hideVis(TypeOfAnalysis.StaticAndRuntime);
-          hideVis(TypeOfAnalysis.Static);
+      if (!renderDynamic && !renderStatic) {
+        hideVis(TypeOfAnalysis.StaticAndRuntime);
+        hideVis(TypeOfAnalysis.Static);
+        hideVis(TypeOfAnalysis.Runtime);
+        return;
+      }
+
+      if (needToChangeDynamic) {
+        if (renderDynamic) {
+          showVis(TypeOfAnalysis.StaticAndRuntime, true);
+          showVis(TypeOfAnalysis.Runtime, true);
+        } else {
           hideVis(TypeOfAnalysis.Runtime);
-          return;
-        }
-
-        if (needToChangeDynamic) {
-          if (renderDynamic) {
-            showVis(TypeOfAnalysis.StaticAndRuntime, true);
-            showVis(TypeOfAnalysis.Runtime, true);
-          } else {
-            hideVis(TypeOfAnalysis.Runtime);
-          }
-        }
-
-        if (needToChangeStatic) {
-          if (renderStatic) {
-            showVis(TypeOfAnalysis.StaticAndRuntime, renderDynamic);
-            showVis(TypeOfAnalysis.Static, renderDynamic);
-          } else {
-            hideVis(TypeOfAnalysis.Static);
-          }
-        }
-
-        if (needToChangeDifferenceRendering) {
-          if (renderOnlyDifferences) {
-            if (renderDynamic && renderStatic)
-              hideVis(TypeOfAnalysis.StaticAndRuntime, true);
-            if (renderDynamic) hideVis(TypeOfAnalysis.Runtime, true);
-            if (renderStatic) hideVis(TypeOfAnalysis.Static, true);
-          } else {
-            if (renderDynamic && renderStatic)
-              showVis(TypeOfAnalysis.StaticAndRuntime, renderDynamic);
-            if (renderDynamic) showVis(TypeOfAnalysis.Runtime, true);
-            if (renderStatic) showVis(TypeOfAnalysis.Static, renderDynamic);
-          }
         }
       }
 
-      set({
-        _evolutionModeRenderingConfiguration:
-          newEvolutionModeRenderingConfiguration,
-      });
-    },
+      if (needToChangeStatic) {
+        if (renderStatic) {
+          showVis(TypeOfAnalysis.StaticAndRuntime, renderDynamic);
+          showVis(TypeOfAnalysis.Static, renderDynamic);
+        } else {
+          hideVis(TypeOfAnalysis.Static);
+        }
+      }
 
-    // private
-    _isMeshRelevantForDifference: (mesh: BaseMesh): boolean => {
-      return mesh.texturePath != null;
-    },
+      if (needToChangeDifferenceRendering) {
+        if (renderOnlyDifferences) {
+          if (renderDynamic && renderStatic) hideVis(TypeOfAnalysis.StaticAndRuntime, true);
+          if (renderDynamic) hideVis(TypeOfAnalysis.Runtime, true);
+          if (renderStatic) hideVis(TypeOfAnalysis.Static, true);
+        } else {
+          if (renderDynamic && renderStatic) showVis(TypeOfAnalysis.StaticAndRuntime, renderDynamic);
+          if (renderDynamic) showVis(TypeOfAnalysis.Runtime, true);
+          if (renderStatic) showVis(TypeOfAnalysis.Static, renderDynamic);
+        }
+      }
+    }
 
-    // private
-    _showVisualization: (
-      applicationObject3D: ApplicationObject3D,
-      structure: StructureLandscapeData | undefined,
-      dataTypeToShow: TypeOfAnalysis,
-      showCommLines: boolean,
-      showOnlyMeshesNecessaryForDifference: boolean
-    ) => {
-      structure?.nodes.forEach((node) => {
-        const app = node.applications.find(
-          (a) => a.id === applicationObject3D.getModelId()
+    set({
+      _evolutionModeRenderingConfiguration: newEvolutionModeRenderingConfiguration,
+    });
+  },
+
+  // private
+  _isMeshRelevantForDifference: (mesh: BaseMesh): boolean => {
+    return mesh.texturePath != null;
+  },
+
+  // private
+  _showVisualization: (
+    applicationObject3D: ApplicationObject3D,
+    structure: StructureLandscapeData | undefined,
+    dataTypeToShow: TypeOfAnalysis,
+    showCommLines: boolean,
+    showOnlyMeshesNecessaryForDifference: boolean
+  ) => {
+    structure?.nodes.forEach((node) => {
+      const app = node.applications.find((a) => a.id === applicationObject3D.getModelId());
+
+      if (app) {
+        app.packages.forEach((pckg) =>
+          get()._showPackageAndAllSubComponents(
+            applicationObject3D,
+            pckg,
+            dataTypeToShow,
+            showOnlyMeshesNecessaryForDifference
+          )
         );
-
-        if (app) {
-          app.packages.forEach((pckg) =>
-            get()._showPackageAndAllSubComponents(
-              applicationObject3D,
-              pckg,
-              dataTypeToShow,
-              showOnlyMeshesNecessaryForDifference
-            )
-          );
-          if (showCommLines) {
-            // show communication links
-            useLinkRendererStore
-              .getState()
-              .getAllLinks()
-              .forEach((externPipe) => {
-                if (
-                  showOnlyMeshesNecessaryForDifference &&
-                  get()._isMeshRelevantForDifference(externPipe)
-                ) {
-                  externPipe.show();
-                } else {
-                  externPipe.show();
-                }
-              });
-            applicationObject3D.getCommMeshes().forEach((commMesh) => {
-              if (
-                showOnlyMeshesNecessaryForDifference &&
-                get()._isMeshRelevantForDifference(commMesh)
-              ) {
-                commMesh.show();
+        if (showCommLines) {
+          // show communication links
+          useLinkRendererStore
+            .getState()
+            .getAllLinks()
+            .forEach((externPipe) => {
+              if (showOnlyMeshesNecessaryForDifference && get()._isMeshRelevantForDifference(externPipe)) {
+                externPipe.show();
               } else {
-                commMesh.show();
+                externPipe.show();
               }
             });
-          }
+          applicationObject3D.getCommMeshes().forEach((commMesh) => {
+            if (showOnlyMeshesNecessaryForDifference && get()._isMeshRelevantForDifference(commMesh)) {
+              commMesh.show();
+            } else {
+              commMesh.show();
+            }
+          });
         }
-      });
-    },
+      }
+    });
+  },
 
-    // private
-    _showPackageAndAllSubComponents: (
-      applicationObject3D: ApplicationObject3D,
-      pckg: Package,
-      dataTypeToShow: TypeOfAnalysis,
-      showOnlyMeshesNecessaryForDifference: boolean
-    ) => {
-      pckg.classes.forEach((clazz) =>
-        get()._showClass(
-          applicationObject3D,
-          clazz,
-          dataTypeToShow,
-          showOnlyMeshesNecessaryForDifference
-        )
-      );
-      pckg.subPackages.forEach((subPckg) =>
-        get()._showPackageAndAllSubComponents(
-          applicationObject3D,
-          subPckg,
-          dataTypeToShow,
-          showOnlyMeshesNecessaryForDifference
-        )
-      );
-      get()._showPackage(
+  // private
+  _showPackageAndAllSubComponents: (
+    applicationObject3D: ApplicationObject3D,
+    pckg: Package,
+    dataTypeToShow: TypeOfAnalysis,
+    showOnlyMeshesNecessaryForDifference: boolean
+  ) => {
+    pckg.classes.forEach((clazz) =>
+      get()._showClass(applicationObject3D, clazz, dataTypeToShow, showOnlyMeshesNecessaryForDifference)
+    );
+    pckg.subPackages.forEach((subPckg) =>
+      get()._showPackageAndAllSubComponents(
         applicationObject3D,
-        pckg,
+        subPckg,
         dataTypeToShow,
         showOnlyMeshesNecessaryForDifference
-      );
-    },
+      )
+    );
+    get()._showPackage(applicationObject3D, pckg, dataTypeToShow, showOnlyMeshesNecessaryForDifference);
+  },
 
-    // private
-    _showClass: (
-      applicationObject3D: ApplicationObject3D,
-      clss: Class,
-      dataTypeToShow: TypeOfAnalysis,
-      showOnlyMeshesNecessaryForDifference: boolean
-    ) => {
-      const clazzMesh = applicationObject3D.getMeshById(clss.id);
-      if (dataTypeToShow === clss.originOfData && clazzMesh) {
-        if (
-          showOnlyMeshesNecessaryForDifference &&
-          get()._isMeshRelevantForDifference(clazzMesh)
-        ) {
-          clazzMesh.show();
-        } else if (!showOnlyMeshesNecessaryForDifference) {
-          clazzMesh.show();
-        }
+  // private
+  _showClass: (
+    applicationObject3D: ApplicationObject3D,
+    clss: Class,
+    dataTypeToShow: TypeOfAnalysis,
+    showOnlyMeshesNecessaryForDifference: boolean
+  ) => {
+    const clazzMesh = applicationObject3D.getMeshById(clss.id);
+    if (dataTypeToShow === clss.originOfData && clazzMesh) {
+      if (showOnlyMeshesNecessaryForDifference && get()._isMeshRelevantForDifference(clazzMesh)) {
+        clazzMesh.show();
+      } else if (!showOnlyMeshesNecessaryForDifference) {
+        clazzMesh.show();
       }
-    },
+    }
+  },
 
-    // private
-    _showPackage: (
-      applicationObject3D: ApplicationObject3D,
-      pckg: Package,
-      dataTypeToShow: TypeOfAnalysis,
-      showOnlyMeshesNecessaryForDifference: boolean
-    ) => {
-      const packageMesh = applicationObject3D.getMeshById(pckg.id);
-      if (dataTypeToShow === pckg.originOfData && packageMesh) {
-        if (
-          showOnlyMeshesNecessaryForDifference &&
-          get()._isMeshRelevantForDifference(packageMesh)
-        ) {
-          packageMesh.show();
-        } else if (!showOnlyMeshesNecessaryForDifference) {
-          packageMesh.show();
-        }
+  // private
+  _showPackage: (
+    applicationObject3D: ApplicationObject3D,
+    pckg: Package,
+    dataTypeToShow: TypeOfAnalysis,
+    showOnlyMeshesNecessaryForDifference: boolean
+  ) => {
+    const packageMesh = applicationObject3D.getMeshById(pckg.id);
+    if (dataTypeToShow === pckg.originOfData && packageMesh) {
+      if (showOnlyMeshesNecessaryForDifference && get()._isMeshRelevantForDifference(packageMesh)) {
+        packageMesh.show();
+      } else if (!showOnlyMeshesNecessaryForDifference) {
+        packageMesh.show();
       }
-    },
+    }
+  },
 
-    // private
-    _hideVisualization: (
-      applicationObject3D: ApplicationObject3D,
-      structure: StructureLandscapeData | undefined,
-      dataTypeToHide: TypeOfAnalysis,
-      keepMeshesNecessaryForDifference: boolean
-    ) => {
-      structure?.nodes.forEach((node) => {
-        const app = node.applications.find(
-          (a) => a.id === applicationObject3D.getModelId()
+  // private
+  _hideVisualization: (
+    applicationObject3D: ApplicationObject3D,
+    structure: StructureLandscapeData | undefined,
+    dataTypeToHide: TypeOfAnalysis,
+    keepMeshesNecessaryForDifference: boolean
+  ) => {
+    structure?.nodes.forEach((node) => {
+      const app = node.applications.find((a) => a.id === applicationObject3D.getModelId());
+
+      if (app) {
+        app.packages.forEach((pckg) =>
+          get()._hidePackageAndAllSubComponents(
+            applicationObject3D,
+            pckg,
+            dataTypeToHide,
+            keepMeshesNecessaryForDifference
+          )
         );
-
-        if (app) {
-          app.packages.forEach((pckg) =>
-            get()._hidePackageAndAllSubComponents(
-              applicationObject3D,
-              pckg,
-              dataTypeToHide,
-              keepMeshesNecessaryForDifference
-            )
-          );
-          if (
-            dataTypeToHide === TypeOfAnalysis.Runtime ||
-            dataTypeToHide === TypeOfAnalysis.StaticAndRuntime
-          ) {
-            // hide communication links
-            useLinkRendererStore
-              .getState()
-              .getAllLinks()
-              .forEach((externPipe) => externPipe.hide());
-            applicationObject3D
-              .getCommMeshes()
-              .forEach((commMesh) => commMesh.hide());
-          }
+        if (dataTypeToHide === TypeOfAnalysis.Runtime || dataTypeToHide === TypeOfAnalysis.StaticAndRuntime) {
+          // hide communication links
+          useLinkRendererStore
+            .getState()
+            .getAllLinks()
+            .forEach((externPipe) => externPipe.hide());
+          applicationObject3D.getCommMeshes().forEach((commMesh) => commMesh.hide());
         }
-      });
-    },
+      }
+    });
+  },
 
-    // private
-    _hidePackageAndAllSubComponents: (
-      applicationObject3D: ApplicationObject3D,
-      pckg: Package,
-      dataTypeToHide: TypeOfAnalysis,
-      keepMeshesNecessaryForDifference: boolean
-    ) => {
-      pckg.classes.forEach((clazz) =>
-        get()._hideClass(
-          applicationObject3D,
-          clazz,
-          dataTypeToHide,
-          keepMeshesNecessaryForDifference
-        )
-      );
-      pckg.subPackages.forEach((subPckg) =>
-        get()._hidePackageAndAllSubComponents(
-          applicationObject3D,
-          subPckg,
-          dataTypeToHide,
-          keepMeshesNecessaryForDifference
-        )
-      );
-      get()._hidePackage(
+  // private
+  _hidePackageAndAllSubComponents: (
+    applicationObject3D: ApplicationObject3D,
+    pckg: Package,
+    dataTypeToHide: TypeOfAnalysis,
+    keepMeshesNecessaryForDifference: boolean
+  ) => {
+    pckg.classes.forEach((clazz) =>
+      get()._hideClass(applicationObject3D, clazz, dataTypeToHide, keepMeshesNecessaryForDifference)
+    );
+    pckg.subPackages.forEach((subPckg) =>
+      get()._hidePackageAndAllSubComponents(
         applicationObject3D,
-        pckg,
+        subPckg,
         dataTypeToHide,
         keepMeshesNecessaryForDifference
-      );
-    },
+      )
+    );
+    get()._hidePackage(applicationObject3D, pckg, dataTypeToHide, keepMeshesNecessaryForDifference);
+  },
 
-    // private
-    _hideClass: (
-      applicationObject3D: ApplicationObject3D,
-      clss: Class,
-      dataTypeToHide: TypeOfAnalysis,
-      keepMeshesNecessaryForDifference: boolean
-    ) => {
-      const clazzMesh = applicationObject3D.getMeshById(clss.id);
-      if (
-        dataTypeToHide === clss.originOfData &&
-        clazzMesh &&
-        (!keepMeshesNecessaryForDifference ||
-          (keepMeshesNecessaryForDifference &&
-            !get()._isMeshRelevantForDifference(clazzMesh)))
-      ) {
-        clazzMesh.hide();
-      }
-    },
+  // private
+  _hideClass: (
+    applicationObject3D: ApplicationObject3D,
+    clss: Class,
+    dataTypeToHide: TypeOfAnalysis,
+    keepMeshesNecessaryForDifference: boolean
+  ) => {
+    const clazzMesh = applicationObject3D.getMeshById(clss.id);
+    if (
+      dataTypeToHide === clss.originOfData &&
+      clazzMesh &&
+      (!keepMeshesNecessaryForDifference ||
+        (keepMeshesNecessaryForDifference && !get()._isMeshRelevantForDifference(clazzMesh)))
+    ) {
+      clazzMesh.hide();
+    }
+  },
 
-    // private
-    _hidePackage: (
-      applicationObject3D: ApplicationObject3D,
-      pckg: Package,
-      dataTypeToHide: TypeOfAnalysis,
-      keepMeshesNecessaryForDifference: boolean
-    ) => {
-      const packageMesh = applicationObject3D.getMeshById(pckg.id);
-      if (
-        dataTypeToHide === pckg.originOfData &&
-        packageMesh &&
-        (!keepMeshesNecessaryForDifference ||
-          (keepMeshesNecessaryForDifference &&
-            !get()._isMeshRelevantForDifference(packageMesh)))
-      ) {
-        packageMesh.hide();
-      }
-    },
-  })
-);
+  // private
+  _hidePackage: (
+    applicationObject3D: ApplicationObject3D,
+    pckg: Package,
+    dataTypeToHide: TypeOfAnalysis,
+    keepMeshesNecessaryForDifference: boolean
+  ) => {
+    const packageMesh = applicationObject3D.getMeshById(pckg.id);
+    if (
+      dataTypeToHide === pckg.originOfData &&
+      packageMesh &&
+      (!keepMeshesNecessaryForDifference ||
+        (keepMeshesNecessaryForDifference && !get()._isMeshRelevantForDifference(packageMesh)))
+    ) {
+      packageMesh.hide();
+    }
+  },
+}));

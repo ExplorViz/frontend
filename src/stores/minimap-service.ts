@@ -29,16 +29,8 @@ interface MinimapState {
   ) => void;
   tick: () => void;
   addZoomDelta: (zoomDelta: number) => void;
-  initializeUserMinimapMarker: (
-    userColor: THREE.Color,
-    position: THREE.Vector3,
-    name: string
-  ) => void;
-  updateUserMinimapMarker: (
-    intersection: THREE.Vector3,
-    name: string,
-    remoteUser?: RemoteUser
-  ) => void;
+  initializeUserMinimapMarker: (userColor: THREE.Color, position: THREE.Vector3, name: string) => void;
+  updateUserMinimapMarker: (intersection: THREE.Vector3, name: string, remoteUser?: RemoteUser) => void;
   // setupCamera: (cameraControls: CameraControls) => void;
   setupLocalUserMarker: () => void;
   getCurrentPosition: () => void;
@@ -81,11 +73,7 @@ export const useMinimapStore = create<MinimapState>((set, get) => ({
    * @param Landscape3D Graph including the boundingbox used by the minimap
    * @param cameraControls CameraControls of the main camera
    */
-  initializeMinimap: (
-    scene: THREE.Scene,
-    landscape3D: Landscape3D,
-    cameraControls: CameraControls
-  ) => {
+  initializeMinimap: (scene: THREE.Scene, landscape3D: Landscape3D, cameraControls: CameraControls) => {
     set({ landscape3D: landscape3D, scene: scene });
     get().setupCamera(cameraControls);
     get().setupLocalUserMarker();
@@ -101,17 +89,12 @@ export const useMinimapStore = create<MinimapState>((set, get) => ({
   },
 
   addZoomDelta: (zoomDelta: number) => {
-    const zoomSetting =
-      useUserSettingsStore.getState().visualizationSettings.minimapZoom;
+    const zoomSetting = useUserSettingsStore.getState().visualizationSettings.minimapZoom;
     const newZoom = zoomSetting.value + zoomDelta;
     if (newZoom < zoomSetting.range.min) {
-      useUserSettingsStore
-        .getState()
-        .updateSetting('minimapZoom', zoomSetting.range.min);
+      useUserSettingsStore.getState().updateSetting('minimapZoom', zoomSetting.range.min);
     } else if (newZoom > zoomSetting.range.max) {
-      useUserSettingsStore
-        .getState()
-        .updateSetting('minimapZoom', zoomSetting.range.max);
+      useUserSettingsStore.getState().updateSetting('minimapZoom', zoomSetting.range.max);
     } else {
       useUserSettingsStore.getState().updateSetting('minimapZoom', newZoom);
     }
@@ -123,20 +106,12 @@ export const useMinimapStore = create<MinimapState>((set, get) => ({
    * @param name The name of the user
    * @param remoteUser The remote user object
    */
-  updateUserMinimapMarker: (
-    intersection: THREE.Vector3,
-    name: string,
-    remoteUser?: RemoteUser
-  ) => {
+  updateUserMinimapMarker: (intersection: THREE.Vector3, name: string, remoteUser?: RemoteUser) => {
     if (!intersection) {
       return;
     }
     if (!get().minimapUserMarkers.has(name) && remoteUser) {
-      get().initializeUserMinimapMarker(
-        remoteUser.color,
-        intersection,
-        remoteUser.userId
-      );
+      get().initializeUserMinimapMarker(remoteUser.color, intersection, remoteUser.userId);
       return;
     }
     const position = get().checkBoundingBox(intersection);
@@ -178,22 +153,14 @@ export const useMinimapStore = create<MinimapState>((set, get) => ({
    * Sets up the local user marker for the minimap
    */
   setupLocalUserMarker: () => {
-    get().initializeUserMinimapMarker(
-      new THREE.Color(0x808080),
-      get().userPosition,
-      'localUser'
-    );
+    get().initializeUserMinimapMarker(new THREE.Color(0x808080), get().userPosition, 'localUser');
 
     const newMinimapUserMarkers = get().minimapUserMarkers;
     const newScene = get().scene;
     const sceneLayers = useVisualizationStore.getState().sceneLayers;
 
-    newMinimapUserMarkers
-      .get('localUser')!
-      .layers.enable(sceneLayers.LocalMinimapMarker);
-    newMinimapUserMarkers
-      .get('localUser')!
-      .layers.disable(sceneLayers.MinimapMarkers);
+    newMinimapUserMarkers.get('localUser')!.layers.enable(sceneLayers.LocalMinimapMarker);
+    newMinimapUserMarkers.get('localUser')!.layers.disable(sceneLayers.MinimapMarkers);
 
     // TODO: Update scene
     if (!newScene) return;
@@ -210,10 +177,7 @@ export const useMinimapStore = create<MinimapState>((set, get) => ({
    */
   getCurrentPosition: () => {
     const userPosition = new THREE.Vector3();
-    if (
-      !useUserSettingsStore.getState().visualizationSettings.useCameraPosition
-        .value
-    ) {
+    if (!useUserSettingsStore.getState().visualizationSettings.useCameraPosition.value) {
       userPosition.copy(get().cameraControls!.perspectiveCameraControls.target);
     } else {
       userPosition.copy(useLocalUserStore.getState().getCamera().position);
@@ -248,15 +212,8 @@ export const useMinimapStore = create<MinimapState>((set, get) => ({
    * @param position The position of the user
    * @param name The name of the user
    */
-  initializeUserMinimapMarker: (
-    userColor: THREE.Color,
-    position: THREE.Vector3,
-    name: string
-  ) => {
-    const geometry = new THREE.SphereGeometry(
-      get().calculateDistanceFactor(),
-      32
-    );
+  initializeUserMinimapMarker: (userColor: THREE.Color, position: THREE.Vector3, name: string) => {
+    const geometry = new THREE.SphereGeometry(get().calculateDistanceFactor(), 32);
     const material = new THREE.MeshBasicMaterial({
       color: userColor,
     });
@@ -309,10 +266,8 @@ export const useMinimapStore = create<MinimapState>((set, get) => ({
     const minimapX = minimap[2];
     const minimapY = window.innerHeight - minimap[3] - minimapHeight;
 
-    const xInBounds =
-      event.clientX >= minimapX && event.clientX <= minimapX + minimapWidth;
-    const yInBounds =
-      event.clientY >= minimapY && event.clientY <= minimapY + minimapHeight;
+    const xInBounds = event.clientX >= minimapX && event.clientX <= minimapX + minimapWidth;
+    const yInBounds = event.clientY >= minimapY && event.clientY <= minimapY + minimapHeight;
 
     return xInBounds && yInBounds;
   },
@@ -323,16 +278,9 @@ export const useMinimapStore = create<MinimapState>((set, get) => ({
    * @returns true if the user was hit
    */
   handleHit: (userHit: RemoteUser) => {
-    if (!userHit || userHit.camera?.model instanceof THREE.OrthographicCamera)
-      return;
-    useLocalUserStore
-      .getState()
-      .getCamera()
-      .position.copy(userHit.camera!.model.position);
-    useLocalUserStore
-      .getState()
-      .getCamera()
-      .quaternion.copy(userHit.camera!.model.quaternion);
+    if (!userHit || userHit.camera?.model instanceof THREE.OrthographicCamera) return;
+    useLocalUserStore.getState().getCamera().position.copy(userHit.camera!.model.position);
+    useLocalUserStore.getState().getCamera().quaternion.copy(userHit.camera!.model.quaternion);
     get().cameraControls!.perspectiveCameraControls.target.copy(
       get().raycaster!.raycastToCameraTarget(
         useLocalUserStore.getState().minimapCamera,
@@ -362,11 +310,7 @@ export const useMinimapStore = create<MinimapState>((set, get) => ({
    * @param raycastObjects The objects to raycast
    * @returns The objects that were hit
    */
-  raycastForObjects: (
-    event: MouseEvent,
-    camera: THREE.Camera,
-    raycastObjects: THREE.Object3D | THREE.Object3D[]
-  ) => {
+  raycastForObjects: (event: MouseEvent, camera: THREE.Camera, raycastObjects: THREE.Object3D | THREE.Object3D[]) => {
     const minimap = get().minimap();
     const width = minimap[1];
     const height = minimap[0];
@@ -377,10 +321,7 @@ export const useMinimapStore = create<MinimapState>((set, get) => ({
     const y = -((event.y - top) / height) * 2 + 1;
 
     const origin = new THREE.Vector2(x, y);
-    const possibleObjects =
-      raycastObjects instanceof THREE.Object3D
-        ? [raycastObjects]
-        : raycastObjects;
+    const possibleObjects = raycastObjects instanceof THREE.Object3D ? [raycastObjects] : raycastObjects;
     return get().raycaster!.raycasting(origin, camera, possibleObjects);
   },
 
@@ -428,9 +369,7 @@ export const useMinimapStore = create<MinimapState>((set, get) => ({
       set({ distance: 1 });
     } else {
       set({
-        distance:
-          useUserSettingsStore.getState().visualizationSettings.minimapZoom
-            .value,
+        distance: useUserSettingsStore.getState().visualizationSettings.minimapZoom.value,
       });
     }
 
@@ -438,24 +377,15 @@ export const useMinimapStore = create<MinimapState>((set, get) => ({
     const distance = get().distance!;
 
     // Compute angle such that landscape fits by default (+ distance modifier)
-    const cameraAngle =
-      Math.max(boundingBoxWidth, boundingBoxHeight) / 2 / distance;
+    const cameraAngle = Math.max(boundingBoxWidth, boundingBoxHeight) / 2 / distance;
     // Use same camera angle for all directions since minimap is a square
     minimapCamera.left = -cameraAngle;
     minimapCamera.right = cameraAngle;
     minimapCamera.top = cameraAngle;
     minimapCamera.bottom = -cameraAngle;
 
-    if (
-      useUserSettingsStore.getState().visualizationSettings.minimapZoom.value !=
-        1 &&
-      !get().makeFullsizeMinimap
-    ) {
-      minimapCamera.position.set(
-        get().userPosition.x,
-        MINIMAP_HEIGHT,
-        get().userPosition.z
-      );
+    if (useUserSettingsStore.getState().visualizationSettings.minimapZoom.value != 1 && !get().makeFullsizeMinimap) {
+      minimapCamera.position.set(get().userPosition.x, MINIMAP_HEIGHT, get().userPosition.z);
     } else {
       const center = new THREE.Vector3();
       boundingBox.getCenter(center);
@@ -466,10 +396,7 @@ export const useMinimapStore = create<MinimapState>((set, get) => ({
   },
 
   calculateDistanceFactor: () => {
-    return (
-      0.2 /
-      useUserSettingsStore.getState().visualizationSettings.minimapZoom.value
-    );
+    return 0.2 / useUserSettingsStore.getState().visualizationSettings.minimapZoom.value;
   },
 
   updateSphereRadius: () => {
@@ -492,8 +419,7 @@ export const useMinimapStore = create<MinimapState>((set, get) => ({
     if (get().makeFullsizeMinimap) {
       const minimapSize = 0.9;
 
-      const minimapHeight =
-        Math.min(window.innerHeight, window.innerWidth) * minimapSize;
+      const minimapHeight = Math.min(window.innerHeight, window.innerWidth) * minimapSize;
       const minimapWidth = minimapHeight;
 
       const minimapX = window.innerWidth / 2 - minimapWidth / 2;
@@ -501,19 +427,16 @@ export const useMinimapStore = create<MinimapState>((set, get) => ({
 
       return [minimapHeight, minimapWidth, minimapX, minimapY, borderWidth];
     }
-    const minimapHeight =
-      Math.min(window.innerHeight, window.innerWidth) / get().minimapSize;
+    const minimapHeight = Math.min(window.innerHeight, window.innerWidth) / get().minimapSize;
     const minimapWidth = minimapHeight;
 
     const marginSettingsSymbol = 55;
     const margin = 10;
-    const minimapX =
-      window.innerWidth - minimapWidth - margin - marginSettingsSymbol;
+    const minimapX = window.innerWidth - minimapWidth - margin - marginSettingsSymbol;
     const minimapY = window.innerHeight - minimapHeight - margin;
 
     return [minimapHeight, minimapWidth, minimapX, minimapY, borderWidth];
   },
 
-  setMinimapEnabled: (minimapEnabled) =>
-    set({ minimapEnabled: minimapEnabled }),
+  setMinimapEnabled: (minimapEnabled) => set({ minimapEnabled: minimapEnabled }),
 }));

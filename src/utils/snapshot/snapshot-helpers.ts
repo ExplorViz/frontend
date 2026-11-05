@@ -26,9 +26,7 @@ import { LandscapeData } from 'explorviz-frontend/src/utils/landscape-schemes/la
 import { DynamicLandscapeData } from 'explorviz-frontend/src/utils/landscape-schemes/telemetry/traces';
 import { Timestamp } from 'explorviz-frontend/src/utils/landscape-schemes/timestamp';
 
-export function buildSnapshotStructureData(
-  landscapeData: LandscapeData | null
-): SnapshotStructureData {
+export function buildSnapshotStructureData(landscapeData: LandscapeData | null): SnapshotStructureData {
   return {
     flatLandscapeData: landscapeData?.flatLandscapeData,
     aggregatedFileCommunication: landscapeData?.aggregatedFileCommunication,
@@ -47,9 +45,7 @@ export function buildSnapshotToken(params: {
 }): SnapshotToken {
   const createdAt = Date.now();
   const serializedRoom = useRoomSerializerStore.getState().serializeRoom(true);
-  const timestamps = useTimestampRepositoryStore
-    .getState()
-    .getTimestampsForCommitId(CROSS_COMMIT_IDENTIFIER, true);
+  const timestamps = useTimestampRepositoryStore.getState().getTimestampsForCommitId(CROSS_COMMIT_IDENTIFIER, true);
   return {
     owner: params.owner,
     createdAt,
@@ -67,9 +63,7 @@ export function buildSnapshotToken(params: {
 
 export function applySerializedRoomState(serializedRoom: SerializedRoom): void {
   if (serializedRoom.visualizationSettings) {
-    useUserSettingsStore
-      .getState()
-      .updateSettings(serializedRoom.visualizationSettings);
+    useUserSettingsStore.getState().updateSettings(serializedRoom.visualizationSettings);
   }
 
   useVisualizationStore.getState().actions.resetVisualizationState();
@@ -81,9 +75,7 @@ export function applySerializedRoomState(serializedRoom: SerializedRoom): void {
   removeAllHighlighting(false);
 
   for (const highlight of serializedRoom.highlightedEntities ?? []) {
-    useVisualizationStore
-      .getState()
-      .actions.setHighlightedEntityId(highlight.entityId, true);
+    useVisualizationStore.getState().actions.setHighlightedEntityId(highlight.entityId, true);
   }
 
   if (serializedRoom.popups?.length) {
@@ -91,9 +83,7 @@ export function applySerializedRoomState(serializedRoom: SerializedRoom): void {
   }
 
   if (serializedRoom.annotations?.length) {
-    useAnnotationHandlerStore
-      .getState()
-      .onRestoreAnnotations(serializedRoom.annotations);
+    useAnnotationHandlerStore.getState().onRestoreAnnotations(serializedRoom.annotations);
   }
 }
 
@@ -102,16 +92,11 @@ function seedSnapshotTimestamps(timestamps: Timestamp[]): void {
     return;
   }
 
-  useTimestampRepositoryStore
-    .getState()
-    .addTimestamps(CROSS_COMMIT_IDENTIFIER, timestamps);
+  useTimestampRepositoryStore.getState().addTimestamps(CROSS_COMMIT_IDENTIFIER, timestamps);
 
-  const timelineHandler =
-    useTimestampRepositoryStore.getState()._timelineDataObjectHandler;
+  const timelineHandler = useTimestampRepositoryStore.getState()._timelineDataObjectHandler;
   timelineHandler?.updateTimestampsForCommit(
-    useTimestampRepositoryStore
-      .getState()
-      .getTimestampsForCommitId(CROSS_COMMIT_IDENTIFIER, true),
+    useTimestampRepositoryStore.getState().getTimestampsForCommitId(CROSS_COMMIT_IDENTIFIER, true),
     CROSS_COMMIT_IDENTIFIER
   );
 }
@@ -137,9 +122,7 @@ async function resolveSnapshotLandscapeData(snapshot: SnapshotToken): Promise<{
   const epochNano = snapshot.serializedRoom?.landscape?.timestamp;
   if (epochNano) {
     try {
-      const [flat, dynamic, aggregated] = await useReloadHandlerStore
-        .getState()
-        .loadLandscapeByTimestamp(epochNano);
+      const [flat, dynamic, aggregated] = await useReloadHandlerStore.getState().loadLandscapeByTimestamp(epochNano);
       return { flat, dynamic, aggregated };
     } catch (error) {
       console.error('Failed to load snapshot landscape from service:', error);
@@ -149,10 +132,7 @@ async function resolveSnapshotLandscapeData(snapshot: SnapshotToken): Promise<{
   if (structureData.structureLandscapeData) {
     const [structure, dynamic] = await useReloadHandlerStore
       .getState()
-      .loadLandscapeByTimestampSnapshot(
-        structureData.structureLandscapeData,
-        structureData.dynamicLandscapeData ?? []
-      );
+      .loadLandscapeByTimestampSnapshot(structureData.structureLandscapeData, structureData.dynamicLandscapeData ?? []);
     if (structure) {
       console.warn(
         'Snapshot uses legacy structure format without flat landscape data; visualization may be incomplete.'
@@ -165,13 +145,9 @@ async function resolveSnapshotLandscapeData(snapshot: SnapshotToken): Promise<{
   return null;
 }
 
-export async function restoreSnapshotFromToken(
-  snapshot: SnapshotToken
-): Promise<void> {
+export async function restoreSnapshotFromToken(snapshot: SnapshotToken): Promise<void> {
   if (snapshot.serializedRoom?.visualizationSettings) {
-    useUserSettingsStore
-      .getState()
-      .updateSettings(snapshot.serializedRoom.visualizationSettings);
+    useUserSettingsStore.getState().updateSettings(snapshot.serializedRoom.visualizationSettings);
   }
 
   useTimestampPollingStore.getState().resetPolling();
@@ -181,11 +157,7 @@ export async function restoreSnapshotFromToken(
 
   const selectedEpoch = snapshot.serializedRoom?.landscape?.timestamp;
   if (selectedEpoch) {
-    useTimestampStore
-      .getState()
-      .updateSelectedTimestamp(
-        new Map([[CROSS_COMMIT_IDENTIFIER, [selectedEpoch]]])
-      );
+    useTimestampStore.getState().updateSelectedTimestamp(new Map([[CROSS_COMMIT_IDENTIFIER, [selectedEpoch]]]));
   }
 
   const landscape = await resolveSnapshotLandscapeData(snapshot);
@@ -193,11 +165,7 @@ export async function restoreSnapshotFromToken(
     useCommunicationStore.getState().setCommunications(landscape.aggregated);
     useRenderingServiceStore
       .getState()
-      .triggerRenderingForGivenLandscapeData(
-        landscape.flat,
-        landscape.dynamic,
-        landscape.aggregated
-      );
+      .triggerRenderingForGivenLandscapeData(landscape.flat, landscape.dynamic, landscape.aggregated);
   }
 
   useRoomSerializerStore.getState().setSerializedRoom(snapshot.serializedRoom);
@@ -205,11 +173,8 @@ export async function restoreSnapshotFromToken(
   queueSnapshotCameraRestore(snapshot.camera);
 }
 
-export function queueSnapshotCameraRestore(
-  camera?: SnapshotToken['camera']
-): void {
-  const snapshotCamera =
-    camera ?? useSnapshotTokenStore.getState().snapshotToken?.camera;
+export function queueSnapshotCameraRestore(camera?: SnapshotToken['camera']): void {
+  const snapshotCamera = camera ?? useSnapshotTokenStore.getState().snapshotToken?.camera;
 
   if (!snapshotCamera || !useSnapshotTokenStore.getState().snapshotSelected) {
     return;

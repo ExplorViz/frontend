@@ -67,8 +67,7 @@ export const useTraceReplayStore = create<TraceReplayState>((set, get) => ({
   },
   play: () => set({ playState: PlayState.PLAYING }),
   pause: () => {
-    if (get().playState !== PlayState.STOPPED)
-      set({ playState: PlayState.PAUSED });
+    if (get().playState !== PlayState.STOPPED) set({ playState: PlayState.PAUSED });
   },
   stop: () => set((s) => ({ playState: PlayState.STOPPED, cursor: s.minTs })),
   setCursor: (c) => set({ cursor: c }),

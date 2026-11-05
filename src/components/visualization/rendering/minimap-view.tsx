@@ -17,10 +17,7 @@ interface MinimapViewProps {
 const MINIMAP_HEIGHT = 100;
 // The fallback bounds are used to compute the minimap logic when no scene is loaded yet.
 // (Without a scene no bounds of a scene can be computed)
-const FALLBACK_BOUNDS = new THREE.Box3(
-  new THREE.Vector3(-100, 0, -100),
-  new THREE.Vector3(100, 0, 100)
-);
+const FALLBACK_BOUNDS = new THREE.Box3(new THREE.Vector3(-100, 0, -100), new THREE.Vector3(100, 0, 100));
 
 const _size = new THREE.Vector2();
 const _clearColor = new THREE.Color();
@@ -60,9 +57,7 @@ function createMinimapOverrideMaterial() {
     const src = mesh.material;
     const srcMat = Array.isArray(src) ? src[0] : src;
     const useVertexColors = Boolean(
-      srcMat &&
-      'vertexColors' in srcMat &&
-      (srcMat as THREE.Material & { vertexColors?: boolean }).vertexColors
+      srcMat && 'vertexColors' in srcMat && (srcMat as THREE.Material & { vertexColors?: boolean }).vertexColors
     );
 
     if (mat.vertexColors !== useVertexColors) {
@@ -82,8 +77,7 @@ function createMinimapOverrideMaterial() {
     }
     if (srcMat && 'transparent' in srcMat) {
       mat.transparent = Boolean((srcMat as THREE.Material).transparent);
-      mat.opacity =
-        'opacity' in srcMat ? Number((srcMat as THREE.Material).opacity) : 1;
+      mat.opacity = 'opacity' in srcMat ? Number((srcMat as THREE.Material).opacity) : 1;
     } else {
       mat.transparent = false;
       mat.opacity = 1;
@@ -92,10 +86,7 @@ function createMinimapOverrideMaterial() {
   return mat;
 }
 
-export default function MinimapView({
-  mainCameraControls,
-  landscapeData,
-}: MinimapViewProps) {
+export default function MinimapView({ mainCameraControls, landscapeData }: MinimapViewProps) {
   // Own the camera in a ref — drei's <OrthographicCamera> ref is unreliable
   // (useImperativeHandle with [] deps can stick on null). Mutated only in
   // useFrame / event handlers so React Compiler immutability rules stay happy.
@@ -114,58 +105,26 @@ export default function MinimapView({
   const { gl, invalidate } = useThree();
 
   // Get the minimap corner, padding, size and shape
-  const zoom = useUserSettingsStore(
-    (state) => state.visualizationSettings.minimapZoom
-  );
-  const minimapMarkerSize = useUserSettingsStore(
-    (state) => state.visualizationSettings.minimapMarkerSize.value
-  );
-  const minimap_minimapBgColor = useUserSettingsStore(
-    (state) => state.visualizationSettings.minimapBgColor
-  );
-  const minimapCorner = useUserSettingsStore(
-    (state) => state.visualizationSettings.minimapCorner.value
-  );
-  const minimapPaddingX = useUserSettingsStore(
-    (state) => state.visualizationSettings.minimapMarginX
-  );
-  const minimapPaddingY = useUserSettingsStore(
-    (state) => state.visualizationSettings.minimapMarginY
-  );
-  const minimapWidth: number = useUserSettingsStore(
-    (state) => state.visualizationSettings.minimapWidth.value
-  );
-  const minimapHeight: number = useUserSettingsStore(
-    (state) => state.visualizationSettings.minimapHeight.value
-  );
-  const minimapShape = useUserSettingsStore(
-    (state) => state.visualizationSettings.minimapShape.value
-  );
-  const minimapMode = useUserSettingsStore(
-    (state) => state.visualizationSettings.minimapMode.value
-  );
-  const minimapRotate = useUserSettingsStore(
-    (state) => state.visualizationSettings.minimapRotate.value
-  );
+  const zoom = useUserSettingsStore((state) => state.visualizationSettings.minimapZoom);
+  const minimapMarkerSize = useUserSettingsStore((state) => state.visualizationSettings.minimapMarkerSize.value);
+  const minimap_minimapBgColor = useUserSettingsStore((state) => state.visualizationSettings.minimapBgColor);
+  const minimapCorner = useUserSettingsStore((state) => state.visualizationSettings.minimapCorner.value);
+  const minimapPaddingX = useUserSettingsStore((state) => state.visualizationSettings.minimapMarginX);
+  const minimapPaddingY = useUserSettingsStore((state) => state.visualizationSettings.minimapMarginY);
+  const minimapWidth: number = useUserSettingsStore((state) => state.visualizationSettings.minimapWidth.value);
+  const minimapHeight: number = useUserSettingsStore((state) => state.visualizationSettings.minimapHeight.value);
+  const minimapShape = useUserSettingsStore((state) => state.visualizationSettings.minimapShape.value);
+  const minimapMode = useUserSettingsStore((state) => state.visualizationSettings.minimapMode.value);
+  const minimapRotate = useUserSettingsStore((state) => state.visualizationSettings.minimapRotate.value);
 
   const sceneLayers = useVisualizationStore((state) => state.sceneLayers);
 
   // Get the minimap layer visibility settings
-  const showFoundation = useUserSettingsStore(
-    (state) => state.visualizationSettings.layer1.value
-  );
-  const showDistricts = useUserSettingsStore(
-    (state) => state.visualizationSettings.layer2.value
-  );
-  const showBuildings = useUserSettingsStore(
-    (state) => state.visualizationSettings.layer3.value
-  );
-  const showCommunication = useUserSettingsStore(
-    (state) => state.visualizationSettings.layer4.value
-  );
-  const showLabels = useUserSettingsStore(
-    (state) => state.visualizationSettings.layer6.value
-  );
+  const showFoundation = useUserSettingsStore((state) => state.visualizationSettings.layer1.value);
+  const showDistricts = useUserSettingsStore((state) => state.visualizationSettings.layer2.value);
+  const showBuildings = useUserSettingsStore((state) => state.visualizationSettings.layer3.value);
+  const showCommunication = useUserSettingsStore((state) => state.visualizationSettings.layer4.value);
+  const showLabels = useUserSettingsStore((state) => state.visualizationSettings.layer6.value);
 
   const [isFullscreen, setIsFullscreen] = useState(false);
   // Logical (CSS) pixel rect — same space as gl.setViewport / pointer events
@@ -220,15 +179,12 @@ export default function MinimapView({
 
       const { x, y, w, h } = minimapRectRef.current;
 
-      let isInsideMinimap =
-        clientX >= x && clientX <= x + w && clientY >= y && clientY <= y + h;
+      let isInsideMinimap = clientX >= x && clientX <= x + w && clientY >= y && clientY <= y + h;
 
       if (isInsideMinimap && minimapShape === 'round' && !isFullscreen) {
         const centerX = x + w / 2;
         const centerY = y + h / 2;
-        const dist = Math.sqrt(
-          Math.pow(clientX - centerX, 2) + Math.pow(clientY - centerY, 2)
-        );
+        const dist = Math.sqrt(Math.pow(clientX - centerX, 2) + Math.pow(clientY - centerY, 2));
         if (dist > w / 2) {
           isInsideMinimap = false;
         }
@@ -250,10 +206,8 @@ export default function MinimapView({
             const u = (clientX - x) / w;
             const v = (clientY - y) / h;
 
-            const localX =
-              minimapCam.left + u * (minimapCam.right - minimapCam.left);
-            const localY =
-              minimapCam.bottom + v * (minimapCam.top - minimapCam.bottom);
+            const localX = minimapCam.left + u * (minimapCam.right - minimapCam.left);
+            const localY = minimapCam.bottom + v * (minimapCam.top - minimapCam.bottom);
 
             const worldX = minimapCam.position.x + localX;
             const worldZ = minimapCam.position.z - localY;
@@ -275,15 +229,7 @@ export default function MinimapView({
             const newPosZ = currentPosition.z + deltaZ;
 
             // Keep the old Y (height) for both position and target
-            controls.setLookAt(
-              newPosX,
-              currentPosition.y,
-              newPosZ,
-              worldX,
-              currentTarget.y,
-              worldZ,
-              true
-            );
+            controls.setLookAt(newPosX, currentPosition.y, newPosZ, worldX, currentTarget.y, worldZ, true);
             // After teleportation, exit the minimap
             setIsFullscreen(false);
           }
@@ -305,15 +251,12 @@ export default function MinimapView({
 
       const { x, y, w, h } = minimapRectRef.current;
 
-      let isInsideMinimap =
-        clientX >= x && clientX <= x + w && clientY >= y && clientY <= y + h;
+      let isInsideMinimap = clientX >= x && clientX <= x + w && clientY >= y && clientY <= y + h;
 
       if (isInsideMinimap && minimapShape === 'round' && !isFullscreen) {
         const centerX = x + w / 2;
         const centerY = y + h / 2;
-        const dist = Math.sqrt(
-          Math.pow(clientX - centerX, 2) + Math.pow(clientY - centerY, 2)
-        );
+        const dist = Math.sqrt(Math.pow(clientX - centerX, 2) + Math.pow(clientY - centerY, 2));
         if (dist > w / 2) {
           isInsideMinimap = false;
         }
@@ -322,8 +265,7 @@ export default function MinimapView({
       // When he mouse wheel event was inside the minimap (small screen), then adjust the zoom
       if (isInsideMinimap && !isFullscreen) {
         event.stopPropagation();
-        const minimapZoomSetting =
-          useUserSettingsStore.getState().visualizationSettings.minimapZoom;
+        const minimapZoomSetting = useUserSettingsStore.getState().visualizationSettings.minimapZoom;
         const currentZoom = minimapZoomSetting.value;
         const { min, max } = minimapZoomSetting.range;
 
@@ -331,9 +273,7 @@ export default function MinimapView({
         const newZoom = currentZoom + -Math.sign(event.deltaY) * 0.05;
         const clampedZoom = Math.max(min, Math.min(max, newZoom));
 
-        useUserSettingsStore
-          .getState()
-          .updateSetting('minimapZoom', clampedZoom);
+        useUserSettingsStore.getState().updateSetting('minimapZoom', clampedZoom);
       }
     };
 
@@ -462,16 +402,8 @@ export default function MinimapView({
 
     if (minimapMode !== 'landscape' && !isFullscreen) {
       scratch.clampedPos.copy(scratch.userTarget);
-      scratch.clampedPos.x = THREE.MathUtils.clamp(
-        scratch.clampedPos.x,
-        bounds.min.x,
-        bounds.max.x
-      );
-      scratch.clampedPos.z = THREE.MathUtils.clamp(
-        scratch.clampedPos.z,
-        bounds.min.z,
-        bounds.max.z
-      );
+      scratch.clampedPos.x = THREE.MathUtils.clamp(scratch.clampedPos.x, bounds.min.x, bounds.max.x);
+      scratch.clampedPos.z = THREE.MathUtils.clamp(scratch.clampedPos.z, bounds.min.z, bounds.max.z);
     } else {
       // In landscape mode OR fullscreen, always center
       bounds.getCenter(scratch.clampedPos);
@@ -483,8 +415,7 @@ export default function MinimapView({
     const validMaxDim = maxDim > 0 ? maxDim : 200;
 
     const dist = isFullscreen ? 1 : zoom.value || 1;
-    const cameraViewRadius =
-      (isFullscreen ? validMaxDim * 1.1 : validMaxDim) / 2 / dist;
+    const cameraViewRadius = (isFullscreen ? validMaxDim * 1.1 : validMaxDim) / 2 / dist;
 
     bounds.getCenter(scratch.center);
     // Sit above the landscape AABB — layout Y is often not 0
@@ -501,9 +432,7 @@ export default function MinimapView({
 
     // When rotate is on, always pivot around the user so orientation matches the
     // main view. Otherwise: follow user when zoomed, landscape center at zoom=1.
-    const pivotOnUser =
-      !isFullscreen &&
-      (minimapRotate || (dist !== 1 && minimapMode !== 'landscape'));
+    const pivotOnUser = !isFullscreen && (minimapRotate || (dist !== 1 && minimapMode !== 'landscape'));
     if (pivotOnUser) {
       minimapCam.position.set(scratch.clampedPos.x, camY, scratch.clampedPos.z);
     } else {
@@ -515,11 +444,7 @@ export default function MinimapView({
     const rotateWithView = !isFullscreen && minimapRotate;
     if (rotateWithView) {
       mainCameraControls.current.getTarget(scratch.lookTarget);
-      scratch.facing.set(
-        scratch.lookTarget.x - mainCamera.position.x,
-        0,
-        scratch.lookTarget.z - mainCamera.position.z
-      );
+      scratch.facing.set(scratch.lookTarget.x - mainCamera.position.x, 0, scratch.lookTarget.z - mainCamera.position.z);
       if (scratch.facing.lengthSq() < 1e-8) {
         // Looking nearly straight down — fall back to azimuth
         const az = mainCameraControls.current.azimuthAngle;
@@ -553,12 +478,7 @@ export default function MinimapView({
       marker.position.y = camY - 1;
       marker.scale.set(markerScale, markerScale, markerScale);
       if (rotateWithView) {
-        marker.rotation.set(
-          -Math.PI / 2,
-          Math.atan2(-scratch.facing.x, -scratch.facing.z),
-          0,
-          'YXZ'
-        );
+        marker.rotation.set(-Math.PI / 2, Math.atan2(-scratch.facing.x, -scratch.facing.z), 0, 'YXZ');
       }
     }
 

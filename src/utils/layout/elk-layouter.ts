@@ -28,10 +28,7 @@ import {
   MetricBounds,
   MetricKey,
 } from 'explorviz-frontend/src/utils/settings/building-metrics';
-import {
-  BuildingMetricMapping,
-  SelectedBuildingMetric,
-} from 'explorviz-frontend/src/utils/settings/settings-schemas';
+import { BuildingMetricMapping, SelectedBuildingMetric } from 'explorviz-frontend/src/utils/settings/settings-schemas';
 
 // Prefixes with leading non-number characters are temporarily added
 // since ELK cannot handle IDs with leading numbers
@@ -95,10 +92,7 @@ export function invalidateLayoutCache(): void {
   latestCacheableGeneration = 0;
 }
 
-function layoutCoversLandscape(
-  layoutMap: Map<string, BoxLayout>,
-  landscape: FlatLandscape
-): boolean {
+function layoutCoversLandscape(layoutMap: Map<string, BoxLayout>, landscape: FlatLandscape): boolean {
   for (const buildingId of Object.keys(landscape.buildings)) {
     if (!layoutMap.has(buildingId)) {
       return false;
@@ -107,10 +101,7 @@ function layoutCoversLandscape(
   return true;
 }
 
-function layoutInputSignature(
-  landscape: FlatLandscape,
-  removedDistrictIds: Set<string>
-): string {
+function layoutInputSignature(landscape: FlatLandscape, removedDistrictIds: Set<string>): string {
   const { visualizationSettings: vs } = useUserSettingsStore.getState();
   const settings = Object.entries(vs)
     .map(([id, setting]) => `${id}=${(setting as { value: unknown }).value}`)
@@ -162,13 +153,9 @@ function getMinimumSizeForLabel(
   let { width, height } = minimumSize;
 
   // Reserve some space for the annotation icon which can be appended to the name
-  const labelWidth =
-    getTextWidth(name, fontSize) + getTextWidth(' 📝', fontSize);
+  const labelWidth = getTextWidth(name, fontSize) + getTextWidth(' 📝', fontSize);
   const neededSpaceForLabel = labelWidth + 2 * margin;
-  if (
-    DISTRICT_LABEL_PLACEMENT === 'left' ||
-    DISTRICT_LABEL_PLACEMENT === 'right'
-  ) {
+  if (DISTRICT_LABEL_PLACEMENT === 'left' || DISTRICT_LABEL_PLACEMENT === 'right') {
     height = Math.max(height, neededSpaceForLabel);
   } else {
     width = Math.max(width, neededSpaceForLabel);
@@ -198,16 +185,12 @@ function getMinimumCitySize(city: City): { width: number; height: number } {
   // since layouting of city contents relies on box layout
   if (city.districtIds.length === 0 && city.buildingIds.length === 0) {
     const geometryOverride =
-      useUserSettingsStore.getState().visualizationSettings
-        .cityGeometryOverrides.value.modelType[city.type];
+      useUserSettingsStore.getState().visualizationSettings.cityGeometryOverrides.value.modelType[city.type];
 
     if (geometryOverride === 'Cylinder') {
       // Cylinder should always have a 1:1 aspect ratio,
       // so we change the minimum size to reflect this
-      const edgeSize = Math.max(
-        minimumLabelSize.width,
-        minimumLabelSize.height
-      );
+      const edgeSize = Math.max(minimumLabelSize.width, minimumLabelSize.height);
       return { width: edgeSize, height: edgeSize };
     }
   }
@@ -215,11 +198,7 @@ function getMinimumCitySize(city: City): { width: number; height: number } {
   return minimumLabelSize;
 }
 
-function getPaddingForLabelPlacement(
-  labelPlacement: string,
-  labelMargin: number,
-  baseMargin: number
-): string {
+function getPaddingForLabelPlacement(labelPlacement: string, labelMargin: number, baseMargin: number): string {
   const top = labelPlacement === 'top' ? labelMargin : baseMargin;
   const bottom = labelPlacement === 'bottom' ? labelMargin : baseMargin;
   const left = labelPlacement === 'left' ? labelMargin : baseMargin;
@@ -228,10 +207,7 @@ function getPaddingForLabelPlacement(
   return `[top=${top},left=${left},bottom=${bottom},right=${right}]`;
 }
 
-export default async function layoutLandscape(
-  landscape: FlatLandscape,
-  removedDistrictIds: Set<string>
-) {
+export default async function layoutLandscape(landscape: FlatLandscape, removedDistrictIds: Set<string>) {
   setVisualizationSettings();
   const generation = ++layoutGeneration;
   const animationState = useEvolutionAnimationStore.getState();
@@ -297,18 +273,9 @@ export default async function layoutLandscape(
   }
 }
 
-async function computeLayout(
-  landscape: FlatLandscape,
-  removedDistrictIds: Set<string>
-) {
-  WIDTH_METRIC_BOUNDS = getCachedBuildingMetricBounds(
-    landscape.buildings,
-    WIDTH_METRIC
-  );
-  DEPTH_METRIC_BOUNDS = getCachedBuildingMetricBounds(
-    landscape.buildings,
-    DEPTH_METRIC
-  );
+async function computeLayout(landscape: FlatLandscape, removedDistrictIds: Set<string>) {
+  WIDTH_METRIC_BOUNDS = getCachedBuildingMetricBounds(landscape.buildings, WIDTH_METRIC);
+  DEPTH_METRIC_BOUNDS = getCachedBuildingMetricBounds(landscape.buildings, DEPTH_METRIC);
 
   const useCircleLayout = BUILDING_ALGORITHM === 'circle';
   const useSpiralLayout = BUILDING_ALGORITHM === 'spiral';
@@ -322,14 +289,8 @@ async function computeLayout(
     layoutOptions: {
       algorithm: CITY_ALGORITHM,
       desiredEdgeLength: DESIRED_EDGE_LENGTH,
-      ...(CITY_MARGIN_ALGORITHMS.has(CITY_ALGORITHM)
-        ? { 'spacing.nodeNode': CITY_MARGIN }
-        : {}),
-      'elk.padding': getPaddingForLabelPlacement(
-        DISTRICT_LABEL_PLACEMENT,
-        CITY_LABEL_MARGIN,
-        CITY_PADDING
-      ),
+      ...(CITY_MARGIN_ALGORITHMS.has(CITY_ALGORITHM) ? { 'spacing.nodeNode': CITY_MARGIN } : {}),
+      'elk.padding': getPaddingForLabelPlacement(DISTRICT_LABEL_PLACEMENT, CITY_LABEL_MARGIN, CITY_PADDING),
     },
   };
 
@@ -342,8 +303,7 @@ async function computeLayout(
     if (useCustomBuildingLayout) {
       let citySideLength: number;
       if (useCircleLayout) {
-        const circumference =
-          buildingCount * (BUILDING_FOOTPRINT * 2 + BUILDING_MARGIN * 2);
+        const circumference = buildingCount * (BUILDING_FOOTPRINT * 2 + BUILDING_MARGIN * 2);
         if (buildingCount <= 2) {
           citySideLength = BUILDING_FOOTPRINT * 4;
         } else {
@@ -369,9 +329,7 @@ async function computeLayout(
       );
       // Layout without special class layout algorithm
     } else {
-      landscapeGraph.children.push(
-        createCityGraph(landscape, city, removedDistrictIds)
-      );
+      landscapeGraph.children.push(createCityGraph(landscape, city, removedDistrictIds));
     }
   });
 
@@ -394,11 +352,7 @@ async function computeLayout(
   return boxLayoutMap;
 }
 
-function createCityGraph(
-  landscape: FlatLandscape,
-  city: City,
-  removedDistrictIds: Set<string>
-) {
+function createCityGraph(landscape: FlatLandscape, city: City, removedDistrictIds: Set<string>) {
   const minimumSize = getMinimumCitySize(city);
   const cityGraph = {
     id: CITY_PREFIX + city.id,
@@ -408,11 +362,7 @@ function createCityGraph(
       'elk.nodeSize.minimum': `(${minimumSize.width}, ${minimumSize.height})`,
       aspectRatio: ASPECT_RATIO,
       algorithm: DISTRICT_ALGORITHM,
-      'elk.padding': getPaddingForLabelPlacement(
-        DISTRICT_LABEL_PLACEMENT,
-        CITY_LABEL_MARGIN,
-        CITY_PADDING
-      ),
+      'elk.padding': getPaddingForLabelPlacement(DISTRICT_LABEL_PLACEMENT, CITY_LABEL_MARGIN, CITY_PADDING),
     },
   };
 
@@ -421,10 +371,7 @@ function createCityGraph(
   return cityGraph;
 }
 
-function createdFixedSizeCity(
-  city: City,
-  size: { width: number; depth: number }
-) {
+function createdFixedSizeCity(city: City, size: { width: number; depth: number }) {
   const buildingGraph: any = {
     id: CITY_PREFIX + city.id,
     width: size.width,
@@ -433,32 +380,20 @@ function createdFixedSizeCity(
     layoutOptions: {
       algorithm: DISTRICT_ALGORITHM,
       'nodeSize.fixedGraphSize': true,
-      'elk.padding': getPaddingForLabelPlacement(
-        DISTRICT_LABEL_PLACEMENT,
-        CITY_LABEL_MARGIN,
-        CITY_PADDING
-      ),
+      'elk.padding': getPaddingForLabelPlacement(DISTRICT_LABEL_PLACEMENT, CITY_LABEL_MARGIN, CITY_PADDING),
     },
   };
 
   return buildingGraph;
 }
 
-function populateCityGraph(
-  cityGraph: any,
-  landscape: FlatLandscape,
-  city: City,
-  removedDistrictIds: Set<string>
-) {
+function populateCityGraph(cityGraph: any, landscape: FlatLandscape, city: City, removedDistrictIds: Set<string>) {
   city.districtIds.forEach((districtId) => {
     if (removedDistrictIds.has(districtId)) {
       return;
     }
     const district = landscape.districts[districtId];
-    if (
-      !district ||
-      !hasVisibleBuildingsRecursively(landscape, district, removedDistrictIds)
-    ) {
+    if (!district || !hasVisibleBuildingsRecursively(landscape, district, removedDistrictIds)) {
       return;
     }
     const districtGraph = {
@@ -468,21 +403,12 @@ function populateCityGraph(
         algorithm: DISTRICT_ALGORITHM,
         aspectRatio: ASPECT_RATIO,
         'spacing.nodeNode': BUILDING_MARGIN,
-        'elk.padding': getPaddingForLabelPlacement(
-          DISTRICT_LABEL_PLACEMENT,
-          DISTRICT_LABEL_MARGIN,
-          DISTRICT_PADDING
-        ),
+        'elk.padding': getPaddingForLabelPlacement(DISTRICT_LABEL_PLACEMENT, DISTRICT_LABEL_MARGIN, DISTRICT_PADDING),
       },
     };
     cityGraph.children.push(districtGraph);
 
-    populateDistrict(
-      districtGraph.children,
-      landscape,
-      district,
-      removedDistrictIds
-    );
+    populateDistrict(districtGraph.children, landscape, district, removedDistrictIds);
   });
 
   city.buildingIds.forEach((buildingId) => {
@@ -515,10 +441,7 @@ function populateDistrict(
       return;
     }
     const district = landscape.districts[districtId];
-    if (
-      !district ||
-      !hasVisibleBuildingsRecursively(landscape, district, removedDistrictIds)
-    ) {
+    if (!district || !hasVisibleBuildingsRecursively(landscape, district, removedDistrictIds)) {
       return;
     }
     const packageNode = {
@@ -528,21 +451,12 @@ function populateDistrict(
         algorithm: DISTRICT_ALGORITHM,
         aspectRatio: ASPECT_RATIO,
         'spacing.nodeNode': BUILDING_MARGIN,
-        'elk.padding': getPaddingForLabelPlacement(
-          DISTRICT_LABEL_PLACEMENT,
-          DISTRICT_LABEL_MARGIN,
-          DISTRICT_PADDING
-        ),
+        'elk.padding': getPaddingForLabelPlacement(DISTRICT_LABEL_PLACEMENT, DISTRICT_LABEL_MARGIN, DISTRICT_PADDING),
       },
     };
     districtGraphChildren.push(packageNode);
 
-    populateDistrict(
-      packageNode.children,
-      landscape,
-      district,
-      removedDistrictIds
-    );
+    populateDistrict(packageNode.children, landscape, district, removedDistrictIds);
   });
 }
 
@@ -551,9 +465,7 @@ function hasVisibleBuildingsRecursively(
   district: District,
   removedDistrictIds: Set<string>
 ): boolean {
-  const hasDirectBuildings = district.buildingIds.some(
-    (buildingId) => !!landscape.buildings[buildingId]
-  );
+  const hasDirectBuildings = district.buildingIds.some((buildingId) => !!landscape.buildings[buildingId]);
   if (hasDirectBuildings) {
     return true;
   }
@@ -566,11 +478,7 @@ function hasVisibleBuildingsRecursively(
     if (!childDistrict) {
       return false;
     }
-    return hasVisibleBuildingsRecursively(
-      landscape,
-      childDistrict,
-      removedDistrictIds
-    );
+    return hasVisibleBuildingsRecursively(landscape, childDistrict, removedDistrictIds);
   });
 }
 
@@ -607,18 +515,9 @@ function createBuildingNode(building: Building) {
 // below would be built (O(cities²) edges) and shipped to ELK for nothing.
 // Verified to yield identical layouts with and without the edges; `random`,
 // `force`, `stress` and `layered` do react to them and are therefore excluded.
-const EDGE_AGNOSTIC_CITY_ALGORITHMS = new Set([
-  'box',
-  'rectpacking',
-  'sporeOverlap',
-]);
+const EDGE_AGNOSTIC_CITY_ALGORITHMS = new Set(['box', 'rectpacking', 'sporeOverlap']);
 
-const CITY_MARGIN_ALGORITHMS = new Set([
-  'box',
-  'random',
-  'rectpacking',
-  'sporeOverlap',
-]);
+const CITY_MARGIN_ALGORITHMS = new Set(['box', 'random', 'rectpacking', 'sporeOverlap']);
 
 function addEdges(landscapeGraph: any, cities: City[]) {
   if (EDGE_AGNOSTIC_CITY_ALGORITHMS.has(CITY_ALGORITHM)) {
@@ -675,13 +574,7 @@ export function convertElkToBoxLayout(
   }
 
   elkGraph.children?.forEach((child: any) => {
-    convertElkToBoxLayout(
-      child,
-      layoutMap,
-      xOffset + elkGraph.x!,
-      zOffset + elkGraph.y!,
-      depth + 1
-    );
+    convertElkToBoxLayout(child, layoutMap, xOffset + elkGraph.x!, zOffset + elkGraph.y!, depth + 1);
   });
 
   return layoutMap;

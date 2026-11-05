@@ -1,7 +1,7 @@
 const config = {
   singleQuote: true,
   trailingComma: 'es5',
-  printWidth: 80,
+  printWidth: 120,
   overrides: [
     {
       files: '*.{js,ts,jsx,tsx}',

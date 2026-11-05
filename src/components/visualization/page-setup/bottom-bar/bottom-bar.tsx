@@ -18,27 +18,18 @@ interface BottomBarProps {
   timelineDataObjectHandler: TimelineDataObjectHandler;
 }
 
-export default function BottomBar({
-  timelineDataObjectHandler,
-}: BottomBarProps) {
-  const resetSelectedCommits = useCommitTreeStateStore(
-    (state) => state.resetSelectedCommits
-  );
+export default function BottomBar({ timelineDataObjectHandler }: BottomBarProps) {
+  const resetSelectedCommits = useCommitTreeStateStore((state) => state.resetSelectedCommits);
   const setRepoNameAndBranchNameToColorMap = useCommitTreeStateStore(
     (state) => state.setRepoNameAndBranchNameToColorMap
   );
   const fetchAndStoreRepositoryCommitTrees = useEvolutionDataRepositoryStore(
     (state) => state.fetchAndStoreRepositoryCommitTrees
   );
-  const showInfoToastMessage = useToastHandlerStore(
-    (state) => state.showInfoToastMessage
-  );
-  const showErrorToastMessage = useToastHandlerStore(
-    (state) => state.showErrorToastMessage
-  );
+  const showInfoToastMessage = useToastHandlerStore((state) => state.showInfoToastMessage);
+  const showErrorToastMessage = useToastHandlerStore((state) => state.showErrorToastMessage);
 
-  const [isCommitTreeRefreshing, setIsCommitTreeRefreshing] =
-    useState<boolean>(false);
+  const [isCommitTreeRefreshing, setIsCommitTreeRefreshing] = useState<boolean>(false);
 
   const bottomBarContext = use(BottomBarContext);
 
@@ -82,11 +73,7 @@ export default function BottomBar({
         {!isExpanded && <span className="pr-1">Bottom Bar</span>}
         <ChevronUpIcon
           size="small"
-          className={
-            isExpanded
-              ? 'align-middle hide-bottom-bar-icon-down'
-              : 'align-middle'
-          }
+          className={isExpanded ? 'align-middle hide-bottom-bar-icon-down' : 'align-middle'}
         />
       </Button>
 
@@ -97,10 +84,7 @@ export default function BottomBar({
                 ${(selectedChart === 'commit-chart' || selectedChart === 'social-metrics') && isExpanded ? 'bottom-bar-chart-commitTree' : ''}
                 ${!isExpanded ? 'bottom-bar-chart-hide' : ''}`}
       >
-        <BottomBarChartDropdown
-          selectedView={selectedChart}
-          onSelectView={setSelectedChart}
-        />
+        <BottomBarChartDropdown selectedView={selectedChart} onSelectView={setSelectedChart} />
 
         {selectedChart === 'runtime-chart' && (
           <>
@@ -118,14 +102,9 @@ export default function BottomBar({
               variant="outline-secondary"
               onClick={refreshCommitTreeData}
               disabled={isCommitTreeRefreshing}
-              title={
-                isCommitTreeRefreshing ? 'Refreshing...' : 'Refresh commit data'
-              }
+              title={isCommitTreeRefreshing ? 'Refreshing...' : 'Refresh commit data'}
             >
-              <SyncIcon
-                size="small"
-                className={isCommitTreeRefreshing ? 'spinning' : ''}
-              />
+              <SyncIcon size="small" className={isCommitTreeRefreshing ? 'spinning' : ''} />
             </Button>
             <EvolutionRenderingButtons />
 
@@ -147,14 +126,9 @@ export default function BottomBar({
               variant="outline-secondary"
               onClick={refreshCommitTreeData}
               disabled={isCommitTreeRefreshing}
-              title={
-                isCommitTreeRefreshing ? 'Refreshing...' : 'Refresh commit data'
-              }
+              title={isCommitTreeRefreshing ? 'Refreshing...' : 'Refresh commit data'}
             >
-              <SyncIcon
-                size="small"
-                className={isCommitTreeRefreshing ? 'spinning' : ''}
-              />
+              <SyncIcon size="small" className={isCommitTreeRefreshing ? 'spinning' : ''} />
             </Button>
             <EvolutionRenderingButtons />
 

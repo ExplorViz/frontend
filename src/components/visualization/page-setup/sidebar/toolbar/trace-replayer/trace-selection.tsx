@@ -38,14 +38,8 @@ const TraceSelection: React.FC<TraceSelectionProps> = ({
   const [filterTerm, setFilterTerm] = useState<string>('');
 
   const functionIdToBuildingMap = getFunctionIdToBuildingMap(flatData);
-  const firstClasses = getFirstClasses(
-    applicationTraces,
-    functionIdToBuildingMap
-  );
-  const lastClasses = getLastClasses(
-    applicationTraces,
-    functionIdToBuildingMap
-  );
+  const firstClasses = getFirstClasses(applicationTraces, functionIdToBuildingMap);
+  const lastClasses = getLastClasses(applicationTraces, functionIdToBuildingMap);
 
   const traces = filterAndSortTraces(
     applicationTraces,
@@ -59,13 +53,8 @@ const TraceSelection: React.FC<TraceSelectionProps> = ({
   const traceDurations = traces.map((trace) => calculateDuration(trace));
   const requestCounts = traces.map((trace) => getTraceRequestCount(trace));
 
-  function getFirstClasses(
-    applicationTraces: Trace[],
-    functionIdToBuildingMap: Map<string, Building>
-  ) {
-    const sortedSpanLists = applicationTraces.map((trace) =>
-      getSortedTraceSpans(trace)
-    );
+  function getFirstClasses(applicationTraces: Trace[], functionIdToBuildingMap: Map<string, Building>) {
+    const sortedSpanLists = applicationTraces.map((trace) => getSortedTraceSpans(trace));
     const traceIdToFirstClassMap = new Map<string, Building>();
 
     applicationTraces.forEach((trace, index) => {
@@ -78,13 +67,8 @@ const TraceSelection: React.FC<TraceSelectionProps> = ({
     return traceIdToFirstClassMap;
   }
 
-  function getLastClasses(
-    applicationTraces: Trace[],
-    functionIdToBuildingMap: Map<string, Building>
-  ) {
-    const sortedSpanLists = applicationTraces.map((trace) =>
-      getSortedTraceSpans(trace)
-    );
+  function getLastClasses(applicationTraces: Trace[], functionIdToBuildingMap: Map<string, Building>) {
+    const sortedSpanLists = applicationTraces.map((trace) => getSortedTraceSpans(trace));
     const traceIdToLastClassMap = new Map<string, Building>();
 
     applicationTraces.forEach((trace, index) => {
@@ -111,10 +95,7 @@ const TraceSelection: React.FC<TraceSelectionProps> = ({
     }
 
     const filteredTraces: Trace[] = applicationTraces.filter((trace) => {
-      if (
-        filterTerm === '' ||
-        trace.traceId.toLowerCase().includes(filterTerm)
-      ) {
+      if (filterTerm === '' || trace.traceId.toLowerCase().includes(filterTerm)) {
         return true;
       }
 
@@ -210,10 +191,7 @@ const TraceSelection: React.FC<TraceSelectionProps> = ({
               <th onClick={() => handleSortByProperty('steps')} scope="col">
                 Requests
               </th>
-              <th
-                onClick={() => handleSortByProperty('traceDuration')}
-                scope="col"
-              >
+              <th onClick={() => handleSortByProperty('traceDuration')} scope="col">
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
@@ -233,8 +211,7 @@ const TraceSelection: React.FC<TraceSelectionProps> = ({
                 key={trace.traceId}
                 style={{
                   cursor: 'pointer',
-                  backgroundColor:
-                    trace === selectedTrace ? '#cc8a8a' : undefined,
+                  backgroundColor: trace === selectedTrace ? '#cc8a8a' : undefined,
                 }}
                 onClick={() => selectTrace(trace)}
               >

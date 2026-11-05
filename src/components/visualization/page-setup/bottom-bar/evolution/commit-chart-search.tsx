@@ -1,11 +1,6 @@
-import {
-  CommitSearchResult,
-  searchCommitsInRepository,
-} from 'explorviz-frontend/src/utils/evolution-data-helpers';
-import {
-  Commit,
-  CommitTree,
-} from 'explorviz-frontend/src/utils/evolution-schemes/evolution-data';
+import { keyedItems } from 'explorviz-frontend/src/utils/keyed-items';
+import { CommitSearchResult, searchCommitsInRepository } from 'explorviz-frontend/src/utils/evolution-data-helpers';
+import { Commit, CommitTree } from 'explorviz-frontend/src/utils/evolution-schemes/evolution-data';
 import { useMemo, useState } from 'react';
 import Select from 'react-select';
 
@@ -24,23 +19,15 @@ function formatCommitSearchLabel(result: CommitSearchResult): string {
     result.commitDate,
     result.tags?.length ? result.tags.join(', ') : undefined,
   ].filter(Boolean);
-  return details.length > 0
-    ? `${result.commitId} (${details.join(' · ')})`
-    : result.commitId;
+  return details.length > 0 ? `${result.commitId} (${details.join(' · ')})` : result.commitId;
 }
 
-export default function CommitChartSearch({
-  commitTree,
-  onSelectCommit,
-}: CommitChartSearchProps) {
+export default function CommitChartSearch({ commitTree, onSelectCommit }: CommitChartSearchProps) {
   const [searchString, setSearchString] = useState('');
   const [menuOpen, setMenuOpen] = useState(false);
 
   const searchResults = useMemo(
-    () =>
-      isBlank(searchString)
-        ? []
-        : searchCommitsInRepository(commitTree, searchString),
+    () => (isBlank(searchString) ? [] : searchCommitsInRepository(commitTree, searchString)),
     [commitTree, searchString]
   );
 
@@ -53,12 +40,8 @@ export default function CommitChartSearch({
 
     const parts = label.split(new RegExp(`(${searchString.trim()})`, 'gi'));
 
-    return parts.map((part, index) =>
-      part.toLowerCase() === searchString.trim().toLowerCase() ? (
-        <strong key={index}>{part}</strong>
-      ) : (
-        part
-      )
+    return keyedItems(parts, (part) => part).map(({ item: part, key }) =>
+      part.toLowerCase() === searchString.trim().toLowerCase() ? <strong key={key}>{part}</strong> : part
     );
   };
 
@@ -103,9 +86,7 @@ export default function CommitChartSearch({
           onMenuClose={() => setMenuOpen(false)}
           menuIsOpen={menuOpen && searchResults.length > 0}
           placeholder="Search by commit hash or tag..."
-          noOptionsMessage={() =>
-            isBlank(searchString) ? 'Type a commit hash or tag' : 'No matches'
-          }
+          noOptionsMessage={() => (isBlank(searchString) ? 'Type a commit hash or tag' : 'No matches')}
           isClearable={false}
           controlShouldRenderValue={false}
           blurInputOnSelect={false}

@@ -24,10 +24,7 @@ import {
   useTimestampPollingStore,
 } from 'explorviz-frontend/src/stores/timestamp-polling';
 import { useToastHandlerStore } from 'explorviz-frontend/src/stores/toast-handler';
-import {
-  ApiToken,
-  useUserApiTokenStore,
-} from 'explorviz-frontend/src/stores/user-api-token';
+import { ApiToken, useUserApiTokenStore } from 'explorviz-frontend/src/stores/user-api-token';
 import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
 import { useVisibilityServiceStore } from 'explorviz-frontend/src/stores/visibility-service';
 import { useVisualizationStore } from 'explorviz-frontend/src/stores/visualization-store';
@@ -63,14 +60,8 @@ const RUNTIME_VISUALIZATION_DEFAULTS: EvolutionModeRenderingConfiguration = {
 };
 
 function applyRuntimeVisualizationDefaults() {
-  useVisibilityServiceStore
-    .getState()
-    .applyEvolutionModeRenderingConfiguration(RUNTIME_VISUALIZATION_DEFAULTS);
-  useRenderingServiceStore
-    .getState()
-    .setAnalysisModeFromEvolutionRenderingConfig(
-      RUNTIME_VISUALIZATION_DEFAULTS
-    );
+  useVisibilityServiceStore.getState().applyEvolutionModeRenderingConfiguration(RUNTIME_VISUALIZATION_DEFAULTS);
+  useRenderingServiceStore.getState().setAnalysisModeFromEvolutionRenderingConfig(RUNTIME_VISUALIZATION_DEFAULTS);
 }
 
 function resetVisualizationSessionState(options?: { clearModels?: boolean }) {
@@ -101,11 +92,8 @@ export default function Visualization() {
   const [commit1, setCommit1] = useState<string | undefined | null>(undefined);
   const [commit2, setCommit2] = useState<string | undefined | null>(undefined);
   const [userApiTokens, setUserApiTokens] = useState<ApiToken[]>([]);
-  const [visualizationPaused, setVisualizationPaused] =
-    useState<boolean>(false);
-  const [timelineDataObjectHandler] = useState<TimelineDataObjectHandler>(
-    () => new TimelineDataObjectHandler()
-  );
+  const [visualizationPaused, setVisualizationPaused] = useState<boolean>(false);
+  const [timelineDataObjectHandler] = useState<TimelineDataObjectHandler>(() => new TimelineDataObjectHandler());
 
   const [bottomBarState, setBottomBarState] = useState<BottomBarState>({
     isExpanded: true,
@@ -117,8 +105,7 @@ export default function Visualization() {
   });
 
   const bottomBarActions: BottomBarActions = {
-    setIsExpanded: (isExpanded) =>
-      setBottomBarState((state) => ({ ...state, isExpanded: isExpanded })),
+    setIsExpanded: (isExpanded) => setBottomBarState((state) => ({ ...state, isExpanded: isExpanded })),
 
     setSelectedChart: (selectedChart) =>
       setBottomBarState((state) => ({
@@ -154,54 +141,30 @@ export default function Visualization() {
   const renderingServiceToggleVisualizationUpdating = useRenderingServiceStore(
     (state) => state.toggleVisualizationUpdating
   );
-  const renderingServiceLandscapeData = useRenderingServiceStore(
-    (state) => state._landscapeData
+  const renderingServiceLandscapeData = useRenderingServiceStore((state) => state._landscapeData);
+  const setLandscapeDataRenderingService = useRenderingServiceStore((state) => state.setLandscapeData);
+  const setVisualizationPausedRenderingService = useRenderingServiceStore((state) => state.setVisualizationPaused);
+  const renderingServiceTriggerRenderingForSelectedCommits = useRenderingServiceStore(
+    (state) => state.triggerRenderingForSelectedCommits
   );
-  const setLandscapeDataRenderingService = useRenderingServiceStore(
-    (state) => state.setLandscapeData
+  const renderingServiceTriggerRenderingForGivenLandscapeData = useRenderingServiceStore(
+    (state) => state.triggerRenderingForGivenLandscapeData
   );
-  const setVisualizationPausedRenderingService = useRenderingServiceStore(
-    (state) => state.setVisualizationPaused
-  );
-  const renderingServiceTriggerRenderingForSelectedCommits =
-    useRenderingServiceStore(
-      (state) => state.triggerRenderingForSelectedCommits
-    );
-  const renderingServiceTriggerRenderingForGivenLandscapeData =
-    useRenderingServiceStore(
-      (state) => state.triggerRenderingForGivenLandscapeData
-    );
-  const spectateUserSpectateConfigurationId = useSpectateConfigurationStore(
-    (state) => state.spectateConfig?.id
-  );
-  const localUserVisualizationMode = useLocalUserStore(
-    (state) => state.visualizationMode
-  );
-  const setVisualizationMode = useLocalUserStore(
-    (state) => state.setVisualizationMode
-  );
+  const spectateUserSpectateConfigurationId = useSpectateConfigurationStore((state) => state.spectateConfig?.id);
+  const localUserVisualizationMode = useLocalUserStore((state) => state.visualizationMode);
+  const setVisualizationMode = useLocalUserStore((state) => state.setVisualizationMode);
   const restartTimestampPollingAndVizUpdate = useTimestampRepositoryStore(
     (state) => state.restartTimestampPollingAndVizUpdate
   );
-  const manualPollTimestamps = useTimestampPollingStore(
-    (state) => state.manuallyPollTimestamps
-  );
+  const manualPollTimestamps = useTimestampPollingStore((state) => state.manuallyPollTimestamps);
   const fetchAndStoreRepositoryCommitTrees = useEvolutionDataRepositoryStore(
     (state) => state.fetchAndStoreRepositoryCommitTrees
   );
-  const setDefaultState = useCommitTreeStateStore(
-    (state) => state.setDefaultState
-  );
+  const setDefaultState = useCommitTreeStateStore((state) => state.setDefaultState);
   const snapshotToken = useSnapshotTokenStore((state) => state.snapshotToken);
-  const landscapeTokenServiceToken = useLandscapeTokenStore(
-    (state) => state.token
-  );
-  const landscapeTokenRemoveToken = useLandscapeTokenStore(
-    (state) => state.removeToken
-  );
-  const snapshotSelected = useSnapshotTokenStore(
-    (state) => state.snapshotSelected
-  );
+  const landscapeTokenServiceToken = useLandscapeTokenStore((state) => state.token);
+  const landscapeTokenRemoveToken = useLandscapeTokenStore((state) => state.removeToken);
+  const snapshotSelected = useSnapshotTokenStore((state) => state.snapshotSelected);
 
   // # endregion
 
@@ -209,14 +172,12 @@ export default function Visualization() {
   const isLandscapeExistentAndEmpty =
     renderingServiceLandscapeData !== null &&
     (!renderingServiceLandscapeData.flatLandscapeData ||
-      Object.keys(renderingServiceLandscapeData.flatLandscapeData.cities)
-        .length === 0);
+      Object.keys(renderingServiceLandscapeData.flatLandscapeData.cities).length === 0);
 
   const allLandscapeDataExistsAndNotEmpty =
     renderingServiceLandscapeData !== null &&
     renderingServiceLandscapeData.flatLandscapeData &&
-    Object.keys(renderingServiceLandscapeData.flatLandscapeData.cities).length >
-      0;
+    Object.keys(renderingServiceLandscapeData.flatLandscapeData.cities).length > 0;
 
   const { mode } = useParams();
 
@@ -224,14 +185,10 @@ export default function Visualization() {
   const showVR = localUserVisualizationMode === 'vr' || mode === 'vr';
 
   const isSingleLandscapeMode =
-    import.meta.env.VITE_ONLY_SHOW_TOKEN.length > 0 &&
-    import.meta.env.VITE_ONLY_SHOW_TOKEN !== 'change-token';
+    import.meta.env.VITE_ONLY_SHOW_TOKEN.length > 0 && import.meta.env.VITE_ONLY_SHOW_TOKEN !== 'change-token';
 
   const shouldDisplayBottomBar =
-    !showAR &&
-    !showVR &&
-    !isSingleLandscapeMode &&
-    spectateUserSpectateConfigurationId !== 'arena-2';
+    !showAR && !showVR && !isSingleLandscapeMode && spectateUserSpectateConfigurationId !== 'arena-2';
 
   // # endregion
 
@@ -248,8 +205,7 @@ export default function Visualization() {
 
   // Load preset when visualization opens
   useEffect(() => {
-    const { selectedPreset, loadPreset, listPresets } =
-      useUserSettingsStore.getState();
+    const { selectedPreset, loadPreset, listPresets } = useUserSettingsStore.getState();
     if (selectedPreset) {
       // Verify preset still exists before loading
       const presets = listPresets();
@@ -268,13 +224,7 @@ export default function Visualization() {
     ) {
       navigate('/landscapes');
     }
-  }, [
-    landscapeTokenServiceToken,
-    navigate,
-    searchParams,
-    snapshotToken,
-    snapshotSelected,
-  ]);
+  }, [landscapeTokenServiceToken, navigate, searchParams, snapshotToken, snapshotSelected]);
 
   useEffect(() => {
     return () => {
@@ -283,15 +233,13 @@ export default function Visualization() {
   }, [landscapeTokenRemoveToken]);
 
   useEffect(() => {
-    const handleRestructureLandscapeData = (
-      flatStructure: FlatLandscape,
-      dynamicData: DynamicLandscapeData
-    ) => {
-      renderingServiceTriggerRenderingForGivenLandscapeData(
-        flatStructure,
-        dynamicData,
-        { metrics: {}, communications: [], fromUnixNano: 0n, toUnixNano: 0n }
-      );
+    const handleRestructureLandscapeData = (flatStructure: FlatLandscape, dynamicData: DynamicLandscapeData) => {
+      renderingServiceTriggerRenderingForGivenLandscapeData(flatStructure, dynamicData, {
+        metrics: {},
+        communications: [],
+        fromUnixNano: 0n,
+        toUnixNano: 0n,
+      });
     };
     const handleToggleVisualizationUpdating = () => {
       renderingServiceToggleVisualizationUpdating();
@@ -301,19 +249,10 @@ export default function Visualization() {
     eventEmitter.on('toggleVisualization', handleToggleVisualizationUpdating);
 
     return () => {
-      eventEmitter.off(
-        'restructureLandscapeData',
-        handleRestructureLandscapeData
-      );
-      eventEmitter.off(
-        'toggleVisualization',
-        handleToggleVisualizationUpdating
-      );
+      eventEmitter.off('restructureLandscapeData', handleRestructureLandscapeData);
+      eventEmitter.off('toggleVisualization', handleToggleVisualizationUpdating);
     };
-  }, [
-    renderingServiceToggleVisualizationUpdating,
-    renderingServiceTriggerRenderingForGivenLandscapeData,
-  ]);
+  }, [renderingServiceToggleVisualizationUpdating, renderingServiceTriggerRenderingForGivenLandscapeData]);
 
   useEffect(() => {
     const initRenderingAndSetupListeners = async () => {
@@ -340,9 +279,7 @@ export default function Visualization() {
       const snapshotOwner = searchParams.get('owner');
       const snapshotCreatedAt = searchParams.get('createdAt');
       const isSharedSnapshot = searchParams.get('sharedSnapshot') === 'true';
-      const shouldRestoreSnapshot =
-        snapshotSelected ||
-        (snapshotOwner !== null && snapshotCreatedAt !== null);
+      const shouldRestoreSnapshot = snapshotSelected || (snapshotOwner !== null && snapshotCreatedAt !== null);
 
       if (shouldRestoreSnapshot) {
         let loadedSnapshot = useSnapshotTokenStore.getState().snapshotToken;
@@ -350,17 +287,11 @@ export default function Visualization() {
         if (!loadedSnapshot && snapshotOwner && snapshotCreatedAt) {
           loadedSnapshot = await useSnapshotTokenStore
             .getState()
-            .retrieveToken(
-              snapshotOwner,
-              Number(snapshotCreatedAt),
-              isSharedSnapshot
-            );
+            .retrieveToken(snapshotOwner, Number(snapshotCreatedAt), isSharedSnapshot);
         }
 
         if (loadedSnapshot === null) {
-          useToastHandlerStore
-            .getState()
-            .showErrorToastMessage('Snapshot could not be loaded');
+          useToastHandlerStore.getState().showErrorToastMessage('Snapshot could not be loaded');
           navigate('/landscapes');
           return;
         }
@@ -382,33 +313,24 @@ export default function Visualization() {
       // Fetch repositories for evolution mode
       await fetchAndStoreRepositoryCommitTrees();
 
-      const repoNameCommitTreeMap =
-        useEvolutionDataRepositoryStore.getState()._repoNameCommitTreeMap;
+      const repoNameCommitTreeMap = useEvolutionDataRepositoryStore.getState()._repoNameCommitTreeMap;
 
       const commitTreeState = useCommitTreeStateStore.getState();
-      if (
-        commitTreeState.getSelectedCommits().size === 0 &&
-        applyNewestCommitSelectionToState()
-      ) {
+      if (commitTreeState.getSelectedCommits().size === 0 && applyNewestCommitSelectionToState()) {
         markNewestCommitAutoSelectedForCurrentLandscape();
       }
 
       let showEvolutionVisualization = false;
 
       const updatedCommitTreeState = useCommitTreeStateStore.getState();
-      const selectedRepo =
-        updatedCommitTreeState._currentSelectedRepositoryName;
-      const selectedCommitsForCurrentSelectedRepo = updatedCommitTreeState
-        .getSelectedCommits()
-        .get(selectedRepo);
+      const selectedRepo = updatedCommitTreeState._currentSelectedRepositoryName;
+      const selectedCommitsForCurrentSelectedRepo = updatedCommitTreeState.getSelectedCommits().get(selectedRepo);
       const initialCommit1 =
-        selectedCommitsForCurrentSelectedRepo &&
-        selectedCommitsForCurrentSelectedRepo.length > 0
+        selectedCommitsForCurrentSelectedRepo && selectedCommitsForCurrentSelectedRepo.length > 0
           ? selectedCommitsForCurrentSelectedRepo[0].commitId
           : undefined;
       const initialCommit2 =
-        selectedCommitsForCurrentSelectedRepo &&
-        selectedCommitsForCurrentSelectedRepo.length > 1
+        selectedCommitsForCurrentSelectedRepo && selectedCommitsForCurrentSelectedRepo.length > 1
           ? selectedCommitsForCurrentSelectedRepo[1].commitId
           : undefined;
       setCommit1(initialCommit1);
@@ -416,11 +338,7 @@ export default function Visualization() {
 
       // check what kind of rendering we should start
       if (initialCommit1 && initialCommit1.length > 0) {
-        showEvolutionVisualization = setDefaultState(
-          repoNameCommitTreeMap,
-          initialCommit1,
-          initialCommit2
-        );
+        showEvolutionVisualization = setDefaultState(repoNameCommitTreeMap, initialCommit1, initialCommit2);
 
         bottomBarActions.setSelectedChart('commit-chart');
       }
@@ -481,10 +399,7 @@ export default function Visualization() {
   // #region Rendering
 
   // Use minimal setup for AR/VR
-  if (
-    localUserVisualizationMode === 'vr' ||
-    localUserVisualizationMode === 'ar'
-  ) {
+  if (localUserVisualizationMode === 'vr' || localUserVisualizationMode === 'ar') {
     return (
       <div id="vizspace">
         <XrRendering landscapeData={renderingServiceLandscapeData} />{' '}
@@ -501,30 +416,14 @@ export default function Visualization() {
           <div className="loading-screen-container">
             <div className="loading-screen-content">
               {isLandscapeExistentAndEmpty ? (
-                <h2 className="loading-screen-title">
-                  Received empty Landscape from Landscape Service.
-                </h2>
+                <h2 className="loading-screen-title">Received empty Landscape from Landscape Service.</h2>
               ) : (
                 <>
-                  <h2 className="loading-screen-title">
-                    Loading Landscape Data ...
-                  </h2>
-                  <p className="loading-screen-message">
-                    Landscape data is being fetched every 10 seconds.
-                  </p>
-                  <div className="loading-screen-countdown">
-                    Next fetch in: {countdown}s
-                  </div>
-                  <div
-                    className="loading-screen-spinner"
-                    role="status"
-                    aria-label="Loading"
-                  ></div>
-                  <Button
-                    variant="primary"
-                    onClick={manualPollTimestamps}
-                    className="loading-screen-poll-button"
-                  >
+                  <h2 className="loading-screen-title">Loading Landscape Data ...</h2>
+                  <p className="loading-screen-message">Landscape data is being fetched every 10 seconds.</p>
+                  <div className="loading-screen-countdown">Next fetch in: {countdown}s</div>
+                  <div className="loading-screen-spinner" role="status" aria-label="Loading"></div>
+                  <Button variant="primary" onClick={manualPollTimestamps} className="loading-screen-poll-button">
                     Fetch Now
                   </Button>
                 </>
@@ -533,15 +432,10 @@ export default function Visualization() {
           </div>
         )}
 
-        <BrowserRendering
-          userApiTokens={userApiTokens}
-          visualizationPaused={visualizationPaused}
-        />
+        <BrowserRendering userApiTokens={userApiTokens} visualizationPaused={visualizationPaused} />
       </div>
 
-      {shouldDisplayBottomBar && (
-        <BottomBar timelineDataObjectHandler={timelineDataObjectHandler} />
-      )}
+      {shouldDisplayBottomBar && <BottomBar timelineDataObjectHandler={timelineDataObjectHandler} />}
 
       <PlayPauseButton />
     </BottomBarContext>

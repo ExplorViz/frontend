@@ -3,10 +3,7 @@ interface SelectedSearchItemProps {
   onClick: (clickedElement: any) => void;
 }
 
-export default function SelectedSearchItem({
-  option,
-  onClick,
-}: SelectedSearchItemProps) {
+export default function SelectedSearchItem({ option, onClick }: SelectedSearchItemProps) {
   if (option.className) {
     return (
       <a href="#" onClick={() => onClick(option)}>

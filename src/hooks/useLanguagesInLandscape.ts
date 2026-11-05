@@ -7,11 +7,7 @@ import { useShallow } from 'zustand/react/shallow';
 export default function useLanguagesInLandscape(): Language[] {
   return useModelStore(
     useShallow((state) => [
-      ...new Set(
-        Object.values(state.buildings).map((building) =>
-          normalizeLanguage(building.language)
-        )
-      ),
+      ...new Set(Object.values(state.buildings).map((building) => normalizeLanguage(building.language))),
     ])
   );
 }

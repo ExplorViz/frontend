@@ -9,8 +9,7 @@ interface PlayroomWrapperProps {
 // This component is responsible for showing the connection lobby
 
 export default function PlayroomWrapper({ children }: PlayroomWrapperProps) {
-  const { isConnected, isLobbyOpen, setConnected, closeLobby } =
-    usePlayroomConnectionStore();
+  const { isConnected, isLobbyOpen, setConnected, closeLobby } = usePlayroomConnectionStore();
 
   const [roomMode, setRoomMode] = useState<'select' | 'loading'>('select');
   const [joinCode, setJoinCode] = useState('');
@@ -71,19 +70,11 @@ export default function PlayroomWrapper({ children }: PlayroomWrapperProps) {
             boxShadow: '0 4px 15px rgba(0,0,0,0.5)',
           }}
         >
-          <h2 style={{ marginBottom: '30px', fontWeight: 'bold' }}>
-            Multiplayer Setup
-          </h2>
+          <h2 style={{ marginBottom: '30px', fontWeight: 'bold' }}>Multiplayer Setup</h2>
 
           {roomMode === 'select' ? (
-            <div
-              style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}
-            >
-              <button
-                className="btn btn-primary btn-lg"
-                onClick={() => initPlayroom()}
-                style={{ width: '100%' }}
-              >
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+              <button className="btn btn-primary btn-lg" onClick={() => initPlayroom()} style={{ width: '100%' }}>
                 Create New Room
               </button>
 
@@ -111,29 +102,18 @@ export default function PlayroomWrapper({ children }: PlayroomWrapperProps) {
                     letterSpacing: '2px',
                   }}
                 />
-                <button
-                  className="btn btn-success"
-                  onClick={() => initPlayroom(joinCode)}
-                  disabled={!joinCode}
-                >
+                <button className="btn btn-success" onClick={() => initPlayroom(joinCode)} disabled={!joinCode}>
                   Connect
                 </button>
               </div>
 
-              <button
-                className="btn btn-outline-light mt-4"
-                onClick={closeLobby}
-                style={{ width: '100%' }}
-              >
+              <button className="btn btn-outline-light mt-4" onClick={closeLobby} style={{ width: '100%' }}>
                 Back to the app (Offline)
               </button>
             </div>
           ) : (
             <div className="d-flex flex-column align-items-center">
-              <div
-                className="spinner-border text-light mb-3"
-                role="status"
-              ></div>
+              <div className="spinner-border text-light mb-3" role="status"></div>
               <p>Connecting To Playroom Servers...</p>
             </div>
           )}

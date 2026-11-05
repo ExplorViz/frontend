@@ -31,8 +31,7 @@ export default abstract class BaseMesh<
     this._defaultColor = value.clone();
 
     if (
-      (this.material instanceof THREE.MeshBasicMaterial ||
-        this.material instanceof THREE.MeshLambertMaterial) &&
+      (this.material instanceof THREE.MeshBasicMaterial || this.material instanceof THREE.MeshLambertMaterial) &&
       !this._highlighted
     ) {
       this.material.color = value;
@@ -108,11 +107,7 @@ export default abstract class BaseMesh<
     return null;
   }
 
-  changeTexture(
-    texture: THREE.Texture,
-    repeatX: number = 5,
-    repeatY: number = repeatX
-  ) {
+  changeTexture(texture: THREE.Texture, repeatX: number = 5, repeatY: number = repeatX) {
     if (
       this.material instanceof THREE.MeshBasicMaterial ||
       this.material instanceof THREE.MeshLambertMaterial ||
@@ -201,10 +196,7 @@ export default abstract class BaseMesh<
       this.material instanceof THREE.MeshBasicMaterial ||
       this.material instanceof MeshLineMaterial
     ) {
-      this.material.color = calculateColorBrightness(
-        new THREE.Color(this.material.color),
-        colorShift
-      );
+      this.material.color = calculateColorBrightness(new THREE.Color(this.material.color), colorShift);
       this._isHovered = true;
     }
   }

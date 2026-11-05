@@ -25,8 +25,7 @@ export interface MetricOverview {
 }
 
 /** Represents a set of values from an OpenTelemetry metric that can be visualized in a chart. */
-export type MetricValues =
-  SumMetricValues | GaugeMetricValues | HistogramMetricValues;
+export type MetricValues = SumMetricValues | GaugeMetricValues | HistogramMetricValues;
 
 /**
  * Represents an individual datapoint in a sum time series.
@@ -162,17 +161,11 @@ export function isMetricOverview(x: any): x is MetricOverview {
 }
 
 export function isMetricValues(x: any): x is MetricValues {
-  return (
-    isSumMetricValues(x) || isGaugeMetricValues(x) || isHistogramMetricValues(x)
-  );
+  return isSumMetricValues(x) || isGaugeMetricValues(x) || isHistogramMetricValues(x);
 }
 
 export function isSumMetricPoint(x: any): x is SumMetricPoint {
-  return (
-    x !== null &&
-    typeof x.value === 'number' &&
-    typeof x.timeUnixMilli === 'number'
-  );
+  return x !== null && typeof x.value === 'number' && typeof x.timeUnixMilli === 'number';
 }
 
 export function isSumMetricValues(x: any): x is SumMetricValues {
@@ -188,11 +181,7 @@ export function isSumMetricValues(x: any): x is SumMetricValues {
 }
 
 export function isGaugeMetricPoint(x: any): x is GaugeMetricPoint {
-  return (
-    x !== null &&
-    typeof x.value === 'number' &&
-    typeof x.timeUnixMilli === 'number'
-  );
+  return x !== null && typeof x.value === 'number' && typeof x.timeUnixMilli === 'number';
 }
 
 export function isGaugeMetricValues(x: any): x is GaugeMetricValues {
@@ -208,11 +197,7 @@ export function isGaugeMetricValues(x: any): x is GaugeMetricValues {
 }
 
 export function isHistogramMetricPoint(x: any): x is HistogramMetricPoint {
-  return (
-    x !== null &&
-    ['number', 'undefined'].includes(typeof x.bound) &&
-    typeof x.count === 'number'
-  );
+  return x !== null && ['number', 'undefined'].includes(typeof x.bound) && typeof x.count === 'number';
 }
 
 export function isHistogramMetricValues(x: any): x is HistogramMetricValues {
@@ -222,8 +207,6 @@ export function isHistogramMetricValues(x: any): x is HistogramMetricValues {
     x.pointKind === 'histogram' &&
     Array.isArray(points) &&
     points.every((v) => isHistogramMetricPoint(v)) &&
-    points.every((v, i) =>
-      i === points.length - 1 ? v.bound === undefined : v.bound !== undefined
-    )
+    points.every((v, i) => (i === points.length - 1 ? v.bound === undefined : v.bound !== undefined))
   );
 }

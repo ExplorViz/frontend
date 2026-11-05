@@ -1,17 +1,12 @@
 import ApiTokenSelection from 'explorviz-frontend/src/components/api-token-selection';
-import {
-  ApiToken,
-  useUserApiTokenStore,
-} from 'explorviz-frontend/src/stores/user-api-token';
+import { ApiToken, useUserApiTokenStore } from 'explorviz-frontend/src/stores/user-api-token';
 import { useEffect, useState } from 'react';
 
 export default function Settings() {
   const [refreshKey, setRefreshKey] = useState<number>(0);
   const [apiTokens, setApiTokens] = useState<ApiToken[]>([]);
 
-  const retrieveApiTokens = useUserApiTokenStore(
-    (state) => state.retrieveApiTokens
-  );
+  const retrieveApiTokens = useUserApiTokenStore((state) => state.retrieveApiTokens);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -28,9 +23,7 @@ export default function Settings() {
   };
 
   return (
-    <div
-      className={'container overflow-auto mt-5 mb-5 d-flex flex-column flex-1'}
-    >
+    <div className={'container overflow-auto mt-5 mb-5 d-flex flex-column flex-1'}>
       <h4 className={'text-center mt-4 mb-3'}>Settings</h4>
       <div className={'d-flex flex-row justify-content-center overflow-auto'}>
         <ApiTokenSelection apiTokens={apiTokens} refreshRoute={refreshRoute} />

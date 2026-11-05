@@ -28,10 +28,7 @@ export interface ImmersiveInfo {
   variables: VariableData[];
 }
 
-export function buildFallbackImmersiveInfo(building: {
-  name: string;
-  fqn?: string;
-}): ImmersiveInfo {
+export function buildFallbackImmersiveInfo(building: { name: string; fqn?: string }): ImmersiveInfo {
   return {
     name: building.name,
     fqn: building.fqn ?? building.name,
@@ -57,18 +54,10 @@ interface ImmersiveViewState {
   /** Target height for that label (grown while inside, normal height while restoring). */
   immersiveBuildingHeight: number | null;
 
-  enterImmersive: (
-    id: string,
-    target: THREE.Vector3,
-    info?: ImmersiveInfo,
-    detailedData?: FileDetailedDto
-  ) => void;
+  enterImmersive: (id: string, target: THREE.Vector3, info?: ImmersiveInfo, detailedData?: FileDetailedDto) => void;
   exitImmersive: () => void;
   setCameraLocked: (locked: boolean) => void;
-  setImmersiveBuildingHeight: (
-    buildingId: string | null,
-    height: number | null
-  ) => void;
+  setImmersiveBuildingHeight: (buildingId: string | null, height: number | null) => void;
 }
 
 export const useImmersiveViewStore = create<ImmersiveViewState>((set) => ({

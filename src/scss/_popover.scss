@@ -136,11 +136,7 @@
 }
 
 .file-history-entry--selected > tr > td {
-  background-color: color-mix(
-    in srgb,
-    var(--bs-primary, #0d6efd) 10%,
-    transparent
-  );
+  background-color: color-mix(in srgb, var(--bs-primary, #0d6efd) 10%, transparent);
 }
 
 .file-history-entry--selected > tr:first-child > td {

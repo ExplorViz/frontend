@@ -5,9 +5,7 @@ import { useEffect, useRef } from 'react';
 
 // This component synchronizes the global popup list with the local popup list
 export function CollaborationPopupSync() {
-  const snapshotSelected = useSnapshotTokenStore(
-    (state) => state.snapshotSelected
-  );
+  const snapshotSelected = useSnapshotTokenStore((state) => state.snapshotSelected);
   const [globalPopups] = useMultiplayerState('sharedPopups', {});
   const lastPinnedRefs = useRef<string[]>([]);
 
@@ -19,9 +17,7 @@ export function CollaborationPopupSync() {
     const currentGlobal = globalPopups || {};
 
     Object.keys(currentGlobal).forEach((entityId) => {
-      const isLocallyOpen = usePopupHandlerStore
-        .getState()
-        .popupData.find((p) => p.entityId === entityId);
+      const isLocallyOpen = usePopupHandlerStore.getState().popupData.find((p) => p.entityId === entityId);
       if (!isLocallyOpen) {
         usePopupHandlerStore.getState().addPopup({
           entityId: entityId,

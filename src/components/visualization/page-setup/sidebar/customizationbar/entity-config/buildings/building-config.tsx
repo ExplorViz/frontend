@@ -2,15 +2,8 @@ import BuildingMetricSettings from 'explorviz-frontend/src/components/visualizat
 import useLanguagesInLandscape from 'explorviz-frontend/src/hooks/useLanguagesInLandscape';
 import { useModelStore } from 'explorviz-frontend/src/stores/repos/model-repository';
 import { SUPPORTED_LANGUAGES } from 'explorviz-frontend/src/utils/landscape-schemes/flat-landscape';
-import {
-  getLabelForLanguage,
-  normalizeLanguage,
-  sortLanguages,
-} from 'explorviz-frontend/src/utils/language-utils';
-import {
-  getLabelForModelType,
-  sortModelTypes,
-} from 'explorviz-frontend/src/utils/model-type-utils';
+import { getLabelForLanguage, normalizeLanguage, sortLanguages } from 'explorviz-frontend/src/utils/language-utils';
+import { getLabelForModelType, sortModelTypes } from 'explorviz-frontend/src/utils/model-type-utils';
 import { useMemo, useState } from 'react';
 import Form from 'react-bootstrap/Form';
 import BuildingModelConfig from './building-model-config';
@@ -31,15 +24,11 @@ export default function BuildingConfig() {
   );
 
   const [searchQuery, setSearchQuery] = useState('');
-  const [showAllLanguages, setShowAllLanguages] = useState(
-    () => languagesInLandscape.length === 0
-  );
+  const [showAllLanguages, setShowAllLanguages] = useState(() => languagesInLandscape.length === 0);
 
   const visibleLanguages = useMemo(() => {
     const baseLanguages =
-      showAllLanguages || languagesInLandscape.length === 0
-        ? SUPPORTED_LANGUAGES
-        : sortLanguages(languagesInLandscape);
+      showAllLanguages || languagesInLandscape.length === 0 ? SUPPORTED_LANGUAGES : sortLanguages(languagesInLandscape);
 
     const normalizedQuery = searchQuery.trim().toLowerCase();
     if (!normalizedQuery) {
@@ -48,10 +37,7 @@ export default function BuildingConfig() {
 
     return baseLanguages.filter((language) => {
       const label = normalizeLanguage(language);
-      return (
-        label.toLowerCase().includes(normalizedQuery) ||
-        language.toLowerCase().includes(normalizedQuery)
-      );
+      return label.toLowerCase().includes(normalizedQuery) || language.toLowerCase().includes(normalizedQuery);
     });
   }, [languagesInLandscape, searchQuery, showAllLanguages]);
 
@@ -66,9 +52,8 @@ export default function BuildingConfig() {
         <section>
           <h6 className="fw-bold">Model types</h6>
           <p className="small mb-2">
-            Set the color and geometry for buildings from different analysis
-            types. Model types of buildings found in the current landscape are
-            shown by default.
+            Set the color and geometry for buildings from different analysis types. Model types of buildings found in
+            the current landscape are shown by default.
           </p>
 
           <BuildingModelConfig
@@ -81,9 +66,7 @@ export default function BuildingConfig() {
 
       <section className="building-config-section">
         <div className="building-config-section-heading">
-          <h6 className="building-config-section-title mb-0">
-            Programming languages
-          </h6>
+          <h6 className="building-config-section-title mb-0">Programming languages</h6>
           <Form.Check
             type="switch"
             id="building-config-show-all-languages"
@@ -94,8 +77,8 @@ export default function BuildingConfig() {
           />
         </div>
         <p className="building-config-section-description">
-          Set the color and geometry for each programming language. Languages
-          found in the current landscape are shown by default.
+          Set the color and geometry for each programming language. Languages found in the current landscape are shown
+          by default.
         </p>
 
         <Form.Control
@@ -108,9 +91,7 @@ export default function BuildingConfig() {
         />
 
         {visibleLanguages.length === 0 ? (
-          <p className="text-muted text-center building-config-empty">
-            No languages match your search.
-          </p>
+          <p className="text-muted text-center building-config-empty">No languages match your search.</p>
         ) : (
           <BuildingModelConfig
             overrideGroupKey="language"

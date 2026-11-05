@@ -44,12 +44,12 @@ import GamepadControls from 'explorviz-frontend/src/utils/controls/gamepad/gamep
 import { useEffect, useRef, useState } from 'react';
 import Button from 'react-bootstrap/Button';
 import { useShallow } from 'zustand/react/shallow';
+import { ChatbotProvider } from '../../chatbot/chatbot-context';
 import {
-  ChatbotProvider,
   EntityFilteringController,
   EntitySearchController,
   SidebarSelectionOptions,
-} from '../../chatbot/chatbot-context';
+} from '../../chatbot/chatbot-context-store';
 import CollaborationControls from '../../collaboration/visualization/page-setup/sidebar/customizationbar/collaboration/collaboration-controls';
 import ContextMenu from '../../context-menu';
 import { EditingProvider } from '../../editing/editing-context';
@@ -62,18 +62,11 @@ interface BrowserRenderingProps {
   readonly visualizationPaused: boolean;
 }
 
-export default function BrowserRendering({
-  userApiTokens,
-  visualizationPaused,
-}: BrowserRenderingProps) {
+export default function BrowserRendering({ userApiTokens, visualizationPaused }: BrowserRenderingProps) {
   // MARK: Stores
-  const landscapeData = useRenderingServiceStore(
-    (state) => state._landscapeData
-  );
+  const landscapeData = useRenderingServiceStore((state) => state._landscapeData);
   const landscapeToken = useLandscapeTokenStore((state) => state.token);
-  const visualizationSettings = useUserSettingsStore(
-    (state) => state.visualizationSettings
-  );
+  const visualizationSettings = useUserSettingsStore((state) => state.visualizationSettings);
 
   const configurationActions = useConfigurationStore(
     useShallow((state) => ({
@@ -81,9 +74,7 @@ export default function BrowserRendering({
     }))
   );
 
-  const toggleVisualizationUpdating = useRenderingServiceStore(
-    (state) => state.toggleVisualizationUpdating
-  );
+  const toggleVisualizationUpdating = useRenderingServiceStore((state) => state.toggleVisualizationUpdating);
 
   const popupHandlerActions = usePopupHandlerStore(
     useShallow((state) => ({
@@ -111,13 +102,9 @@ export default function BrowserRendering({
     }))
   );
 
-  const restartAndSetSocket = useIdeWebsocketStore(
-    (state) => state.restartAndSetSocket
-  );
+  const restartAndSetSocket = useIdeWebsocketStore((state) => state.restartAndSetSocket);
 
-  const closeConnection = useIdeWebsocketStore(
-    (state) => state.closeConnection
-  );
+  const closeConnection = useIdeWebsocketStore((state) => state.closeConnection);
 
   // MARK: Event handlers
 
@@ -134,9 +121,7 @@ export default function BrowserRendering({
   const enterFullscreen = () => {
     // Find the canvas element by ID (set in CanvasWrapper)
     // The Canvas component from @react-three/fiber renders a canvas element
-    let canvasElement: HTMLCanvasElement | null = document.getElementById(
-      'three-js-canvas'
-    ) as HTMLCanvasElement;
+    let canvasElement: HTMLCanvasElement | null = document.getElementById('three-js-canvas') as HTMLCanvasElement;
 
     // If not found by ID, try to find the canvas element within the element with that ID
     // or find any canvas element in the rendering container
@@ -181,18 +166,13 @@ export default function BrowserRendering({
 
   // MARK: State
 
-  const [toolbarState, setToolbarState] =
-    useState<ToolbarState>(defaultToolbarState);
+  const [toolbarState, setToolbarState] = useState<ToolbarState>(defaultToolbarState);
 
   const showToolsSidebar = toolbarState.showSidebar;
-  const setShowToolsSidebar = (isShow: boolean) =>
-    setToolbarState((state) => ({ ...state, showSidebar: isShow }));
+  const setShowToolsSidebar = (isShow: boolean) => setToolbarState((state) => ({ ...state, showSidebar: isShow }));
 
   const selectedToolbarTool = toolbarState.selectedTool;
-  const setSelectedToolbarTool = (
-    tool: ToolbarTool | null,
-    options?: SidebarSelectionOptions
-  ) =>
+  const setSelectedToolbarTool = (tool: ToolbarTool | null, options?: SidebarSelectionOptions) =>
     setToolbarState((state) => ({
       ...state,
       showSidebar: options?.showSidebar ?? state.showSidebar,
@@ -266,8 +246,7 @@ export default function BrowserRendering({
     },
   };
 
-  const [settingsSidebarState, setSettingsSidebarState] =
-    useState<SettingsSidebarState>(defaultSettingsSidebarState);
+  const [settingsSidebarState, setSettingsSidebarState] = useState<SettingsSidebarState>(defaultSettingsSidebarState);
 
   const showSettingsSidebar = settingsSidebarState.showSidebar;
   const setShowSettingsSidebar = (isShow: boolean) =>
@@ -277,10 +256,7 @@ export default function BrowserRendering({
     }));
 
   const selectedSettingsSidebarTab = settingsSidebarState.selectedTab;
-  const setSelectedSettingsSidebarTab = (
-    tab: SettingsSidebarTab | null,
-    options?: SidebarSelectionOptions
-  ) =>
+  const setSelectedSettingsSidebarTab = (tab: SettingsSidebarTab | null, options?: SidebarSelectionOptions) =>
     setSettingsSidebarState((state) => ({
       ...state,
       showSidebar: options?.showSidebar ?? state.showSidebar,
@@ -292,15 +268,11 @@ export default function BrowserRendering({
       setSelectedSettingsSidebarTab(null);
       return;
     }
-    setSelectedSettingsSidebarTab(
-      selectedSettingsSidebarTab === tab ? null : tab,
-      { showSidebar: true }
-    );
+    setSelectedSettingsSidebarTab(selectedSettingsSidebarTab === tab ? null : tab, { showSidebar: true });
   };
 
   const settingsSidebarActions: SettingsSidebarActions = {
-    openSettingsSidebarTab: (tab) =>
-      setSelectedSettingsSidebarTab(tab, { showSidebar: true }),
+    openSettingsSidebarTab: (tab) => setSelectedSettingsSidebarTab(tab, { showSidebar: true }),
   };
 
   // MARK: Refs
@@ -334,9 +306,7 @@ export default function BrowserRendering({
     setShowToolsSidebar(false);
   }
 
-  const copilotRuntimeRequested =
-    showSettingsSidebar &&
-    selectedSettingsSidebarTab === SettingsSidebarTab.Chatbot;
+  const copilotRuntimeRequested = showSettingsSidebar && selectedSettingsSidebarTab === SettingsSidebarTab.Chatbot;
 
   // MARK: JSX
 
@@ -357,9 +327,7 @@ export default function BrowserRendering({
         entitySearchControllerRef={entitySearchRef}
       >
         <ToolbarContext value={{ ...toolbarState, ...toolbarActions }}>
-          <SettingsSidebarContext
-            value={{ ...settingsSidebarState, ...settingsSidebarActions }}
-          >
+          <SettingsSidebarContext value={{ ...settingsSidebarState, ...settingsSidebarActions }}>
             <div className="row h-100">
               <div className="d-flex flex-column h-100 col-12">
                 <div id="rendering" ref={outerDiv}>
@@ -389,22 +357,15 @@ export default function BrowserRendering({
                     </div>
                   )}
 
-                  {visualizationSettings.heatmapEnabled.value && (
-                    <HeatmapInfo />
-                  )}
+                  {visualizationSettings.heatmapEnabled.value && <HeatmapInfo />}
 
                   <ContextMenu>
-                    <CanvasWrapper
-                      key={landscapeToken?.value ?? 'no-token'}
-                      landscapeData={landscapeData}
-                    />
+                    <CanvasWrapper key={landscapeToken?.value ?? 'no-token'} landscapeData={landscapeData} />
                   </ContextMenu>
 
                   {landscapeData && <Popups landscapeData={landscapeData} />}
 
-                  {landscapeData && (
-                    <EntityFilteringApplier landscapeData={landscapeData} />
-                  )}
+                  {landscapeData && <EntityFilteringApplier landscapeData={landscapeData} />}
 
                   {annotationHandlerState.annotationData.map((data) => (
                     <AnnotationCoordinator
@@ -417,10 +378,7 @@ export default function BrowserRendering({
               </div>
 
               {landscapeData && (
-                <ToolSelection
-                  show={showToolsSidebar}
-                  closeToolSelection={() => setShowToolsSidebar(false)}
-                >
+                <ToolSelection show={showToolsSidebar} closeToolSelection={() => setShowToolsSidebar(false)}>
                   <ComponentTabs
                     activeTab={selectedToolbarTool}
                     onChange={onToolbarTabChange}
@@ -430,10 +388,7 @@ export default function BrowserRendering({
                         content: (
                           <>
                             <h5 className="text-center">Filter</h5>
-                            <EntityFiltering
-                              ref={entityFilteringRef}
-                              landscapeData={landscapeData}
-                            />
+                            <EntityFiltering ref={entityFilteringRef} landscapeData={landscapeData} />
                           </>
                         ),
                       },
@@ -458,12 +413,8 @@ export default function BrowserRendering({
                         value: ToolbarTool.RepositoryAnalysis,
                         content: (
                           <>
-                            <h5 className="text-center">
-                              Git Repository Analysis
-                            </h5>
-                            <CodeAnalysisSection
-                              landscapeToken={landscapeToken?.value}
-                            />
+                            <h5 className="text-center">Git Repository Analysis</h5>
+                            <CodeAnalysisSection landscapeToken={landscapeToken?.value} />
                           </>
                         ),
                       },
@@ -483,13 +434,8 @@ export default function BrowserRendering({
 
               {showSettingsSidebar && (
                 <div className="sidebar right" id="settingsSidebar">
-                  <div
-                    className="mt-6 d-flex flex-row w-100"
-                    style={{ zIndex: 90 }}
-                  >
-                    <SettingsSidebar
-                      closeSettingsSidebar={() => setShowSettingsSidebar(false)}
-                    >
+                  <div className="mt-6 d-flex flex-row w-100" style={{ zIndex: 90 }}>
+                    <SettingsSidebar closeSettingsSidebar={() => setShowSettingsSidebar(false)}>
                       <ComponentTabs
                         activeTab={selectedSettingsSidebarTab}
                         onChange={onSettingsTabChange}
@@ -522,16 +468,10 @@ export default function BrowserRendering({
                                 landscapeData={landscapeData!}
                                 restructureLandscape={() => {}}
                                 visualizationPaused={visualizationPaused}
-                                toggleVisualizationUpdating={
-                                  toggleVisualizationUpdating
-                                }
+                                toggleVisualizationUpdating={toggleVisualizationUpdating}
                                 userApiTokens={userApiTokens}
-                                annotationData={
-                                  annotationHandlerState.annotationData
-                                }
-                                minimizedAnnotations={
-                                  annotationHandlerState.minimizedAnnotations
-                                }
+                                annotationData={annotationHandlerState.annotationData}
+                                minimizedAnnotations={annotationHandlerState.minimizedAnnotations}
                                 landscapeToken={landscapeToken}
                               />
                             ),
@@ -541,12 +481,8 @@ export default function BrowserRendering({
                             content: (
                               <Snapshot
                                 landscapeData={landscapeData!}
-                                annotationData={
-                                  annotationHandlerState.annotationData
-                                }
-                                minimizedAnnotations={
-                                  annotationHandlerState.minimizedAnnotations
-                                }
+                                annotationData={annotationHandlerState.annotationData}
+                                minimizedAnnotations={annotationHandlerState.minimizedAnnotations}
                                 landscapeToken={landscapeToken}
                               />
                             ),
@@ -554,10 +490,7 @@ export default function BrowserRendering({
                           {
                             value: SettingsSidebarTab.Settings,
                             content: (
-                              <Settings
-                                enterFullscreen={enterFullscreen}
-                                setGamepadSupport={setGamepadSupport}
-                              />
+                              <Settings enterFullscreen={enterFullscreen} setGamepadSupport={setGamepadSupport} />
                             ),
                           },
                         ]}

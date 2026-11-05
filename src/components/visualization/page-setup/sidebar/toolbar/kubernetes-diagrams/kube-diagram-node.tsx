@@ -21,17 +21,14 @@ export function KubeDiagramNode({
 }) {
   const nodeName = collectTextFromAnchor(node);
   const { xlinkTitle: _xlinkTitle, ...normalizedProps } = normalizeSvgProps(node.properties);
-  const existingStyle =
-    typeof normalizedProps.style === 'object' ? normalizedProps.style : {};
+  const existingStyle = typeof normalizedProps.style === 'object' ? normalizedProps.style : {};
 
   const clickTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const isPinged = !!nodeName && !!ctx.activePingNodeNames?.has(nodeName);
 
   // Locate the <image> child to derive its center for the ping overlay circle
-  const imageChild = node.children?.find(
-    (c): c is SvgElementNode => c.type === 'element' && c.tagName === 'image'
-  );
+  const imageChild = node.children?.find((c): c is SvgElementNode => c.type === 'element' && c.tagName === 'image');
   const imgNorm = imageChild ? normalizeSvgProps(imageChild.properties) : {};
   const ix = parseFloat(String(imgNorm.x ?? 0)) || 0;
   const iy = parseFloat(String(imgNorm.y ?? 0)) || 0;
@@ -52,10 +49,7 @@ export function KubeDiagramNode({
         })
       : null;
 
-  const children = [
-    ...(node.children?.map(renderChildren) ?? []),
-    pingOverlay,
-  ];
+  const children = [...(node.children?.map(renderChildren) ?? []), pingOverlay];
 
   return React.createElement(
     node.tagName,

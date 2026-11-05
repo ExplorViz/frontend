@@ -32,7 +32,7 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-pnpm-cache-
       - name: Install dependencies
-        run: pnpm install
+        run: pnpm install --frozen-lockfile
 
   lint:
     runs-on: ubuntu-latest
@@ -48,7 +48,11 @@ jobs:
           node-version: 24
           cache: 'pnpm'
       - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+      - name: Check lint rules
         run: pnpm run lint
+      - name: Check formatting
+        run: pnpm run format:check
 
   test:
     runs-on: ubuntu-latest

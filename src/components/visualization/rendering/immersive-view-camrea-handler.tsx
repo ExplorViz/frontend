@@ -13,9 +13,7 @@ interface Props {
 export default function ImmersiveCameraHandler({ controlsRef }: Props) {
   const targetPosition = useImmersiveViewStore((state) => state.targetPosition);
   const exitImmersive = useImmersiveViewStore((state) => state.exitImmersive);
-  const setCameraLocked = useImmersiveViewStore(
-    (state) => state.setCameraLocked
-  );
+  const setCameraLocked = useImmersiveViewStore((state) => state.setCameraLocked);
 
   const savedCameraState = useRef<{
     position: THREE.Vector3;
@@ -31,9 +29,7 @@ export default function ImmersiveCameraHandler({ controlsRef }: Props) {
       if (!savedCameraState.current) {
         savedCameraState.current = {
           position: new THREE.Vector3().copy(controls.camera.position),
-          target: new THREE.Vector3().copy(
-            controls.getTarget(new THREE.Vector3())
-          ),
+          target: new THREE.Vector3().copy(controls.getTarget(new THREE.Vector3())),
         };
       }
 
@@ -59,15 +55,7 @@ export default function ImmersiveCameraHandler({ controlsRef }: Props) {
       setCameraLocked(false);
 
       const { position, target } = savedCameraState.current;
-      controls.setLookAt(
-        position.x,
-        position.y,
-        position.z,
-        target.x,
-        target.y,
-        target.z,
-        true
-      );
+      controls.setLookAt(position.x, position.y, position.z, target.x, target.y, target.z, true);
 
       savedCameraState.current = null;
     }

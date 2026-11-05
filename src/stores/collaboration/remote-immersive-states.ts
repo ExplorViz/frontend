@@ -8,26 +8,24 @@ interface RemoteImmersiveState {
   removeUser: (userId: string) => void;
 }
 
-export const useRemoteImmersiveStateStore = create<RemoteImmersiveState>(
-  (set) => ({
-    userImmersiveStates: new Map(),
+export const useRemoteImmersiveStateStore = create<RemoteImmersiveState>((set) => ({
+  userImmersiveStates: new Map(),
 
-    updateState: (userId, meshId) =>
-      set((state) => {
-        const newMap = new Map(state.userImmersiveStates);
-        if (meshId) {
-          newMap.set(userId, meshId);
-        } else {
-          newMap.delete(userId);
-        }
-        return { userImmersiveStates: newMap };
-      }),
-
-    removeUser: (userId) =>
-      set((state) => {
-        const newMap = new Map(state.userImmersiveStates);
+  updateState: (userId, meshId) =>
+    set((state) => {
+      const newMap = new Map(state.userImmersiveStates);
+      if (meshId) {
+        newMap.set(userId, meshId);
+      } else {
         newMap.delete(userId);
-        return { userImmersiveStates: newMap };
-      }),
-  })
-);
+      }
+      return { userImmersiveStates: newMap };
+    }),
+
+  removeUser: (userId) =>
+    set((state) => {
+      const newMap = new Map(state.userImmersiveStates);
+      newMap.delete(userId);
+      return { userImmersiveStates: newMap };
+    }),
+}));

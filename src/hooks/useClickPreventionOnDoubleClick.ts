@@ -5,8 +5,7 @@ import { ThreeEvent } from '@react-three/fiber';
 import useCancelablePromises from 'explorviz-frontend/src/hooks/useCancelablePromises';
 import { cancelablePromise } from 'explorviz-frontend/src/utils/helpers/promise-helpers';
 
-export const delay = (n: number) =>
-  new Promise((resolve) => setTimeout(resolve, n));
+export const delay = (n: number) => new Promise((resolve) => setTimeout(resolve, n));
 
 export type ClickPreventionOptions = {
   /**
@@ -32,19 +31,13 @@ export const CLICK_PREVENTION_DEFAULTS = {
 } as const;
 
 /** Tracks max pointer movement (px) from `nativeEvent` until `cleanup` runs. */
-export function maxPointerDriftDuringDelay(
-  nativeEvent: MouseEvent | PointerEvent
-): {
+export function maxPointerDriftDuringDelay(nativeEvent: MouseEvent | PointerEvent): {
   cleanup: () => void;
   getMaxDistance: () => number;
 } {
   const startX = nativeEvent.clientX;
   const startY = nativeEvent.clientY;
-  if (
-    typeof window === 'undefined' ||
-    !Number.isFinite(startX) ||
-    !Number.isFinite(startY)
-  ) {
+  if (typeof window === 'undefined' || !Number.isFinite(startX) || !Number.isFinite(startY)) {
     return {
       cleanup: () => {},
       getMaxDistance: () => 0,
@@ -85,14 +78,11 @@ const useClickPreventionOnDoubleClick = (
 
   const api = useCancelablePromises();
 
-  const handleClick = (
-    e: ThreeEvent<MouseEvent> | ThreeEvent<PointerEvent>
-  ) => {
+  const handleClick = (e: ThreeEvent<MouseEvent> | ThreeEvent<PointerEvent>) => {
     e.stopPropagation();
     api.clearPendingPromises();
 
-    const { cleanup: cleanupMoveListeners, getMaxDistance } =
-      maxPointerDriftDuringDelay(e.nativeEvent);
+    const { cleanup: cleanupMoveListeners, getMaxDistance } = maxPointerDriftDuringDelay(e.nativeEvent);
 
     const waitForClick = cancelablePromise(delay(clickDelayMs));
     api.appendPendingPromise(waitForClick);
@@ -131,17 +121,14 @@ const useClickPreventionOnDoubleClick = (
     onDoubleClick(e);
   };
 
-  const handleRightClick = (
-    e: ThreeEvent<MouseEvent> | ThreeEvent<PointerEvent>
-  ) => {
+  const handleRightClick = (e: ThreeEvent<MouseEvent> | ThreeEvent<PointerEvent>) => {
     if (!onRightClick) {
       return;
     }
     e.stopPropagation();
     api.clearPendingPromises();
 
-    const { cleanup: cleanupMoveListeners, getMaxDistance } =
-      maxPointerDriftDuringDelay(e.nativeEvent);
+    const { cleanup: cleanupMoveListeners, getMaxDistance } = maxPointerDriftDuringDelay(e.nativeEvent);
 
     const waitForRightClick = cancelablePromise(delay(rightClickDelayMs));
     api.appendPendingPromise(waitForRightClick);

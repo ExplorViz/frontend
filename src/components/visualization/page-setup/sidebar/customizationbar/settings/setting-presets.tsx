@@ -5,12 +5,8 @@ import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-setting
 import { useShallow } from 'zustand/react/shallow';
 
 export default function SettingPresets() {
-  const showSuccessToastMessage = useToastHandlerStore(
-    (state) => state.showSuccessToastMessage
-  );
-  const showErrorToastMessage = useToastHandlerStore(
-    (state) => state.showErrorToastMessage
-  );
+  const showSuccessToastMessage = useToastHandlerStore((state) => state.showSuccessToastMessage);
+  const showErrorToastMessage = useToastHandlerStore((state) => state.showErrorToastMessage);
 
   const {
     presets,
@@ -81,16 +77,13 @@ export default function SettingPresets() {
       setSelectedPreset(name);
       // Note: Preset is not auto-loaded, it will be loaded when visualization opens
     } else {
-      showErrorToastMessage(
-        `Preset "${name}" already exists. Use Save to overwrite or choose a different name.`
-      );
+      showErrorToastMessage(`Preset "${name}" already exists. Use Save to overwrite or choose a different name.`);
     }
   };
 
   const handleSavePreset = () => {
     // overwrite current selection or use newPresetName if provided
-    const nameToSave =
-      (selectedPreset && selectedPreset) || newPresetName.trim();
+    const nameToSave = (selectedPreset && selectedPreset) || newPresetName.trim();
     if (!nameToSave) {
       showErrorToastMessage('Select a preset or enter a name to save');
       return;
@@ -134,15 +127,11 @@ export default function SettingPresets() {
     }
     const ok = renamePreset(selectedPreset, newName, false);
     if (ok) {
-      showSuccessToastMessage(
-        `Preset "${selectedPreset}" renamed to "${newName}"`
-      );
+      showSuccessToastMessage(`Preset "${selectedPreset}" renamed to "${newName}"`);
       // selectedPreset is updated in the store by renamePreset
       setRenameTo('');
     } else {
-      showErrorToastMessage(
-        `Failed to rename preset to "${newName}". A preset with that name might already exist.`
-      );
+      showErrorToastMessage(`Failed to rename preset to "${newName}". A preset with that name might already exist.`);
     }
   };
 
@@ -176,11 +165,7 @@ export default function SettingPresets() {
           Update
         </button>
 
-        <button
-          className="btn btn-sm btn-danger"
-          onClick={handleDeletePreset}
-          title="Delete selected preset"
-        >
+        <button className="btn btn-sm btn-danger" onClick={handleDeletePreset} title="Delete selected preset">
           Delete
         </button>
       </div>
@@ -188,11 +173,7 @@ export default function SettingPresets() {
       <div className="preset-controls-row">
         <input
           className="form-control form-control-sm preset-control-input"
-          placeholder={
-            selectedPreset
-              ? `Rename "${selectedPreset}" to...`
-              : 'Select preset to rename'
-          }
+          placeholder={selectedPreset ? `Rename "${selectedPreset}" to...` : 'Select preset to rename'}
           value={renameTo}
           onChange={(e) => setRenameTo(e.target.value)}
         />

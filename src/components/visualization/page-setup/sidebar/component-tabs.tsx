@@ -6,17 +6,11 @@ interface ComponentTabsProps<T> {
   onChange?(newActiveTab: T | null): void;
 }
 
-export default function ComponentTabs<T>({
-  tabs,
-  activeTab,
-  onChange,
-}: ComponentTabsProps<T>) {
+export default function ComponentTabs<T>({ tabs, activeTab, onChange }: ComponentTabsProps<T>) {
   const [selectedTabId, setSelectedTabId] = useState<T | null>(null);
 
   const selectedTab =
-    activeTab !== undefined
-      ? tabs.find((t) => t.value === activeTab)
-      : tabs.find((t) => t.value === selectedTabId);
+    activeTab !== undefined ? tabs.find((t) => t.value === activeTab) : tabs.find((t) => t.value === selectedTabId);
 
   const onTabClick = (clickedTab: T) => {
     setSelectedTabId(clickedTab);
@@ -38,9 +32,7 @@ export default function ComponentTabs<T>({
         </ul>
       </div>
       <div className="card sidebar-card mt-3">
-        <div className="card-body d-flex flex-column">
-          {selectedTab && selectedTab.content}
-        </div>
+        <div className="card-body d-flex flex-column">{selectedTab && selectedTab.content}</div>
       </div>
     </>
   );
@@ -52,21 +44,11 @@ interface ComponentTabProps<T> {
   onClick(value: T): void;
 }
 
-export function ComponentTab<T>({
-  value,
-  selected,
-  onClick,
-}: ComponentTabProps<T>) {
+export function ComponentTab<T>({ value, selected, onClick }: ComponentTabProps<T>) {
   return (
     <li className="nav-item">
-      <div
-        className="nav-link-with-cursor"
-        title={'Show/Hide ' + String(value)}
-        onClick={() => onClick(value)}
-      >
-        <div className={selected ? 'fw-bold' : 'fw-normal'}>
-          {String(value)}
-        </div>
+      <div className="nav-link-with-cursor" title={'Show/Hide ' + String(value)} onClick={() => onClick(value)}>
+        <div className={selected ? 'fw-bold' : 'fw-normal'}>{String(value)}</div>
       </div>
     </li>
   );

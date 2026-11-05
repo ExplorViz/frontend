@@ -8,13 +8,7 @@ const originalRaycast = InstancedMesh2.prototype.raycast;
 // InstancedMesh2 uses custom raycasting with scaling. To make distances comparable with those of other meshes,
 // we need to undo the scaling applied in the raycasting process.
 InstancedMesh2.prototype.raycast = function (raycaster, result) {
-  if (
-    this._parentLOD ||
-    !this.material ||
-    this._instancesArrayCount === 0 ||
-    !this.instanceIndex
-  )
-    return;
+  if (this._parentLOD || !this.material || this._instancesArrayCount === 0 || !this.instanceIndex) return;
 
   const localHits = [];
   originalRaycast.call(this, raycaster, localHits);

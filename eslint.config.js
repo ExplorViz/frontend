@@ -1,24 +1,31 @@
 import js from '@eslint/js';
-import globals from 'globals';
+import prettier from 'eslint-config-prettier';
+import reactDom from 'eslint-plugin-react-dom';
 import reactHooks from 'eslint-plugin-react-hooks';
 import reactRefresh from 'eslint-plugin-react-refresh';
-import tseslint from 'typescript-eslint';
 import reactX from 'eslint-plugin-react-x';
-import reactDom from 'eslint-plugin-react-dom';
+import globals from 'globals';
+import tseslint from 'typescript-eslint';
+
+// CI treats every enabled rule as an error.
+const strictRules = (rules) =>
+  Object.fromEntries(
+    Object.entries(rules).map(([name, setting]) => {
+      const [severity, ...options] = Array.isArray(setting) ? setting : [setting];
+      return [name, [severity === 'warn' || severity === 1 ? 'error' : severity, ...options]];
+    })
+  );
 
 export default tseslint.config(
-  { ignores: ['dist'] },
+  { ignores: ['dist/**', 'coverage/**', 'public/**', '**/node_modules/**'] },
   {
-    extends: [
-      js.configs.recommended,
-      ...tseslint.configs.recommendedTypeChecked,
-    ],
+    extends: [js.configs.recommended, ...tseslint.configs.recommendedTypeChecked],
     files: ['**/*.{ts,tsx}'],
     languageOptions: {
       ecmaVersion: 2020,
-      globals: globals.browser,
+      globals: { ...globals.browser, ...globals.node },
       parserOptions: {
-        project: ['./tsconfig.json'],
+        project: ['./tsconfig.eslint.json'],
         tsconfigRootDir: import.meta.dirname,
       },
     },
@@ -29,8 +36,6 @@ export default tseslint.config(
       'react-dom': reactDom,
     },
     rules: {
-      // TODO: @typescript-eslint is new to project we guess. It should be used
-      // but for now, it throws to many errors to fix them fast
       '@typescript-eslint/no-unsafe-member-access': 'off',
       '@typescript-eslint/no-explicit-any': 'off',
       '@typescript-eslint/no-inferrable-types': 'off',
@@ -72,13 +77,25 @@ export default tseslint.config(
       'no-unsafe-optional-chaining': 'off',
       'prefer-const': 'off',
       'no-constant-condition': 'off', // because in navbar.tsx line 153 it had to be false, because user.picture is not present right now
-      ...reactHooks.configs.recommended.rules,
-      'react-refresh/only-export-components': [
-        'warn',
-        { allowConstantExport: true },
-      ],
-      ...reactX.configs['recommended-typescript'].rules,
-      ...reactDom.configs.recommended.rules,
+      ...strictRules(reactHooks.configs.recommended.rules),
+      'react-refresh/only-export-components': ['error', { allowConstantExport: true }],
+      ...strictRules(reactX.configs['recommended-typescript'].rules),
+      ...strictRules(reactDom.configs.recommended.rules),
+      // These effect/dependency policies are intentionally not enforced.
+      'react-hooks/exhaustive-deps': 'off',
+      'react-x/exhaustive-deps': 'off',
+      'react-hooks/set-state-in-effect': 'off',
+      'react-x/set-state-in-effect': 'off',
+      'react-x/no-set-state-in-component-did-update': 'off',
     },
-  }
+  },
+  {
+    files: ['**/*.{js,jsx}'],
+    extends: [js.configs.recommended],
+    languageOptions: {
+      globals: { ...globals.browser, ...globals.node },
+      parserOptions: { ecmaFeatures: { jsx: true } },
+    },
+  },
+  prettier
 );

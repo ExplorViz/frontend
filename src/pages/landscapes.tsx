@@ -1,20 +1,11 @@
 import { getResponseErrorMessage } from 'explorviz-frontend/src/utils/response-error';
 import SnapshotSelection from 'explorviz-frontend/src/components/snapshot-selection';
-import TokenCreationModal, {
-  LandscapeTokenCreateParams,
-} from 'explorviz-frontend/src/components/token-creation-modal';
+import TokenCreationModal, { LandscapeTokenCreateParams } from 'explorviz-frontend/src/components/token-creation-modal';
 import TokenSelection from 'explorviz-frontend/src/components/token-selection';
 import LandscapeLoader from 'explorviz-frontend/src/pages/landscapes-loading';
 import { useAuthStore } from 'explorviz-frontend/src/stores/auth';
-import {
-  LandscapeToken,
-  useLandscapeTokenStore,
-} from 'explorviz-frontend/src/stores/landscape-token';
-import {
-  SnapshotInfo,
-  TinySnapshot,
-  useSnapshotTokenStore,
-} from 'explorviz-frontend/src/stores/snapshot-token';
+import { LandscapeToken, useLandscapeTokenStore } from 'explorviz-frontend/src/stores/landscape-token';
+import { SnapshotInfo, TinySnapshot, useSnapshotTokenStore } from 'explorviz-frontend/src/stores/snapshot-token';
 import { useToastHandlerStore } from 'explorviz-frontend/src/stores/toast-handler';
 import React, { useEffect, useState } from 'react';
 import { Tab, Tabs } from 'react-bootstrap';
@@ -27,26 +18,16 @@ export default function Landscapes() {
     snapshotInfo: SnapshotInfo;
   } | null>(null);
   const [refreshKey, setRefreshKey] = useState<number>(0);
-  const [tokenCreationModalIsOpen, setTokenCreationModalIsOpen] =
-    useState<boolean>(false);
-  const [repoAnalysisModalIsOpen, setRepoAnalysisModalIsOpen] =
-    useState<boolean>(false);
-  const [selectedAnalysisToken, setSelectedAnalysisToken] = useState<
-    LandscapeToken | undefined
-  >(undefined);
+  const [tokenCreationModalIsOpen, setTokenCreationModalIsOpen] = useState<boolean>(false);
+  const [repoAnalysisModalIsOpen, setRepoAnalysisModalIsOpen] = useState<boolean>(false);
+  const [selectedAnalysisToken, setSelectedAnalysisToken] = useState<LandscapeToken | undefined>(undefined);
 
   const [activeKey, setActiveKey] = useState<string>('landscapes');
 
   const landscapeToken = useLandscapeTokenStore((state) => state.token);
-  const removeLandscapeToken = useLandscapeTokenStore(
-    (state) => state.removeToken
-  );
-  const retrieveTokenServiceTokens = useLandscapeTokenStore(
-    (state) => state.retrieveTokens
-  );
-  const retrieveSnapshotServiceTokens = useSnapshotTokenStore(
-    (state) => state.retrieveTokens
-  );
+  const removeLandscapeToken = useLandscapeTokenStore((state) => state.removeToken);
+  const retrieveTokenServiceTokens = useLandscapeTokenStore((state) => state.retrieveTokens);
+  const retrieveSnapshotServiceTokens = useSnapshotTokenStore((state) => state.retrieveTokens);
   const setLandscapeToken = useLandscapeTokenStore((state) => state.setToken);
   const setSnapshotToken = useSnapshotTokenStore((state) => state.setToken);
   const user = useAuthStore((state) => state.user);
@@ -55,10 +36,7 @@ export default function Landscapes() {
 
   useEffect(() => {
     const fetchData = async () => {
-      if (
-        import.meta.env.VITE_ONLY_SHOW_TOKEN &&
-        import.meta.env.VITE_ONLY_SHOW_TOKEN !== 'change-token'
-      ) {
+      if (import.meta.env.VITE_ONLY_SHOW_TOKEN && import.meta.env.VITE_ONLY_SHOW_TOKEN !== 'change-token') {
         navigate('/visualization');
       }
 
@@ -136,9 +114,7 @@ export default function Landscapes() {
     try {
       const token = await sendTokenCreateRequest(params);
       closeTokenCreationModal();
-      useToastHandlerStore
-        .getState()
-        .showSuccessToastMessage(`Token created: ${token.value}`);
+      useToastHandlerStore.getState().showSuccessToastMessage(`Token created: ${token.value}`);
       refreshRoute();
     } catch (e) {
       useToastHandlerStore.getState().showErrorToastMessage(e.message);
@@ -150,9 +126,7 @@ export default function Landscapes() {
 
     try {
       await sendTokenDeleteRequest(tokenId);
-      useToastHandlerStore
-        .getState()
-        .showSuccessToastMessage('Token successfully deleted');
+      useToastHandlerStore.getState().showSuccessToastMessage('Token successfully deleted');
     } catch (e) {
       useToastHandlerStore.getState().showErrorToastMessage(e.message);
     }
@@ -221,11 +195,7 @@ export default function Landscapes() {
           if (response.ok) {
             resolve(undefined);
           } else if (response.status === 404) {
-            reject(
-              new Error(
-                await getResponseErrorMessage(response, 'Token not found')
-              )
-            );
+            reject(new Error(await getResponseErrorMessage(response, 'Token not found')));
           } else {
             reject(new Error(await getResponseErrorMessage(response)));
           }
@@ -250,9 +220,7 @@ export default function Landscapes() {
         >
           <Tab eventKey="landscapes" title="Landscapes" id="landscape-tab">
             <div
-              className={
-                'd-flex flex-row justify-content-center selection-table'
-              }
+              className={'d-flex flex-row justify-content-center selection-table'}
               style={{ maxHeight: '80vh', overflowY: 'auto' }}
             >
               <TokenSelection

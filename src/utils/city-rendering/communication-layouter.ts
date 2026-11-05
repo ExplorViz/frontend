@@ -4,23 +4,12 @@ import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-setting
 import { useVisualizationStore } from 'explorviz-frontend/src/stores/visualization-store';
 import { isDistrictClosed } from 'explorviz-frontend/src/utils/city-rendering/district-close-state';
 import AggregatedCommunication from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/aggregated-communication';
-import {
-  isBuilding,
-  isCity,
-  isDistrict,
-} from 'explorviz-frontend/src/utils/landscape-schemes/flat-landscape';
+import { isBuilding, isCity, isDistrict } from 'explorviz-frontend/src/utils/landscape-schemes/flat-landscape';
 import BoxLayout from 'explorviz-frontend/src/utils/layout/box-layout';
 import CommunicationLayout from 'explorviz-frontend/src/utils/layout/communication-layout';
 
-export function calculateLineThickness(
-  communication: AggregatedCommunication,
-  commLineThickness: number
-) {
-  const normalizedRequestCount = clamp(
-    communication.metrics.normalizedRequestCount,
-    0.25,
-    2.0
-  );
+export function calculateLineThickness(communication: AggregatedCommunication, commLineThickness: number) {
+  const normalizedRequestCount = clamp(communication.metrics.normalizedRequestCount, 0.25, 2.0);
 
   // Apply line thickness depending on request count
   return normalizedRequestCount * commLineThickness;
@@ -40,10 +29,7 @@ export function findFirstEntityWithOpenedParent(entityId: string) {
   }
 
   if (!isDistrict(entity) && !isBuilding(entity)) {
-    console.error(
-      `Provided entity with ID ${entityId} has unexpected type:`,
-      entity
-    );
+    console.error(`Provided entity with ID ${entityId} has unexpected type:`, entity);
     return entityId;
   }
   const parentId = entity.parentDistrictId ?? entity.parentCityId;
@@ -62,13 +48,7 @@ export function findFirstEntityWithOpenedParent(entityId: string) {
   }
 
   const parentDistrict = useModelStore.getState().getDistrict(parentId);
-  if (
-    parentDistrict &&
-    isDistrictClosed(
-      parentId,
-      useVisualizationStore.getState().closedDistrictIds
-    )
-  ) {
+  if (parentDistrict && isDistrictClosed(parentId, useVisualizationStore.getState().closedDistrictIds)) {
     // Parent is closed, inspect parent entity
     return findFirstEntityWithOpenedParent(parentId);
   } else {
@@ -77,27 +57,16 @@ export function findFirstEntityWithOpenedParent(entityId: string) {
   }
 }
 
-export function computeCommunicationLayout(
-  communication: AggregatedCommunication,
-  layoutMap: Map<string, BoxLayout>
-) {
-  const sourceEntityId = findFirstEntityWithOpenedParent(
-    communication.sourceEntity.id
-  );
-  const targetEntityId = findFirstEntityWithOpenedParent(
-    communication.targetEntity.id
-  );
+export function computeCommunicationLayout(communication: AggregatedCommunication, layoutMap: Map<string, BoxLayout>) {
+  const sourceEntityId = findFirstEntityWithOpenedParent(communication.sourceEntity.id);
+  const targetEntityId = findFirstEntityWithOpenedParent(communication.targetEntity.id);
   if (!sourceEntityId || !targetEntityId) {
     console.error('Could not find source or target entity for communication.');
     return;
   }
 
-  const sourceEntityLayout = useLayoutStore
-    .getState()
-    .getLayout(sourceEntityId);
-  const targetEntityLayout = useLayoutStore
-    .getState()
-    .getLayout(targetEntityId);
+  const sourceEntityLayout = useLayoutStore.getState().getLayout(sourceEntityId);
+  const targetEntityLayout = useLayoutStore.getState().getLayout(targetEntityId);
   if (!sourceEntityLayout || !targetEntityLayout) {
     console.error('Could not find source or target layout for communication.');
     return;
@@ -114,9 +83,7 @@ export function computeCommunicationLayout(
   const sourceCityLayout = layoutMap.get(sourceCity.id);
   const targetCityLayout = layoutMap.get(targetCity.id);
   if (!sourceCityLayout || !targetCityLayout) {
-    console.error(
-      'Could not find source or target city layout for communication.'
-    );
+    console.error('Could not find source or target city layout for communication.');
     return;
   }
 

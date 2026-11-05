@@ -52,8 +52,7 @@ export const ToolbarContext = createContext<ToolbarState & ToolbarActions>({
   ...defaultToolbarState,
   setShowSidebar: () => console.error('Toolbar context provider missing'),
   openTool: () => console.error('Toolbar context provider missing'),
-  setTelemetrySearchTab: () =>
-    console.error('Toolbar context provider missing'),
+  setTelemetrySearchTab: () => console.error('Toolbar context provider missing'),
   searchSpans: () => console.error('Toolbar context provider missing'),
   searchMetrics: () => console.error('Toolbar context provider missing'),
   searchLogs: () => console.error('Toolbar context provider missing'),

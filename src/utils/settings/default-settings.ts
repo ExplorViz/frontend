@@ -8,15 +8,7 @@ import {
   VisualizationSettings,
 } from 'explorviz-frontend/src/utils/settings/settings-schemas';
 
-export const MOUSE_ACTIONS = [
-  'NONE',
-  'ROTATE',
-  'TRUCK',
-  'SCREEN_PAN',
-  'OFFSET',
-  'DOLLY',
-  'ZOOM',
-];
+export const MOUSE_ACTIONS = ['NONE', 'ROTATE', 'TRUCK', 'SCREEN_PAN', 'OFFSET', 'DOLLY', 'ZOOM'];
 
 export const defaultVizSettings: VisualizationSettings = {
   // Color Settings
@@ -65,8 +57,7 @@ export const defaultVizSettings: VisualizationSettings = {
     value: defaultColors.communicationStartColor,
     group: 'Colors',
     displayName: 'Communication Start',
-    description:
-      'Starting color for communication when edge coloring is enabled',
+    description: 'Starting color for communication when edge coloring is enabled',
     isColorSetting: true,
   },
   communicationEndColor: {
@@ -82,8 +73,7 @@ export const defaultVizSettings: VisualizationSettings = {
     value: defaultColors.districtRootLevelColor,
     group: 'Colors',
     displayName: 'District on Root Level',
-    description:
-      'Color for districts at the root/top level of the district tree',
+    description: 'Color for districts at the root/top level of the district tree',
     isColorSetting: true,
   },
   districtDeepestLevelColor: {
@@ -91,8 +81,7 @@ export const defaultVizSettings: VisualizationSettings = {
     value: defaultColors.districtDeepestLevelColor,
     group: 'Colors',
     displayName: 'District on Deepest Level',
-    description:
-      'Color for districts at the deepest level of the district tree',
+    description: 'Color for districts at the deepest level of the district tree',
     isColorSetting: true,
   },
   districtTextColor: {
@@ -188,8 +177,7 @@ export const defaultVizSettings: VisualizationSettings = {
     value: defaultColors.agedBuildingColor,
     group: 'Colors',
     displayName: 'Aged Building',
-    description:
-      'Target color a file fades to when unchanged past the aging threshold',
+    description: 'Target color a file fades to when unchanged past the aging threshold',
     isColorSetting: true,
   },
   k8sDiagramColor: {
@@ -322,8 +310,7 @@ export const defaultVizSettings: VisualizationSettings = {
     range: { min: 0.05, max: 1.0, step: 0.05 },
     group: 'Effects',
     displayName: 'Animation Duration',
-    description:
-      'Duration of animations in seconds (e.g. opening and closing of districts)',
+    description: 'Duration of animations in seconds (e.g. opening and closing of districts)',
     dependsOn: {
       settingId: 'enableAnimations',
       value: true,
@@ -396,8 +383,7 @@ export const defaultVizSettings: VisualizationSettings = {
     range: { min: 0.0, max: 25.0, step: 0.1 },
     group: 'Communication',
     displayName: 'Communication Curviness',
-    description:
-      'If greater 0.0, communication lines are rendered arc-shaped (Straight lines: 0.0)',
+    description: 'If greater 0.0, communication lines are rendered arc-shaped (Straight lines: 0.0)',
     isRangeSetting: true,
   },
   commCurveHeightDependsOnDistance: {
@@ -405,8 +391,7 @@ export const defaultVizSettings: VisualizationSettings = {
     value: true,
     group: 'Communication',
     displayName: 'Curve Height Depends on Distance',
-    description:
-      'If enabled, communication curve height is calculated based on the distance between source and target',
+    description: 'If enabled, communication curve height is calculated based on the distance between source and target',
     isFlagSetting: true,
   },
   edgeBundlingAlgorithm: {
@@ -424,8 +409,7 @@ export const defaultVizSettings: VisualizationSettings = {
     range: { min: 0.0, max: 1.0, step: 0.01 },
     group: 'Communication',
     displayName: '3D-HAP Attraction Power (β)',
-    description:
-      'Controls the attraction power of hierarchical attraction points',
+    description: 'Controls the attraction power of hierarchical attraction points',
     dependsOn: {
       settingId: 'edgeBundlingAlgorithm',
       value: '3D-HAP',
@@ -437,8 +421,7 @@ export const defaultVizSettings: VisualizationSettings = {
     value: false,
     group: 'Communication',
     displayName: 'Show HAP Tree',
-    description:
-      'Debug visualization of HAP (Hierarchical Attraction Points) tree',
+    description: 'Debug visualization of HAP (Hierarchical Attraction Points) tree',
     dependsOn: {
       settingId: 'edgeBundlingAlgorithm',
       value: '3D-HAP',
@@ -451,8 +434,7 @@ export const defaultVizSettings: VisualizationSettings = {
     range: { min: 0.0, max: 3.0, step: 0.05 },
     group: 'Communication',
     displayName: 'Edge Scatter Radius',
-    description:
-      'Controls how far edges are scattered apart (0 = no scattering)',
+    description: 'Controls how far edges are scattered apart (0 = no scattering)',
     dependsOn: {
       settingId: 'edgeBundlingAlgorithm',
       value: '3D-HAP',
@@ -491,8 +473,7 @@ export const defaultVizSettings: VisualizationSettings = {
     range: { min: 0, max: 5000, step: 50 },
     group: 'Communication',
     displayName: 'Application Elevation',
-    description:
-      'Vertical height of application-level HAP points above applications',
+    description: 'Vertical height of application-level HAP points above applications',
     dependsOn: {
       settingId: 'edgeBundlingAlgorithm',
       value: '3D-HAP',
@@ -528,8 +509,7 @@ export const defaultVizSettings: VisualizationSettings = {
     value: true,
     group: 'Communication',
     displayName: 'Streamline Edge Paths',
-    description:
-      'Simplify edge paths by keeping only building-level and highest-level HAPs (reduces detours)',
+    description: 'Simplify edge paths by keeping only building-level and highest-level HAPs (reduces detours)',
     dependsOn: {
       settingId: 'edgeBundlingAlgorithm',
       values: ['3D-HAP'],
@@ -541,8 +521,7 @@ export const defaultVizSettings: VisualizationSettings = {
     value: false,
     group: 'Communication',
     displayName: 'Edge Coloring',
-    description:
-      'Enable colored gradient visualization for communication edges',
+    description: 'Enable colored gradient visualization for communication edges',
     isFlagSetting: true,
     dependsOn: {
       settingId: 'edgeBundlingAlgorithm',
@@ -601,8 +580,7 @@ export const defaultVizSettings: VisualizationSettings = {
     range: { min: 0.0, max: 20.0, step: 0.5 },
     group: 'Label',
     displayName: 'District Label Margin',
-    description:
-      'Determines how much space (height) a district label may occupy',
+    description: 'Determines how much space (height) a district label may occupy',
     isRangeSetting: true,
   },
   districtLabelPlacement: {
@@ -618,15 +596,7 @@ export const defaultVizSettings: VisualizationSettings = {
   cityLayoutAlgorithm: {
     level: SettingLevel.DEFAULT,
     value: 'box',
-    options: [
-      'box',
-      'force',
-      'layered',
-      'random',
-      'rectpacking',
-      'sporeOverlap',
-      'stress',
-    ],
+    options: ['box', 'force', 'layered', 'random', 'rectpacking', 'sporeOverlap', 'stress'],
     group: 'Layout',
     displayName: 'City Layout Algorithm',
     description: 'Determines the layout algorithm for cities',
@@ -638,8 +608,7 @@ export const defaultVizSettings: VisualizationSettings = {
     range: { min: 100, max: 2000, step: 1 },
     group: 'Layout',
     displayName: 'City Distance',
-    description:
-      'Determines a preferred distance between cities for force-based layouts',
+    description: 'Determines a preferred distance between cities for force-based layouts',
     dependsOn: {
       settingId: 'cityLayoutAlgorithm',
       values: ['force', 'stress'],
@@ -661,8 +630,7 @@ export const defaultVizSettings: VisualizationSettings = {
     range: { min: 0.0, max: 100.0, step: 1.0 },
     group: 'Layout',
     displayName: 'City Margin',
-    description:
-      'Minimum spacing between cities (ELK spacing.nodeNode on the landscape)',
+    description: 'Minimum spacing between cities (ELK spacing.nodeNode on the landscape)',
     dependsOn: {
       settingId: 'cityLayoutAlgorithm',
       values: ['box', 'random', 'rectpacking', 'sporeOverlap'],
@@ -675,8 +643,7 @@ export const defaultVizSettings: VisualizationSettings = {
     range: { min: 0.0, max: 20.0, step: 0.5 },
     group: 'Layout',
     displayName: 'City Padding',
-    description:
-      'Inner padding around city contents (ELK padding inside each city node)',
+    description: 'Inner padding around city contents (ELK padding inside each city node)',
     isRangeSetting: true,
   },
   districtLayoutAlgorithm: {
@@ -694,8 +661,7 @@ export const defaultVizSettings: VisualizationSettings = {
     range: { min: 0.0, max: 20.0, step: 0.5 },
     group: 'Layout',
     displayName: 'District Padding',
-    description:
-      'Inner padding around district contents (ELK padding inside each district node)',
+    description: 'Inner padding around district contents (ELK padding inside each district node)',
     isRangeSetting: true,
   },
   openedDistrictHeight: {
@@ -704,8 +670,7 @@ export const defaultVizSettings: VisualizationSettings = {
     range: { min: 0.1, max: 100.0, step: 0.1 },
     group: 'Layout',
     displayName: 'Opened District Height',
-    description:
-      'Height of opened districts (i.e. when contained buildings are visible)',
+    description: 'Height of opened districts (i.e. when contained buildings are visible)',
     isRangeSetting: true,
   },
   closedDistrictHeight: {
@@ -714,8 +679,7 @@ export const defaultVizSettings: VisualizationSettings = {
     range: { min: 0.1, max: 100, step: 0.1 },
     group: 'Layout',
     displayName: 'Closed District Height',
-    description:
-      'Height of closed districts (i.e. when contained buildings are hidden)',
+    description: 'Height of closed districts (i.e. when contained buildings are hidden)',
     isRangeSetting: true,
   },
   buildingLayoutAlgorithm: {
@@ -730,15 +694,10 @@ export const defaultVizSettings: VisualizationSettings = {
   buildingMetricMapping: {
     level: SettingLevel.DEFAULT,
     value: BuildingMetricMapping.Linear,
-    options: [
-      BuildingMetricMapping.Linear,
-      BuildingMetricMapping.Logarithmic,
-      BuildingMetricMapping.BucketCount,
-    ],
+    options: [BuildingMetricMapping.Linear, BuildingMetricMapping.Logarithmic, BuildingMetricMapping.BucketCount],
     group: 'Building Config',
     displayName: 'Metric Mapping',
-    description:
-      'Mapping used for width, depth, and height metric values of buildings.',
+    description: 'Mapping used for width, depth, and height metric values of buildings.',
     isSelectSetting: true,
   },
   buildingMetricBuckets: {
@@ -770,8 +729,7 @@ export const defaultVizSettings: VisualizationSettings = {
     range: { min: 0, max: 10, step: 0.1 },
     group: 'Building Config',
     displayName: 'Width Multiplier',
-    description:
-      'Multiplier for metric that is mapped to the width of a building.',
+    description: 'Multiplier for metric that is mapped to the width of a building.',
     dependsOn: {
       settingId: 'buildingWidthMetric',
       notEqual: SelectedBuildingMetric.None,
@@ -793,8 +751,7 @@ export const defaultVizSettings: VisualizationSettings = {
     range: { min: 0, max: 10, step: 0.1 },
     group: 'Building Config',
     displayName: 'Depth Multiplier',
-    description:
-      'Multiplier for metric that is mapped to the depth of a building.',
+    description: 'Multiplier for metric that is mapped to the depth of a building.',
     dependsOn: {
       settingId: 'buildingDepthMetric',
       notEqual: SelectedBuildingMetric.None,
@@ -816,8 +773,7 @@ export const defaultVizSettings: VisualizationSettings = {
     range: { min: 0, max: 10, step: 0.1 },
     group: 'Building Config',
     displayName: 'Height Multiplier',
-    description:
-      'Multiplier for metric that is mapped to the height of a building.',
+    description: 'Multiplier for metric that is mapped to the height of a building.',
     dependsOn: {
       settingId: 'buildingHeightMetric',
       notEqual: SelectedBuildingMetric.None,
@@ -839,8 +795,7 @@ export const defaultVizSettings: VisualizationSettings = {
     range: { min: 0.0, max: 50.0, step: 1.0 },
     group: 'Layout',
     displayName: 'Building Margin',
-    description:
-      'Determines distance between buildings and to surrounding district',
+    description: 'Determines distance between buildings and to surrounding district',
     isRangeSetting: true,
   },
   spiralCenterOffset: {
@@ -938,8 +893,7 @@ export const defaultVizSettings: VisualizationSettings = {
     value: true,
     group: 'Semantic Zoom',
     displayName: 'Enable Clustering',
-    description:
-      'Enable clustering of buildings and districts for semantic zoom',
+    description: 'Enable clustering of buildings and districts for semantic zoom',
     isFlagSetting: true,
   },
   clusterCount: {
@@ -974,8 +928,7 @@ export const defaultVizSettings: VisualizationSettings = {
     range: { min: 0.0, max: 100.0, step: 0.5 },
     group: 'Semantic Zoom',
     displayName: 'Label Distance Threshold',
-    description:
-      'Maximum distance from camera to cluster centroid for labels to be visible',
+    description: 'Maximum distance from camera to cluster centroid for labels to be visible',
     dependsOn: {
       settingId: 'enableClustering',
       value: true,
@@ -988,8 +941,7 @@ export const defaultVizSettings: VisualizationSettings = {
     range: { min: 1.0, max: 30.0, step: 1.0 },
     group: 'Semantic Zoom',
     displayName: 'Distance Update Frequency',
-    description:
-      'How often per second the camera distance to cluster centroids is recalculated',
+    description: 'How often per second the camera distance to cluster centroids is recalculated',
     dependsOn: {
       settingId: 'enableClustering',
       value: true,
@@ -1001,8 +953,7 @@ export const defaultVizSettings: VisualizationSettings = {
     value: false,
     group: 'Semantic Zoom',
     displayName: 'Auto Open/Close Districts',
-    description:
-      'Automatically open districts when camera is close to cluster centroid, and close when far away.',
+    description: 'Automatically open districts when camera is close to cluster centroid, and close when far away.',
     dependsOn: {
       settingId: 'enableClustering',
       value: true,
@@ -1015,8 +966,7 @@ export const defaultVizSettings: VisualizationSettings = {
     range: { min: 0.0, max: 100.0, step: 0.5 },
     group: 'Semantic Zoom',
     displayName: 'District Open/Close Distance Threshold',
-    description:
-      'Maximum distance from camera to cluster centroid for districts to be automatically opened/closed.',
+    description: 'Maximum distance from camera to cluster centroid for districts to be automatically opened/closed.',
     dependsOn: {
       settingId: 'autoOpenCloseDistricts',
       value: true,
@@ -1043,8 +993,7 @@ export const defaultVizSettings: VisualizationSettings = {
     range: { min: 0.0, max: 5.0, step: 0.1 },
     group: 'Semantic Zoom',
     displayName: 'District Size Influence',
-    description:
-      'Larger districts are opened from a greater distance. A value of 0 disables the size influence.',
+    description: 'Larger districts are opened from a greater distance. A value of 0 disables the size influence.',
     dependsOn: {
       settingId: 'autoOpenCloseDistricts',
       value: true,
@@ -1105,8 +1054,7 @@ export const defaultVizSettings: VisualizationSettings = {
     range: { min: 0.01, max: 100, step: 0.01 },
     group: 'Camera',
     displayName: 'Raycast Near',
-    description:
-      'Set near plane for raycasting. Must be smaller than far plane.',
+    description: 'Set near plane for raycasting. Must be smaller than far plane.',
     dependsOn: {
       settingId: 'raycastEnabled',
       value: true,
@@ -1179,8 +1127,7 @@ export const defaultVizSettings: VisualizationSettings = {
     value: false,
     group: 'Misc',
     displayName: 'Show Embedded Browser Icons',
-    description:
-      'Toggle visibility of the embedded browser icons near the code cities',
+    description: 'Toggle visibility of the embedded browser icons near the code cities',
     isFlagSetting: true,
   },
 
@@ -1190,8 +1137,7 @@ export const defaultVizSettings: VisualizationSettings = {
     value: false,
     group: 'Magnifier',
     displayName: 'Enable Magnifier',
-    description:
-      'Toggle the magnifying glass effect. Can also be toggled with the M key.',
+    description: 'Toggle the magnifying glass effect. Can also be toggled with the M key.',
     isFlagSetting: true,
   },
   magnifierZoom: {
@@ -1213,8 +1159,7 @@ export const defaultVizSettings: VisualizationSettings = {
     range: { min: 1.0, max: 100.0, step: 1.0 },
     group: 'Magnifier',
     displayName: 'Glass Shape Exponent',
-    description:
-      'Controls the shape of the magnifying glass (higher = flatter)',
+    description: 'Controls the shape of the magnifying glass (higher = flatter)',
     dependsOn: {
       settingId: 'isMagnifierActive',
       value: true,
@@ -1311,8 +1256,7 @@ export const defaultVizSettings: VisualizationSettings = {
     range: { min: 0.0, max: 1.0, step: 0.01 },
     group: 'Debugging',
     displayName: 'Entity Opacity',
-    description:
-      'Controls the opacity of city foundation, city districts, and code buildings',
+    description: 'Controls the opacity of city foundation, city districts, and code buildings',
     isRangeSetting: true,
   },
   fullscreen: {
@@ -1321,8 +1265,7 @@ export const defaultVizSettings: VisualizationSettings = {
     type: 'primary',
     group: 'Debugging',
     displayName: 'Fullscreen',
-    description:
-      'Enter canvas in fullscreen mode. Press escape key to leave fullscreen.',
+    description: 'Enter canvas in fullscreen mode. Press escape key to leave fullscreen.',
     buttonText: 'Enter Fullscreen',
     isButtonSetting: true,
   },
@@ -1487,8 +1430,7 @@ export const defaultVizSettings: VisualizationSettings = {
     options: ['camera', 'target', 'landscape'],
     group: 'Minimap',
     displayName: 'Minimap Tracking Mode',
-    description:
-      'Determines what the minimap tracks (Camera, Target, or fixed Landscape)',
+    description: 'Determines what the minimap tracks (Camera, Target, or fixed Landscape)',
     dependsOn: {
       settingId: 'isMinimapEnabled',
       value: true,
@@ -1500,8 +1442,7 @@ export const defaultVizSettings: VisualizationSettings = {
     value: true,
     group: 'Minimap',
     displayName: 'Rotate Minimap',
-    description:
-      'If on, the minimap rotates with the main camera. If off, it stays north-oriented.',
+    description: 'If on, the minimap rotates with the main camera. If off, it stays north-oriented.',
     dependsOn: {
       settingId: 'isMinimapEnabled',
       value: true,
@@ -1573,8 +1514,7 @@ export const defaultVizSettings: VisualizationSettings = {
     value: true,
     group: 'Minimap',
     displayName: 'Enable visibility of different user-markers',
-    description:
-      'Toggle the different users position markers visibility for the minimap',
+    description: 'Toggle the different users position markers visibility for the minimap',
     dependsOn: {
       settingId: 'isMinimapEnabled',
       value: true,

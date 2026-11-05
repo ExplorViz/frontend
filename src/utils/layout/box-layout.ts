@@ -50,11 +50,7 @@ export default class BoxLayout {
     this.cachedForWidth = this.width;
     this.cachedForHeight = this.height;
     this.cachedForDepth = this.depth;
-    this.cachedPosition = new THREE.Vector3(
-      this.positionX,
-      this.positionY,
-      this.positionZ
-    );
+    this.cachedPosition = new THREE.Vector3(this.positionX, this.positionY, this.positionZ);
     // Calculate middle for each dimension => center point
     this.cachedCenter = new THREE.Vector3(
       this.positionX + this.width / 2.0,

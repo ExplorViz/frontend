@@ -1,13 +1,10 @@
-import { forwardRef, Ref, useImperativeHandle, useRef } from 'react';
+import { Ref, useImperativeHandle, useRef } from 'react';
 
-import { EntityFilteringController } from 'explorviz-frontend/src/components/chatbot/chatbot-context';
+import { EntityFilteringController } from 'explorviz-frontend/src/components/chatbot/chatbot-context-store';
 import FqnFiltering from 'explorviz-frontend/src/components/visualization/page-setup/sidebar/toolbar/entity-filtering/fqn-filtering/fqn-filtering';
 import LanguageFiltering from 'explorviz-frontend/src/components/visualization/page-setup/sidebar/toolbar/entity-filtering/language-filtering/language-filtering';
 import StructureFiltering from 'explorviz-frontend/src/components/visualization/page-setup/sidebar/toolbar/entity-filtering/structure-filtering/structure-filtering';
-import {
-  EntityFilterMode,
-  useEntityFilteringStore,
-} from 'explorviz-frontend/src/stores/entity-filtering-store';
+import { EntityFilterMode, useEntityFilteringStore } from 'explorviz-frontend/src/stores/entity-filtering-store';
 import { LandscapeData } from 'explorviz-frontend/src/utils/landscape-schemes/landscape-data';
 import Button from 'react-bootstrap/Button';
 import { useShallow } from 'zustand/react/shallow';
@@ -18,13 +15,12 @@ interface EntityFilteringProps {
   readonly landscapeData: LandscapeData;
 }
 
-const EntityFiltering = forwardRef<
-  EntityFilteringController,
-  EntityFilteringProps
->(function EntityFiltering(
-  { landscapeData }: EntityFilteringProps,
-  ref: Ref<EntityFilteringController>
-) {
+const EntityFiltering = function EntityFiltering({
+  ref,
+  landscapeData,
+}: EntityFilteringProps & {
+  ref?: React.RefObject<EntityFilteringController | null>;
+}) {
   const structureFilteringRef = useRef<StructureFilteringHandle>(null);
 
   const {
@@ -74,9 +70,7 @@ const EntityFiltering = forwardRef<
             id="entity-filter-mode"
             className="form-select mt-1"
             value={filterMode}
-            onChange={(event) =>
-              setFilterMode(event.target.value as EntityFilterMode)
-            }
+            onChange={(event) => setFilterMode(event.target.value as EntityFilterMode)}
           >
             <option value="Hide">Hide</option>
             <option value="Remove">Remove</option>
@@ -111,10 +105,7 @@ const EntityFiltering = forwardRef<
       <h6 className="text-center mt-2">
         <u>Structure Filtering</u>
       </h6>
-      <StructureFiltering
-        ref={structureFilteringRef}
-        flatLandscapeData={landscapeData.flatLandscapeData}
-      />
+      <StructureFiltering ref={structureFilteringRef} flatLandscapeData={landscapeData.flatLandscapeData} />
       <div className="mt-4 mb-2 col text-center">
         <Button variant="outline-secondary" onClick={() => resetFilters()}>
           Reset All Filters
@@ -122,6 +113,6 @@ const EntityFiltering = forwardRef<
       </div>
     </>
   );
-});
+};
 
 export default EntityFiltering;

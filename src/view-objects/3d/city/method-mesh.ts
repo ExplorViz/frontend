@@ -6,9 +6,7 @@ import * as THREE from 'three';
 export class MethodMesh extends BaseMesh {
   dataModel: Method;
   constructor(
-    geometry:
-      | THREE.BoxGeometry
-      | THREE.BufferGeometry = new THREE.BoxGeometry(),
+    geometry: THREE.BoxGeometry | THREE.BufferGeometry = new THREE.BoxGeometry(),
     material: THREE.Material = new THREE.MeshBasicMaterial({ color: 0x00ff00 }),
     dataModel: Method
   ) {

@@ -8,9 +8,7 @@ import { city } from './fixtures/landscape';
 // Isolate global application services; keep React, R3F, Three.js, gesture handling
 // and reactive Zustand subscriptions real. Font loading belongs in browser tests.
 vi.mock('@react-three/drei', () => ({
-  Text: ({ children, ...props }: { children: string }) => (
-    <group {...props} name={children} />
-  ),
+  Text: ({ children, ...props }: { children: string }) => <group {...props} name={children} />,
 }));
 vi.mock('../src/stores/user-settings', async () => {
   const { create } = await import('zustand');
@@ -105,9 +103,7 @@ describe('city foundation scene', () => {
       entityId: 'city',
     });
     expect(foundation.geometry.type).toBe('BoxGeometry');
-    expect(
-      (foundation.material as MeshBasicMaterial).color.getHexString()
-    ).toBe('336699');
+    expect((foundation.material as MeshBasicMaterial).color.getHexString()).toBe('336699');
     foundation.updateMatrixWorld(true);
     const label = foundation.getObjectByName('Shop')!;
     expect(label.getWorldScale(new Vector3()).toArray()).toEqual([1, 1, 1]);
@@ -133,9 +129,7 @@ describe('city foundation scene', () => {
       cityGeometryOverrides: { value: { modelType: { code: 'Cylinder' } } },
     });
     const emptyCity = { ...city, districtIds: [], buildingIds: [] };
-    renderer = await create(
-      <CityFoundation city={emptyCity} layout={layout()} />
-    );
+    renderer = await create(<CityFoundation city={emptyCity} layout={layout()} />);
     expect(mesh().geometry.type).toBe('CylinderGeometry');
     expect(mesh().scale.toArray()).toEqual([5, 8, 3]);
     expect(mesh().position.y - mesh().scale.y / 2).toBe(3);
@@ -148,12 +142,7 @@ describe('city foundation scene', () => {
     setSettings({ cityLabelMargin: { value: 1 } });
     renderer = await create(<CityFoundation city={city} layout={layout()} />);
     expect(mesh().children).toHaveLength(0);
-    await renderer.update(
-      <CityFoundation
-        city={city}
-        layout={Object.assign(layout(), { width: 20, positionY: 7 })}
-      />
-    );
+    await renderer.update(<CityFoundation city={city} layout={Object.assign(layout(), { width: 20, positionY: 7 })} />);
     expect(mesh().scale.x).toBe(20);
     expect(mesh().position.toArray()).toEqual([10, 8, 3]);
   });
@@ -194,9 +183,6 @@ describe('city foundation scene', () => {
     });
     await vi.advanceTimersByTimeAsync(150);
     await context;
-    expect(emitContextMenuFromWorld).toHaveBeenCalledWith(
-      { kind: 'city', cityId: city.id },
-      nativeEvent
-    );
+    expect(emitContextMenuFromWorld).toHaveBeenCalledWith({ kind: 'city', cityId: city.id }, nativeEvent);
   });
 });

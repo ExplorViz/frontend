@@ -19,9 +19,7 @@ export const ALL_BUILDING_COMPARISONS_VISIBLE: BuildingComparisonVisibility = {
   REMOVED: true,
 };
 
-export function isBuildingComparisonFilterActive(
-  visibility: BuildingComparisonVisibility
-): boolean {
+export function isBuildingComparisonFilterActive(visibility: BuildingComparisonVisibility): boolean {
   return BUILDING_COMPARISON_CATEGORIES.some(({ key }) => !visibility[key]);
 }
 

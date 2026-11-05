@@ -17,10 +17,7 @@ export interface NestedDropdownOption {
   children?: NestedDropdownOption[];
 }
 
-function findOptionById(
-  options: NestedDropdownOption[],
-  id: string
-): NestedDropdownOption | undefined {
+function findOptionById(options: NestedDropdownOption[], id: string): NestedDropdownOption | undefined {
   for (const option of options) {
     if (option.id === id) {
       return option;
@@ -79,8 +76,9 @@ export default function NestedDropdownButton({
   onSelect,
 }: NestedDropdownProps) {
   const [hovered, setHovered] = useState<string | null | undefined>(undefined);
-  const [internalSelectedOption, setInternalSelectedOption] =
-    useState<NestedDropdownOption | null>(allowUnselected ? null : options[0]);
+  const [internalSelectedOption, setInternalSelectedOption] = useState<NestedDropdownOption | null>(
+    allowUnselected ? null : options[0]
+  );
 
   function handleSelect(option: NestedDropdownOption | null): void {
     setInternalSelectedOption(option);
@@ -147,11 +145,7 @@ function NestedDropdownItem({
   onMouseLeave,
 }: NestedDropdownItemProps) {
   return (
-    <div
-      className="position-relative"
-      onMouseEnter={onMouseEnter}
-      onMouseLeave={onMouseLeave}
-    >
+    <div className="position-relative" onMouseEnter={onMouseEnter} onMouseLeave={onMouseLeave}>
       <Dropdown.Item as="button" onClick={() => onSelect(option)}>
         {option?.label ?? placeholder}
         {option?.children && (
@@ -166,8 +160,7 @@ function NestedDropdownItem({
           className="position-absolute top-0 start-100"
           style={{
             background: 'var(--bs-dropdown-bg)',
-            border:
-              'var(--bs-dropdown-border-width) solid var(--bs-dropdown-border-color)',
+            border: 'var(--bs-dropdown-border-width) solid var(--bs-dropdown-border-color)',
             borderRadius: 'var(--bs-dropdown-border-radius)',
             boxShadow: 'var(--bs-dropdown-box-shadow)',
             padding: 'var(--bs-dropdown-padding-y) 0',

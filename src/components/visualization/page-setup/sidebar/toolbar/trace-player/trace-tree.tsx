@@ -8,10 +8,7 @@ import {
   QuestionIcon,
 } from '@primer/octicons-react';
 import { useModelStore } from 'explorviz-frontend/src/stores/repos/model-repository';
-import {
-  Building,
-  City,
-} from 'explorviz-frontend/src/utils/landscape-schemes/flat-landscape';
+import { Building, City } from 'explorviz-frontend/src/utils/landscape-schemes/flat-landscape';
 import React from 'react';
 import { Card, OverlayTrigger, Tooltip } from 'react-bootstrap';
 import { SpanTree } from './trace-details';
@@ -60,19 +57,10 @@ interface SpanTreeProps {
   onSelectNext(spanId: string): void;
 }
 
-function SpanTreeItem({
-  spanTree,
-  selectedSpanId,
-  depth = 0,
-  onClick,
-  onSelectPrevious,
-  onSelectNext,
-}: SpanTreeProps) {
+function SpanTreeItem({ spanTree, selectedSpanId, depth = 0, onClick, onSelectPrevious, onSelectNext }: SpanTreeProps) {
   const buildings = useModelStore((state) => state.buildings);
   const cities = Object.values(useModelStore((state) => state.cities));
-  const telemetryKeyToEntityId = useModelStore(
-    (state) => state.telemetryKeyToEntityId
-  );
+  const telemetryKeyToEntityId = useModelStore((state) => state.telemetryKeyToEntityId);
 
   let entity: Building | City | undefined;
   const buildingId = telemetryKeyToEntityId.get(spanTree.data.telemetryKey);
@@ -104,8 +92,7 @@ function SpanTreeItem({
   }
 
   const isSelected = selectedSpanId === spanTree.data.spanId;
-  const invalidParent =
-    spanTree.parent === undefined && spanTree.data.parentSpanId !== undefined;
+  const invalidParent = spanTree.parent === undefined && spanTree.data.parentSpanId !== undefined;
 
   const handleKeyDown = (event: React.KeyboardEvent) => {
     event.stopPropagation();
@@ -150,20 +137,14 @@ function SpanTreeItem({
 
         <div>
           {spanTree.data.serviceName}{' '}
-          <small className={`${isSelected ? undefined : 'text-muted'}`}>
-            {spanTree.data.name}
-          </small>
+          <small className={`${isSelected ? undefined : 'text-muted'}`}>{spanTree.data.name}</small>
         </div>
 
         {invalidParent && (
           <OverlayTrigger
             placement={'top'}
             trigger={['hover', 'focus']}
-            overlay={
-              <Tooltip>
-                Span specifies parent ID but parent span could not be found
-              </Tooltip>
-            }
+            overlay={<Tooltip>Span specifies parent ID but parent span could not be found</Tooltip>}
           >
             <AlertIcon size={14} className="text-danger" />
           </OverlayTrigger>

@@ -15,19 +15,13 @@ const useCancelablePromises = () => {
     []
   );
 
-  const appendPendingPromise = (
-    promise: ReturnType<typeof cancelablePromise>
-  ) => (pendingPromises.current = [...pendingPromises.current, promise]);
+  const appendPendingPromise = (promise: ReturnType<typeof cancelablePromise>) =>
+    (pendingPromises.current = [...pendingPromises.current, promise]);
 
-  const removePendingPromise = (
-    promise: ReturnType<typeof cancelablePromise>
-  ) =>
-    (pendingPromises.current = pendingPromises.current.filter(
-      (p) => p !== promise
-    ));
+  const removePendingPromise = (promise: ReturnType<typeof cancelablePromise>) =>
+    (pendingPromises.current = pendingPromises.current.filter((p) => p !== promise));
 
-  const clearPendingPromises = () =>
-    pendingPromises.current.map((p) => p.cancel());
+  const clearPendingPromises = () => pendingPromises.current.map((p) => p.cancel());
 
   const api = {
     appendPendingPromise,

@@ -44,8 +44,7 @@
 
 .commit-metrics-chart-filter-panel,
 .commit-metrics-chart-author-filter-panel {
-  border-bottom: 1px solid
-    var(--bs-border-color-translucent, rgba(0, 0, 0, 0.08));
+  border-bottom: 1px solid var(--bs-border-color-translucent, rgba(0, 0, 0, 0.08));
 }
 
 .commit-metrics-chart-author-filter-row {
@@ -1009,8 +1008,7 @@
   padding: 8px 12px;
 }
 
-.evolution-animation-panel--minimized
-  > *:not(.evolution-animation-panel__header) {
+.evolution-animation-panel--minimized > *:not(.evolution-animation-panel__header) {
   display: none;
 }
 
@@ -1121,12 +1119,10 @@
   padding: 8px 12px;
 }
 
-.evolution-playback-controls--minimized
-  > *:not(.evolution-playback-controls__transport) {
+.evolution-playback-controls--minimized > *:not(.evolution-playback-controls__transport) {
   display: none;
 }
 
-.evolution-playback-controls--minimized
-  .evolution-playback-controls__transport {
+.evolution-playback-controls--minimized .evolution-playback-controls__transport {
   cursor: default;
 }

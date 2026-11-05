@@ -3,9 +3,7 @@ import SpanKindBadge from 'explorviz-frontend/src/components/badges/span-kind-ba
 import EntitySelect from 'explorviz-frontend/src/components/entity-select';
 import HelpTooltip from 'explorviz-frontend/src/components/help-tooltip';
 import SpanDetailsCard from 'explorviz-frontend/src/components/visualization/rendering/popups/city-popups/span-details-card';
-import useSpanFetch, {
-  SpanSearchParams,
-} from 'explorviz-frontend/src/hooks/fetch/useSpanFetch';
+import useSpanFetch, { SpanSearchParams } from 'explorviz-frontend/src/hooks/fetch/useSpanFetch';
 import { useLandscapeTokenStore } from 'explorviz-frontend/src/stores/landscape-token';
 import { useModelStore } from 'explorviz-frontend/src/stores/repos/model-repository';
 import { useToastHandlerStore } from 'explorviz-frontend/src/stores/toast-handler';
@@ -28,26 +26,19 @@ const defaultSearchParams: SpanSearchParams = {
 const PAGINATION_SIZE = 50;
 
 export default function SpanSearch() {
-  const cities = Object.values(useModelStore((state) => state.cities)).toSorted(
-    (a, b) => a.name.localeCompare(b.name)
-  );
+  const cities = Object.values(useModelStore((state) => state.cities)).toSorted((a, b) => a.name.localeCompare(b.name));
   const landscapeToken = useLandscapeTokenStore((state) => state.token);
-  const showErrorToastMessage = useToastHandlerStore(
-    (state) => state.showErrorToastMessage
-  );
+  const showErrorToastMessage = useToastHandlerStore((state) => state.showErrorToastMessage);
 
   const toolbarContext = use(ToolbarContext);
   const searchRequest = toolbarContext.telemetrySearchState.spanSearchRequest;
 
   const [spans, setSpans] = useState<Span[] | null>(null);
-  const [searchParams, setSearchParams] =
-    useState<SpanSearchParams>(defaultSearchParams);
-  const [lastSubmittedParams, setLastSubmittedParams] =
-    useState<SpanSearchParams | null>(null);
+  const [searchParams, setSearchParams] = useState<SpanSearchParams>(defaultSearchParams);
+  const [lastSubmittedParams, setLastSubmittedParams] = useState<SpanSearchParams | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [allItemsLoaded, setAllItemsLoaded] = useState<boolean>(false);
-  const [prevSearchRequest, setPrevSearchRequest] =
-    useState<SpanSearchParams | null>(null);
+  const [prevSearchRequest, setPrevSearchRequest] = useState<SpanSearchParams | null>(null);
 
   const fetchSpans = useSpanFetch();
 
@@ -66,9 +57,7 @@ export default function SpanSearch() {
           limit: PAGINATION_SIZE,
         });
 
-        setSpans((state) =>
-          state === null ? receivedSpans : [...state, ...receivedSpans]
-        );
+        setSpans((state) => (state === null ? receivedSpans : [...state, ...receivedSpans]));
         setIsLoading(false);
         if (receivedSpans.length < PAGINATION_SIZE) {
           setAllItemsLoaded(true);
@@ -76,9 +65,7 @@ export default function SpanSearch() {
       } catch (error) {
         setIsLoading(false);
         setAllItemsLoaded(true);
-        showErrorToastMessage(
-          `Failed to retrieve spans: ${error instanceof Error ? error.message : error}`
-        );
+        showErrorToastMessage(`Failed to retrieve spans: ${error instanceof Error ? error.message : error}`);
       }
     },
     [landscapeToken, fetchSpans, showErrorToastMessage]
@@ -161,9 +148,7 @@ export default function SpanSearch() {
             <Form.Control
               name="name"
               value={searchParams.searchString ?? ''}
-              onChange={(e) =>
-                updateSearchParams({ searchString: e.target.value })
-              }
+              onChange={(e) => updateSearchParams({ searchString: e.target.value })}
               placeholder='e.g. "GET", "resolveBoolean", &hellip;'
               className="mb-2"
             />
@@ -180,9 +165,7 @@ export default function SpanSearch() {
                 </>
               }
               checked={searchParams.includeAttributeKeys ?? false}
-              onChange={(e) =>
-                updateSearchParams({ includeAttributeKeys: e.target.checked })
-              }
+              onChange={(e) => updateSearchParams({ includeAttributeKeys: e.target.checked })}
               inline
             />
             <Form.Check
@@ -198,9 +181,7 @@ export default function SpanSearch() {
                 </>
               }
               checked={searchParams.includeAttributeValues ?? false}
-              onChange={(e) =>
-                updateSearchParams({ includeAttributeValues: e.target.checked })
-              }
+              onChange={(e) => updateSearchParams({ includeAttributeValues: e.target.checked })}
               inline
             />
           </Form.Group>
@@ -233,11 +214,7 @@ export default function SpanSearch() {
 
           <Form.Group className="mb-3">
             <Form.Label>
-              Trace ID{' '}
-              <HelpTooltip
-                title="Only match spans that belong to a specific trace."
-                placement="top"
-              />
+              Trace ID <HelpTooltip title="Only match spans that belong to a specific trace." placement="top" />
             </Form.Label>
             <Form.Control
               name="traceId"
@@ -250,18 +227,14 @@ export default function SpanSearch() {
           <Form.Group className="mb-3">
             <Form.Label>
               Service{' '}
-              <HelpTooltip
-                title="Only match spans belonging to a specific application or service."
-                placement="top"
-              />
+              <HelpTooltip title="Only match spans belonging to a specific application or service." placement="top" />
             </Form.Label>
             <Form.Select
               name="serviceName"
               value={searchParams.serviceName ?? ''}
               onChange={(e) =>
                 updateSearchParams({
-                  serviceName:
-                    e.target.value != '' ? e.target.value : undefined,
+                  serviceName: e.target.value != '' ? e.target.value : undefined,
                 })
               }
             >
@@ -362,8 +335,7 @@ export default function SpanSearch() {
                 label="Newest"
                 checked={searchParams.sortBy === 'newest'}
                 onChange={(e) => {
-                  if (e.target.checked)
-                    updateSearchParams({ sortBy: 'newest' });
+                  if (e.target.checked) updateSearchParams({ sortBy: 'newest' });
                 }}
               />
               <Form.Check
@@ -374,8 +346,7 @@ export default function SpanSearch() {
                 label="Oldest"
                 checked={searchParams.sortBy === 'oldest'}
                 onChange={(e) => {
-                  if (e.target.checked)
-                    updateSearchParams({ sortBy: 'oldest' });
+                  if (e.target.checked) updateSearchParams({ sortBy: 'oldest' });
                 }}
               />
               <Form.Check
@@ -386,19 +357,14 @@ export default function SpanSearch() {
                 label="Duration"
                 checked={searchParams.sortBy === 'duration'}
                 onChange={(e) => {
-                  if (e.target.checked)
-                    updateSearchParams({ sortBy: 'duration' });
+                  if (e.target.checked) updateSearchParams({ sortBy: 'duration' });
                 }}
               />
             </div>
           </Form.Group>
 
           <Button type="submit" className="d-flex align-items-center gap-2">
-            {isLoading ? (
-              <Spinner animation="border" size="sm" />
-            ) : (
-              <SearchIcon />
-            )}
+            {isLoading ? <Spinner animation="border" size="sm" /> : <SearchIcon />}
             <div>Search Spans</div>
           </Button>
         </Form>
@@ -445,21 +411,14 @@ function SpanItem({
 
   return (
     <div style={style}>
-      <Accordion.Item
-        className="mb-2 me-2 border rounded-0"
-        eventKey={span.spanId}
-      >
-        <Accordion.Button
-          className="border-0 rounded-0"
-          style={{ padding: '8px 12px' }}
-        >
+      <Accordion.Item className="mb-2 me-2 border rounded-0" eventKey={span.spanId}>
+        <Accordion.Button className="border-0 rounded-0" style={{ padding: '8px 12px' }}>
           <small>
             <SpanKindBadge kind={span.kind} className="me-2" />
           </small>
           <samp className="text-truncate">
             <small>
-              <code>{`${unixNanosecondsToDatetimeLocal(span.startUnixNano)}`}</code>{' '}
-              {`${span.name}`}
+              <code>{`${unixNanosecondsToDatetimeLocal(span.startUnixNano)}`}</code> {`${span.name}`}
             </small>
           </samp>
         </Accordion.Button>

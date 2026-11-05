@@ -8,10 +8,7 @@ import * as THREE from 'three';
 
 const POSE_EPSILON = 0.05;
 
-function cameraPoseMatches(
-  controls: CameraControls,
-  camera: SnapshotCamera
-): boolean {
+function cameraPoseMatches(controls: CameraControls, camera: SnapshotCamera): boolean {
   if (!controls) {
     return false;
   }
@@ -22,16 +19,9 @@ function cameraPoseMatches(
   controls.getTarget(target);
 
   const expectedPosition = new THREE.Vector3(camera.x, camera.y, camera.z);
-  const expectedTarget = new THREE.Vector3(
-    camera.targetX ?? 0,
-    camera.targetY ?? 0,
-    camera.targetZ ?? 0
-  );
+  const expectedTarget = new THREE.Vector3(camera.targetX ?? 0, camera.targetY ?? 0, camera.targetZ ?? 0);
 
-  return (
-    position.distanceTo(expectedPosition) < POSE_EPSILON &&
-    target.distanceTo(expectedTarget) < POSE_EPSILON
-  );
+  return position.distanceTo(expectedPosition) < POSE_EPSILON && target.distanceTo(expectedTarget) < POSE_EPSILON;
 }
 
 /**
@@ -40,9 +30,7 @@ function cameraPoseMatches(
  * until the saved pose is actually applied.
  */
 export default function SnapshotCameraRestore() {
-  const snapshotSelected = useSnapshotTokenStore(
-    (state) => state.snapshotSelected
-  );
+  const snapshotSelected = useSnapshotTokenStore((state) => state.snapshotSelected);
   const snapshotToken = useSnapshotTokenStore((state) => state.snapshotToken);
   const restoredSnapshotKeyRef = useRef<string | null>(null);
 
@@ -60,8 +48,7 @@ export default function SnapshotCameraRestore() {
       return;
     }
 
-    const controls =
-      useCameraControlsStore.getState().cameraControlsRef?.current;
+    const controls = useCameraControlsStore.getState().cameraControlsRef?.current;
     if (!controls) {
       return;
     }
@@ -69,9 +56,7 @@ export default function SnapshotCameraRestore() {
     const camera = snapshotToken.camera;
 
     if (!cameraPoseMatches(controls, camera)) {
-      useCameraControlsStore
-        .getState()
-        .applySnapshotCamera(camera, false);
+      useCameraControlsStore.getState().applySnapshotCamera(camera, false);
       controls.update(0);
       return;
     }

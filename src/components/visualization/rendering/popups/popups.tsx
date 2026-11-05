@@ -10,9 +10,7 @@ interface Args {
   landscapeData: LandscapeData;
 }
 export default function Popups({ landscapeData }: Args) {
-  const popupData = usePopupHandlerStore(
-    useShallow((state) => state.popupData)
-  );
+  const popupData = usePopupHandlerStore(useShallow((state) => state.popupData));
 
   const popupHandlerActions = usePopupHandlerStore(
     useShallow((state) => ({

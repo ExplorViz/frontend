@@ -3,7 +3,6 @@ import { BuildingMetricIds, useHeatmapStore } from 'explorviz-frontend/src/store
 import { useState } from 'react';
 import { useShallow } from 'zustand/react/shallow';
 
-
 export type Applicability = 'yes' | 'auto' | 'no';
 
 export interface MetricNote {
@@ -13,7 +12,7 @@ export interface MetricNote {
   note?: string;
 }
 
-export const METRIC_NOTES: Partial<Record<BuildingMetricIds, MetricNote>> = {
+const METRIC_NOTES: Partial<Record<BuildingMetricIds, MetricNote>> = {
   // [BuildingMetricIds.commitCount]: {
   //   contributorSelection: 'yes',
   //   timeSelection: 'yes',
@@ -30,36 +29,36 @@ export const METRIC_NOTES: Partial<Record<BuildingMetricIds, MetricNote>> = {
     contributorSelection: 'no',
     timeSelection: 'yes',
     normalization: 'no',
-    note: 'KnowledgeSilo: Contributor selection does not apply for this metric, since we measure the single most active contributor per file. That is by design.'
+    note: 'KnowledgeSilo: Contributor selection does not apply for this metric, since we measure the single most active contributor per file. That is by design.',
   },
   [BuildingMetricIds.coreContributorActivity]: {
     contributorSelection: 'no',
     timeSelection: 'yes',
     normalization: 'no',
-    note: 'CoreContributorActivity: Contributor selection does not apply to this metric. Uses the auto detected core developer team.'
+    note: 'CoreContributorActivity: Contributor selection does not apply to this metric. Uses the auto detected core developer team.',
   },
   [BuildingMetricIds.abandonedKnowledgeSilo]: {
     contributorSelection: 'no',
     timeSelection: 'yes',
     normalization: 'no',
-    note: 'AbandonedKnowledgeSilo: Contributor selection does not apply. Calculated using knowledgeSilo metric which does not allow for selection by design.'
+    note: 'AbandonedKnowledgeSilo: Contributor selection does not apply. Calculated using knowledgeSilo metric which does not allow for selection by design.',
   },
   [BuildingMetricIds.reviewFriction]: {
     contributorSelection: 'no',
     timeSelection: 'no',
     normalization: 'yes',
-    note: 'ReviewFriction: Contributor selection does not apply.'
+    note: 'ReviewFriction: Contributor selection does not apply.',
   },
   [BuildingMetricIds.issueActivity]: {
     contributorSelection: 'no',
     timeSelection: 'no',
     normalization: 'yes',
-    note: 'IssueActivity: Contributor selection does not apply.'
+    note: 'IssueActivity: Contributor selection does not apply.',
   },
-}
+};
 
 export default function MetricNotes() {
-const metricName = useHeatmapStore(useShallow((s) => s.selectedBuildingMetric.name));
+  const metricName = useHeatmapStore(useShallow((s) => s.selectedBuildingMetric.name));
   const [showAll, setShowAll] = useState(false);
   const note = METRIC_NOTES[metricName]?.note;
 
@@ -71,6 +70,6 @@ const metricName = useHeatmapStore(useShallow((s) => s.selectedBuildingMetric.na
           <HelpTooltip title="Some metrics ignore certain selections by design." placement="top" /> {note}
         </div>
       )}
-  </div>
+    </div>
   );
 }

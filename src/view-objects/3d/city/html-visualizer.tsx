@@ -20,11 +20,12 @@ export default function HtmlVisualizer({
   const [distanceBetweenLevels, setDistanceBetweenLevels] = useState(5);
   const [reloadCounter, setReloadCounter] = useState(0);
   const observerCallback = () => {
-    setReloadCounter(reloadCounter + 1);
+    setReloadCounter((current) => current + 1);
   };
   const [clickedNode, setClickedNode] = useState<any>(null);
-  const observer = useRef(new MutationObserver(observerCallback));
+  const observer = useRef<MutationObserver | null>(null);
   const maxLayer = useRef(0);
+  useEffect(() => () => observer.current?.disconnect(), []);
 
   const [updateWithObserver, setUpdateWithObserver] = useState(true);
 
@@ -45,7 +46,7 @@ export default function HtmlVisualizer({
     if (!html) return;
 
     // Avoid that multiple observer fire in parallel
-    observer.current.disconnect();
+    observer.current?.disconnect();
 
     // Register (new) observer
     observer.current = new MutationObserver(observerCallback);
@@ -64,11 +65,7 @@ export default function HtmlVisualizer({
 
     let maxLevel = 0;
 
-    const processNode = async (
-      node: HTMLElement | Element,
-      level: number,
-      insideClickedSubtree = false
-    ) => {
+    const processNode = async (node: HTMLElement | Element, level: number, insideClickedSubtree = false) => {
       if (level > maxLevel) {
         maxLevel = level;
       }
@@ -94,30 +91,21 @@ export default function HtmlVisualizer({
       const offset = getOffset(rect, firstOffset);
 
       if (clickedNode && !insideClickedSubtree) {
-        Array.from(node.children).forEach((child) =>
-          processNode(child, level + 1)
-        );
+        Array.from(node.children).forEach((child) => processNode(child, level + 1));
         return;
       }
 
       // Only display html element itself without child nodes
       let htmlString = node.outerHTML.replace(node.innerHTML || '', '');
-      const innerText =
-        node.firstChild?.nodeType === node.TEXT_NODE ? node.innerText : '';
+      const innerText = node.firstChild?.nodeType === node.TEXT_NODE ? node.innerText : '';
       const htmlWithText = htmlString.replace('>', '>' + innerText);
 
       const boxData: BoxData = {
         id: 'dom-box-' + Math.random(),
         position: [offset.x, offset.y, level * distanceBetweenLevels],
-        size: [
-          Math.max(1, rect.width * NODE_SCALAR),
-          Math.max(1, rect.height * NODE_SCALAR),
-          0.01,
-        ],
+        size: [Math.max(1, rect.width * NODE_SCALAR), Math.max(1, rect.height * NODE_SCALAR), 0.01],
         htmlNode: node,
-        renderHtml:
-          renderHtmlTextures &&
-          (!renderOnlyHtmlLeafs || node.childElementCount === 0), //renderHtml(node),
+        renderHtml: renderHtmlTextures && (!renderOnlyHtmlLeafs || node.childElementCount === 0), //renderHtml(node),
         isSubtreeRoot: node == clickedNode,
         level,
         htmlString,
@@ -127,10 +115,7 @@ export default function HtmlVisualizer({
         texture: null,
       };
 
-      if (
-        !cropToViewport ||
-        (clampedRect.width > 0 && clampedRect.height > 0)
-      ) {
+      if (!cropToViewport || (clampedRect.width > 0 && clampedRect.height > 0)) {
         tempBoxes.push(boxData);
       }
 
@@ -138,9 +123,7 @@ export default function HtmlVisualizer({
         boxData.texture = getTextureForRect(clampedRect, img);
       }
 
-      Array.from(node.children).forEach((child) =>
-        processNode(child, level + 1, insideClickedSubtree)
-      );
+      Array.from(node.children).forEach((child) => processNode(child, level + 1, insideClickedSubtree));
     };
 
     rootChildren.forEach((node) => processNode(node, 0));
@@ -177,29 +160,17 @@ export default function HtmlVisualizer({
     } else {
       computeBoxes();
     }
-  }, [
-    cropToViewport,
-    html,
-    reloadCounter,
-    updateWithObserver,
-    renderHtmlTextures,
-    renderOnlyHtmlLeafs,
-    clickedNode,
-  ]);
+  }, [cropToViewport, html, reloadCounter, updateWithObserver, renderHtmlTextures, renderOnlyHtmlLeafs, clickedNode]);
 
   const isBoxVisible = (box: BoxData) => {
     return (
       (!restrictToLayer || box.level + 1 === restrictToLayer) &&
-      (!searchString ||
-        box.htmlWithText.toLowerCase().includes(searchString.toLowerCase()))
+      (!searchString || box.htmlWithText.toLowerCase().includes(searchString.toLowerCase()))
     );
   };
 
   return (
-    <group
-      onPointerEnter={(event) => event.stopPropagation()}
-      onClick={(event) => event.stopPropagation()}
-    >
+    <group onPointerEnter={(event) => event.stopPropagation()} onClick={(event) => event.stopPropagation()}>
       {html && (
         <Root
           positionBottom={positionBottom}
@@ -243,17 +214,13 @@ export default function HtmlVisualizer({
                   onValueChange={(value) => {
                     const newValue = parseFloat(value);
                     if (!isNaN(newValue)) {
-                      setRestrictToLayer(
-                        Math.max(0, Math.min(maxLayer.current + 1, newValue))
-                      );
+                      setRestrictToLayer(Math.max(0, Math.min(maxLayer.current + 1, newValue)));
                     }
                   }}
                   onWheel={(event) => {
                     event.stopPropagation();
                     if (event.deltaX > 0) {
-                      setRestrictToLayer((prev) =>
-                        Math.min(maxLayer.current + 1, prev + 1)
-                      );
+                      setRestrictToLayer((prev) => Math.min(maxLayer.current + 1, prev + 1));
                     }
                     if (event.deltaX < 0) {
                       setRestrictToLayer((prev) => Math.max(0, prev - 1));
@@ -313,12 +280,7 @@ export default function HtmlVisualizer({
                 </Label>
               </Container>
             </Container>
-            <Container
-              flexDirection="column"
-              positionLeft={20}
-              positionTop={-5}
-              gap={5}
-            >
+            <Container flexDirection="column" positionLeft={20} positionTop={-5} gap={5}>
               <Label>
                 <Text fontSize={14}>Search:</Text>
               </Label>
@@ -352,7 +314,7 @@ export default function HtmlVisualizer({
                 padding={0}
                 onClick={() => {
                   updateHtml();
-                  setReloadCounter(reloadCounter + 1);
+                  setReloadCounter((current) => current + 1);
                 }}
               >
                 <RefreshCcw />
@@ -360,9 +322,7 @@ export default function HtmlVisualizer({
             </Container>
           </Container>
           <Container positionBottom={620} positionLeft={-490}>
-            <Text>
-              HTML Nodes: {boxes.filter((box) => isBoxVisible(box)).length}
-            </Text>
+            <Text>HTML Nodes: {boxes.filter((box) => isBoxVisible(box)).length}</Text>
           </Container>
         </Root>
       )}
@@ -372,11 +332,7 @@ export default function HtmlVisualizer({
           distanceBetweenLevels={distanceBetweenLevels}
           key={box.id}
           box={box}
-          color={
-            useHashedColors
-              ? hashElementToColor(box.htmlNode)
-              : COLORS_GRAD[box.level % COLORS_GRAD.length]
-          }
+          color={useHashedColors ? hashElementToColor(box.htmlNode) : COLORS_GRAD[box.level % COLORS_GRAD.length]}
           setClickedNode={setClickedNode}
         />
       ))}
@@ -442,12 +398,8 @@ const COLORS_GRAD = [
 
 function getOffset(rect: DOMRect, firstOffset: NodeOffset) {
   return {
-    x:
-      rect.right * NODE_SCALAR - (rect.width * NODE_SCALAR) / 2 - firstOffset.x,
-    y:
-      -rect.bottom * NODE_SCALAR +
-      (rect.height * NODE_SCALAR) / 2 +
-      firstOffset.y,
+    x: rect.right * NODE_SCALAR - (rect.width * NODE_SCALAR) / 2 - firstOffset.x,
+    y: -rect.bottom * NODE_SCALAR + (rect.height * NODE_SCALAR) / 2 + firstOffset.y,
   };
 }
 

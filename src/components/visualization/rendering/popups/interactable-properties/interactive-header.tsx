@@ -1,11 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 
 import { useLandscapeRestructureStore } from 'explorviz-frontend/src/stores/landscape-restructure';
-import {
-  isApplication,
-  isClass,
-  isPackage,
-} from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
+import { isApplication, isClass, isPackage } from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
 import EditMesh from './edit-mesh';
 
 interface InteractiveHeaderProps {
@@ -13,25 +9,14 @@ interface InteractiveHeaderProps {
   appId?: string;
 }
 
-export default function InteractiveHeader({
-  entity,
-  appId,
-}: InteractiveHeaderProps) {
-  const restructureMode = useLandscapeRestructureStore(
-    (state) => state.restructureMode
-  );
+export default function InteractiveHeader({ entity, appId }: InteractiveHeaderProps) {
+  const restructureMode = useLandscapeRestructureStore((state) => state.restructureMode);
 
-  const renameApplication = useLandscapeRestructureStore(
-    (state) => state.renameApplication
-  );
+  const renameApplication = useLandscapeRestructureStore((state) => state.renameApplication);
 
-  const renamePackage = useLandscapeRestructureStore(
-    (state) => state.renamePackage
-  );
+  const renamePackage = useLandscapeRestructureStore((state) => state.renamePackage);
 
-  const renameClass = useLandscapeRestructureStore(
-    (state) => state.renameClass
-  );
+  const renameClass = useLandscapeRestructureStore((state) => state.renameClass);
 
   const [isEditing, setIsEditing] = useState<boolean>(false);
   const [name, setName] = useState<string>(entity.name);
@@ -82,11 +67,5 @@ export default function InteractiveHeader({
     save();
   };
 
-  return (
-    <>
-      {restructureMode && (
-        <EditMesh entity={entity} appId={appId !== undefined ? appId : ''} />
-      )}
-    </>
-  );
+  return <>{restructureMode && <EditMesh entity={entity} appId={appId !== undefined ? appId : ''} />}</>;
 }

@@ -25,13 +25,7 @@ interface ChatState {
   deletedMessageIds: number[];
   _constructor: () => void;
   cleanup: () => void;
-  sendChatMessage: (
-    userId: string,
-    msg: string,
-    isEvent: boolean,
-    eventType?: string,
-    eventData?: any[]
-  ) => void;
+  sendChatMessage: (userId: string, msg: string, isEvent: boolean, eventType?: string, eventData?: any[]) => void;
   addChatMessage: (
     msgId: number,
     userId: string,
@@ -77,9 +71,7 @@ export const useChatStore = create<ChatState>((set, get) => {
         // Check if a toast message have to be sent
         const myPlayer = me();
         if (!data.isEvent && myPlayer && data.userId != myPlayer.id) {
-          useToastHandlerStore
-            .getState()
-            .showInfoToastMessage(`Message received: ` + data.msg);
+          useToastHandlerStore.getState().showInfoToastMessage(`Message received: ` + data.msg);
         }
 
         // Add themessage toi the interface
@@ -99,9 +91,7 @@ export const useChatStore = create<ChatState>((set, get) => {
       // Register a function to listen for delete messages
       RPC.register('deleteMessage', async (messageIds: any) => {
         get().removeChatMessage(messageIds, true);
-        useToastHandlerStore
-          .getState()
-          .showErrorToastMessage('Message(s) deleted');
+        useToastHandlerStore.getState().showErrorToastMessage('Message(s) deleted');
       });
     },
 
@@ -109,19 +99,11 @@ export const useChatStore = create<ChatState>((set, get) => {
       // manuel cleanup is not needed for RPCs
     },
 
-    sendChatMessage: (
-      userId: string,
-      msg: string,
-      isEvent: boolean,
-      eventType: string = '',
-      eventData: any[] = []
-    ) => {
+    sendChatMessage: (userId: string, msg: string, isEvent: boolean, eventType: string = '', eventData: any[] = []) => {
       // Check if the current user is muted
       const mutedUsers = getState('globalMutedUsers') || [];
       if (mutedUsers.includes(userId) && !isEvent) {
-        useToastHandlerStore
-          .getState()
-          .showErrorToastMessage('You have been muted by the host.');
+        useToastHandlerStore.getState().showErrorToastMessage('You have been muted by the host.');
         return;
       }
       // Create a uniqze ID for te message
@@ -149,21 +131,13 @@ export const useChatStore = create<ChatState>((set, get) => {
       };
 
       // Add the message locally
-      get().addChatMessage(
-        newId,
-        userId,
-        msg,
-        userName,
-        timestamp,
-        isEvent,
-        eventType,
-        eventData,
-        color
-      );
+      get().addChatMessage(newId, userId, msg, userName, timestamp, isEvent, eventType, eventData, color);
 
       try {
         RPC.call('chatMessage', payload, RPC.Mode.OTHERS); // Message is sent to others, as the current user already added it locally
-      } catch (e) {}
+      } catch {
+        // Keep the local chat update when the collaboration connection is unavailable.
+      }
     },
 
     addChatMessage: (
@@ -182,9 +156,7 @@ export const useChatStore = create<ChatState>((set, get) => {
         return;
       }
 
-      const userColor = new THREE.Color(
-        colorHex !== undefined ? colorHex : 0x888888
-      );
+      const userColor = new THREE.Color(colorHex !== undefined ? colorHex : 0x888888);
       const timestamp = time === '' ? get()._getTime() : time;
 
       // Check if the message is from yourself
@@ -221,7 +193,9 @@ export const useChatStore = create<ChatState>((set, get) => {
       if (!received) {
         try {
           RPC.call('deleteMessage', messageId, RPC.Mode.OTHERS);
-        } catch (e) {}
+        } catch {
+          // Keep the local chat update when the collaboration connection is unavailable.
+        }
       } else {
         set({ deletedMessage: true });
         let newDeletedMessageIds = get().deletedMessageIds;
@@ -231,9 +205,7 @@ export const useChatStore = create<ChatState>((set, get) => {
     },
 
     findEventByUserId: (userId: string, eventType: string): boolean => {
-      const messages = get().chatMessages.filter(
-        (msg) => msg.userId === userId && msg.eventType === eventType
-      );
+      const messages = get().chatMessages.filter((msg) => msg.userId === userId && msg.eventType === eventType);
       return messages.length > 0;
     },
 
@@ -247,10 +219,7 @@ export const useChatStore = create<ChatState>((set, get) => {
       });
     },
 
-    _applyCurrentFilter: (
-      filterMode: string = '',
-      filterValue: string = ''
-    ) => {
+    _applyCurrentFilter: (filterMode: string = '', filterValue: string = '') => {
       if (!filterMode || !filterValue) {
         set({ filteredChatMessages: get().chatMessages });
       } else {
@@ -264,9 +233,7 @@ export const useChatStore = create<ChatState>((set, get) => {
             break;
           case 'Events':
             set({
-              filteredChatMessages: get().chatMessages.filter(
-                (msg) => msg.isEvent === true
-              ),
+              filteredChatMessages: get().chatMessages.filter((msg) => msg.isEvent === true),
             });
             break;
           default:

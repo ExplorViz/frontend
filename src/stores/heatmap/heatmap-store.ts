@@ -122,112 +122,110 @@ interface HeatmapConfigurationState {
   cleanup: () => void;
   setShowLegendValues: (show: boolean) => void;
 }
-export const useHeatmapStore = create<HeatmapConfigurationState>(
-  (set, get) => ({
-    heatmapActive: true,
-    heatmapShared: false,
-    legendActive: true,
-    selectedBuildingMetric: {
-      name: BuildingMetricIds.None,
-      description: 'No metric selected',
-      min: 0,
-      max: 0,
-    },
-    selectedGradient: HeatmapGradient.DEFAULT_GRADIENT,
-    selectedValueMapping: HeatmapValueMapping.LINEAR,
-    opacityValue: 0.03,
-    showLegendValues: true,
+export const useHeatmapStore = create<HeatmapConfigurationState>((set, get) => ({
+  heatmapActive: true,
+  heatmapShared: false,
+  legendActive: true,
+  selectedBuildingMetric: {
+    name: BuildingMetricIds.None,
+    description: 'No metric selected',
+    min: 0,
+    max: 0,
+  },
+  selectedGradient: HeatmapGradient.DEFAULT_GRADIENT,
+  selectedValueMapping: HeatmapValueMapping.LINEAR,
+  opacityValue: 0.03,
+  showLegendValues: true,
 
-    setShowLegendValues: (show: boolean) => {
-      set({ showLegendValues: show });
-    },
+  setShowLegendValues: (show: boolean) => {
+    set({ showLegendValues: show });
+  },
 
-    toggleShared: () => {
-      set({ heatmapShared: !get().heatmapShared });
-    },
+  toggleShared: () => {
+    set({ heatmapShared: !get().heatmapShared });
+  },
 
-    isActive: () => {
-      return (
-        useUserSettingsStore.getState().visualizationSettings.heatmapEnabled
-          .value && get().selectedBuildingMetric.name !== BuildingMetricIds.None
-      );
-    },
+  isActive: () => {
+    return (
+      useUserSettingsStore.getState().visualizationSettings.heatmapEnabled.value &&
+      get().selectedBuildingMetric.name !== BuildingMetricIds.None
+    );
+  },
 
-    getSelectedBuildingMetric: () => {
-      return get().selectedBuildingMetric;
-    },
+  getSelectedBuildingMetric: () => {
+    return get().selectedBuildingMetric;
+  },
 
-    setSelectedBuildingMetric: (metricName: BuildingMetricIds) => {
-      switch (metricName) {
-        case BuildingMetricIds.size:
-        case BuildingMetricIds.lineCount:
-        case BuildingMetricIds.sloc:
-        case BuildingMetricIds.cloc:
-        case BuildingMetricIds.importCount:
-        case BuildingMetricIds.classCount:
-        case BuildingMetricIds.functionCount:
-        case BuildingMetricIds.variableCount:
-        case BuildingMetricIds.commitCount:
-        case BuildingMetricIds.commitActivity:
-        case BuildingMetricIds.coreContributorActivity:
-        case BuildingMetricIds.knowledgeSilo:
-        case BuildingMetricIds.issueActivity:
-        case BuildingMetricIds.reviewFriction:
-        case BuildingMetricIds.knowledgeStaleness:
-        case BuildingMetricIds.abandonedKnowledgeSilo: {
-          const { min, max } = getMinMaxMetricValues(metricName);
-          set({
-            selectedBuildingMetric: {
-              name: metricName,
-              description: `${metricName} of building's data model`,
-              min: min,
-              max: max,
-            },
-          });
-          break;
-        }
-
-        default:
-          set({
-            selectedBuildingMetric: NO_SELECTED_METRIC,
-          });
-          break;
-      }
-    },
-    getSelectedGradient: () => {
-      return get().selectedGradient;
-    },
-    setSelectedGradient: (gradient: HeatmapGradient) => {
-      set({ selectedGradient: gradient });
-    },
-    getSelectedValueMapping: () => {
-      return get().selectedValueMapping;
-    },
-    setSelectedValueMapping: (mapping: HeatmapValueMapping) => {
-      set({ selectedValueMapping: mapping });
-    },
-    refreshSelectedMetricBounds: () => {
-      const metricName = get().selectedBuildingMetric.name;
-      if (metricName === BuildingMetricIds.None) {
-        return;
+  setSelectedBuildingMetric: (metricName: BuildingMetricIds) => {
+    switch (metricName) {
+      case BuildingMetricIds.size:
+      case BuildingMetricIds.lineCount:
+      case BuildingMetricIds.sloc:
+      case BuildingMetricIds.cloc:
+      case BuildingMetricIds.importCount:
+      case BuildingMetricIds.classCount:
+      case BuildingMetricIds.functionCount:
+      case BuildingMetricIds.variableCount:
+      case BuildingMetricIds.commitCount:
+      case BuildingMetricIds.commitActivity:
+      case BuildingMetricIds.coreContributorActivity:
+      case BuildingMetricIds.knowledgeSilo:
+      case BuildingMetricIds.issueActivity:
+      case BuildingMetricIds.reviewFriction:
+      case BuildingMetricIds.knowledgeStaleness:
+      case BuildingMetricIds.abandonedKnowledgeSilo: {
+        const { min, max } = getMinMaxMetricValues(metricName);
+        set({
+          selectedBuildingMetric: {
+            name: metricName,
+            description: `${metricName} of building's data model`,
+            min: min,
+            max: max,
+          },
+        });
+        break;
       }
 
-      get().setSelectedBuildingMetric(metricName as BuildingMetricIds);
-    },
-    toggleLegend: () => {
-      set({ legendActive: !get().legendActive });
-    },
+      default:
+        set({
+          selectedBuildingMetric: NO_SELECTED_METRIC,
+        });
+        break;
+    }
+  },
+  getSelectedGradient: () => {
+    return get().selectedGradient;
+  },
+  setSelectedGradient: (gradient: HeatmapGradient) => {
+    set({ selectedGradient: gradient });
+  },
+  getSelectedValueMapping: () => {
+    return get().selectedValueMapping;
+  },
+  setSelectedValueMapping: (mapping: HeatmapValueMapping) => {
+    set({ selectedValueMapping: mapping });
+  },
+  refreshSelectedMetricBounds: () => {
+    const metricName = get().selectedBuildingMetric.name;
+    if (metricName === BuildingMetricIds.None) {
+      return;
+    }
 
-    /**
-     * Reset all attribute values to null;
-     */
-    cleanup: () => {
-      set({
-        selectedBuildingMetric: NO_SELECTED_METRIC,
-        legendActive: true,
-        heatmapShared: false,
-        selectedValueMapping: HeatmapValueMapping.LINEAR,
-      });
-    },
-  })
-);
+    get().setSelectedBuildingMetric(metricName as BuildingMetricIds);
+  },
+  toggleLegend: () => {
+    set({ legendActive: !get().legendActive });
+  },
+
+  /**
+   * Reset all attribute values to null;
+   */
+  cleanup: () => {
+    set({
+      selectedBuildingMetric: NO_SELECTED_METRIC,
+      legendActive: true,
+      heatmapShared: false,
+      selectedValueMapping: HeatmapValueMapping.LINEAR,
+    });
+  },
+}));

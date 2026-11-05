@@ -9,9 +9,5 @@ export function animatePlayPauseIcon(isPaused: boolean) {
     css: { className: afterClass },
   });
 
-  gsap.fromTo(
-    '#play-pause-button-container',
-    { opacity: 1, scale: 0.9 },
-    { opacity: 0, scale: 1 }
-  );
+  gsap.fromTo('#play-pause-button-container', { opacity: 1, scale: 0.9 }, { opacity: 0, scale: 1 });
 }

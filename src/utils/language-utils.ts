@@ -1,7 +1,4 @@
-import {
-  Language,
-  SUPPORTED_LANGUAGES,
-} from 'explorviz-frontend/src/utils/landscape-schemes/flat-landscape';
+import { Language, SUPPORTED_LANGUAGES } from 'explorviz-frontend/src/utils/landscape-schemes/flat-landscape';
 
 const LANGUAGE_TO_LABEL = new Map<Language, string>([
   ['LANGUAGE_UNSPECIFIED', 'Other'],
@@ -22,9 +19,7 @@ const LANGUAGE_TO_LABEL = new Map<Language, string>([
 
 const TRAILING_LANGUAGES: Language[] = ['PLAINTEXT', 'LANGUAGE_UNSPECIFIED'];
 
-const SUPPORTED_LANGUAGE_SET: ReadonlySet<string> = new Set(
-  SUPPORTED_LANGUAGES
-);
+const SUPPORTED_LANGUAGE_SET: ReadonlySet<string> = new Set(SUPPORTED_LANGUAGES);
 
 /**
  * Returns a human-friendly textual representation for the given language.

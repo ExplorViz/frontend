@@ -3,7 +3,7 @@ import { usePingStore } from 'explorviz-frontend/src/stores/ping-store';
 import { useModelStore } from 'explorviz-frontend/src/stores/repos/model-repository';
 import { useVisualizationStore } from 'explorviz-frontend/src/stores/visualization-store';
 import { removeAllHighlighting } from 'explorviz-frontend/src/utils/city-rendering/highlighting';
-import { pingByModelId } from 'explorviz-frontend/src/view-objects/3d/city/animated-ping-r3f';
+import { pingByModelId } from 'explorviz-frontend/src/view-objects/3d/city/ping-animation';
 import { useCallback, useMemo, useState } from 'react';
 
 const PING_DURATION_MS = 3000;
@@ -21,19 +21,11 @@ const PING_DURATION_MS = 3000;
 export function useNodeInteractions() {
   const getAllCities = useModelStore((state) => state.getAllCities);
   const lookAtEntity = useCameraControlsStore((state) => state.lookAtEntity);
-  const highlightedEntityIds = useVisualizationStore(
-    (state) => state.highlightedEntityIds
-  );
-  const setHighlightedEntityId = useVisualizationStore(
-    (state) => state.actions.setHighlightedEntityId
-  );
-  const activePingNodeNames = usePingStore(
-    (state) => state.activePingNodeNames
-  );
+  const highlightedEntityIds = useVisualizationStore((state) => state.highlightedEntityIds);
+  const setHighlightedEntityId = useVisualizationStore((state) => state.actions.setHighlightedEntityId);
+  const activePingNodeNames = usePingStore((state) => state.activePingNodeNames);
 
-  const [localHighlightedNodeNames, setLocalHighlightedNodeNames] = useState<
-    Set<string>
-  >(() => new Set());
+  const [localHighlightedNodeNames, setLocalHighlightedNodeNames] = useState<Set<string>>(() => new Set());
 
   const highlightedNodeNames = useMemo(() => {
     const names = new Set<string>(localHighlightedNodeNames);
@@ -47,14 +39,9 @@ export function useNodeInteractions() {
 
   const handleNodeHighlight = useCallback(
     (nodeName: string) => {
-      const matchingCity = getAllCities().find(
-        (city) => city.name === nodeName
-      );
+      const matchingCity = getAllCities().find((city) => city.name === nodeName);
       if (matchingCity) {
-        setHighlightedEntityId(
-          matchingCity.id,
-          !highlightedEntityIds.has(matchingCity.id)
-        );
+        setHighlightedEntityId(matchingCity.id, !highlightedEntityIds.has(matchingCity.id));
       } else {
         setLocalHighlightedNodeNames((prev) => {
           const next = new Set(prev);
@@ -68,9 +55,7 @@ export function useNodeInteractions() {
 
   const handleNodePing = useCallback(
     (nodeName: string) => {
-      const matchingCity = getAllCities().find(
-        (city) => city.name === nodeName
-      );
+      const matchingCity = getAllCities().find((city) => city.name === nodeName);
       if (matchingCity) {
         pingByModelId(matchingCity.id, false, { durationMs: PING_DURATION_MS });
       } else {
@@ -82,9 +67,7 @@ export function useNodeInteractions() {
 
   const handleNodeLookAt = useCallback(
     (nodeName: string) => {
-      const matchingCity = getAllCities().find(
-        (city) => city.name === nodeName
-      );
+      const matchingCity = getAllCities().find((city) => city.name === nodeName);
       if (matchingCity) {
         lookAtEntity(matchingCity.id);
       }

@@ -140,10 +140,8 @@ export function isFlatBaseModel(x: any): x is FlatBaseModel {
     typeof x.name === 'string' &&
     (x.fqn === undefined || typeof x.fqn === 'string') &&
     (x.telemetryKey === undefined || typeof x.telemetryKey === 'string') &&
-    (x.originOfData === undefined ||
-      TYPE_OF_ANALYSIS_VALUES.has(x.originOfData)) &&
-    (x.commitComparison === undefined ||
-      typeof x.commitComparison === 'string') &&
+    (x.originOfData === undefined || TYPE_OF_ANALYSIS_VALUES.has(x.originOfData)) &&
+    (x.commitComparison === undefined || typeof x.commitComparison === 'string') &&
     (x.editingState === undefined || typeof x.editingState === 'string')
   );
 }
@@ -183,9 +181,7 @@ export function isBuilding(x: any): x is Building {
     typeof x.parentCityId === 'string' &&
     (!('parentDistrictId' in x) || typeof x.parentDistrictId === 'string') &&
     (!('language' in x) || typeof x.language === 'string') &&
-    (!('metrics' in x) ||
-      (isStringRecord(x.metrics) &&
-        Object.values(x.metrics).every(isMetricValue)))
+    (!('metrics' in x) || (isStringRecord(x.metrics) && Object.values(x.metrics).every(isMetricValue)))
   );
 }
 
@@ -194,15 +190,11 @@ export function isMetricValue(x: any): x is MetricValue {
     x !== null &&
     typeof x === 'object' &&
     (x.current === null || typeof x.current === 'number') &&
-    (x.previous === undefined ||
-      x.previous === null ||
-      typeof x.previous === 'number')
+    (x.previous === undefined || x.previous === null || typeof x.previous === 'number')
   );
 }
 
-export function getAllIdsOfFlatLandscape(
-  flatLandscape: FlatLandscape
-): string[] {
+export function getAllIdsOfFlatLandscape(flatLandscape: FlatLandscape): string[] {
   const ids: string[] = [];
   for (const value of Object.values(flatLandscape)) {
     if (typeof value !== 'object' || value === null || Array.isArray(value)) {
@@ -218,10 +210,7 @@ export function getAllIdsOfFlatLandscape(
   return ids;
 }
 
-export function getBuildingById(
-  flatLandscape: FlatLandscape,
-  buildingId: string
-): Building | undefined {
+export function getBuildingById(flatLandscape: FlatLandscape, buildingId: string): Building | undefined {
   return flatLandscape.buildings[buildingId];
 }
 
@@ -267,9 +256,7 @@ function hashFlatLandscapeEntityIds(flatLandscape: FlatLandscape): string {
       continue;
     }
 
-    for (const entity of Object.values(
-      value as Record<string, { id?: string }>
-    )) {
+    for (const entity of Object.values(value as Record<string, { id?: string }>)) {
       const id = entity?.id;
       if (id === undefined) {
         continue;
@@ -288,9 +275,7 @@ function hashFlatLandscapeEntityIds(flatLandscape: FlatLandscape): string {
   return `${sum >>> 0}.${mixed >>> 0}`;
 }
 
-export function getFlatLandscapeStructureSignature(
-  flatLandscape: FlatLandscape
-): string {
+export function getFlatLandscapeStructureSignature(flatLandscape: FlatLandscape): string {
   const buildingCount = Object.keys(flatLandscape.buildings).length;
   const districtCount = Object.keys(flatLandscape.districts).length;
   const containedDistrictCount = Object.values(flatLandscape.cities).reduce(

@@ -33,40 +33,27 @@ interface SettingsProps {
   setGamepadSupport(support: boolean): void;
 }
 
-export default function Settings({
-  enterFullscreen,
-  setGamepadSupport,
-}: SettingsProps) {
+export default function Settings({ enterFullscreen, setGamepadSupport }: SettingsProps) {
   const stickyNavRef = useRef<HTMLDivElement>(null);
-  const visualizationSettings = useUserSettingsStore(
-    (state) => state.visualizationSettings
-  );
+  const visualizationSettings = useUserSettingsStore((state) => state.visualizationSettings);
   const updateSetting = useUserSettingsStore((state) => state.updateSetting);
-  const showSuccessToastMessage = useToastHandlerStore(
-    (state) => state.showSuccessToastMessage
-  );
-  const showErrorToastMessage = useToastHandlerStore(
-    (state) => state.showErrorToastMessage
-  );
+  const showSuccessToastMessage = useToastHandlerStore((state) => state.showSuccessToastMessage);
+  const showErrorToastMessage = useToastHandlerStore((state) => state.showErrorToastMessage);
   const minimapCamera = useLocalUserStore((state) => state.minimapCamera);
 
-  const { applyDefaultSettings, applyDefaultSettingsForGroup, setColorScheme } =
-    useUserSettingsStore(
-      useShallow((state) => ({
-        applyDefaultSettings: state.applyDefaultSettings,
-        applyDefaultSettingsForGroup: state.applyDefaultSettingsForGroup,
-        setColorScheme: state.setColorScheme,
-      }))
-    );
+  const { applyDefaultSettings, applyDefaultSettingsForGroup, setColorScheme } = useUserSettingsStore(
+    useShallow((state) => ({
+      applyDefaultSettings: state.applyDefaultSettings,
+      applyDefaultSettingsForGroup: state.applyDefaultSettingsForGroup,
+      setColorScheme: state.setColorScheme,
+    }))
+  );
 
   /**
    * Checks if a setting's dependency condition is met.
    * Returns true if the setting has no dependency or if the dependency is satisfied.
    */
-  const isDependencyMet = (
-    dependsOn: SettingDependency | undefined,
-    allSettings: VisualizationSettings
-  ): boolean => {
+  const isDependencyMet = (dependsOn: SettingDependency | undefined, allSettings: VisualizationSettings): boolean => {
     if (dependsOn === undefined) {
       return true;
     }
@@ -98,10 +85,7 @@ export default function Settings({
   };
 
   const filteredSettingsByGroup = (() => {
-    const settingGroupToSettingIds: Record<
-      SettingGroup,
-      VisualizationSettingId[]
-    > = {
+    const settingGroupToSettingIds: Record<SettingGroup, VisualizationSettingId[]> = {
       Camera: [],
       Colors: [],
       Communication: [],
@@ -125,11 +109,7 @@ export default function Settings({
     for (settingId in visualizationSettings) {
       const setting = visualizationSettings[settingId];
       // Filter settings level
-      if (
-        setting.level <=
-        (visualizationSettings.showExtendedSettings
-          .value as unknown as SettingLevel)
-      ) {
+      if (setting.level <= (visualizationSettings.showExtendedSettings.value as unknown as SettingLevel)) {
         // Check if dependency condition is met
         if (isDependencyMet(setting.dependsOn, visualizationSettings)) {
           const groupSettings = settingGroupToSettingIds[setting.group];
@@ -181,10 +161,7 @@ export default function Settings({
     }
   };
 
-  const updateSelectSetting = (
-    settingId: VisualizationSettingId,
-    value: unknown
-  ) => {
+  const updateSelectSetting = (settingId: VisualizationSettingId, value: unknown) => {
     try {
       updateSetting(settingId, value);
     } catch (e: any) {
@@ -211,9 +188,7 @@ export default function Settings({
         ) {
           deleteTraceData()
             .then(() => {
-              showSuccessToastMessage(
-                'Trace data cleared. Reloading page... New data will appear when spans arrive.'
-              );
+              showSuccessToastMessage('Trace data cleared. Reloading page... New data will appear when spans arrive.');
               // Reload the page after a short delay to allow the toast to be seen
               // This ensures the frontend fetches fresh timestamps after deletion
               setTimeout(() => {
@@ -221,9 +196,7 @@ export default function Settings({
               }, 2000);
             })
             .catch((error) => {
-              showErrorToastMessage(
-                `Failed to clear trace data: ${error.message}`
-              );
+              showErrorToastMessage(`Failed to clear trace data: ${error.message}`);
             });
         }
         break;
@@ -232,10 +205,7 @@ export default function Settings({
     }
   };
 
-  const updateFlagSetting = (
-    settingId: VisualizationSettingId,
-    value?: boolean
-  ) => {
+  const updateFlagSetting = (settingId: VisualizationSettingId, value?: boolean) => {
     try {
       updateSetting(settingId, value);
     } catch (e: any) {
@@ -300,8 +270,7 @@ export default function Settings({
       const style = window.getComputedStyle(current);
       const overflowY = style.overflowY;
       const isScrollable =
-        (overflowY === 'auto' || overflowY === 'scroll') &&
-        current.scrollHeight > current.clientHeight;
+        (overflowY === 'auto' || overflowY === 'scroll') && current.scrollHeight > current.clientHeight;
       if (isScrollable) {
         return current;
       }
@@ -311,20 +280,15 @@ export default function Settings({
   };
 
   const scrollToSection = (groupId: string) => {
-    const htmlSettingGroup = document.getElementById(
-      `settings-group-${groupId.toLowerCase().replace(/\s+/g, '-')}`
-    );
+    const htmlSettingGroup = document.getElementById(`settings-group-${groupId.toLowerCase().replace(/\s+/g, '-')}`);
     if (!htmlSettingGroup) return;
 
-    const navHeight = stickyNavRef.current
-      ? stickyNavRef.current.offsetHeight
-      : 0;
+    const navHeight = stickyNavRef.current ? stickyNavRef.current.offsetHeight : 0;
 
     const scrollParent = findScrollParent(htmlSettingGroup);
     const parentRect = scrollParent.getBoundingClientRect();
     const targetRect = htmlSettingGroup.getBoundingClientRect();
-    const targetTop =
-      targetRect.top - parentRect.top + scrollParent.scrollTop - navHeight;
+    const targetTop = targetRect.top - parentRect.top + scrollParent.scrollTop - navHeight;
 
     scrollParent.scrollTo({
       top: targetTop,
@@ -337,86 +301,55 @@ export default function Settings({
     return name.charAt(0).toUpperCase() + name.slice(1);
   };
 
-  const groupedSettings = Object.entries(filteredSettingsByGroup).map(
-    ([groupId, settingIdArray]) => {
-      if (settingIdArray.length === 0) {
-        return <React.Fragment key={groupId}></React.Fragment>;
-      }
-      const sectionId = `settings-group-${groupId.toLowerCase().replace(/\s+/g, '-')}`;
-      return (
-        <React.Fragment key={groupId}>
-          <div
-            id={sectionId}
-            style={{ display: 'flex', justifyContent: 'space-between' }}
-          >
-            <h6 className="mt-3">
-              <strong>{groupId}</strong>
-            </h6>
-            <ResetButton onClick={resetGroup} args={groupId} />
-          </div>
-
-          {groupId === 'Colors' && (
-            <div id="colorHeader" className="mb-2">
-              <ColorSchemeSelector
-                colorSchemes={colorSchemes}
-                applyColorScheme={applyColorScheme}
-              />
-            </div>
-          )}
-
-          <div className="ml-3">
-            {settingIdArray.map((settingId) => {
-              const setting = visualizationSettings[settingId];
-              if (isFlagSetting(setting)) {
-                return (
-                  <FlagSetting
-                    key={settingId}
-                    settingId={settingId}
-                    onChange={updateFlagSetting}
-                  />
-                );
-              } else if (isRangeSetting(setting)) {
-                return (
-                  <RangeSetting
-                    key={settingId}
-                    settingId={settingId}
-                    onChange={updateRangeSetting}
-                  />
-                );
-              } else if (isColorSetting(setting)) {
-                return (
-                  <ColorPicker
-                    key={settingId}
-                    label={camelCaseToLabel(setting.displayName)}
-                    value={setting.value}
-                    onChange={(v) => updateSetting(settingId, v)}
-                  />
-                );
-              } else if (isButtonSetting(setting)) {
-                return (
-                  <ButtonSetting
-                    key={settingId}
-                    setting={setting}
-                    settingId={settingId}
-                    onClick={updateButtonSetting}
-                  />
-                );
-              } else if (isSelectSetting(setting)) {
-                return (
-                  <SelectSetting
-                    key={settingId}
-                    settingId={settingId}
-                    onChange={updateSelectSetting}
-                  />
-                );
-              }
-              return null;
-            })}
-          </div>
-        </React.Fragment>
-      );
+  const groupedSettings = Object.entries(filteredSettingsByGroup).map(([groupId, settingIdArray]) => {
+    if (settingIdArray.length === 0) {
+      return <React.Fragment key={groupId}></React.Fragment>;
     }
-  );
+    const sectionId = `settings-group-${groupId.toLowerCase().replace(/\s+/g, '-')}`;
+    return (
+      <React.Fragment key={groupId}>
+        <div id={sectionId} style={{ display: 'flex', justifyContent: 'space-between' }}>
+          <h6 className="mt-3">
+            <strong>{groupId}</strong>
+          </h6>
+          <ResetButton onClick={resetGroup} args={groupId} />
+        </div>
+
+        {groupId === 'Colors' && (
+          <div id="colorHeader" className="mb-2">
+            <ColorSchemeSelector colorSchemes={colorSchemes} applyColorScheme={applyColorScheme} />
+          </div>
+        )}
+
+        <div className="ml-3">
+          {settingIdArray.map((settingId) => {
+            const setting = visualizationSettings[settingId];
+            if (isFlagSetting(setting)) {
+              return <FlagSetting key={settingId} settingId={settingId} onChange={updateFlagSetting} />;
+            } else if (isRangeSetting(setting)) {
+              return <RangeSetting key={settingId} settingId={settingId} onChange={updateRangeSetting} />;
+            } else if (isColorSetting(setting)) {
+              return (
+                <ColorPicker
+                  key={settingId}
+                  label={camelCaseToLabel(setting.displayName)}
+                  value={setting.value}
+                  onChange={(v) => updateSetting(settingId, v)}
+                />
+              );
+            } else if (isButtonSetting(setting)) {
+              return (
+                <ButtonSetting key={settingId} setting={setting} settingId={settingId} onClick={updateButtonSetting} />
+              );
+            } else if (isSelectSetting(setting)) {
+              return <SelectSetting key={settingId} settingId={settingId} onChange={updateSelectSetting} />;
+            }
+            return null;
+          })}
+        </div>
+      </React.Fragment>
+    );
+  });
 
   // Get available setting groups for navigation
   const availableGroups = Object.entries(filteredSettingsByGroup)

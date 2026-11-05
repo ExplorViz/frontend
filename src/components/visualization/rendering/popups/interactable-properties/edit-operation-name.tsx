@@ -8,21 +8,13 @@ interface EditOperationNameProps {
   communication: AggregatedCommunication;
 }
 
-export default function EditOperationName({
-  communication,
-}: EditOperationNameProps) {
-  const restructureMode = useLandscapeRestructureStore(
-    (state) => state.restructureMode
-  );
+export default function EditOperationName({ communication }: EditOperationNameProps) {
+  const restructureMode = useLandscapeRestructureStore((state) => state.restructureMode);
 
-  const renameOperation = useLandscapeRestructureStore(
-    (state) => state.renameOperation
-  );
+  const renameOperation = useLandscapeRestructureStore((state) => state.renameOperation);
 
   const [isEditing, setIsEditing] = useState<boolean>(false);
-  const [operationName, setOperationName] = useState<string>(
-    communication.operationName
-  );
+  const [operationName, setOperationName] = useState<string>(communication.operationName);
   const isSaving = useRef<boolean>(false);
 
   // This is to mimic the behavior of Ember runloop's next(). Unsure if this works as intended.
@@ -87,9 +79,7 @@ export default function EditOperationName({
           )}
         </td>
       ) : (
-        <td className="text-right text-break pl-1">
-          {communication.operationName}
-        </td>
+        <td className="text-right text-break pl-1">{communication.operationName}</td>
       )}
     </>
   );

@@ -1,5 +1,5 @@
 import { useFrame, useThree } from '@react-three/fiber';
-import { usePlayroomPlayers } from 'explorviz-frontend/src/components/collaboration/playroom-players-context';
+import { usePlayroomPlayers } from 'explorviz-frontend/src/components/collaboration/playroom-players-context-store';
 import { useLocalUserStore } from 'explorviz-frontend/src/stores/collaboration/local-user';
 import { useSpectateStatusStore } from 'explorviz-frontend/src/stores/collaboration/spectate-status-store';
 import { useSpectateUserStore } from 'explorviz-frontend/src/stores/collaboration/spectate-user';
@@ -15,18 +15,13 @@ export default function CollaborationCameraSync() {
   const players = usePlayroomPlayers();
   const localUserStore = useLocalUserStore();
 
-  const spectatedPlayerId = useSpectateUserStore(
-    (state) => state.spectatedPlayerId
-  );
+  const spectatedPlayerId = useSpectateUserStore((state) => state.spectatedPlayerId);
   const deactivateSpectate = useSpectateUserStore((state) => state.deactivate);
 
   const cameraSyncedRef = useRef<THREE.PerspectiveCamera | null>(null);
   // Register the main camera in the localUserStore
   useEffect(() => {
-    if (
-      camera instanceof THREE.PerspectiveCamera &&
-      cameraSyncedRef.current !== camera
-    ) {
+    if (camera instanceof THREE.PerspectiveCamera && cameraSyncedRef.current !== camera) {
       useLocalUserStore.getState().setDefaultCamera(camera);
       cameraSyncedRef.current = camera;
     }
@@ -63,11 +58,7 @@ export default function CollaborationCameraSync() {
     // If no one is spectating the current player, do not waste traffic and do nothing
     if (spectatorCount === 0) return;
 
-    const poses = getPoses(
-      camera,
-      localUserStore.controller1,
-      localUserStore.controller2
-    );
+    const poses = getPoses(camera, localUserStore.controller1, localUserStore.controller2);
     const lastPose = lastPoseRef.current;
 
     // Only change the current players state, if the camera changed (to safe network bandwidth)

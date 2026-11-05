@@ -17,13 +17,7 @@ export default function ContextMenuWorldPickRegister() {
 
   useEffect(() => {
     const pick = (clientX: number, clientY: number) =>
-      pickContextMenuWorldHit(
-        clientX,
-        clientY,
-        camera,
-        gl.domElement,
-        scene.children
-      );
+      pickContextMenuWorldHit(clientX, clientY, camera, gl.domElement, scene.children);
 
     registerContextMenuPick(pick);
     return () => {

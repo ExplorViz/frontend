@@ -1,8 +1,5 @@
 import { useModelStore } from 'explorviz-frontend/src/stores/repos/model-repository';
-import {
-  getLabelForModelType,
-  sortModelTypes,
-} from 'explorviz-frontend/src/utils/model-type-utils';
+import { getLabelForModelType, sortModelTypes } from 'explorviz-frontend/src/utils/model-type-utils';
 import CityModelConfig from './city-model-config';
 
 export default function CityConfig() {
@@ -24,9 +21,8 @@ export default function CityConfig() {
         <section>
           <h6 className="fw-bold">Model types</h6>
           <p className="small mb-2">
-            Set the color and geometry for cities from different analysis types.
-            Model types of cities found in the current landscape are shown by
-            default.
+            Set the color and geometry for cities from different analysis types. Model types of cities found in the
+            current landscape are shown by default.
           </p>
 
           <CityModelConfig

@@ -4,10 +4,7 @@ import {
   SocialMetricDto,
   useEvolutionDataFetchServiceStore,
 } from 'explorviz-frontend/src/stores/evolution-data-fetch-service';
-import {
-  BuildingMetricIds,
-  useHeatmapStore,
-} from 'explorviz-frontend/src/stores/heatmap/heatmap-store';
+import { BuildingMetricIds, useHeatmapStore } from 'explorviz-frontend/src/stores/heatmap/heatmap-store';
 import { useRenderingServiceStore } from 'explorviz-frontend/src/stores/rendering-service';
 import {
   sortSelectedCommitsForComparison,
@@ -26,17 +23,11 @@ interface SocialMetricsState {
   selectedTimeRange: { from: number; to: number } | null;
   normalization: { logScale: boolean; quantile: number };
 
-  initializeForSelection: (
-    repositoryName: string,
-    commits: SelectedCommit[]
-  ) => Promise<void>;
+  initializeForSelection: (repositoryName: string, commits: SelectedCommit[]) => Promise<void>;
   updateSocialMetrics: () => Promise<void>;
   setSelectedContributorIds: (ids: Set<number>) => void;
   setSelectedTimeRange: (range: { from: number; to: number } | null) => void;
-  setNormalization: (normalization: {
-    logScale: boolean;
-    quantile: number;
-  }) => void;
+  setNormalization: (normalization: { logScale: boolean; quantile: number }) => void;
   reset: () => void;
   _applyAndRender: (dtos: SocialMetricDto[]) => void;
 }
@@ -80,45 +71,30 @@ export const useSocialMetricsStore = create<SocialMetricsState>((set, get) => ({
         commit,
         contributors: contributorsResponse.contributors,
         availableTimeRange: contributorsResponse.timeRange,
-        selectedContributorIds: new Set(
-          contributorsResponse.contributors.map((c) => c.contributorId)
-        ),
+        selectedContributorIds: new Set(contributorsResponse.contributors.map((c) => c.contributorId)),
         selectedTimeRange: null,
       });
       get()._applyAndRender(dtos);
     } catch (e) {
       get().reset();
-      console.error(
-        `Failed to fetch social metrics for repoName: ${repositoryName}, reason: ${e}`
-      );
+      console.error(`Failed to fetch social metrics for repoName: ${repositoryName}, reason: ${e}`);
     }
   },
 
   updateSocialMetrics: async () => {
-    const {
-      repositoryName,
-      commit,
-      contributors,
-      selectedContributorIds,
-      selectedTimeRange,
-      normalization,
-    } = get();
+    const { repositoryName, commit, contributors, selectedContributorIds, selectedTimeRange, normalization } = get();
     if (!repositoryName || !commit) {
       return;
     }
 
     const allSelected = selectedContributorIds.size === contributors.length;
-    const dtos = await useEvolutionDataFetchServiceStore
-      .getState()
-      .fetchSocialMetrics(repositoryName, commit, {
-        from: selectedTimeRange?.from,
-        to: selectedTimeRange?.to,
-        contributorIds: allSelected
-          ? undefined
-          : Array.from(selectedContributorIds),
-        logScale: normalization.logScale,
-        quantile: normalization.quantile,
-      });
+    const dtos = await useEvolutionDataFetchServiceStore.getState().fetchSocialMetrics(repositoryName, commit, {
+      from: selectedTimeRange?.from,
+      to: selectedTimeRange?.to,
+      contributorIds: allSelected ? undefined : Array.from(selectedContributorIds),
+      logScale: normalization.logScale,
+      quantile: normalization.quantile,
+    });
     get()._applyAndRender(dtos);
   },
 
@@ -137,14 +113,10 @@ export const useSocialMetricsStore = create<SocialMetricsState>((set, get) => ({
 
     useEvolutionDataRepositoryStore.getState().applySocialMetrics(dtos);
 
-    const mergedFlat = useEvolutionDataRepositoryStore
-      .getState()
-      ._repoNameToFlatLandscapeMap.get(repositoryName);
+    const mergedFlat = useEvolutionDataRepositoryStore.getState()._repoNameToFlatLandscapeMap.get(repositoryName);
 
     if (mergedFlat) {
-      const visible = useRenderingServiceStore
-        .getState()
-        ._applyEvolutionLayoutFilter(mergedFlat);
+      const visible = useRenderingServiceStore.getState()._applyEvolutionLayoutFilter(mergedFlat);
 
       useModelStore.getState().setBuildings(Object.values(visible.buildings));
     }

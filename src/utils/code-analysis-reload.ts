@@ -7,8 +7,7 @@ import { buildNewestCommitSelectionMap } from 'explorviz-frontend/src/utils/evol
 
 /** Selects the newest analyzed commit per repository in commit-tree state. */
 export function applyNewestCommitSelectionToState(): boolean {
-  const repoNameCommitTreeMap =
-    useEvolutionDataRepositoryStore.getState()._repoNameCommitTreeMap;
+  const repoNameCommitTreeMap = useEvolutionDataRepositoryStore.getState()._repoNameCommitTreeMap;
 
   const selectedCommits = buildNewestCommitSelectionMap(
     repoNameCommitTreeMap,
@@ -20,17 +19,14 @@ export function applyNewestCommitSelectionToState(): boolean {
   }
 
   const firstRepoName = selectedCommits.keys().next().value!;
-  useCommitTreeStateStore
-    .getState()
-    .setCurrentSelectedRepositoryName(firstRepoName);
+  useCommitTreeStateStore.getState().setCurrentSelectedRepositoryName(firstRepoName);
   useCommitTreeStateStore.getState().setSelectedCommits(selectedCommits);
   return true;
 }
 
 export function markNewestCommitAutoSelectedForCurrentLandscape(): void {
   useTimestampPollingStore.setState({
-    newestCommitAutoSelectedForLandscapeToken:
-      useLandscapeTokenStore.getState().token?.value ?? null,
+    newestCommitAutoSelectedForLandscapeToken: useLandscapeTokenStore.getState().token?.value ?? null,
   });
 }
 
@@ -40,9 +36,7 @@ export function markNewestCommitAutoSelectedForCurrentLandscape(): void {
  * and render the newest analyzed commit instead of using runtime timestamps.
  */
 export async function reloadLandscapeAfterCodeAnalysis(): Promise<void> {
-  const refreshed = await useEvolutionDataRepositoryStore
-    .getState()
-    .fetchAndStoreRepositoryCommitTrees();
+  const refreshed = await useEvolutionDataRepositoryStore.getState().fetchAndStoreRepositoryCommitTrees();
 
   if (!refreshed) {
     await useTimestampPollingStore.getState().manuallyPollTimestamps();
@@ -54,7 +48,5 @@ export async function reloadLandscapeAfterCodeAnalysis(): Promise<void> {
     return;
   }
 
-  await useRenderingServiceStore
-    .getState()
-    .triggerRenderingForSelectedCommits();
+  await useRenderingServiceStore.getState().triggerRenderingForSelectedCommits();
 }

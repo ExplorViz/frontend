@@ -22,15 +22,11 @@ export const RepoAnalysisModal = ({ show, landscapeToken, onClose }: Props) => {
 
   const redirectToLandscapePage = async (landscapeTokenValue: string) => {
     const tokens = await useLandscapeTokenStore.getState().retrieveTokens();
-    const selectedToken = tokens.find(
-      (token) => token.value === landscapeTokenValue
-    );
+    const selectedToken = tokens.find((token) => token.value === landscapeTokenValue);
     if (selectedToken) {
       useLandscapeTokenStore.getState().setToken(selectedToken);
     } else {
-      await useLandscapeTokenStore
-        .getState()
-        .setTokenByValue(landscapeTokenValue);
+      await useLandscapeTokenStore.getState().setTokenByValue(landscapeTokenValue);
     }
 
     closeModal();
@@ -53,15 +49,11 @@ export const RepoAnalysisModal = ({ show, landscapeToken, onClose }: Props) => {
       }
     },
     onFailed: () => {
-      useToastHandlerStore
-        .getState()
-        .showErrorToastMessage('Analysis failed. Try again.');
+      useToastHandlerStore.getState().showErrorToastMessage('Analysis failed. Try again.');
       closeModal();
     },
     onCancelled: () => {
-      useToastHandlerStore
-        .getState()
-        .showSuccessToastMessage('Analysis cancelled.');
+      useToastHandlerStore.getState().showSuccessToastMessage('Analysis cancelled.');
       closeModal();
     },
     onError: (message: string) => {
@@ -95,18 +87,12 @@ export const RepoAnalysisModal = ({ show, landscapeToken, onClose }: Props) => {
     try {
       const result = await cancelAnalysisJob(token);
       if (!result.ok) {
-        useToastHandlerStore
-          .getState()
-          .showErrorToastMessage(
-            result.message || 'Failed to cancel analysis.'
-          );
+        useToastHandlerStore.getState().showErrorToastMessage(result.message || 'Failed to cancel analysis.');
       }
     } catch (error: any) {
       useToastHandlerStore
         .getState()
-        .showErrorToastMessage(
-          `Failed to cancel analysis: ${error.message || 'Network error'}`
-        );
+        .showErrorToastMessage(`Failed to cancel analysis: ${error.message || 'Network error'}`);
     } finally {
       setIsCancelling(false);
     }
@@ -114,11 +100,7 @@ export const RepoAnalysisModal = ({ show, landscapeToken, onClose }: Props) => {
 
   const onHide = () => {
     if (mode === 'running' && progress?.status !== 'cancelled') {
-      useToastHandlerStore
-        .getState()
-        .showErrorToastMessage(
-          'Please wait until the analysis is done or cancel it.'
-        );
+      useToastHandlerStore.getState().showErrorToastMessage('Please wait until the analysis is done or cancel it.');
       return;
     }
     closeModal();
@@ -131,16 +113,9 @@ export const RepoAnalysisModal = ({ show, landscapeToken, onClose }: Props) => {
       </Modal.Header>
       <Modal.Body>
         {mode === 'running' ? (
-          <RepoAnalysisProgress
-            state={progress}
-            onCancel={handleCancel}
-            isCancelling={isCancelling}
-          />
+          <RepoAnalysisProgress state={progress} onCancel={handleCancel} isCancelling={isCancelling} />
         ) : (
-          <CodeAnalysisTriggerForm
-            landscapeToken={landscapeToken}
-            onSubmitSuccess={onSuccess}
-          />
+          <CodeAnalysisTriggerForm landscapeToken={landscapeToken} onSubmitSuccess={onSuccess} />
         )}
       </Modal.Body>
     </Modal>

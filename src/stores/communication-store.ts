@@ -1,8 +1,4 @@
-import {
-  Comm,
-  CommSummary,
-  MetricRange,
-} from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/communication';
+import { Comm, CommSummary, MetricRange } from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/communication';
 import { create } from 'zustand';
 
 interface CommunicationState {
@@ -22,9 +18,7 @@ export const useCommunicationStore = create<CommunicationState>((set) => ({
     set({
       allCommunication: allCommunications,
       communicationById: new Map<string, Comm>(
-        allCommunications?.communications.map(
-          (comm) => [comm.id, comm] as const
-        ) ?? []
+        allCommunications?.communications.map((comm) => [comm.id, comm] as const) ?? []
       ),
       metrics: allCommunications?.metrics ?? null,
     }),

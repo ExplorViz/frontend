@@ -39,13 +39,8 @@ export type SocialMetricDto = {
 
 interface EvolutionDataFetchState {
   fetchRepositories: () => Promise<string[]>;
-  fetchCommitTreeForRepoName(
-    repoName: string,
-    filters?: CommitTreeFilterOptions
-  ): Promise<CommitTree>;
-  fetchFlatLandscapeForRepositoriesAndCommits(
-    body: EvolutionStructureBatchRequestBody
-  ): Promise<FlatLandscape>;
+  fetchCommitTreeForRepoName(repoName: string, filters?: CommitTreeFilterOptions): Promise<CommitTree>;
+  fetchFlatLandscapeForRepositoriesAndCommits(body: EvolutionStructureBatchRequestBody): Promise<FlatLandscape>;
   fetchSocialMetrics(
     repoName: string,
     commit: string,
@@ -64,124 +59,112 @@ interface EvolutionDataFetchState {
   _postJsonToService<T>(url: string, body: unknown): Promise<T>;
 }
 
-export const useEvolutionDataFetchServiceStore =
-  create<EvolutionDataFetchState>((set, get) => ({
-    fetchRepositories: async (): Promise<string[]> => {
-      const url = get()._constructUrl('repositories');
-      return await get()._fetchFromService<string[]>(url);
-    },
+export const useEvolutionDataFetchServiceStore = create<EvolutionDataFetchState>((set, get) => ({
+  fetchRepositories: async (): Promise<string[]> => {
+    const url = get()._constructUrl('repositories');
+    return await get()._fetchFromService<string[]>(url);
+  },
 
-    fetchCommitTreeForRepoName: async (
-      repoName: string,
-      filters?: CommitTreeFilterOptions
-    ): Promise<CommitTree> => {
-      const baseUrl = get()._constructUrl('commit-tree', repoName);
-      const params = new URLSearchParams();
-      if (filters?.fromTimestamp !== undefined) {
-        params.set('from', String(filters.fromTimestamp));
-      }
-      if (filters?.toTimestamp !== undefined) {
-        params.set('to', String(filters.toTimestamp));
-      }
-      if (filters?.sampling && filters.sampling !== 'none') {
-        params.set('sampling', filters.sampling);
-      }
-      if (filters?.firstParentOnly !== undefined) {
-        params.set('firstParentOnly', String(filters.firstParentOnly));
-      }
-      const url = params.toString() ? `${baseUrl}?${params}` : baseUrl;
-      const tree = await get()._fetchFromService<CommitTree>(url);
-      return normalizeCommitTree(tree, repoName);
-    },
+  fetchCommitTreeForRepoName: async (repoName: string, filters?: CommitTreeFilterOptions): Promise<CommitTree> => {
+    const baseUrl = get()._constructUrl('commit-tree', repoName);
+    const params = new URLSearchParams();
+    if (filters?.fromTimestamp !== undefined) {
+      params.set('from', String(filters.fromTimestamp));
+    }
+    if (filters?.toTimestamp !== undefined) {
+      params.set('to', String(filters.toTimestamp));
+    }
+    if (filters?.sampling && filters.sampling !== 'none') {
+      params.set('sampling', filters.sampling);
+    }
+    if (filters?.firstParentOnly !== undefined) {
+      params.set('firstParentOnly', String(filters.firstParentOnly));
+    }
+    const url = params.toString() ? `${baseUrl}?${params}` : baseUrl;
+    const tree = await get()._fetchFromService<CommitTree>(url);
+    return normalizeCommitTree(tree, repoName);
+  },
 
-    fetchFlatLandscapeForRepositoriesAndCommits: async (
-      body: EvolutionStructureBatchRequestBody
-    ): Promise<FlatLandscape> => {
-      const landscapeToken = get()._getLandscapeToken();
-      const url = `${import.meta.env.VITE_LANDSCAPE_SERV_URL}/v3/landscapes/${landscapeToken}/structure/evolution/batch`;
-      return await get()._postJsonToService<FlatLandscape>(url, body);
-    },
+  fetchFlatLandscapeForRepositoriesAndCommits: async (
+    body: EvolutionStructureBatchRequestBody
+  ): Promise<FlatLandscape> => {
+    const landscapeToken = get()._getLandscapeToken();
+    const url = `${import.meta.env.VITE_LANDSCAPE_SERV_URL}/v3/landscapes/${landscapeToken}/structure/evolution/batch`;
+    return await get()._postJsonToService<FlatLandscape>(url, body);
+  },
 
-    fetchSocialMetrics: async (
-      repoName: string,
-      commit: string,
-      opts?: {
-        from?: number;
-        to?: number;
-        contributorIds?: number[];
-        logScale?: boolean;
-        quantile?: number;
-      }
-    ): Promise<SocialMetricDto[]> => {
-      const baseUrl = get()._constructUrl('social-metrics', repoName);
-      const params = new URLSearchParams({ commit });
-      if (opts?.from !== undefined) params.set('from', String(opts.from));
-      if (opts?.to !== undefined) params.set('to', String(opts.to));
-      opts?.contributorIds?.forEach((id) =>
-        params.append('contributors', String(id))
-      );
-      if (opts?.logScale !== undefined)
-        params.set('logScale', String(opts.logScale));
-      if (opts?.quantile !== undefined)
-        params.set('quantile', String(opts.quantile));
-      return await get()._fetchFromService<SocialMetricDto[]>(
-        `${baseUrl}?${params}`
-      );
-    },
+  fetchSocialMetrics: async (
+    repoName: string,
+    commit: string,
+    opts?: {
+      from?: number;
+      to?: number;
+      contributorIds?: number[];
+      logScale?: boolean;
+      quantile?: number;
+    }
+  ): Promise<SocialMetricDto[]> => {
+    const baseUrl = get()._constructUrl('social-metrics', repoName);
+    const params = new URLSearchParams({ commit });
+    if (opts?.from !== undefined) params.set('from', String(opts.from));
+    if (opts?.to !== undefined) params.set('to', String(opts.to));
+    opts?.contributorIds?.forEach((id) => params.append('contributors', String(id)));
+    if (opts?.logScale !== undefined) params.set('logScale', String(opts.logScale));
+    if (opts?.quantile !== undefined) params.set('quantile', String(opts.quantile));
+    return await get()._fetchFromService<SocialMetricDto[]>(`${baseUrl}?${params}`);
+  },
 
-    fetchContributors: async (
-      repoName: string
-    ): Promise<ContributorsResponse> => {
-      const url = get()._constructUrl('contributors', repoName);
-      return await get()._fetchFromService<ContributorsResponse>(url);
-    },
+  fetchContributors: async (repoName: string): Promise<ContributorsResponse> => {
+    const url = get()._constructUrl('contributors', repoName);
+    return await get()._fetchFromService<ContributorsResponse>(url);
+  },
 
-    _getLandscapeToken: (): string => {
-      const landscapeToken = useLandscapeTokenStore.getState().token?.value;
-      if (!landscapeToken) {
-        throw new Error('No landscape token selected');
-      }
-      return landscapeToken;
-    },
+  _getLandscapeToken: (): string => {
+    const landscapeToken = useLandscapeTokenStore.getState().token?.value;
+    if (!landscapeToken) {
+      throw new Error('No landscape token selected');
+    }
+    return landscapeToken;
+  },
 
-    _constructUrl: (endpoint: string, ...params: string[]): string => {
-      const landscapeToken = get()._getLandscapeToken();
-      return `${import.meta.env.VITE_LANDSCAPE_SERV_URL}/v3/landscapes/${landscapeToken}/${endpoint}/${params.join('/')}`;
-    },
+  _constructUrl: (endpoint: string, ...params: string[]): string => {
+    const landscapeToken = get()._getLandscapeToken();
+    return `${import.meta.env.VITE_LANDSCAPE_SERV_URL}/v3/landscapes/${landscapeToken}/${endpoint}/${params.join('/')}`;
+  },
 
-    _fetchFromService: async <T>(url: string): Promise<T> => {
-      const response = await fetch(url, {
-        headers: {
-          Authorization: `Bearer ${useAuthStore.getState().accessToken}`,
-        },
-      });
+  _fetchFromService: async <T>(url: string): Promise<T> => {
+    const response = await fetch(url, {
+      headers: {
+        Authorization: `Bearer ${useAuthStore.getState().accessToken}`,
+      },
+    });
 
-      if (!response.ok) {
-        const errorText = await response.text();
-        throw new FetchError(response.status, errorText);
-      }
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new FetchError(response.status, errorText);
+    }
 
-      return (await response.json()) as T;
-    },
+    return (await response.json()) as T;
+  },
 
-    _postJsonToService: async <T>(url: string, body: unknown): Promise<T> => {
-      const response = await fetch(url, {
-        method: 'POST',
-        headers: {
-          Authorization: `Bearer ${useAuthStore.getState().accessToken}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(body),
-      });
+  _postJsonToService: async <T>(url: string, body: unknown): Promise<T> => {
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${useAuthStore.getState().accessToken}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(body),
+    });
 
-      if (!response.ok) {
-        const errorText = await response.text();
-        throw new FetchError(response.status, errorText);
-      }
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new FetchError(response.status, errorText);
+    }
 
-      return (await response.json()) as T;
-    },
-  }));
+    return (await response.json()) as T;
+  },
+}));
 
 class FetchError extends Error {
   constructor(

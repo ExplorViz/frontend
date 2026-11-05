@@ -27,21 +27,13 @@ export function DiagramGeneratorMenu({
   return (
     <div className="kube-diagram-generator-menu">
       <div className="kube-diagram-generator-form">
-        <select
-          value={type}
-          onChange={(e) => setType(e.target.value as DiagramType)}
-        >
+        <select value={type} onChange={(e) => setType(e.target.value as DiagramType)}>
           <option value="manifest">Manifest</option>
           <option value="kustomize">Kustomize</option>
           <option value="helmfile">Helmfile</option>
         </select>
 
-        <input
-          placeholder="Path"
-          value={path}
-          disabled={!!file}
-          onChange={(e) => setPath(e.target.value)}
-        />
+        <input placeholder="Path" value={path} disabled={!!file} onChange={(e) => setPath(e.target.value)} />
 
         <input
           ref={fileInputRef}
@@ -56,10 +48,7 @@ export function DiagramGeneratorMenu({
           }}
         />
 
-        <button
-          disabled={isRunning || (!path && !file)}
-          onClick={handleGenerate}
-        >
+        <button disabled={isRunning || (!path && !file)} onClick={handleGenerate}>
           {isRunning ? 'Generating…' : 'Generate'}
         </button>
       </div>

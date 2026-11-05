@@ -1,9 +1,7 @@
 import '@copilotkit/react-ui/styles.css';
 import { ChatbotChat } from 'explorviz-frontend/src/components/chatbot/chatbot-chat';
-import {
-  ChatbotContext,
-  CopilotRuntime,
-} from 'explorviz-frontend/src/components/chatbot/chatbot-context';
+import { CopilotRuntime } from 'explorviz-frontend/src/components/chatbot/chatbot-context';
+import { ChatbotContext } from 'explorviz-frontend/src/components/chatbot/chatbot-context-store';
 import { ModelDropdown } from 'explorviz-frontend/src/components/chatbot/model-dropdown';
 import { ProviderDropdown } from 'explorviz-frontend/src/components/chatbot/provider-dropdown';
 import { ResetButton } from 'explorviz-frontend/src/components/chatbot/reset-button';
@@ -15,13 +13,8 @@ import Alert from 'react-bootstrap/Alert';
 import Button from 'react-bootstrap/Button';
 
 export default function ChatbotBox() {
-  const {
-    providersError,
-    isLoadingProviders,
-    reloadProviders,
-    isCopilotRuntimeReady,
-    copilotRuntimeError,
-  } = use(ChatbotContext);
+  const { providersError, isLoadingProviders, reloadProviders, isCopilotRuntimeReady, copilotRuntimeError } =
+    use(ChatbotContext);
 
   const statusMessage = copilotRuntimeError ?? providersError;
 

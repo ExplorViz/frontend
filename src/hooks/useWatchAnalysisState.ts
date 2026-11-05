@@ -67,9 +67,7 @@ export const useWatchAnalysisState = ({
       }
 
       clearStatusStream();
-      const eventSource = new EventSource(
-        `${codeAnalyzerUrl}/api/analysis/state/stream/${tokenToUse}`
-      );
+      const eventSource = new EventSource(`${codeAnalyzerUrl}/api/analysis/state/stream/${tokenToUse}`);
       setIsStreaming(true);
 
       eventSource.onmessage = (event) => {
@@ -103,15 +101,7 @@ export const useWatchAnalysisState = ({
       eventSourceRef.current = eventSource;
       return true;
     },
-    [
-      clearStatusStream,
-      landscapeToken,
-      onFailed,
-      onFinished,
-      onCancelled,
-      onUpdate,
-      showError,
-    ]
+    [clearStatusStream, landscapeToken, onFailed, onFinished, onCancelled, onUpdate, showError]
   );
 
   useEffect(() => () => clearStatusStream(), [clearStatusStream]);

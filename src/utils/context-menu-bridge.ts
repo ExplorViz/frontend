@@ -1,10 +1,7 @@
 import type { ContextMenuHitEntity } from 'explorviz-frontend/src/utils/context-menu-world-pick';
 
 /** DOM pointer fields needed to position the HTML context menu overlay. */
-type NativePointerSubset = Pick<
-  MouseEvent,
-  'clientX' | 'clientY' | 'pageX' | 'pageY' | 'preventDefault'
->;
+type NativePointerSubset = Pick<MouseEvent, 'clientX' | 'clientY' | 'pageX' | 'pageY' | 'preventDefault'>;
 
 export type ContextMenuBridgePayload = {
   hit: ContextMenuHitEntity;
@@ -18,9 +15,7 @@ let subscriber: BridgeSubscriber | null = null;
 /**
  * Registers the React context-menu host (one consumer, typically Visualization).
  */
-export function subscribeContextMenuFromWorld(
-  handler: BridgeSubscriber | null
-): void {
+export function subscribeContextMenuFromWorld(handler: BridgeSubscriber | null): void {
   subscriber = handler;
 }
 
@@ -28,10 +23,7 @@ export function subscribeContextMenuFromWorld(
  * Open the HTML context menu from inside the R3F tree (foundation / districts / buildings)
  * or from Canvas callbacks (right-click miss).
  */
-export function emitContextMenuFromWorld(
-  hit: ContextMenuHitEntity,
-  nativeEvent: NativePointerSubset
-): void {
+export function emitContextMenuFromWorld(hit: ContextMenuHitEntity, nativeEvent: NativePointerSubset): void {
   nativeEvent.preventDefault();
   subscriber?.({
     hit,

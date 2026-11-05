@@ -3,10 +3,7 @@ import { useEffect, useRef } from 'react';
 
 type PointerStopCallback = (event: ThreeEvent<PointerEvent>) => void;
 
-export function usePointerStop(
-  onPointerStop: PointerStopCallback,
-  delay = 750
-) {
+export function usePointerStop(onPointerStop: PointerStopCallback, delay = 750) {
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
   const pointerIsOnMeshRef = useRef<boolean>(true);
 

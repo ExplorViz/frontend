@@ -101,10 +101,7 @@
   }
 }
 
-#navbar-user-options
-  > .dropdown
-  > .dropdown-menu.show
-  ~ .navbar-user-button::after {
+#navbar-user-options > .dropdown > .dropdown-menu.show ~ .navbar-user-button::after {
   transform: rotateX(180deg);
 }
 

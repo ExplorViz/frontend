@@ -19,8 +19,7 @@ interface SnapshotSelectionArgs {
   reload(): void;
 }
 
-const shareSnapshot =
-  import.meta.env.VITE_SHARE_SNAPSHOT_URL || `${window.location.origin}/`;
+const shareSnapshot = import.meta.env.VITE_SHARE_SNAPSHOT_URL || `${window.location.origin}/`;
 
 export default function SnapshotSelection({
   snapshotInfo,
@@ -28,38 +27,21 @@ export default function SnapshotSelection({
   selectSharedToken,
   reload,
 }: SnapshotSelectionArgs) {
-  const [sortPropertyPersonal, setSortPropertyPersonal] =
-    useState<keyof TinySnapshot>('createdAt');
-  const [sortPropertyShared, setSortPropertyShared] =
-    useState<keyof TinySnapshot>('createdAt');
-  const [sortOrderPersonal, setSortOrderPersonal] = useState<'asc' | 'desc'>(
-    'desc'
-  );
-  const [sortOrderShared, setSortOrderShared] = useState<'asc' | 'desc'>(
-    'desc'
-  );
+  const [sortPropertyPersonal, setSortPropertyPersonal] = useState<keyof TinySnapshot>('createdAt');
+  const [sortPropertyShared, setSortPropertyShared] = useState<keyof TinySnapshot>('createdAt');
+  const [sortOrderPersonal, setSortOrderPersonal] = useState<'asc' | 'desc'>('desc');
+  const [sortOrderShared, setSortOrderShared] = useState<'asc' | 'desc'>('desc');
   const [uploadSnapshotMenu, setUploadSnapshotMenu] = useState<boolean>(false);
-  const [uploadSnapshotBtnDisabled, setUploadSnapshotBtnDisabled] =
-    useState<boolean>(true);
+  const [uploadSnapshotBtnDisabled, setUploadSnapshotBtnDisabled] = useState<boolean>(true);
   const [displayName, setDisplayName] = useState<boolean>(false);
   const [snapshotData, setSnapshotData] = useState<SnapshotToken | null>(null);
   const [name, setName] = useState<string>('');
 
-  const sortSnapshots = (
-    snapshots: TinySnapshot[],
-    property: keyof TinySnapshot,
-    order: 'asc' | 'desc'
-  ) => {
+  const sortSnapshots = (snapshots: TinySnapshot[], property: keyof TinySnapshot, order: 'asc' | 'desc') => {
     return [...snapshots].sort((a, b) => {
       const aValue = a[property];
       const bValue = b[property];
-      return order === 'asc'
-        ? aValue > bValue
-          ? 1
-          : -1
-        : aValue < bValue
-          ? 1
-          : -1;
+      return order === 'asc' ? (aValue > bValue ? 1 : -1) : aValue < bValue ? 1 : -1;
     });
   };
 
@@ -156,13 +138,9 @@ export default function SnapshotSelection({
       await navigator.clipboard.writeText(
         `${shareSnapshot}visualization?landscapeToken=${snapshot.landscapeToken.value}&owner=${snapshot.owner}&createdAt=${snapshot.createdAt}&sharedSnapshot=${true}`
       );
-      useToastHandlerStore
-        .getState()
-        .showSuccessToastMessage('Snapshot URL copied to clipboard.');
+      useToastHandlerStore.getState().showSuccessToastMessage('Snapshot URL copied to clipboard.');
     } catch (e) {
-      useToastHandlerStore
-        .getState()
-        .showErrorToastMessage('Failed to generate URL for snapshot.');
+      useToastHandlerStore.getState().showErrorToastMessage('Failed to generate URL for snapshot.');
     }
   };
 
@@ -171,17 +149,10 @@ export default function SnapshotSelection({
       <div className="pb-5">
         <h5 className="text-left mb-3">Personal Snapshots</h5>
         <div className="flex-row justify-content-center selection-table">
-          <table
-            className="table table-striped explorviz-table"
-            id="personal-token-selection-table"
-          >
+          <table className="table table-striped explorviz-table" id="personal-token-selection-table">
             <thead>
               <tr>
-                <th
-                  style={{ width: '70%' }}
-                  scope="col"
-                  onClick={() => sortByPersonal('name')}
-                >
+                <th style={{ width: '70%' }} scope="col" onClick={() => sortByPersonal('name')}>
                   Alias
                 </th>
                 <th scope="col" onClick={() => sortByPersonal('createdAt')}>
@@ -192,47 +163,31 @@ export default function SnapshotSelection({
             </thead>
             <tbody>
               {snapshotInfo.personalSnapshots.length > 0 ? (
-                sortSnapshots(
-                  snapshotInfo.personalSnapshots,
-                  sortPropertyPersonal,
-                  sortOrderPersonal
-                ).map((personalToken) => (
-                  <tr key={personalToken.name} className="token-selection-row">
-                    <th
-                      scope="row"
-                      onClick={() => selectPersonalToken(personalToken)}
-                    >
-                      {personalToken.name}{' '}
-                    </th>
-                    <th
-                      scope="row"
-                      onClick={() => selectPersonalToken(personalToken)}
-                    >
-                      {new Date(personalToken.createdAt).toLocaleString()}
-                    </th>
-                    <th scope="row">
-                      <ul className="token-selection-icons">
-                        <li>
-                          <AdditionalSnapshotInfo token={personalToken} />
-                        </li>
-                        <li>
-                          <ShareSnapshot
-                            token={personalToken}
-                            reload={reload}
-                          />
-                        </li>
-                        <li>
-                          <DeleteSnapshot
-                            token={personalToken}
-                            isShared={false}
-                            subscribed={false}
-                            reload={reload}
-                          />
-                        </li>
-                      </ul>
-                    </th>
-                  </tr>
-                ))
+                sortSnapshots(snapshotInfo.personalSnapshots, sortPropertyPersonal, sortOrderPersonal).map(
+                  (personalToken) => (
+                    <tr key={personalToken.name} className="token-selection-row">
+                      <th scope="row" onClick={() => selectPersonalToken(personalToken)}>
+                        {personalToken.name}{' '}
+                      </th>
+                      <th scope="row" onClick={() => selectPersonalToken(personalToken)}>
+                        {new Date(personalToken.createdAt).toLocaleString()}
+                      </th>
+                      <th scope="row">
+                        <ul className="token-selection-icons">
+                          <li>
+                            <AdditionalSnapshotInfo token={personalToken} />
+                          </li>
+                          <li>
+                            <ShareSnapshot token={personalToken} reload={reload} />
+                          </li>
+                          <li>
+                            <DeleteSnapshot token={personalToken} isShared={false} subscribed={false} reload={reload} />
+                          </li>
+                        </ul>
+                      </th>
+                    </tr>
+                  )
+                )
               ) : (
                 <tr>
                   <td colSpan={3} className="text-center">
@@ -267,34 +222,19 @@ export default function SnapshotSelection({
               <>
                 <label htmlFor="token">Snapshot Name:</label>
                 <div className="d-flex justify-content-between mb-4">
-                  <input
-                    id="name"
-                    className="form-control mr-2"
-                    onInput={updateName}
-                    value={name}
-                  />
+                  <input id="name" className="form-control mr-2" onInput={updateName} value={name} />
                 </div>
               </>
             )}
             <div className="d-flex justify-content-between">
-              <input
-                id="fileUpload"
-                type="file"
-                name="file"
-                accept=".explorviz"
-                onInput={updateFile}
-              />
+              <input id="fileUpload" type="file" name="file" accept=".explorviz" onInput={updateFile} />
             </div>
           </Modal.Body>
           <Modal.Footer>
             <Button variant="outline-danger" onClick={closeMenu}>
               Cancel
             </Button>
-            <Button
-              variant="outline-secondary"
-              onClick={uploadSnapshot}
-              disabled={uploadSnapshotBtnDisabled}
-            >
+            <Button variant="outline-secondary" onClick={uploadSnapshot} disabled={uploadSnapshotBtnDisabled}>
               Upload
             </Button>
           </Modal.Footer>
@@ -303,17 +243,10 @@ export default function SnapshotSelection({
       <div className="pb-5">
         <h5 className="text-left">Shared Snapshots</h5>
         <div className="d-flex flex-row justify-content-center selection-table">
-          <table
-            className="table table-striped explorviz-table"
-            id="shared-token-selection-table"
-          >
+          <table className="table table-striped explorviz-table" id="shared-token-selection-table">
             <thead>
               <tr>
-                <th
-                  style={{ width: '70%' }}
-                  scope="col"
-                  onClick={() => sortByShared('name')}
-                >
+                <th style={{ width: '70%' }} scope="col" onClick={() => sortByShared('name')}>
                   Alias
                 </th>
                 <th scope="col" onClick={() => sortByShared('createdAt')}>
@@ -324,22 +257,12 @@ export default function SnapshotSelection({
             </thead>
             <tbody>
               {snapshotInfo.sharedSnapshots.length > 0 ? (
-                sortSnapshots(
-                  snapshotInfo.sharedSnapshots,
-                  sortPropertyShared,
-                  sortOrderShared
-                ).map((sharedToken) => (
+                sortSnapshots(snapshotInfo.sharedSnapshots, sortPropertyShared, sortOrderShared).map((sharedToken) => (
                   <tr key={sharedToken.name} className="token-selection-row">
-                    <th
-                      scope="row"
-                      onClick={() => selectSharedToken(sharedToken)}
-                    >
+                    <th scope="row" onClick={() => selectSharedToken(sharedToken)}>
                       {sharedToken.name}
                     </th>
-                    <th
-                      scope="row"
-                      onClick={() => selectSharedToken(sharedToken)}
-                    >
+                    <th scope="row" onClick={() => selectSharedToken(sharedToken)}>
                       {new Date(sharedToken.createdAt).toLocaleString()}
                     </th>
                     <th scope="row">
@@ -349,30 +272,19 @@ export default function SnapshotSelection({
                         </li>
                         <li>
                           <div id="colorPresets" className="dropdown">
-                            <OverlayTrigger
-                              placement="bottom"
-                              overlay={<Tooltip>Share Snapshot</Tooltip>}
-                            >
+                            <OverlayTrigger placement="bottom" overlay={<Tooltip>Share Snapshot</Tooltip>}>
                               <button
                                 className="button-svg-with-hover"
                                 type="button"
                                 onClick={() => createLink(sharedToken)}
                               >
-                                <ShareAndroidIcon
-                                  size="small"
-                                  className="align-middle"
-                                />
+                                <ShareAndroidIcon size="small" className="align-middle" />
                               </button>
                             </OverlayTrigger>
                           </div>
                         </li>
                         <li>
-                          <DeleteSnapshot
-                            token={sharedToken}
-                            isShared={true}
-                            subscribed={false}
-                            reload={reload}
-                          />
+                          <DeleteSnapshot token={sharedToken} isShared={true} subscribed={false} reload={reload} />
                         </li>
                       </ul>
                     </th>
@@ -392,17 +304,10 @@ export default function SnapshotSelection({
       <div className="pb-3">
         <h5 className="text-left">Subscribed Snapshots</h5>
         <div className="d-flex flex-row justify-content-center selection-table">
-          <table
-            className="table table-striped explorviz-table"
-            id="subscribed-token-selection-table"
-          >
+          <table className="table table-striped explorviz-table" id="subscribed-token-selection-table">
             <thead>
               <tr>
-                <th
-                  style={{ width: '70%' }}
-                  scope="col"
-                  onClick={() => sortByShared('name')}
-                >
+                <th style={{ width: '70%' }} scope="col" onClick={() => sortByShared('name')}>
                   Alias
                 </th>
                 <th scope="col" onClick={() => sortByShared('createdAt')}>
@@ -413,44 +318,33 @@ export default function SnapshotSelection({
             </thead>
             <tbody>
               {snapshotInfo.subscribedSnapshots.length > 0 ? (
-                sortSnapshots(
-                  snapshotInfo.subscribedSnapshots,
-                  sortPropertyShared,
-                  sortOrderShared
-                ).map((subscribedToken) => (
-                  <tr
-                    key={subscribedToken.name}
-                    className="token-selection-row"
-                  >
-                    <th
-                      scope="row"
-                      onClick={() => selectSharedToken(subscribedToken)}
-                    >
-                      {subscribedToken.name}
-                    </th>
-                    <th
-                      scope="row"
-                      onClick={() => selectSharedToken(subscribedToken)}
-                    >
-                      {new Date(subscribedToken.createdAt).toLocaleString()}
-                    </th>
-                    <th scope="row">
-                      <ul className="token-selection-icons">
-                        <li>
-                          <AdditionalSnapshotInfo token={subscribedToken} />
-                        </li>
-                        <li>
-                          <DeleteSnapshot
-                            token={subscribedToken}
-                            isShared={false}
-                            subscribed={true}
-                            reload={reload}
-                          />
-                        </li>
-                      </ul>
-                    </th>
-                  </tr>
-                ))
+                sortSnapshots(snapshotInfo.subscribedSnapshots, sortPropertyShared, sortOrderShared).map(
+                  (subscribedToken) => (
+                    <tr key={subscribedToken.name} className="token-selection-row">
+                      <th scope="row" onClick={() => selectSharedToken(subscribedToken)}>
+                        {subscribedToken.name}
+                      </th>
+                      <th scope="row" onClick={() => selectSharedToken(subscribedToken)}>
+                        {new Date(subscribedToken.createdAt).toLocaleString()}
+                      </th>
+                      <th scope="row">
+                        <ul className="token-selection-icons">
+                          <li>
+                            <AdditionalSnapshotInfo token={subscribedToken} />
+                          </li>
+                          <li>
+                            <DeleteSnapshot
+                              token={subscribedToken}
+                              isShared={false}
+                              subscribed={true}
+                              reload={reload}
+                            />
+                          </li>
+                        </ul>
+                      </th>
+                    </tr>
+                  )
+                )
               ) : (
                 <tr>
                   <td colSpan={3} className="text-center">

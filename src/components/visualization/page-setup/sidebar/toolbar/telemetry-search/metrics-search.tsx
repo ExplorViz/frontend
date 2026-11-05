@@ -1,32 +1,15 @@
 import { SearchIcon } from '@primer/octicons-react';
 import EntitySelect from 'explorviz-frontend/src/components/entity-select';
 import HelpTooltip from 'explorviz-frontend/src/components/help-tooltip';
-import useRuntimeMetricsFetch, {
-  MetricsSearchParams,
-} from 'explorviz-frontend/src/hooks/fetch/useRuntimeMetricsFetch';
+import useRuntimeMetricsFetch, { MetricsSearchParams } from 'explorviz-frontend/src/hooks/fetch/useRuntimeMetricsFetch';
 import { useLandscapeTokenStore } from 'explorviz-frontend/src/stores/landscape-token';
 import { useModelStore } from 'explorviz-frontend/src/stores/repos/model-repository';
 import { useToastHandlerStore } from 'explorviz-frontend/src/stores/toast-handler';
-import {
-  Building,
-  City,
-} from 'explorviz-frontend/src/utils/landscape-schemes/flat-landscape';
-import {
-  MetricOverview,
-  MetricsPointKind,
-} from 'explorviz-frontend/src/utils/landscape-schemes/telemetry/metrics';
-import { pingByModelId } from 'explorviz-frontend/src/view-objects/3d/city/animated-ping-r3f';
+import { Building, City } from 'explorviz-frontend/src/utils/landscape-schemes/flat-landscape';
+import { MetricOverview, MetricsPointKind } from 'explorviz-frontend/src/utils/landscape-schemes/telemetry/metrics';
+import { pingByModelId } from 'explorviz-frontend/src/view-objects/3d/city/ping-animation';
 import React, { use, useCallback, useEffect, useState } from 'react';
-import {
-  Accordion,
-  Badge,
-  Button,
-  Card,
-  Form,
-  OverlayTrigger,
-  Spinner,
-  Tooltip,
-} from 'react-bootstrap';
+import { Accordion, Badge, Button, Card, Form, OverlayTrigger, Spinner, Tooltip } from 'react-bootstrap';
 import { List, RowComponentProps, useDynamicRowHeight } from 'react-window';
 import { useInfiniteLoader } from 'react-window-infinite-loader';
 import { BottomBarContext } from '../../../bottom-bar/bottom-bar-context';
@@ -57,28 +40,20 @@ const defaultSearchParams: MetricsSearchParams = {
 const PAGINATION_SIZE = 50;
 
 export default function MetricsSearch() {
-  const cities = Object.values(useModelStore((state) => state.cities)).toSorted(
-    (a, b) => a.name.localeCompare(b.name)
-  );
+  const cities = Object.values(useModelStore((state) => state.cities)).toSorted((a, b) => a.name.localeCompare(b.name));
   const landscapeToken = useLandscapeTokenStore((state) => state.token);
-  const showErrorToastMessage = useToastHandlerStore(
-    (state) => state.showErrorToastMessage
-  );
+  const showErrorToastMessage = useToastHandlerStore((state) => state.showErrorToastMessage);
 
   const toolbarContext = use(ToolbarContext);
   const bottomBarContext = use(BottomBarContext);
-  const searchRequest =
-    toolbarContext.telemetrySearchState.metricsSearchRequest;
+  const searchRequest = toolbarContext.telemetrySearchState.metricsSearchRequest;
 
   const [metrics, setMetrics] = useState<MetricOverview[] | null>(null);
-  const [searchParams, setSearchParams] =
-    useState<MetricsSearchParams>(defaultSearchParams);
-  const [lastSubmittedParams, setLastSubmittedParams] =
-    useState<MetricsSearchParams | null>(null);
+  const [searchParams, setSearchParams] = useState<MetricsSearchParams>(defaultSearchParams);
+  const [lastSubmittedParams, setLastSubmittedParams] = useState<MetricsSearchParams | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [allItemsLoaded, setAllItemsLoaded] = useState<boolean>(false);
-  const [prevSearchRequest, setPrevSearchRequest] =
-    useState<MetricsSearchParams | null>(null);
+  const [prevSearchRequest, setPrevSearchRequest] = useState<MetricsSearchParams | null>(null);
 
   const fetchMetrics = useRuntimeMetricsFetch();
 
@@ -98,9 +73,7 @@ export default function MetricsSearch() {
           limit: PAGINATION_SIZE,
         });
 
-        setMetrics((state) =>
-          state === null ? receivedMetrics : [...state, ...receivedMetrics]
-        );
+        setMetrics((state) => (state === null ? receivedMetrics : [...state, ...receivedMetrics]));
         setIsLoading(false);
         if (receivedMetrics.length < PAGINATION_SIZE) {
           setAllItemsLoaded(true);
@@ -108,9 +81,7 @@ export default function MetricsSearch() {
       } catch (error) {
         setIsLoading(false);
         setAllItemsLoaded(true);
-        showErrorToastMessage(
-          `Failed to retrieve metrics: ${error instanceof Error ? error.message : error}`
-        );
+        showErrorToastMessage(`Failed to retrieve metrics: ${error instanceof Error ? error.message : error}`);
       }
     },
     [landscapeToken, fetchMetrics, showErrorToastMessage]
@@ -159,8 +130,7 @@ export default function MetricsSearch() {
     // upon selecting the metric.
     let entity: Building | City | null = null;
 
-    const telemetryKeyToEntityId =
-      useModelStore.getState().telemetryKeyToEntityId;
+    const telemetryKeyToEntityId = useModelStore.getState().telemetryKeyToEntityId;
     const buildings = useModelStore.getState().buildings;
     const cities = useModelStore.getState().cities;
 
@@ -170,9 +140,7 @@ export default function MetricsSearch() {
       entity = entityId ? buildings[entityId] : null;
     }
     if (entity === null && params.serviceName) {
-      entity =
-        Object.values(cities).find((s) => s.name === params.serviceName) ??
-        null;
+      entity = Object.values(cities).find((s) => s.name === params.serviceName) ?? null;
     }
 
     bottomBarContext.setSelectedMetric(metric, entity);
@@ -221,9 +189,7 @@ export default function MetricsSearch() {
             <Form.Control
               name="name"
               value={searchParams.searchString ?? ''}
-              onChange={(e) =>
-                updateSearchParams({ searchString: e.target.value })
-              }
+              onChange={(e) => updateSearchParams({ searchString: e.target.value })}
               placeholder='e.g. "http.client.open_connections", "jvm", &hellip;'
               className="mb-2"
             />
@@ -240,9 +206,7 @@ export default function MetricsSearch() {
                 </>
               }
               checked={searchParams.includeDescription ?? false}
-              onChange={(e) =>
-                updateSearchParams({ includeDescription: e.target.checked })
-              }
+              onChange={(e) => updateSearchParams({ includeDescription: e.target.checked })}
               inline
             />
             <Form.Check
@@ -258,9 +222,7 @@ export default function MetricsSearch() {
                 </>
               }
               checked={searchParams.includeAttributeKeys ?? false}
-              onChange={(e) =>
-                updateSearchParams({ includeAttributeKeys: e.target.checked })
-              }
+              onChange={(e) => updateSearchParams({ includeAttributeKeys: e.target.checked })}
               inline
             />
             <Form.Check
@@ -276,9 +238,7 @@ export default function MetricsSearch() {
                 </>
               }
               checked={searchParams.includeAttributeValues ?? false}
-              onChange={(e) =>
-                updateSearchParams({ includeAttributeValues: e.target.checked })
-              }
+              onChange={(e) => updateSearchParams({ includeAttributeValues: e.target.checked })}
               inline
             />
           </Form.Group>
@@ -286,10 +246,7 @@ export default function MetricsSearch() {
           <Form.Group className="mb-3">
             <Form.Label>
               Datapoint Kind{' '}
-              <HelpTooltip
-                title="Only match metrics where the datapoints are of a specific type."
-                placement="top"
-              />
+              <HelpTooltip title="Only match metrics where the datapoints are of a specific type." placement="top" />
             </Form.Label>
 
             <div style={{ minHeight: '2.4em' }}>
@@ -325,8 +282,7 @@ export default function MetricsSearch() {
               value={searchParams.serviceName ?? ''}
               onChange={(e) =>
                 updateSearchParams({
-                  serviceName:
-                    e.target.value != '' ? e.target.value : undefined,
+                  serviceName: e.target.value != '' ? e.target.value : undefined,
                 })
               }
             >
@@ -383,8 +339,7 @@ export default function MetricsSearch() {
                 label="Name (Ascending)"
                 checked={searchParams.sortBy === 'nameAsc'}
                 onChange={(e) => {
-                  if (e.target.checked)
-                    updateSearchParams({ sortBy: 'nameAsc' });
+                  if (e.target.checked) updateSearchParams({ sortBy: 'nameAsc' });
                 }}
               />
               <Form.Check
@@ -395,19 +350,14 @@ export default function MetricsSearch() {
                 label="Name (Descending)"
                 checked={searchParams.sortBy === 'nameDesc'}
                 onChange={(e) => {
-                  if (e.target.checked)
-                    updateSearchParams({ sortBy: 'nameDesc' });
+                  if (e.target.checked) updateSearchParams({ sortBy: 'nameDesc' });
                 }}
               />
             </div>
           </Form.Group>
 
           <Button type="submit" className="d-flex align-items-center gap-2">
-            {isLoading ? (
-              <Spinner animation="border" size="sm" />
-            ) : (
-              <SearchIcon />
-            )}
+            {isLoading ? <Spinner animation="border" size="sm" /> : <SearchIcon />}
             <div>Search Metrics</div>
           </Button>
         </Form>
@@ -423,9 +373,7 @@ export default function MetricsSearch() {
                   rowCount={metrics.length}
                   rowHeight={rowHeight}
                   rowProps={{ metrics: metrics, onSelect: handleMetricSelect }}
-                  rowKey={(index, { metrics }) =>
-                    `${metrics[index].pointKind}_${metrics[index].name}`
-                  }
+                  rowKey={(index, { metrics }) => `${metrics[index].pointKind}_${metrics[index].name}`}
                   onRowsRendered={onRowsRendered}
                   style={{
                     minHeight: '80vh',
@@ -456,14 +404,9 @@ function MetricItem({
 }>) {
   const metric = metrics[index];
 
-  const unit =
-    metric.unit.startsWith('{') && metric.unit.endsWith('}')
-      ? metric.unit.slice(1, -1)
-      : metric.unit;
+  const unit = metric.unit.startsWith('{') && metric.unit.endsWith('}') ? metric.unit.slice(1, -1) : metric.unit;
 
-  const telemetryKeyToEntityId = useModelStore(
-    (state) => state.telemetryKeyToEntityId
-  );
+  const telemetryKeyToEntityId = useModelStore((state) => state.telemetryKeyToEntityId);
   const buildings = useModelStore((state) => state.buildings);
   const buildingsWithMetric = metric.entities.flatMap((k) => {
     const id = telemetryKeyToEntityId.get(k);
@@ -489,16 +432,12 @@ function MetricItem({
               <p className="text-break mb-2">{metric.description}</p>
               <small>
                 <div className="text-muted mb-0">
-                  <Badge bg="secondary">
-                    {getLabelForPointKind(metric.pointKind) ?? metric.pointKind}
-                  </Badge>{' '}
-                  &middot; {unit != '' && <>{unit} &middot; </>}
+                  <Badge bg="secondary">{getLabelForPointKind(metric.pointKind) ?? metric.pointKind}</Badge> &middot;{' '}
+                  {unit != '' && <>{unit} &middot; </>}
                   <OverlayTrigger
                     placement={'top'}
                     trigger={['hover', 'focus']}
-                    overlay={
-                      <Tooltip>{metric.services.toSorted().join(', ')}</Tooltip>
-                    }
+                    overlay={<Tooltip>{metric.services.toSorted().join(', ')}</Tooltip>}
                   >
                     <span>{metric.services.length} Services</span>
                   </OverlayTrigger>{' '}

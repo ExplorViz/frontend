@@ -20,14 +20,13 @@ const fromISO = (str: string) => Date.parse(str);
 const fromISOEnd = (str: string) => Date.parse(str) + DAY - 1; // stretch to end of day
 
 export default function TimeRangeSelection() {
-  const { availableTimeRange, selectedTimeRange, setSelectedTimeRange } =
-    useSocialMetricsStore(
-      useShallow((s) => ({
-        availableTimeRange: s.availableTimeRange,
-        selectedTimeRange: s.selectedTimeRange,
-        setSelectedTimeRange: s.setSelectedTimeRange,
-      }))
-    );
+  const { availableTimeRange, selectedTimeRange, setSelectedTimeRange } = useSocialMetricsStore(
+    useShallow((s) => ({
+      availableTimeRange: s.availableTimeRange,
+      selectedTimeRange: s.selectedTimeRange,
+      setSelectedTimeRange: s.setSelectedTimeRange,
+    }))
+  );
   const [showCustom, setShowCustom] = useState(false);
   if (!availableTimeRange) return null;
 
@@ -51,12 +50,7 @@ export default function TimeRangeSelection() {
       <span className="social-metrics-control-sublabel">Presets</span>
       <div className="social-metrics-preset-group">
         {PRESETS.map((p) => (
-          <Button
-            key={p.key}
-            size="sm"
-            variant="outline-secondary"
-            onClick={() => applyPreset(p.days)}
-          >
+          <Button key={p.key} size="sm" variant="outline-secondary" onClick={() => applyPreset(p.days)}>
             {p.label}
           </Button>
         ))}
@@ -94,8 +88,7 @@ export default function TimeRangeSelection() {
         <div className="d-flex">
           <InfoIcon className="info-icon" />
           <span>
-            This setting does <strong>not</strong> apply to the following
-            metrics:{' '}
+            This setting does <strong>not</strong> apply to the following metrics:{' '}
             <ul className="mb-0">
               <li>reviewFriction</li>
               <li>issueActivity</li>

@@ -30,8 +30,7 @@ const getDefaultUser = (): AuthenticatedUser => ({
   sub: import.meta.env.VITE_DEV_USER_SUB || '9000',
 });
 
-const getDefaultAccessToken = (): string =>
-  import.meta.env.VITE_DEV_ACCESS_TOKEN || 'dev-token';
+const getDefaultAccessToken = (): string => import.meta.env.VITE_DEV_ACCESS_TOKEN || 'dev-token';
 
 export const keycloak = new Keycloak({
   url: import.meta.env.VITE_KEYCLOAK_URL || window.location.origin,
@@ -49,9 +48,7 @@ export const useAuthStore = create<AuthState>((set) => ({
     set({ user: undefined, accessToken: undefined });
     if (!isSkipLoginEnabled) {
       keycloak.logout({
-        redirectUri:
-          import.meta.env.VITE_KEYCLOAK_REDIRECT_URI ||
-          `${window.location.origin}/`,
+        redirectUri: import.meta.env.VITE_KEYCLOAK_REDIRECT_URI || `${window.location.origin}/`,
       });
     }
   },

@@ -1,16 +1,5 @@
-import {
-  GaugeMetricValues,
-  SumMetricValues,
-} from 'explorviz-frontend/src/utils/landscape-schemes/telemetry/metrics';
-import {
-  CartesianGrid,
-  Line,
-  LineChart,
-  ResponsiveContainer,
-  Tooltip,
-  XAxis,
-  YAxis,
-} from 'recharts';
+import { GaugeMetricValues, SumMetricValues } from 'explorviz-frontend/src/utils/landscape-schemes/telemetry/metrics';
+import { CartesianGrid, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 import { MetricsWindow } from './runtime-metrics-chart';
 
 const ONE_HOUR_IN_MILLIS = 1000 * 60 * 60;
@@ -92,20 +81,10 @@ export function GaugeMetricChart({
 
         <Tooltip
           labelFormatter={(timestamp) => formatTime(Number(timestamp))}
-          formatter={(value) => [
-            `${Number(Number(value).toFixed(6))}${unit}`,
-            'Value',
-          ]}
+          formatter={(value) => [`${Number(Number(value).toFixed(6))}${unit}`, 'Value']}
         />
 
-        <Line
-          type="linear"
-          dataKey="value"
-          name="Value"
-          dot={true}
-          strokeWidth={2}
-          isAnimationActive={false}
-        />
+        <Line type="linear" dataKey="value" name="Value" dot={true} strokeWidth={2} isAnimationActive={false} />
       </LineChart>
     </ResponsiveContainer>
   );

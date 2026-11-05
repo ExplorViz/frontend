@@ -18,15 +18,7 @@ interface LocalUserState {
   isHost: boolean;
   getCamera: () => THREE.PerspectiveCamera;
   tick: (delta: number) => void;
-  connected: ({
-    id,
-    name,
-    color,
-  }: {
-    id: string;
-    name: string;
-    color: THREE.Color;
-  }) => void;
+  connected: ({ id, name, color }: { id: string; name: string; color: THREE.Color }) => void;
   setPanoramaSphere: (panoramaSphere: THREE.Object3D) => void;
   updateCameraAspectRatio: (width: number, height: number) => void;
   teleportToPosition: (position: THREE.Vector3) => void;
@@ -35,11 +27,7 @@ interface LocalUserState {
   setCameraHeight: (cameraHeight: number) => void;
   moveInCameraDirection: (
     direction: THREE.Vector3,
-    {
-      enableX,
-      enableY,
-      enableZ,
-    }: { enableX?: boolean; enableY?: boolean; enableZ?: boolean }
+    { enableX, enableY, enableZ }: { enableX?: boolean; enableY?: boolean; enableZ?: boolean }
   ) => void;
   rotateCamera: (x: number, y: number) => void;
   resetPositionAndRotation: () => void;
@@ -111,15 +99,7 @@ export const useLocalUserStore = create<LocalUserState>((set, get) => {
       set({ animationMixer: newAnimationMixer });
     },
 
-    connected: ({
-      id,
-      name,
-      color,
-    }: {
-      id: string;
-      name: string;
-      color: THREE.Color;
-    }) => {
+    connected: ({ id, name, color }: { id: string; name: string; color: THREE.Color }) => {
       set({ userId: id });
       set({ userName: name });
 
@@ -152,9 +132,7 @@ export const useLocalUserStore = create<LocalUserState>((set, get) => {
      *  the new position
      */
     teleportToPosition: (position: THREE.Vector3) => {
-      const worldPos = get()
-        .xr?.getCamera()
-        .getWorldPosition(new THREE.Vector3());
+      const worldPos = get().xr?.getCamera().getWorldPosition(new THREE.Vector3());
 
       if (!(worldPos?.x || worldPos?.z)) {
         return;
@@ -167,11 +145,8 @@ export const useLocalUserStore = create<LocalUserState>((set, get) => {
         w: 1,
       };
       const offsetRotation = new THREE.Quaternion();
-      const transform = new XRRigidTransform(offsetPosition, offsetRotation)
-        .inverse;
-      const teleportSpaceOffset = get()
-        .xr?.getReferenceSpace()
-        ?.getOffsetReferenceSpace(transform);
+      const transform = new XRRigidTransform(offsetPosition, offsetRotation).inverse;
+      const teleportSpaceOffset = get().xr?.getReferenceSpace()?.getOffsetReferenceSpace(transform);
 
       if (teleportSpaceOffset) {
         const newXr = get().xr;
@@ -200,18 +175,11 @@ export const useLocalUserStore = create<LocalUserState>((set, get) => {
      */
     moveInCameraDirection: (
       direction: THREE.Vector3,
-      {
-        enableX = true,
-        enableY = true,
-        enableZ = true,
-      }: { enableX?: boolean; enableY?: boolean; enableZ?: boolean }
+      { enableX = true, enableY = true, enableZ = true }: { enableX?: boolean; enableY?: boolean; enableZ?: boolean }
     ) => {
       // Convert direction from the camera's object space to world coordinates.
       const distance = direction.length();
-      const worldDirection = direction
-        .clone()
-        .normalize()
-        .transformDirection(get().defaultCamera.matrix);
+      const worldDirection = direction.clone().normalize().transformDirection(get().defaultCamera.matrix);
 
       // Remove disabled components.
       if (!enableX) worldDirection.x = 0;
@@ -219,9 +187,7 @@ export const useLocalUserStore = create<LocalUserState>((set, get) => {
       if (!enableZ) worldDirection.z = 0;
 
       // Convert the direction back to object space before applying the translation.
-      const localDirection = worldDirection
-        .normalize()
-        .transformDirection(get().userGroup.matrix.clone().invert());
+      const localDirection = worldDirection.normalize().transformDirection(get().userGroup.matrix.clone().invert());
       const newUserGroup = get().userGroup;
       newUserGroup.translateOnAxis(localDirection, distance);
       set({ userGroup: newUserGroup });

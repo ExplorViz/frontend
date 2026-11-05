@@ -16,10 +16,7 @@ interface LayoutStoreState {
   maxDistrictDepth: number | null;
 
   // Actions
-  updateLayouts: (
-    boxLayoutMap: Map<string, BoxLayout>,
-    flatLandscape?: FlatLandscape
-  ) => void;
+  updateLayouts: (boxLayoutMap: Map<string, BoxLayout>, flatLandscape?: FlatLandscape) => void;
   getLayout: (entityId: string) => BoxLayout | undefined;
   getLandscapeLayout: () => BoxLayout | null;
   getCityLayouts: () => Map<string, BoxLayout>;
@@ -45,10 +42,7 @@ function areLayoutsGeometricallyEqual(a: BoxLayout, b: BoxLayout): boolean {
  * value so consumers keyed on map identity (instanced meshes, cluster
  * centroids) are not forced to discard and rebuild on a no-op layout refresh.
  */
-function hasSameEntries(
-  a: Map<string, BoxLayout>,
-  b: Map<string, BoxLayout>
-): boolean {
+function hasSameEntries(a: Map<string, BoxLayout>, b: Map<string, BoxLayout>): boolean {
   if (a === b) {
     return true;
   }
@@ -72,10 +66,7 @@ export const useLayoutStore = create<LayoutStoreState>((set, get) => ({
   fullLayoutMap: new Map<string, BoxLayout>(),
   maxDistrictDepth: null,
 
-  updateLayouts: (
-    boxLayoutMap: Map<string, BoxLayout>,
-    flatLandscape?: FlatLandscape
-  ) => {
+  updateLayouts: (boxLayoutMap: Map<string, BoxLayout>, flatLandscape?: FlatLandscape) => {
     const modelStore = useModelStore.getState();
     const previous = get();
     const landscapeLayout = boxLayoutMap.get('landscape') || null;
@@ -92,9 +83,7 @@ export const useLayoutStore = create<LayoutStoreState>((set, get) => ({
       }
 
       const entityType =
-        (flatLandscape &&
-          getFlatLandscapeEntityType(entityId, flatLandscape)) ||
-        modelStore.getEntityType(entityId);
+        (flatLandscape && getFlatLandscapeEntityType(entityId, flatLandscape)) || modelStore.getEntityType(entityId);
       switch (entityType) {
         case 'city':
           cityLayouts.set(entityId, layout);
@@ -127,25 +116,14 @@ export const useLayoutStore = create<LayoutStoreState>((set, get) => ({
     // Consumers such as the instanced district/building meshes and the cluster
     // centroids key off map identity, so handing them a fresh map makes them
     // discard and rebuild GPU instances on a no-op layout refresh.
-    const nextCityLayouts = hasSameEntries(cityLayouts, previous.cityLayouts)
-      ? previous.cityLayouts
-      : cityLayouts;
-    const nextDistrictLayouts = hasSameEntries(
-      districtLayouts,
-      previous.districtLayouts
-    )
+    const nextCityLayouts = hasSameEntries(cityLayouts, previous.cityLayouts) ? previous.cityLayouts : cityLayouts;
+    const nextDistrictLayouts = hasSameEntries(districtLayouts, previous.districtLayouts)
       ? previous.districtLayouts
       : districtLayouts;
-    const nextBuildingLayouts = hasSameEntries(
-      buildingLayouts,
-      previous.buildingLayouts
-    )
+    const nextBuildingLayouts = hasSameEntries(buildingLayouts, previous.buildingLayouts)
       ? previous.buildingLayouts
       : buildingLayouts;
-    const nextFullLayoutMap = hasSameEntries(
-      boxLayoutMap,
-      previous.fullLayoutMap
-    )
+    const nextFullLayoutMap = hasSameEntries(boxLayoutMap, previous.fullLayoutMap)
       ? previous.fullLayoutMap
       : boxLayoutMap;
 

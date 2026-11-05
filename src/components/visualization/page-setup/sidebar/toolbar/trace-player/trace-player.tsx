@@ -18,48 +18,29 @@ export default function TracePlayer() {
     timestamps: Timestamp[];
   } | null>(null);
 
-  const [selectedTrace, setSelectedTrace] = useState<TraceOverview | null>(
-    null
-  );
+  const [selectedTrace, setSelectedTrace] = useState<TraceOverview | null>(null);
 
-  const commitToSelectedTimestamps = useTimestampStore(
-    (state) => state.commitToSelectedTimestamps
-  );
-  const selectedRepository = useCommitTreeStateStore(
-    (state) => state._currentSelectedRepositoryName
-  );
-  const repositoryToSelectedCommits = useCommitTreeStateStore(
-    (state) => state._selectedCommits
-  );
+  const commitToSelectedTimestamps = useTimestampStore((state) => state.commitToSelectedTimestamps);
+  const selectedRepository = useCommitTreeStateStore((state) => state._currentSelectedRepositoryName);
+  const repositoryToSelectedCommits = useCommitTreeStateStore((state) => state._selectedCommits);
   const landscapeToken = useLandscapeTokenStore((state) => state.token);
-  const showErrorToastMessage = useToastHandlerStore(
-    (state) => state.showErrorToastMessage
-  );
+  const showErrorToastMessage = useToastHandlerStore((state) => state.showErrorToastMessage);
 
   const selectedCommits = repositoryToSelectedCommits.get(selectedRepository);
 
-  const selectedTimestamps = commitToSelectedTimestamps.get(
-    selectedCommits?.[0].commitId ?? CROSS_COMMIT_IDENTIFIER
-  );
+  const selectedTimestamps = commitToSelectedTimestamps.get(selectedCommits?.[0].commitId ?? CROSS_COMMIT_IDENTIFIER);
 
   const bottomBarContext = use(BottomBarContext);
 
   const fetchTraceCatalog = useTraceCatalogFetch();
 
   useEffect(() => {
-    if (
-      !landscapeToken ||
-      !selectedTimestamps ||
-      selectedTimestamps.length === 0
-    ) {
+    if (!landscapeToken || !selectedTimestamps || selectedTimestamps.length === 0) {
       return;
     }
 
     const [from, to] = selectedTimestamps.reduce(
-      ([min, max], ts) => [
-        min <= ts.fromUnixNano ? min : ts.fromUnixNano,
-        max >= ts.toUnixNano ? max : ts.toUnixNano,
-      ],
+      ([min, max], ts) => [min <= ts.fromUnixNano ? min : ts.fromUnixNano, max >= ts.toUnixNano ? max : ts.toUnixNano],
       [selectedTimestamps[0]?.fromUnixNano, selectedTimestamps[0]?.toUnixNano]
     );
 
@@ -80,12 +61,7 @@ export default function TracePlayer() {
     };
 
     fetchTraces();
-  }, [
-    selectedTimestamps,
-    landscapeToken,
-    fetchTraceCatalog,
-    showErrorToastMessage,
-  ]);
+  }, [selectedTimestamps, landscapeToken, fetchTraceCatalog, showErrorToastMessage]);
 
   const handleTraceClick = (trace: TraceOverview) => {
     setSelectedTrace(trace);
@@ -99,9 +75,7 @@ export default function TracePlayer() {
   return (
     <>
       <h5 className="text-center">Trace Player</h5>
-      <p className="text-center text-muted">
-        Follow traces for the current timestamp step-by-step.
-      </p>
+      <p className="text-center text-muted">Follow traces for the current timestamp step-by-step.</p>
 
       {selectedCommits && selectedCommits.length > 1 ? (
         <>Multiple commits are selected, no traces available</>
@@ -118,15 +92,9 @@ export default function TracePlayer() {
           <Spinner size="sm" /> Loading traces for timestamp &hellip;
         </div>
       ) : selectedTrace ? (
-        <TraceDetails
-          traceOverview={selectedTrace}
-          onBackClick={() => setSelectedTrace(null)}
-        />
+        <TraceDetails traceOverview={selectedTrace} onBackClick={() => setSelectedTrace(null)} />
       ) : (
-        <TraceSelection
-          traces={traceData.traces}
-          onTraceClick={handleTraceClick}
-        />
+        <TraceSelection traces={traceData.traces} onTraceClick={handleTraceClick} />
       )}
     </>
   );
@@ -178,41 +146,17 @@ function TraceSelection({ traces, onTraceClick }: TraceSelectionProps) {
       <Table>
         <thead>
           <tr>
-            <th
-              role="button"
-              onClick={() => changeSorting('service')}
-              className="clickable user-select-none"
-            >
+            <th role="button" onClick={() => changeSorting('service')} className="clickable user-select-none">
               Service
-              <div
-                className={`inline ms-2 ${sorting === 'service' ? '' : 'invisible'}`}
-              >
-                {sortIcon}
-              </div>
+              <div className={`inline ms-2 ${sorting === 'service' ? '' : 'invisible'}`}>{sortIcon}</div>
             </th>
-            <th
-              role="button"
-              onClick={() => changeSorting('name')}
-              className="clickable user-select-none"
-            >
+            <th role="button" onClick={() => changeSorting('name')} className="clickable user-select-none">
               Name
-              <div
-                className={`inline ms-2 ${sorting === 'name' ? '' : 'invisible'}`}
-              >
-                {sortIcon}
-              </div>
+              <div className={`inline ms-2 ${sorting === 'name' ? '' : 'invisible'}`}>{sortIcon}</div>
             </th>
-            <th
-              role="button"
-              onClick={() => changeSorting('spancount')}
-              className="clickable user-select-none"
-            >
+            <th role="button" onClick={() => changeSorting('spancount')} className="clickable user-select-none">
               Spans
-              <div
-                className={`inline ms-2 ${sorting === 'spancount' ? '' : 'invisible'}`}
-              >
-                {sortIcon}
-              </div>
+              <div className={`inline ms-2 ${sorting === 'spancount' ? '' : 'invisible'}`}>{sortIcon}</div>
             </th>
           </tr>
         </thead>

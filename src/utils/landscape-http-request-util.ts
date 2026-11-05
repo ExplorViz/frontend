@@ -1,33 +1,18 @@
 import { useAuthStore } from 'explorviz-frontend/src/stores/auth';
 import { useLandscapeTokenStore } from 'explorviz-frontend/src/stores/landscape-token';
-import {
-  CommSummary,
-  isCommSummary,
-} from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/communication';
-import {
-  CommFunction,
-  isCommFunction,
-} from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/function-call';
+import { CommSummary, isCommSummary } from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/communication';
+import { CommFunction, isCommFunction } from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/function-call';
 import { FileDetailedDto } from 'explorviz-frontend/src/utils/landscape-schemes/file-detailed-data';
-import {
-  FlatLandscape,
-  isFlatLandscape,
-} from 'explorviz-frontend/src/utils/landscape-schemes/flat-landscape';
+import { FlatLandscape, isFlatLandscape } from 'explorviz-frontend/src/utils/landscape-schemes/flat-landscape';
 import { getResponseErrorMessage } from 'explorviz-frontend/src/utils/response-error';
 import { useModelStore } from '../stores/repos/model-repository';
 import { findFirstEntityWithOpenedParent } from './city-rendering/communication-layouter';
 import AggregatedCommunication from './landscape-schemes/dynamic/aggregated-communication';
-import {
-  CommSpans,
-  isCommSpans,
-  isSpan,
-  Span,
-} from './landscape-schemes/telemetry/traces';
+import { CommSpans, isCommSpans, isSpan, Span } from './landscape-schemes/telemetry/traces';
 
 /** Base URL for landscape API. Uses the browser origin when unset (Vite dev proxy in development). */
 export function getLandscapeServiceUrl(): string {
-  const configured = import.meta.env.VITE_LANDSCAPE_SERV_URL as
-    string | undefined;
+  const configured = import.meta.env.VITE_LANDSCAPE_SERV_URL as string | undefined;
   if (configured === undefined || configured === '') {
     return window.location.origin;
   }
@@ -44,8 +29,7 @@ export function getTraceServiceUrl(): string {
 }
 
 export function getMetricsServiceUrl(): string {
-  const configured = import.meta.env.VITE_METRICS_SERV_URL as
-    string | undefined;
+  const configured = import.meta.env.VITE_METRICS_SERV_URL as string | undefined;
   if (configured === undefined || configured === '') {
     return window.location.origin;
   }
@@ -80,10 +64,7 @@ export async function requestData(startTime: bigint, endTime: bigint) {
   const structureDataPromise = requestStructureData();
   const dynamicDataPromise = requestDynamicData(startTime, endTime);
 
-  const landscapeData = Promise.allSettled([
-    structureDataPromise,
-    dynamicDataPromise,
-  ]);
+  const landscapeData = Promise.allSettled([structureDataPromise, dynamicDataPromise]);
 
   return landscapeData;
 }
@@ -98,14 +79,11 @@ export function requestStructureData() {
       return reject(new Error('No landscape token selected'));
     }
 
-    fetch(
-      `${landscapeService}/v3/landscapes/${useLandscapeTokenStore.getState().token!.value}/structure/runtime`,
-      {
-        headers: {
-          Authorization: `Bearer ${useAuthStore.getState().accessToken}`,
-        },
-      }
-    )
+    fetch(`${landscapeService}/v3/landscapes/${useLandscapeTokenStore.getState().token!.value}/structure/runtime`, {
+      headers: {
+        Authorization: `Bearer ${useAuthStore.getState().accessToken}`,
+      },
+    })
       .then(async (response: Response) => {
         if (!response.ok) {
           return reject(new Error(await getResponseErrorMessage(response)));
@@ -159,25 +137,15 @@ export function deleteTraceData(): Promise<void> {
     if (useLandscapeTokenStore.getState().token === null) {
       return reject(new Error('No landscape token selected'));
     }
-    fetch(
-      `${traceService}/v3/landscapes/${useLandscapeTokenStore.getState().token!.value}/trace-data`,
-      {
-        method: 'DELETE',
-        headers: {
-          Authorization: `Bearer ${useAuthStore.getState().accessToken}`,
-        },
-      }
-    )
+    fetch(`${traceService}/v3/landscapes/${useLandscapeTokenStore.getState().token!.value}/trace-data`, {
+      method: 'DELETE',
+      headers: {
+        Authorization: `Bearer ${useAuthStore.getState().accessToken}`,
+      },
+    })
       .then(async (response: Response) => {
         if (!response.ok) {
-          return reject(
-            new Error(
-              await getResponseErrorMessage(
-                response,
-                'Failed to delete trace data'
-              )
-            )
-          );
+          return reject(new Error(await getResponseErrorMessage(response, 'Failed to delete trace data')));
         }
         return resolve();
       })
@@ -185,20 +153,14 @@ export function deleteTraceData(): Promise<void> {
   });
 }
 
-export async function requestEntitySpans(
-  telemetryKey: string,
-  limit?: number,
-  offset?: number
-): Promise<Span[]> {
+export async function requestEntitySpans(telemetryKey: string, limit?: number, offset?: number): Promise<Span[]> {
   const landscapeToken = useLandscapeTokenStore.getState().token?.value;
 
   if (!landscapeToken) {
     throw new Error('No landscape token selected');
   }
 
-  let url = new URL(
-    `${traceService}/v3/landscapes/${landscapeToken}/entities/${telemetryKey}/spans`
-  );
+  let url = new URL(`${traceService}/v3/landscapes/${landscapeToken}/entities/${telemetryKey}/spans`);
   if (limit) url.searchParams.set('limit', limit.toString());
   if (offset) url.searchParams.set('offset', offset.toString());
 
@@ -225,9 +187,7 @@ export async function requestEntitySpans(
  * @param communication The communication for which span information should be retrieved.
  * @returns A promise that resolves to a {@link CommSpans} with detailed span information for the communication.
  */
-export async function requestCommunicationSpans(
-  communication: AggregatedCommunication
-): Promise<CommSpans> {
+export async function requestCommunicationSpans(communication: AggregatedCommunication): Promise<CommSpans> {
   const landscapeToken = useLandscapeTokenStore.getState().token?.value;
 
   if (!landscapeToken) {
@@ -275,9 +235,7 @@ export async function requestCommunicationSpans(
  * @param communications Communication for which to look up underlying function calls
  * @returns A promise that resolves to an array of function call detail objects
  */
-export async function requestCommunicationFunctions(
-  communication: AggregatedCommunication
-): Promise<CommFunction[]> {
+export async function requestCommunicationFunctions(communication: AggregatedCommunication): Promise<CommFunction[]> {
   const landscapeToken = useLandscapeTokenStore.getState().token?.value;
 
   if (!landscapeToken) {
@@ -288,8 +246,7 @@ export async function requestCommunicationFunctions(
     throw new Error('No building communications provided');
   }
 
-  const telemetryKeyToEntityId =
-    useModelStore.getState().telemetryKeyToEntityId;
+  const telemetryKeyToEntityId = useModelStore.getState().telemetryKeyToEntityId;
 
   const sourceTargetPairs = communication.baseCommunications
     .map((comm) => {
@@ -305,19 +262,14 @@ export async function requestCommunicationFunctions(
         const tgtId = telemetryKeyToEntityId.get(tgtKey);
 
         if (!srcId || !tgtId) {
-          console.error(
-            `Could not find entity ID for telemetry key: ${!srcId ? srcKey : tgtKey}`
-          );
+          console.error(`Could not find entity ID for telemetry key: ${!srcId ? srcKey : tgtKey}`);
           return undefined;
         }
 
         const srcContainer = findFirstEntityWithOpenedParent(srcId);
         const tgtContainer = findFirstEntityWithOpenedParent(tgtId);
 
-        if (
-          srcContainer === communication.targetEntity.id &&
-          tgtContainer === communication.sourceEntity.id
-        ) {
+        if (srcContainer === communication.targetEntity.id && tgtContainer === communication.sourceEntity.id) {
           [srcKey, tgtKey] = [tgtKey, srcKey];
         }
       }
@@ -350,10 +302,7 @@ export async function requestCommunicationFunctions(
   return commFuncs;
 }
 
-export function requestFileDetailedData(
-  fileRevisionId: string,
-  commitHash?: string
-) {
+export function requestFileDetailedData(fileRevisionId: string, commitHash?: string) {
   return new Promise<FileDetailedDto>((resolve, reject) => {
     const token = useLandscapeTokenStore.getState().token;
     if (token === null) {
@@ -368,9 +317,7 @@ export function requestFileDetailedData(
       );
     }
 
-    const query = commitHash
-      ? `?commitHash=${encodeURIComponent(commitHash)}`
-      : '';
+    const query = commitHash ? `?commitHash=${encodeURIComponent(commitHash)}` : '';
     const url = `${landscapeService}/v3/landscapes/${token.value}/structure/evolution/file-revision/${fileRevisionId}${query}`;
     fetch(url, {
       headers: {
@@ -379,14 +326,7 @@ export function requestFileDetailedData(
     })
       .then(async (response: Response) => {
         if (!response.ok) {
-          return reject(
-            new Error(
-              await getResponseErrorMessage(
-                response,
-                'Failed to fetch file detailed data'
-              )
-            )
-          );
+          return reject(new Error(await getResponseErrorMessage(response, 'Failed to fetch file detailed data')));
         }
         const data = (await response.json()) as FileDetailedDto;
         return resolve(data);
@@ -418,10 +358,7 @@ export type FileHistory = {
   mergeCommit?: boolean;
 };
 
-export function requestFileHistory(
-  repositoryName: string,
-  fileRevisionId: string
-) {
+export function requestFileHistory(repositoryName: string, fileRevisionId: string) {
   return new Promise<FileHistory[]>((resolve, reject) => {
     const token = useLandscapeTokenStore.getState().token;
     if (token === null) {
@@ -438,15 +375,7 @@ export function requestFileHistory(
     })
       .then(async (response) => {
         if (response.ok) resolve((await response.json()) as FileHistory[]);
-        else
-          reject(
-            new Error(
-              await getResponseErrorMessage(
-                response,
-                'Failed to fetch file history'
-              )
-            )
-          );
+        else reject(new Error(await getResponseErrorMessage(response, 'Failed to fetch file history')));
       })
       .catch(reject);
   });
@@ -455,10 +384,7 @@ export function requestFileHistory(
 /**
  * Persists a new display name for a city foundation in the landscape service / Neo4j.
  */
-export async function requestRenameCity(
-  cityId: string,
-  name: string
-): Promise<{ id: string; name: string }> {
+export async function requestRenameCity(cityId: string, name: string): Promise<{ id: string; name: string }> {
   const token = useLandscapeTokenStore.getState().token;
   if (token === null) {
     throw new Error('No landscape token selected');
@@ -477,9 +403,7 @@ export async function requestRenameCity(
   );
 
   if (!response.ok) {
-    throw new Error(
-      await getResponseErrorMessage(response, 'Failed to rename city')
-    );
+    throw new Error(await getResponseErrorMessage(response, 'Failed to rename city'));
   }
 
   return (await response.json()) as { id: string; name: string };

@@ -14,10 +14,7 @@ function pointer(delta = 0) {
     nativeEvent: new MouseEvent('click', { clientX: 10, clientY: 20 }),
   } as unknown as ThreeEvent<MouseEvent>;
 }
-const move = (x: number, y: number) =>
-  window.dispatchEvent(
-    new MouseEvent('pointermove', { clientX: x, clientY: y })
-  );
+const move = (x: number, y: number) => window.dispatchEvent(new MouseEvent('pointermove', { clientX: x, clientY: y }));
 beforeEach(() => vi.useFakeTimers());
 
 function setup() {
@@ -58,32 +55,26 @@ describe('3D pointer gesture arbitration', () => {
     expect(doubleClick).toHaveBeenCalledOnce();
   });
 
-  it.each([12, 20])(
-    'does not select after a drag of %s pixels',
-    async (delta) => {
-      const { result, click } = setup();
-      act(() => {
-        void result.current[0](pointer(delta));
-      });
-      await act(() => vi.runAllTimersAsync());
-      expect(click).not.toHaveBeenCalled();
-    }
-  );
+  it.each([12, 20])('does not select after a drag of %s pixels', async (delta) => {
+    const { result, click } = setup();
+    act(() => {
+      void result.current[0](pointer(delta));
+    });
+    await act(() => vi.runAllTimersAsync());
+    expect(click).not.toHaveBeenCalled();
+  });
 
-  it.each([0, 2])(
-    'rejects drift even when the pointer returns to its start (handler %s)',
-    async (index) => {
-      const { result, click, rightClick } = setup();
-      act(() => {
-        void result.current[index](pointer());
-      });
-      move(30, 20);
-      move(10, 20);
-      await act(() => vi.runAllTimersAsync());
-      expect(click).not.toHaveBeenCalled();
-      expect(rightClick).not.toHaveBeenCalled();
-    }
-  );
+  it.each([0, 2])('rejects drift even when the pointer returns to its start (handler %s)', async (index) => {
+    const { result, click, rightClick } = setup();
+    act(() => {
+      void result.current[index](pointer());
+    });
+    move(30, 20);
+    move(10, 20);
+    await act(() => vi.runAllTimersAsync());
+    expect(click).not.toHaveBeenCalled();
+    expect(rightClick).not.toHaveBeenCalled();
+  });
 
   it('opens a context menu after its shorter delay and cancels selection', async () => {
     const { result, click, rightClick } = setup();
@@ -98,28 +89,23 @@ describe('3D pointer gesture arbitration', () => {
     expect(click).not.toHaveBeenCalled();
   });
 
-  it.each([0, 2])(
-    'supports XR events whose delta getter throws (handler %s)',
-    async (index) => {
-      const { result, click, rightClick } = setup();
-      const event = pointer();
-      Object.defineProperty(event, 'delta', {
-        get() {
-          throw new Error('XR has no mouse delta');
-        },
-      });
-      act(() => {
-        void result.current[index](event);
-      });
-      await act(() => vi.runAllTimersAsync());
-      expect(index === 0 ? click : rightClick).toHaveBeenCalledOnce();
-    }
-  );
+  it.each([0, 2])('supports XR events whose delta getter throws (handler %s)', async (index) => {
+    const { result, click, rightClick } = setup();
+    const event = pointer();
+    Object.defineProperty(event, 'delta', {
+      get() {
+        throw new Error('XR has no mouse delta');
+      },
+    });
+    act(() => {
+      void result.current[index](event);
+    });
+    await act(() => vi.runAllTimersAsync());
+    expect(index === 0 ? click : rightClick).toHaveBeenCalledOnce();
+  });
 
   it('ignores context menus when no handler is registered', () => {
-    const { result } = renderHook(() =>
-      useClickPreventionOnDoubleClick(vi.fn(), vi.fn())
-    );
+    const { result } = renderHook(() => useClickPreventionOnDoubleClick(vi.fn(), vi.fn()));
     const event = pointer();
     result.current[2](event);
     expect(event.stopPropagation).not.toHaveBeenCalled();

@@ -57,12 +57,9 @@ export type SnapshotInfo = {
 };
 
 const userService = import.meta.env.VITE_USER_SERV_URL;
-const shareSnapshot =
-  import.meta.env.VITE_SHARE_SNAPSHOT_URL || `${window.location.origin}/`;
+const shareSnapshot = import.meta.env.VITE_SHARE_SNAPSHOT_URL || `${window.location.origin}/`;
 
-function snapshotAuthHeaders(
-  contentType = 'application/json; charset=UTF-8'
-): Record<string, string> {
+function snapshotAuthHeaders(contentType = 'application/json; charset=UTF-8'): Record<string, string> {
   const headers: Record<string, string> = { 'Content-Type': contentType };
   const accessToken = useAuthStore.getState().accessToken;
   if (accessToken) {
@@ -76,24 +73,12 @@ interface SnapshotTokenState {
   snapshotSelected: boolean;
   latestSnapshotToken: SnapshotToken | null;
   retrieveTokens: () => Promise<SnapshotInfo>;
-  retrieveToken: (
-    owner: string,
-    createdAt: number,
-    isShared: boolean
-  ) => Promise<SnapshotToken | null>;
+  retrieveToken: (owner: string, createdAt: number, isShared: boolean) => Promise<SnapshotToken | null>;
   saveSnapshot: (content: SnapshotToken, name?: string) => Promise<void>;
-  subsribe: (
-    owner: string,
-    createdAt: number,
-    subscriber: string
-  ) => Promise<void>;
+  subsribe: (owner: string, createdAt: number, subscriber: string) => Promise<void>;
   exportFile: (exportData: SnapshotToken) => Promise<void>;
   shareSnapshot: (snapshot: TinySnapshot, expDate: number) => Promise<void>;
-  deleteSnapshot: (
-    snapshot: TinySnapshot,
-    isShared: boolean,
-    subscribed: boolean
-  ) => Promise<void>;
+  deleteSnapshot: (snapshot: TinySnapshot, isShared: boolean, subscribed: boolean) => Promise<void>;
   setToken: (token: SnapshotToken | null) => void;
   setSnapshotSelected: (value: boolean) => void;
 }
@@ -136,12 +121,7 @@ export const useSnapshotTokenStore = create<SnapshotTokenState>((set, get) => ({
             });
             useToastHandlerStore
               .getState()
-              .showErrorToastMessage(
-                await getResponseErrorMessage(
-                  response,
-                  'Snapshots could not be loaded.'
-                )
-              );
+              .showErrorToastMessage(await getResponseErrorMessage(response, 'Snapshots could not be loaded.'));
           }
         })
         .catch(async () => {
@@ -181,30 +161,20 @@ export const useSnapshotTokenStore = create<SnapshotTokenState>((set, get) => ({
             reject();
             useToastHandlerStore
               .getState()
-              .showErrorToastMessage(
-                await getResponseErrorMessage(
-                  response,
-                  'Snapshot could not be loaded.'
-                )
-              );
+              .showErrorToastMessage(await getResponseErrorMessage(response, 'Snapshot could not be loaded.'));
           }
         })
         .catch(async () => {
           set({ snapshotSelected: false });
           set({ snapshotToken: null });
           reject();
-          useToastHandlerStore
-            .getState()
-            .showErrorToastMessage(
-              'Shared snapshot does not exist or is expired.'
-            );
+          useToastHandlerStore.getState().showErrorToastMessage('Shared snapshot does not exist or is expired.');
         });
     });
   },
 
   saveSnapshot: async (content: SnapshotToken, name?: string) => {
-    const snapshotToken: SnapshotToken =
-      name !== undefined ? { ...content, name: name } : content;
+    const snapshotToken: SnapshotToken = name !== undefined ? { ...content, name: name } : content;
 
     const url = `${userService}/snapshot/create`;
     await fetch(url, {
@@ -214,33 +184,21 @@ export const useSnapshotTokenStore = create<SnapshotTokenState>((set, get) => ({
     })
       .then(async (response: Response) => {
         if (response.ok) {
-          useToastHandlerStore
-            .getState()
-            .showSuccessToastMessage('Successfully saved snapshot.');
+          useToastHandlerStore.getState().showSuccessToastMessage('Successfully saved snapshot.');
         } else if (response.status === 422) {
           useToastHandlerStore
             .getState()
-            .showErrorToastMessage(
-              await getResponseErrorMessage(
-                response,
-                'Snapshot already exists.'
-              )
-            );
+            .showErrorToastMessage(await getResponseErrorMessage(response, 'Snapshot already exists.'));
         } else {
           useToastHandlerStore
             .getState()
             .showErrorToastMessage(
-              await getResponseErrorMessage(
-                response,
-                'Something went wrong. Snapshot could not be saved.'
-              )
+              await getResponseErrorMessage(response, 'Something went wrong. Snapshot could not be saved.')
             );
         }
       })
       .catch(async () => {
-        useToastHandlerStore
-          .getState()
-          .showErrorToastMessage('Snapshot server could not be reached.');
+        useToastHandlerStore.getState().showErrorToastMessage('Snapshot server could not be reached.');
       });
   },
 
@@ -255,15 +213,11 @@ export const useSnapshotTokenStore = create<SnapshotTokenState>((set, get) => ({
         if (!response.ok) {
           useToastHandlerStore
             .getState()
-            .showErrorToastMessage(
-              await getResponseErrorMessage(response, 'Something went wrong.')
-            );
+            .showErrorToastMessage(await getResponseErrorMessage(response, 'Something went wrong.'));
         }
       })
       .catch(async () => {
-        useToastHandlerStore
-          .getState()
-          .showErrorToastMessage('Snapshot server could not be reached.');
+        useToastHandlerStore.getState().showErrorToastMessage('Snapshot server could not be reached.');
       });
   },
 
@@ -289,36 +243,23 @@ export const useSnapshotTokenStore = create<SnapshotTokenState>((set, get) => ({
         if (response.status === 200) {
           useToastHandlerStore
             .getState()
-            .showSuccessToastMessage(
-              'Successfully shared snapshot. Snaphsot URL copied to clipboard'
-            );
+            .showSuccessToastMessage('Successfully shared snapshot. Snaphsot URL copied to clipboard');
         } else if (response.status === 222) {
-          useToastHandlerStore
-            .getState()
-            .showInfoToastMessage('A shared version already exists.');
+          useToastHandlerStore.getState().showInfoToastMessage('A shared version already exists.');
         } else {
           useToastHandlerStore
             .getState()
             .showErrorToastMessage(
-              await getResponseErrorMessage(
-                response,
-                'Something went wrong. Snapshot could not be shared.'
-              )
+              await getResponseErrorMessage(response, 'Something went wrong. Snapshot could not be shared.')
             );
         }
       })
       .catch(async () => {
-        useToastHandlerStore
-          .getState()
-          .showErrorToastMessage('Snapshot server could not be reached.');
+        useToastHandlerStore.getState().showErrorToastMessage('Snapshot server could not be reached.');
       });
   },
 
-  deleteSnapshot: async (
-    snapshot: TinySnapshot,
-    isShared: boolean,
-    subscribed: boolean
-  ) => {
+  deleteSnapshot: async (snapshot: TinySnapshot, isShared: boolean, subscribed: boolean) => {
     if (subscribed) {
       const url = `${userService}/snapshot/unsubscribe?owner=${snapshot.owner}&createdAt=${snapshot.createdAt}&subscriber=${useAuthStore.getState().user!.sub}`;
 
@@ -330,17 +271,10 @@ export const useSnapshotTokenStore = create<SnapshotTokenState>((set, get) => ({
           useToastHandlerStore
             .getState()
             .showErrorToastMessage(
-              await getResponseErrorMessage(
-                response,
-                'Subscribed Snapshot could not be deleted.'
-              )
+              await getResponseErrorMessage(response, 'Subscribed Snapshot could not be deleted.')
             );
         } else {
-          useToastHandlerStore
-            .getState()
-            .showSuccessToastMessage(
-              'Subscribed Snapshot successfully deleted.'
-            );
+          useToastHandlerStore.getState().showSuccessToastMessage('Subscribed Snapshot successfully deleted.');
         }
       });
     } else {
@@ -352,24 +286,17 @@ export const useSnapshotTokenStore = create<SnapshotTokenState>((set, get) => ({
       })
         .then(async (response: Response) => {
           if (response.ok) {
-            useToastHandlerStore
-              .getState()
-              .showSuccessToastMessage('Successfully deleted snapshot.');
+            useToastHandlerStore.getState().showSuccessToastMessage('Successfully deleted snapshot.');
           } else {
             useToastHandlerStore
               .getState()
               .showErrorToastMessage(
-                await getResponseErrorMessage(
-                  response,
-                  'Something went wrong. Snapshot could not be deleted.'
-                )
+                await getResponseErrorMessage(response, 'Something went wrong. Snapshot could not be deleted.')
               );
           }
         })
         .catch(async () => {
-          useToastHandlerStore
-            .getState()
-            .showErrorToastMessage('Snapshot server could not be reached.');
+          useToastHandlerStore.getState().showErrorToastMessage('Snapshot server could not be reached.');
         });
     }
   },
@@ -382,9 +309,7 @@ export const useSnapshotTokenStore = create<SnapshotTokenState>((set, get) => ({
     set({ snapshotToken: token });
 
     if (token) {
-      useToastHandlerStore
-        .getState()
-        .showInfoToastMessage(`Set snapshot token to " ${token.name}"`);
+      useToastHandlerStore.getState().showInfoToastMessage(`Set snapshot token to " ${token.name}"`);
     }
   },
 }));

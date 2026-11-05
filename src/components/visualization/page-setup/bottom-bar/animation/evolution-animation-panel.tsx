@@ -33,11 +33,7 @@ const UNITS = [
   { label: 'Month', ms: 2592000000 },
 ];
 
-export default function EvolutionAnimationPanel({
-  onClose,
-}: {
-  onClose: () => void;
-}) {
+export default function EvolutionAnimationPanel({ onClose }: { onClose: () => void }) {
   const {
     layoutMode,
     timeMode,
@@ -98,50 +94,28 @@ export default function EvolutionAnimationPanel({
     return null;
   }, []);
 
-  const { ref, isMinimized, toggleMinimized, onDragStart } = useFloatingPanel(
-    anchorAtToolsButton,
-    8
-  );
+  const { ref, isMinimized, toggleMinimized, onDragStart } = useFloatingPanel(anchorAtToolsButton, 8);
 
   const [timeCount, setTimeCount] = useState(1);
   const [timeUnit, setTimeUnit] = useState(86400000);
-  const [agingTimeCount, setAgingTimeCount] = useState(
-    Math.max(1, Math.round(agingMs / 2592000000))
-  );
+  const [agingTimeCount, setAgingTimeCount] = useState(Math.max(1, Math.round(agingMs / 2592000000)));
   const [agingTimeUnit, setAgingTimeUnit] = useState(2592000000);
-  const heightMetric = useUserSettingsStore(
-    (s) => s.visualizationSettings.buildingHeightMetric.value
-  );
-  const metricMapping = useUserSettingsStore(
-    (s) => s.visualizationSettings.buildingMetricMapping.value
-  );
-  const metricBuckets = useUserSettingsStore(
-    (s) => s.visualizationSettings.buildingMetricBuckets.value
-  );
+  const heightMetric = useUserSettingsStore((s) => s.visualizationSettings.buildingHeightMetric.value);
+  const metricMapping = useUserSettingsStore((s) => s.visualizationSettings.buildingMetricMapping.value);
+  const metricBuckets = useUserSettingsStore((s) => s.visualizationSettings.buildingMetricBuckets.value);
   const updateSetting = useUserSettingsStore((s) => s.updateSetting);
 
-  const repositoryName = useCommitTreeStateStore(
-    (state) => state._currentSelectedRepositoryName
-  );
+  const repositoryName = useCommitTreeStateStore((state) => state._currentSelectedRepositoryName);
   const hasFrames = useEvolutionAnimationStore((state) => state.totalCount > 0);
-  const fetchWindow = useEvolutionAnimationFetchServiceStore(
-    (state) => state.fetchAnimationWindow
-  );
-  const fetchSkeleton = useEvolutionAnimationFetchServiceStore(
-    (state) => state.fetchAnimationSkeleton
-  );
-  const fetchDeltaWindow = useEvolutionAnimationFetchServiceStore(
-    (state) => state.fetchAnimationDeltaWindow
-  );
+  const fetchWindow = useEvolutionAnimationFetchServiceStore((state) => state.fetchAnimationWindow);
+  const fetchSkeleton = useEvolutionAnimationFetchServiceStore((state) => state.fetchAnimationSkeleton);
+  const fetchDeltaWindow = useEvolutionAnimationFetchServiceStore((state) => state.fetchAnimationDeltaWindow);
 
   //Sync when layout is toggeled
   useEffect(() => {
     useUserSettingsStore
       .getState()
-      .updateSetting(
-        'buildingLayoutAlgorithm',
-        layoutMode === 'spiral' ? 'spiral' : 'None'
-      );
+      .updateSetting('buildingLayoutAlgorithm', layoutMode === 'spiral' ? 'spiral' : 'None');
     applySkeletonLayout();
   }, [layoutMode]);
 
@@ -185,17 +159,10 @@ export default function EvolutionAnimationPanel({
 
       useUserSettingsStore
         .getState()
-        .updateSetting(
-          'buildingLayoutAlgorithm',
-          store.layoutMode === 'spiral' ? 'spiral' : 'None'
-        );
+        .updateSetting('buildingLayoutAlgorithm', store.layoutMode === 'spiral' ? 'spiral' : 'None');
 
       if (!store.stableFrame) {
-        const skeleton = await fetchSkeleton(
-          repositoryName,
-          store.rangeFrom,
-          store.rangeTo
-        );
+        const skeleton = await fetchSkeleton(repositoryName, store.rangeFrom, store.rangeTo);
         actions.setSkeleton(skeleton);
         store = useEvolutionAnimationStore.getState();
       }
@@ -229,9 +196,7 @@ export default function EvolutionAnimationPanel({
       actions.markBlockRequested(0);
       applyEvolutionRenderingConfig();
       applySkeletonLayout(useEvolutionAnimationStore.getState().stableFrame);
-      useEvolutionAnimationStore
-        .getState()
-        .actions.reapplyCurrentFrameVisuals();
+      useEvolutionAnimationStore.getState().actions.reapplyCurrentFrameVisuals();
       useEvolutionAnimationStore.getState().actions.setSpeed(speedMs);
     } catch (e) {
       console.error('Failed to fetch animation frames:', e);
@@ -277,14 +242,8 @@ export default function EvolutionAnimationPanel({
   };
 
   return createPortal(
-    <div
-      className={`evolution-animation-panel${isMinimized ? ' evolution-animation-panel--minimized' : ''}`}
-      ref={ref}
-    >
-      <div
-        className="evolution-animation-panel__header"
-        onPointerDown={onDragStart}
-      >
+    <div className={`evolution-animation-panel${isMinimized ? ' evolution-animation-panel--minimized' : ''}`} ref={ref}>
+      <div className="evolution-animation-panel__header" onPointerDown={onDragStart}>
         <span className="fw-bold">Repo Evolution</span>
         <div className="evolution-animation-panel__header-actions">
           <button
@@ -295,10 +254,7 @@ export default function EvolutionAnimationPanel({
             onPointerDown={(e) => e.stopPropagation()}
             onClick={toggleMinimized}
           >
-            <ChevronUpIcon
-              size="small"
-              className={isMinimized ? '' : 'hide-bottom-bar-icon-down'}
-            />
+            <ChevronUpIcon size="small" className={isMinimized ? '' : 'hide-bottom-bar-icon-down'} />
           </button>
           <button
             type="button"
@@ -316,40 +272,18 @@ export default function EvolutionAnimationPanel({
         <Tab eventKey="scope" title="Scope">
           <Form.Group className="mb-3">
             <Form.Label> Time frame (empty = whole history)</Form.Label>
-            <div
-              style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}
-            >
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
               <Form.Control
                 type="date"
                 size="sm"
-                value={
-                  rangeFrom
-                    ? new Date(rangeFrom).toISOString().slice(0, 10)
-                    : ''
-                }
-                onChange={(e) =>
-                  setRange(
-                    e.target.value
-                      ? Date.parse(e.target.value + 'T00:00:00Z')
-                      : 0,
-                    rangeTo
-                  )
-                }
+                value={rangeFrom ? new Date(rangeFrom).toISOString().slice(0, 10) : ''}
+                onChange={(e) => setRange(e.target.value ? Date.parse(e.target.value + 'T00:00:00Z') : 0, rangeTo)}
               />
               <Form.Control
                 type="date"
                 size="sm"
-                value={
-                  rangeTo ? new Date(rangeTo).toISOString().slice(0, 10) : ''
-                }
-                onChange={(e) =>
-                  setRange(
-                    rangeFrom,
-                    e.target.value
-                      ? Date.parse(e.target.value + 'T23:59:59Z')
-                      : 0
-                  )
-                }
+                value={rangeTo ? new Date(rangeTo).toISOString().slice(0, 10) : ''}
+                onChange={(e) => setRange(rangeFrom, e.target.value ? Date.parse(e.target.value + 'T23:59:59Z') : 0)}
               />
             </div>
           </Form.Group>
@@ -471,9 +405,7 @@ export default function EvolutionAnimationPanel({
             <Form.Select
               size="sm"
               value={heightMetric}
-              onChange={(e) =>
-                updateSetting('buildingHeightMetric', e.target.value)
-              }
+              onChange={(e) => updateSetting('buildingHeightMetric', e.target.value)}
             >
               {SELECTED_BUILDING_METRIC_OPTIONS.map((m) => (
                 <option key={m} value={m}>
@@ -486,9 +418,7 @@ export default function EvolutionAnimationPanel({
             <Form.Select
               size="sm"
               value={metricMapping}
-              onChange={(e) =>
-                updateSetting('buildingMetricMapping', e.target.value)
-              }
+              onChange={(e) => updateSetting('buildingMetricMapping', e.target.value)}
             >
               {Object.values(BuildingMetricMapping).map((m) => (
                 <option key={m} value={m}>
@@ -506,12 +436,7 @@ export default function EvolutionAnimationPanel({
                   min={2}
                   max={10}
                   value={metricBuckets}
-                  onChange={(e) =>
-                    updateSetting(
-                      'buildingMetricBuckets',
-                      Math.max(2, Number(e.target.value))
-                    )
-                  }
+                  onChange={(e) => updateSetting('buildingMetricBuckets', Math.max(2, Number(e.target.value)))}
                 />
               </>
             )}
@@ -549,25 +474,19 @@ export default function EvolutionAnimationPanel({
             />
             {agingEnabled && timeMode === 'commit' && (
               <>
-                <Form.Label style={{ marginTop: '6px' }}>
-                  Grey out after: {agingCommits} Commits
-                </Form.Label>
+                <Form.Label style={{ marginTop: '6px' }}>Grey out after: {agingCommits} Commits</Form.Label>
                 <Form.Control
                   type="number"
                   min={1}
                   size="sm"
                   value={agingCommits}
-                  onChange={(e) =>
-                    setAgingCommits(Math.max(1, Number(e.target.value)))
-                  }
+                  onChange={(e) => setAgingCommits(Math.max(1, Number(e.target.value)))}
                 />
               </>
             )}
             {agingEnabled && timeMode === 'time' && (
               <>
-                <Form.Label style={{ marginTop: '6px' }}>
-                  Grey out after
-                </Form.Label>
+                <Form.Label style={{ marginTop: '6px' }}>Grey out after</Form.Label>
                 <div style={{ display: 'flex', gap: '4px' }}>
                   <Form.Control
                     type="number"
@@ -601,18 +520,14 @@ export default function EvolutionAnimationPanel({
             )}
             {agingEnabled && (
               <>
-                <Form.Label style={{ marginTop: '6px' }}>
-                  Aging steps: {agingSteps}
-                </Form.Label>
+                <Form.Label style={{ marginTop: '6px' }}>Aging steps: {agingSteps}</Form.Label>
                 <Form.Control
                   type="number"
                   min={1}
                   max={timeMode === 'commit' ? agingCommits : 10}
                   size="sm"
                   value={agingSteps}
-                  onChange={(e) =>
-                    setAgingSteps(Math.max(1, Number(e.target.value)))
-                  }
+                  onChange={(e) => setAgingSteps(Math.max(1, Number(e.target.value)))}
                 />
               </>
             )}

@@ -18,24 +18,18 @@ export const CodeAnalysisSection = ({ landscapeToken }: Props) => {
   const { state: progress, start } = useWatchAnalysisState({
     onFinished: async () => {
       activeLandscapeTokenRef.current = null;
-      useToastHandlerStore
-        .getState()
-        .showSuccessToastMessage('Analysis finished successfully.');
+      useToastHandlerStore.getState().showSuccessToastMessage('Analysis finished successfully.');
       setMode('form');
       await reloadLandscapeAfterCodeAnalysis();
     },
     onFailed: () => {
       activeLandscapeTokenRef.current = null;
-      useToastHandlerStore
-        .getState()
-        .showErrorToastMessage('Analysis failed. Try again.');
+      useToastHandlerStore.getState().showErrorToastMessage('Analysis failed. Try again.');
       setMode('form');
     },
     onCancelled: () => {
       activeLandscapeTokenRef.current = null;
-      useToastHandlerStore
-        .getState()
-        .showSuccessToastMessage('Analysis cancelled.');
+      useToastHandlerStore.getState().showSuccessToastMessage('Analysis cancelled.');
       setMode('form');
     },
     onError: (message: string) => {
@@ -61,18 +55,12 @@ export const CodeAnalysisSection = ({ landscapeToken }: Props) => {
     try {
       const result = await cancelAnalysisJob(token);
       if (!result.ok) {
-        useToastHandlerStore
-          .getState()
-          .showErrorToastMessage(
-            result.message || 'Failed to cancel analysis.'
-          );
+        useToastHandlerStore.getState().showErrorToastMessage(result.message || 'Failed to cancel analysis.');
       }
     } catch (error: any) {
       useToastHandlerStore
         .getState()
-        .showErrorToastMessage(
-          `Failed to cancel analysis: ${error.message || 'Network error'}`
-        );
+        .showErrorToastMessage(`Failed to cancel analysis: ${error.message || 'Network error'}`);
     } finally {
       setIsCancelling(false);
     }
@@ -81,11 +69,7 @@ export const CodeAnalysisSection = ({ landscapeToken }: Props) => {
   return (
     <>
       {mode === 'running' ? (
-        <RepoAnalysisProgress
-          state={progress}
-          onCancel={handleCancel}
-          isCancelling={isCancelling}
-        />
+        <RepoAnalysisProgress state={progress} onCancel={handleCancel} isCancelling={isCancelling} />
       ) : (
         <CodeAnalysisTriggerForm
           landscapeToken={landscapeToken}

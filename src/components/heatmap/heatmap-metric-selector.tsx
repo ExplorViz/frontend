@@ -10,20 +10,12 @@ import { useEffect } from 'react';
 import { useShallow } from 'zustand/react/shallow';
 
 export default function MetricSelector() {
-  const currentSelectedRepo = useCommitTreeStateStore(
-    (state) => state._currentSelectedRepositoryName
-  );
+  const currentSelectedRepo = useCommitTreeStateStore((state) => state._currentSelectedRepositoryName);
   const isCommitComparisonMode =
-    (useCommitTreeStateStore(
-      (state) => state._selectedCommits.get(currentSelectedRepo)?.length
-    ) ?? 0) === 2;
+    (useCommitTreeStateStore((state) => state._selectedCommits.get(currentSelectedRepo)?.length) ?? 0) === 2;
   const buildings = useModelStore((state) => state.buildings);
 
-  const {
-    selectedClassMetric,
-    setSelectedClassMetric,
-    refreshSelectedMetricBounds,
-  } = useHeatmapStore(
+  const { selectedClassMetric, setSelectedClassMetric, refreshSelectedMetricBounds } = useHeatmapStore(
     useShallow((state) => ({
       selectedClassMetric: state.selectedBuildingMetric,
       setSelectedClassMetric: state.setSelectedBuildingMetric,
@@ -37,12 +29,7 @@ export default function MetricSelector() {
     }
 
     refreshSelectedMetricBounds();
-  }, [
-    buildings,
-    isCommitComparisonMode,
-    refreshSelectedMetricBounds,
-    selectedClassMetric.name,
-  ]);
+  }, [buildings, isCommitComparisonMode, refreshSelectedMetricBounds, selectedClassMetric.name]);
 
   return (
     <select

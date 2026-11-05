@@ -54,12 +54,7 @@ export type ColorSettingId =
 
 export type ColorSettings = Record<ColorSettingId, ColorSetting>;
 
-export const BUILDING_GEOMETRY_OPTIONS = [
-  'Box',
-  'Cone',
-  'Sphere',
-  'Cylinder',
-] as const;
+export const BUILDING_GEOMETRY_OPTIONS = ['Box', 'Cone', 'Sphere', 'Cylinder'] as const;
 export type BuildingGeometryType = (typeof BUILDING_GEOMETRY_OPTIONS)[number];
 
 export const CITY_GEOMETRY_OPTIONS = ['Box', 'Cylinder'] as const;
@@ -377,16 +372,7 @@ export type Setting<T> = {
 };
 
 export interface ButtonSetting extends Setting<boolean> {
-  type:
-    | 'primary'
-    | 'secondary'
-    | 'success'
-    | 'danger'
-    | 'warning'
-    | 'info'
-    | 'light'
-    | 'dark'
-    | 'link';
+  type: 'primary' | 'secondary' | 'success' | 'danger' | 'warning' | 'info' | 'light' | 'dark' | 'link';
   buttonText: string;
   readonly isButtonSetting: true;
 }
@@ -453,9 +439,7 @@ export const SELECTED_BUILDING_METRIC_OPTIONS: SelectedBuildingMetric[] = [
 ];
 
 export function sortBuildingMetricNames(names: Iterable<string>): string[] {
-  const orderIndex = new Map(
-    BUILDING_METRIC_NAMES.map((name, index) => [name, index])
-  );
+  const orderIndex = new Map(BUILDING_METRIC_NAMES.map((name, index) => [name, index]));
 
   return [...names].sort((a, b) => {
     const indexA = orderIndex.get(a) ?? Number.MAX_SAFE_INTEGER;
@@ -467,13 +451,8 @@ export function sortBuildingMetricNames(names: Iterable<string>): string[] {
   });
 }
 
-export function getOrderedBuildingMetricEntries<T>(
-  metrics: Record<string, T>
-): [string, T][] {
-  return sortBuildingMetricNames(Object.keys(metrics)).map((name) => [
-    name,
-    metrics[name],
-  ]);
+export function getOrderedBuildingMetricEntries<T>(metrics: Record<string, T>): [string, T][] {
+  return sortBuildingMetricNames(Object.keys(metrics)).map((name) => [name, metrics[name]]);
 }
 
 export enum BuildingMetricMapping {

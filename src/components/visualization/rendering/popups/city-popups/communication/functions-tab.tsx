@@ -49,10 +49,7 @@ export default function FunctionsTab({ communication }: FunctionsTabProps) {
                 <React.Fragment key={func.id}>
                   {functions.length > 1 && (
                     <tr className="bg-light">
-                      <td
-                        colSpan={3}
-                        className="font-weight-bold text-muted small"
-                      >
+                      <td colSpan={3} className="font-weight-bold text-muted small">
                         {src.name} &rarr; {tgt.name}
                       </td>
                     </tr>
@@ -60,11 +57,7 @@ export default function FunctionsTab({ communication }: FunctionsTabProps) {
 
                   <tr>
                     <td>
-                      <div
-                        className="text-truncate"
-                        style={{ maxWidth: '200px' }}
-                        title={func.name}
-                      >
+                      <div className="text-truncate" style={{ maxWidth: '200px' }} title={func.name}>
                         {func.name}
                       </div>
                     </td>

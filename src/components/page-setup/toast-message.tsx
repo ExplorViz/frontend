@@ -81,11 +81,7 @@ export default function ToastMessage() {
               toastRefs.current[htmlId] = el;
               if (el) toastRenderIsComplete(htmlId);
             }}
-            onClose={() =>
-              setToastMessages((prev) =>
-                prev.filter((item) => item.htmlId !== htmlId)
-              )
-            }
+            onClose={() => setToastMessages((prev) => prev.filter((item) => item.htmlId !== htmlId))}
             autohide
             delay={5000}
           >

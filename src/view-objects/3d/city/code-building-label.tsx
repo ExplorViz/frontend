@@ -21,48 +21,32 @@ import { useEffect, useRef, useState } from 'react';
 import * as THREE from 'three';
 import { useShallow } from 'zustand/react/shallow';
 
-export default function CodeBuildingLabel({
-  buildingId,
-}: {
-  buildingId: string;
-}) {
+export default function CodeBuildingLabel({ buildingId }: { buildingId: string }) {
   const building = useModelStore.getState().getBuilding(buildingId);
 
-  const {
-    isBuildingHovered,
-    isParentHovered,
-    isBuildingHighlighted,
-    isParentHighlighted,
-  } = useVisualizationStore(
+  const { isBuildingHovered, isParentHovered, isBuildingHighlighted, isParentHighlighted } = useVisualizationStore(
     useShallow((state) => ({
       isBuildingHovered: state.hoveredEntityId === buildingId,
       isParentHovered:
         state.hoveredEntityId === building?.parentDistrictId ||
-        (!building?.parentDistrictId &&
-          state.hoveredEntityId === building?.parentCityId),
+        (!building?.parentDistrictId && state.hoveredEntityId === building?.parentCityId),
       isBuildingHighlighted: state.highlightedEntityIds.has(buildingId),
       isParentHighlighted: state.highlightedEntityIds.has(
-        building?.parentDistrictId ||
-          (!building?.parentDistrictId ? building?.parentCityId || '' : '')
+        building?.parentDistrictId || (!building?.parentDistrictId ? building?.parentCityId || '' : '')
       ),
     }))
   );
 
-  const { showAllBuildingLabels, labelDistanceThreshold, enableClustering } =
-    useUserSettingsStore(
-      useShallow((state) => ({
-        showAllBuildingLabels:
-          state.visualizationSettings.showAllBuildingLabels.value,
-        labelDistanceThreshold:
-          state.visualizationSettings.labelDistanceThreshold.value,
-        enableClustering: state.visualizationSettings.enableClustering.value,
-      }))
-    );
+  const { showAllBuildingLabels, labelDistanceThreshold, enableClustering } = useUserSettingsStore(
+    useShallow((state) => ({
+      showAllBuildingLabels: state.visualizationSettings.showAllBuildingLabels.value,
+      labelDistanceThreshold: state.visualizationSettings.labelDistanceThreshold.value,
+      enableClustering: state.visualizationSettings.enableClustering.value,
+    }))
+  );
 
   // Stay visible while immersive and while the building/label restore after exit.
-  const isImmersiveLabelTarget = useImmersiveViewStore(
-    (state) => state.immersiveLabelBuildingId === buildingId
-  );
+  const isImmersiveLabelTarget = useImmersiveViewStore((state) => state.immersiveLabelBuildingId === buildingId);
 
   const wantsToShowLabel =
     isImmersiveLabelTarget ||
@@ -91,21 +75,11 @@ export default function CodeBuildingLabel({
     return null;
   }
 
-  return (
-    <CodeBuildingLabelContent buildingId={buildingId} building={building} />
-  );
+  return <CodeBuildingLabelContent buildingId={buildingId} building={building} />;
 }
 
-function CodeBuildingLabelContent({
-  buildingId,
-  building,
-}: {
-  buildingId: string;
-  building: Building;
-}) {
-  const layout =
-    useLayoutStore.getState().getBuildingLayouts().get(buildingId) ||
-    new BoxLayout();
+function CodeBuildingLabelContent({ buildingId, building }: { buildingId: string; building: Building }) {
+  const layout = useLayoutStore.getState().getBuildingLayouts().get(buildingId) || new BoxLayout();
 
   const sceneLayers = useVisualizationStore((state) => state.sceneLayers);
   const {
@@ -124,14 +98,11 @@ function CodeBuildingLabelContent({
   } = useUserSettingsStore(
     useShallow((state) => ({
       buildingFootprint: state.visualizationSettings.buildingFootprint.value,
-      buildingHeightMultiplier:
-        state.visualizationSettings.buildingHeightMultiplier.value,
+      buildingHeightMultiplier: state.visualizationSettings.buildingHeightMultiplier.value,
       metricMapping: state.visualizationSettings.buildingMetricMapping.value,
       metricBuckets: state.visualizationSettings.buildingMetricBuckets.value,
-      buildingLabelFontSize:
-        state.visualizationSettings.buildingLabelFontSize.value,
-      buildingLabelLength:
-        state.visualizationSettings.buildingLabelLength.value,
+      buildingLabelFontSize: state.visualizationSettings.buildingLabelFontSize.value,
+      buildingLabelLength: state.visualizationSettings.buildingLabelLength.value,
       buildingTextColor: state.visualizationSettings.buildingTextColor.value,
       heightMetric: state.visualizationSettings.buildingHeightMetric.value,
       labelOffset: state.visualizationSettings.labelOffset.value,
@@ -143,14 +114,9 @@ function CodeBuildingLabelContent({
 
   const buildings = useModelStore((state) => state.buildings);
   const immersiveBuildingHeight = useImmersiveViewStore((state) =>
-    state.immersiveLabelBuildingId === buildingId
-      ? state.immersiveBuildingHeight
-      : null
+    state.immersiveLabelBuildingId === buildingId ? state.immersiveBuildingHeight : null
   );
-  const heightMetricBounds = getCachedBuildingMetricBounds(
-    buildings,
-    heightMetric
-  );
+  const heightMetricBounds = getCachedBuildingMetricBounds(buildings, heightMetric);
 
   function getBuildingHeight(targetBuilding: Building) {
     return computeMappedBuildingHeight(
@@ -173,13 +139,10 @@ function CodeBuildingLabelContent({
       labelOffset
     )
   );
-  const labelTweenRef = useRef<{ x: number; y: number; z: number } | null>(
-    null
-  );
+  const labelTweenRef = useRef<{ x: number; y: number; z: number } | null>(null);
 
   useEffect(() => {
-    const targetHeight =
-      immersiveBuildingHeight ?? getBuildingHeight(building);
+    const targetHeight = immersiveBuildingHeight ?? getBuildingHeight(building);
     const target = createBuildingLabelPosition(
       layout.center.x,
       layout.center.z,
@@ -188,9 +151,7 @@ function CodeBuildingLabelContent({
       labelOffset
     );
     const duration =
-      immersiveBuildingHeight !== null
-        ? getImmersiveAnimationDuration(animationDuration)
-        : animationDuration;
+      immersiveBuildingHeight !== null ? getImmersiveAnimationDuration(animationDuration) : animationDuration;
 
     animateNumericProps({
       from: {
@@ -202,10 +163,8 @@ function CodeBuildingLabelContent({
       duration,
       animate: enableAnimations,
       tweenRef: labelTweenRef,
-      onUpdate: (values) =>
-        setLabelPosition(new THREE.Vector3(values.x, values.y, values.z)),
+      onUpdate: (values) => setLabelPosition(new THREE.Vector3(values.x, values.y, values.z)),
     });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     animationDuration,
     building,
@@ -229,9 +188,7 @@ function CodeBuildingLabelContent({
       position={labelPosition}
       color={buildingTextColor}
       rotation={[1.5 * Math.PI, 0, labelRotation]}
-      fontSize={
-        buildingLabelFontSize * Math.min(layout.width, layout.depth) * 0.5
-      }
+      fontSize={buildingLabelFontSize * Math.min(layout.width, layout.depth) * 0.5}
       raycast={() => null}
     >
       {getTruncatedDisplayName(building.name, buildingId, buildingLabelLength)}

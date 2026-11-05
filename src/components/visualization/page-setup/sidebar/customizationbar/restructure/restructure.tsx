@@ -1,11 +1,7 @@
+import { keyedItems } from 'explorviz-frontend/src/utils/keyed-items';
 import React, { useEffect, useState } from 'react';
 
-import {
-  DeviceCameraIcon,
-  ImageIcon,
-  TrashIcon,
-  XIcon,
-} from '@primer/octicons-react';
+import { DeviceCameraIcon, ImageIcon, TrashIcon, XIcon } from '@primer/octicons-react';
 import { format } from 'date-fns';
 import WideCheckbox from 'explorviz-frontend/src/components/visualization/page-setup/sidebar/customizationbar/settings/setting-type/wide-checkbox';
 import AnnotationData from 'explorviz-frontend/src/components/visualization/rendering/annotations/annotation-data';
@@ -13,10 +9,7 @@ import { useAuthStore } from 'explorviz-frontend/src/stores/auth';
 import { useChangelogStore } from 'explorviz-frontend/src/stores/changelog';
 import { useLandscapeRestructureStore } from 'explorviz-frontend/src/stores/landscape-restructure';
 import { LandscapeToken } from 'explorviz-frontend/src/stores/landscape-token';
-import {
-  SnapshotToken,
-  useSnapshotTokenStore,
-} from 'explorviz-frontend/src/stores/snapshot-token';
+import { SnapshotToken, useSnapshotTokenStore } from 'explorviz-frontend/src/stores/snapshot-token';
 import { useToastHandlerStore } from 'explorviz-frontend/src/stores/toast-handler';
 import { ApiToken } from 'explorviz-frontend/src/stores/user-api-token';
 import eventEmitter from 'explorviz-frontend/src/utils/event-emitter';
@@ -32,19 +25,20 @@ import Select from 'react-select';
 import AsyncSelect from 'react-select/async';
 import { useShallow } from 'zustand/react/shallow';
 
-const shareSnapshot =
-  import.meta.env.VITE_SHARE_SNAPSHOT_URL || `${window.location.origin}/`;
+const shareSnapshot = import.meta.env.VITE_SHARE_SNAPSHOT_URL || `${window.location.origin}/`;
 const gitlabApi = import.meta.env.VITE_GIT_FACADE_SERV_URL;
 
-type Issue = { title: string; content: string; screenshots: string[] };
+type Issue = {
+  id: string;
+  title: string;
+  content: string;
+  screenshots: { id: string; dataUrl: string }[];
+};
 type GitlabProject = { id: string; name: string };
 
 interface RestructureProps {
   landscapeData: LandscapeData;
-  restructureLandscape: (
-    structureData: StructureLandscapeData,
-    dynamicData: DynamicLandscapeData
-  ) => void;
+  restructureLandscape: (structureData: StructureLandscapeData, dynamicData: DynamicLandscapeData) => void;
   visualizationPaused: boolean;
   landscapeToken: LandscapeToken;
   annotationData: AnnotationData[];
@@ -103,55 +97,36 @@ export default function Restructure({
   const authUser = useAuthStore((state) => state.user);
   const saveSnapshot = useSnapshotTokenStore((state) => state.saveSnapshot);
 
-  const {
-    showInfoToastMessage,
-    showSuccessToastMessage,
-    showErrorToastMessage,
-  } = useToastHandlerStore();
+  const { showInfoToastMessage, showSuccessToastMessage, showErrorToastMessage } = useToastHandlerStore();
 
   // MARK: Constants
 
-  const today: string = format(
-    new Date().getTime() + 86400 * 1000,
-    'yyyy-MM-dd'
-  );
+  const [today] = useState<string>(() => format(new Date().getTime() + 86400 * 1000, 'yyyy-MM-dd'));
 
   // MARK: State
 
   const [token, setToken] = useState<ApiToken | null>(() =>
-    localStorage.getItem('gitAPIToken') !== null
-      ? JSON.parse(localStorage.getItem('gitAPIToken')!)
-      : null
+    localStorage.getItem('gitAPIToken') !== null ? JSON.parse(localStorage.getItem('gitAPIToken')!) : null
   );
-  const [issueURL, setIssueURL] = useState<string>(
-    () => localStorage.getItem('gitIssue') || ''
-  );
-  const [uploadURL, setUploadURL] = useState<string>(
-    () => localStorage.getItem('gitUpload') || ''
-  );
+  const [issueURL, setIssueURL] = useState<string>(() => localStorage.getItem('gitIssue') || '');
+  const [uploadURL, setUploadURL] = useState<string>(() => localStorage.getItem('gitUpload') || '');
   const [appName, setAppName] = useState<string>('');
   const [language, setLanguage] = useState<string>('');
   // const [clipboard, setClipboard] = useState<string>('');
   const [methodName, setMethodName] = useState<string>('');
   const [logTexts, setLogTexts] = useState<string[]>([]);
   const [issues, setIssues] = useState<Issue[]>([]);
-  const [createAppBtnDisabled, setCreateAppBtnDisabled] =
-    useState<boolean>(true);
-  const [uploadIssueBtnDisabled, setUploadIssueBtnDisabled] =
-    useState<boolean>(false);
+  const [createAppBtnDisabled, setCreateAppBtnDisabled] = useState<boolean>(true);
+  const [uploadIssueBtnDisabled, setUploadIssueBtnDisabled] = useState<boolean>(false);
   const [snapshotModal, setSnapshotModal] = useState<boolean>(false);
   const [index, setIndex] = useState<number | null>(null);
   const [snapshotName, setSnapshotName] = useState<string | null>(null);
-  const [saveSnaphotBtnDisabled, setSaveSnaphotBtnDisabled] =
-    useState<boolean>(true);
+  const [saveSnaphotBtnDisabled, setSaveSnaphotBtnDisabled] = useState<boolean>(true);
   const [expDate, setExpDate] = useState<number | null>(null);
-  const [createPersonalSnapshot, setCreatePersonalSnapshot] =
-    useState<boolean>(false);
+  const [createPersonalSnapshot, setCreatePersonalSnapshot] = useState<boolean>(false);
   const [gitLabProjects, setGitLabProjects] = useState<GitlabProject[]>([]);
   const [project, setProject] = useState<GitlabProject | undefined>(() =>
-    localStorage.getItem('gitProject') !== null
-      ? JSON.parse(localStorage.getItem('gitProject')!)
-      : undefined
+    localStorage.getItem('gitProject') !== null ? JSON.parse(localStorage.getItem('gitProject')!) : undefined
   );
   const [saveCredBtnDisabled, setSaveCredBtnDisabled] = useState<boolean>(
     token !== null && project !== undefined ? false : true
@@ -176,9 +151,7 @@ export default function Restructure({
   };
 
   const toggleCheckBox = (index: number) => {
-    const checkBox = document.getElementById(
-      'checkbox-' + index
-    ) as HTMLInputElement;
+    const checkBox = document.getElementById('checkbox-' + index) as HTMLInputElement;
     const card = document.getElementById('card-' + index) as HTMLDivElement;
     checkBox.checked = !checkBox.checked;
 
@@ -192,15 +165,11 @@ export default function Restructure({
   };
 
   const toggleSelectAll = () => {
-    const selectAllCheckbox = document.getElementById(
-      'selectAll'
-    ) as HTMLInputElement;
+    const selectAllCheckbox = document.getElementById('selectAll') as HTMLInputElement;
     const isChecked = selectAllCheckbox.checked;
 
     for (let i = 0; i < logTexts.length; i++) {
-      const checkBox = document.getElementById(
-        'checkbox-' + i
-      ) as HTMLInputElement;
+      const checkBox = document.getElementById('checkbox-' + i) as HTMLInputElement;
       const card = document.getElementById('card-' + i) as HTMLDivElement;
 
       if (isChecked && !checkBox.checked) {
@@ -220,9 +189,7 @@ export default function Restructure({
     let newContent = issue.content;
 
     for (let i = 0; i < logTexts.length; i++) {
-      const checkbox = document.getElementById(
-        'checkbox-' + i
-      ) as HTMLInputElement;
+      const checkbox = document.getElementById('checkbox-' + i) as HTMLInputElement;
 
       if (checkbox && checkbox.checked) {
         const entry = logTexts[i];
@@ -262,9 +229,7 @@ export default function Restructure({
   };
 
   const canUpload = () => {
-    const hasScreenshot = issues.some(
-      (issue) => issue.screenshots && issue.screenshots.length > 0
-    );
+    const hasScreenshot = issues.some((issue) => issue.screenshots && issue.screenshots.length > 0);
     if (hasScreenshot) {
       setUploadIssueBtnDisabled(uploadURL === '');
     } else {
@@ -381,48 +346,30 @@ export default function Restructure({
   };
 
   const createIssue = () => {
-    setIssues((prev) => [...prev, { title: '', content: '', screenshots: [] }]);
+    setIssues((prev) => [...prev, { id: crypto.randomUUID(), title: '', content: '', screenshots: [] }]);
   };
 
-  const updateIssueTitle = (
-    indexToUpdate: number,
-    event: React.InputEvent<HTMLInputElement>
-  ) => {
+  const updateIssueTitle = (indexToUpdate: number, event: React.InputEvent<HTMLInputElement>) => {
     const target = event.currentTarget;
     setIssues((prev) =>
-      prev.map((issue, index) =>
-        index === indexToUpdate ? { ...issue, title: target.value } : issue
-      )
+      prev.map((issue, index) => (index === indexToUpdate ? { ...issue, title: target.value } : issue))
     );
   };
 
-  const updateIssueContent = (
-    indexToUpdate: number,
-    event: React.InputEvent<HTMLTextAreaElement>
-  ) => {
+  const updateIssueContent = (indexToUpdate: number, event: React.InputEvent<HTMLTextAreaElement>) => {
     const target = event.currentTarget;
     setIssues((prev) =>
-      prev.map((issue, index) =>
-        index === indexToUpdate ? { ...issue, content: target.value } : issue
-      )
+      prev.map((issue, index) => (index === indexToUpdate ? { ...issue, content: target.value } : issue))
     );
   };
 
-  const addSnapshotLink = (
-    indexToUpdate: number,
-    url: string,
-    name: string
-  ) => {
+  const addSnapshotLink = (indexToUpdate: number, url: string, name: string) => {
     const updatedIssue = {
       ...issues[indexToUpdate],
       content: issues[indexToUpdate].content + '\n' + name + ': ' + url,
     };
 
-    setIssues((prev) =>
-      prev.map((issue, index) =>
-        index === indexToUpdate ? updatedIssue : issue
-      )
-    );
+    setIssues((prev) => prev.map((issue, index) => (index === indexToUpdate ? updatedIssue : issue)));
   };
 
   const deleteIssue = (indexToUpdate: number) => {
@@ -435,9 +382,7 @@ export default function Restructure({
         index === issueIndex
           ? {
               ...issue,
-              screenshots: issue.screenshots.filter(
-                (screenshot, screenshotIdx) => screenshotIdx !== screenshotIndex
-              ),
+              screenshots: issue.screenshots.filter((screenshot, screenshotIdx) => screenshotIdx !== screenshotIndex),
             }
           : issue
       )
@@ -446,14 +391,16 @@ export default function Restructure({
   };
 
   const screenshotCanvas = (indexToUpdate: number) => {
-    const screenshotDataURL =
-      landscapeRestructureState.canvas!.toDataURL('image/png');
+    const screenshotDataURL = landscapeRestructureState.canvas!.toDataURL('image/png');
     setIssues((prev) =>
       prev.map((issue, index) =>
         index === indexToUpdate
           ? {
               ...issue,
-              screenshots: issue.screenshots.concat(screenshotDataURL),
+              screenshots: issue.screenshots.concat({
+                id: crypto.randomUUID(),
+                dataUrl: screenshotDataURL,
+              }),
             }
           : issue
       )
@@ -522,9 +469,7 @@ export default function Restructure({
 
   const deleteEntry = (index: number) => {
     const entry = changeLogEntries[index];
-    const bundledCreateEntries = changelogActions
-      .isCreateBundle(entry, [])
-      ?.reverse();
+    const bundledCreateEntries = changelogActions.isCreateBundle(entry, [])?.reverse();
 
     if (bundledCreateEntries?.length) {
       landscapeRestructureActions.undoBundledEntries(bundledCreateEntries);
@@ -570,12 +515,10 @@ export default function Restructure({
   };
 
   const uploadIssueToGitLab = async (index: number) => {
-    uploadImageToRepository(issues[index].screenshots[0]);
+    uploadImageToRepository(issues[index].screenshots[0]?.dataUrl);
 
     const screenshotUrls = await Promise.all(
-      issues[index].screenshots.map((screenshot) =>
-        uploadImageToRepository(screenshot)
-      )
+      issues[index].screenshots.map((screenshot) => uploadImageToRepository(screenshot.dataUrl))
     );
 
     const contentWithScreenShots = `${issues[index].content}\n${screenshotUrls
@@ -701,22 +644,12 @@ export default function Restructure({
             <div className="ml-3">
               <label htmlFor="appName">Application name:</label>
               <div className="d-flex justify-content-between">
-                <input
-                  id="appName"
-                  className="form-control mr-2"
-                  onInput={updateNewAppName}
-                  value={appName}
-                />
+                <input id="appName" className="form-control mr-2" onInput={updateNewAppName} value={appName} />
               </div>
               <ul></ul>
               <label htmlFor="language">Language:</label>
               <div className="d-flex justify-content-between">
-                <input
-                  id="language"
-                  className="form-control mr-2"
-                  onInput={updateLanguage}
-                  value={language}
-                />
+                <input id="language" className="form-control mr-2" onInput={updateLanguage} value={language} />
               </div>
               <ul></ul>
               <div className="d-flex justify-content-between">
@@ -737,12 +670,7 @@ export default function Restructure({
             <div className="ml-3">
               <label htmlFor="methodName">Method name:</label>
               <div className="d-flex justify-content-between">
-                <input
-                  id="methodName"
-                  className="form-control mr-2"
-                  onInput={updateMethodName}
-                  value={methodName}
-                />
+                <input id="methodName" className="form-control mr-2" onInput={updateMethodName} value={methodName} />
               </div>
 
               <ul></ul>
@@ -846,13 +774,13 @@ export default function Restructure({
                     </div>
                   </>
                 )}
-                {logTexts.map((entry, index) => (
+                {keyedItems(logTexts, (entry) => entry).map(({ item: entry, key }, index) => (
                   <div
                     id={`card-${index}`}
                     className="card"
                     onClick={() => toggleCheckBox(index)}
                     style={{ cursor: 'pointer' }}
-                    key={index}
+                    key={key}
                   >
                     <div className="card-body">
                       <div className="form-check position-relative" hidden>
@@ -862,15 +790,9 @@ export default function Restructure({
                           value=""
                           id={`checkbox-${index}`}
                         />
-                        <label
-                          className="form-check-label"
-                          htmlFor={`checkbox-${index}`}
-                        ></label>
+                        <label className="form-check-label" htmlFor={`checkbox-${index}`}></label>
                       </div>
-                      <p
-                        className={getActionColor(index)}
-                        style={{ userSelect: 'none' }}
-                      >
+                      <p className={getActionColor(index)} style={{ userSelect: 'none' }}>
                         #{index + 1}
                       </p>
                       <div className="d-flex justify-content-between align-items-center">
@@ -895,7 +817,7 @@ export default function Restructure({
               <strong>Gitlab</strong>
             </h6>
             {issues.map((issue, index) => (
-              <React.Fragment key={index}>
+              <React.Fragment key={issue.id}>
                 <div className="ml-3">
                   <div className="d-flex justify-content-between">
                     <label htmlFor="issueTitle"></label>
@@ -957,15 +879,13 @@ export default function Restructure({
                   <ul></ul>
                   <ul>
                     {issue.screenshots.map((screenshot, screenshotIndex) => (
-                      <li key={screenshotIndex}>
+                      <li key={screenshot.id}>
                         <button
                           type="button"
                           style={{ padding: 0, margin: 0 }}
                           className="btn btn-sm link-secondary"
                           title="Delete Screenshot"
-                          onClick={() =>
-                            deleteScreenshot(index, screenshotIndex)
-                          }
+                          onClick={() => deleteScreenshot(index, screenshotIndex)}
                         >
                           <XIcon size="small" />
                         </button>
@@ -988,11 +908,7 @@ export default function Restructure({
             ))}
             <div className="ml-3 mt-2">
               <div className="d-flex justify-content-between mt-3">
-                <Button
-                  title="Create Issue"
-                  variant="outline-secondary"
-                  onClick={createIssue}
-                >
+                <Button title="Create Issue" variant="outline-secondary" onClick={createIssue}>
                   Create Issue
                 </Button>
               </div>
@@ -1009,12 +925,7 @@ export default function Restructure({
           <Modal.Body>
             <label htmlFor="name">Snapshot Name:</label>
             <div className="d-flex justify-content-between">
-              <input
-                id="name"
-                className="form-control mr-2"
-                onInput={updateName}
-                value={snapshotName ?? undefined}
-              />
+              <input id="name" className="form-control mr-2" onInput={updateName} value={snapshotName ?? undefined} />
             </div>
             <label className="mt-2" htmlFor="date">
               Expires <i>- Optional:</i>{' '}
@@ -1036,11 +947,7 @@ export default function Restructure({
                 </label>
               </div>
               <div>
-                <input
-                  id="personalSnapshot"
-                  type="checkbox"
-                  onInput={updatePersonalSnapshot}
-                />
+                <input id="personalSnapshot" type="checkbox" onInput={updatePersonalSnapshot} />
               </div>
             </div>
           </Modal.Body>
@@ -1048,12 +955,7 @@ export default function Restructure({
             <Button variant="outline-danger" onClick={closeSnapshotModal}>
               Cancel
             </Button>
-            <Button
-              title="Save"
-              variant="outline-secondary"
-              onClick={createSnapshot}
-              disabled={saveSnaphotBtnDisabled}
-            >
+            <Button title="Save" variant="outline-secondary" onClick={createSnapshot} disabled={saveSnaphotBtnDisabled}>
               Save
             </Button>
           </Modal.Footer>

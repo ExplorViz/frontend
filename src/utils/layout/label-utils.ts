@@ -11,9 +11,7 @@ export function getCityLabelFontSize(cityLabelMargin: number): number {
 }
 
 /** Font size (world units) of labels of opened districts. */
-export function getOpenDistrictLabelFontSize(
-  districtLabelMargin: number
-): number {
+export function getOpenDistrictLabelFontSize(districtLabelMargin: number): number {
   return districtLabelMargin * 0.5;
 }
 
@@ -28,26 +26,16 @@ export function getTextWidth(text: string, fontSize: number): number {
  * Shortens a label such that it fits into the given width. A suffix (e.g., an
  * annotation icon) is always preserved.
  */
-export function truncateLabelToWidth(
-  name: string,
-  suffix: string,
-  fontSize: number,
-  maxWidth: number
-): string {
+export function truncateLabelToWidth(name: string, suffix: string, fontSize: number, maxWidth: number): string {
   // No truncation needed if the label fits into the given width
   if (getTextWidth(name + suffix, fontSize) <= maxWidth) {
     return name + suffix;
   }
 
   const ellipsis = '...';
-  const maxCharacters = Math.floor(
-    maxWidth / (APPROXIMATE_EM_PER_CHARACTER * fontSize)
-  );
+  const maxCharacters = Math.floor(maxWidth / (APPROXIMATE_EM_PER_CHARACTER * fontSize));
   // Keep at least 3 characters to avoid truncating the label too much
-  const keptCharacters = Math.max(
-    3,
-    maxCharacters - ellipsis.length - suffix.length
-  );
+  const keptCharacters = Math.max(3, maxCharacters - ellipsis.length - suffix.length);
 
   // Add ellipsis and always preserve the suffix for truncated label
   return name.substring(0, keptCharacters) + ellipsis + suffix;

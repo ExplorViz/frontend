@@ -6,10 +6,7 @@ import { getEntityDisplayName } from 'explorviz-frontend/src/utils/annotation-ut
 import { isDistrictOpen } from 'explorviz-frontend/src/utils/city-rendering/district-close-state';
 import { District } from 'explorviz-frontend/src/utils/landscape-schemes/flat-landscape';
 import BoxLayout from 'explorviz-frontend/src/utils/layout/box-layout';
-import {
-  getOpenDistrictLabelFontSize,
-  truncateLabelToWidth,
-} from 'explorviz-frontend/src/utils/layout/label-utils';
+import { getOpenDistrictLabelFontSize, truncateLabelToWidth } from 'explorviz-frontend/src/utils/layout/label-utils';
 import { getLabelRotation } from 'explorviz-frontend/src/view-objects/utils/label-utils';
 import gsap from 'gsap';
 import { useEffect, useState } from 'react';
@@ -26,76 +23,44 @@ function computeDistrictLabelPosition(
   districtLabelMargin: number
 ): THREE.Vector3 {
   const margin = districtLabelMargin / 2;
-  const openedPosY =
-    layout.positionY + openedDistrictHeight + labelOffset + 0.01;
-  const closedPosY =
-    layout.positionY + closedDistrictHeight + labelOffset + 0.01;
+  const openedPosY = layout.positionY + openedDistrictHeight + labelOffset + 0.01;
+  const closedPosY = layout.positionY + closedDistrictHeight + labelOffset + 0.01;
   switch (placement) {
     case 'top':
       return isOpen
-        ? new THREE.Vector3(
-            layout.center.x,
-            openedPosY,
-            layout.center.z - layout.depth / 2 + margin
-          )
+        ? new THREE.Vector3(layout.center.x, openedPosY, layout.center.z - layout.depth / 2 + margin)
         : new THREE.Vector3(layout.center.x, closedPosY, layout.center.z);
     case 'bottom':
       return isOpen
-        ? new THREE.Vector3(
-            layout.center.x,
-            openedPosY,
-            layout.center.z + layout.depth / 2 - margin
-          )
+        ? new THREE.Vector3(layout.center.x, openedPosY, layout.center.z + layout.depth / 2 - margin)
         : new THREE.Vector3(layout.center.x, closedPosY, layout.center.z);
     case 'left':
       return isOpen
-        ? new THREE.Vector3(
-            layout.center.x - layout.width / 2 + margin,
-            openedPosY,
-            layout.center.z
-          )
+        ? new THREE.Vector3(layout.center.x - layout.width / 2 + margin, openedPosY, layout.center.z)
         : new THREE.Vector3(layout.center.x, closedPosY, layout.center.z);
     case 'right':
       return isOpen
-        ? new THREE.Vector3(
-            layout.center.x + layout.width / 2 - margin,
-            openedPosY,
-            layout.center.z
-          )
+        ? new THREE.Vector3(layout.center.x + layout.width / 2 - margin, openedPosY, layout.center.z)
         : new THREE.Vector3(layout.center.x, closedPosY, layout.center.z);
     default:
       return new THREE.Vector3(0, 0, 0);
   }
 }
 
-export default function CityDistrictLabel({
-  district,
-  layout,
-}: {
-  district: District;
-  layout: BoxLayout;
-}) {
-  const { districtLabelMargin, labelDistanceThreshold, enableClustering } =
-    useUserSettingsStore(
-      useShallow((state) => ({
-        districtLabelMargin:
-          state.visualizationSettings.districtLabelMargin.value,
-        labelDistanceThreshold:
-          state.visualizationSettings.labelDistanceThreshold.value,
-        enableClustering: state.visualizationSettings.enableClustering.value,
-      }))
-    );
-
-  const isOpen = useVisualizationStore((state) =>
-    isDistrictOpen(district.id, state.closedDistrictIds)
+export default function CityDistrictLabel({ district, layout }: { district: District; layout: BoxLayout }) {
+  const { districtLabelMargin, labelDistanceThreshold, enableClustering } = useUserSettingsStore(
+    useShallow((state) => ({
+      districtLabelMargin: state.visualizationSettings.districtLabelMargin.value,
+      labelDistanceThreshold: state.visualizationSettings.labelDistanceThreshold.value,
+      enableClustering: state.visualizationSettings.enableClustering.value,
+    }))
   );
+
+  const isOpen = useVisualizationStore((state) => isDistrictOpen(district.id, state.closedDistrictIds));
 
   const fontSize = isOpen
     ? getOpenDistrictLabelFontSize(districtLabelMargin)
-    : Math.max(
-        layout.width * 0.1,
-        getOpenDistrictLabelFontSize(districtLabelMargin)
-      );
+    : Math.max(layout.width * 0.1, getOpenDistrictLabelFontSize(districtLabelMargin));
 
   // Larger labels of larger districts should be visible from a greater distance
   const sizeMultiplier = 1.0 + layout.area / 100000.0 + fontSize / 10.0;
@@ -103,23 +68,14 @@ export default function CityDistrictLabel({
 
   const isWithinDistance = useClusterStore((state) => {
     const distance = state.getCentroidDistance(district.id);
-    return distance !== undefined
-      ? distance <= adjustedThreshold
-      : !enableClustering;
+    return distance !== undefined ? distance <= adjustedThreshold : !enableClustering;
   });
 
   if (!isWithinDistance) {
     return null;
   }
 
-  return (
-    <CityDistrictLabelContent
-      district={district}
-      layout={layout}
-      isOpen={isOpen}
-      fontSize={fontSize}
-    />
-  );
+  return <CityDistrictLabelContent district={district} layout={layout} isOpen={isOpen} fontSize={fontSize} />;
 }
 
 function CityDistrictLabelContent({
@@ -147,17 +103,13 @@ function CityDistrictLabelContent({
     useShallow((state) => ({
       labelOffset: state.visualizationSettings.labelOffset.value,
       districtTextColor: state.visualizationSettings.districtTextColor.value,
-      closedDistrictHeight:
-        state.visualizationSettings.closedDistrictHeight.value,
-      openedDistrictHeight:
-        state.visualizationSettings.openedDistrictHeight.value,
-      districtLabelMargin:
-        state.visualizationSettings.districtLabelMargin.value,
+      closedDistrictHeight: state.visualizationSettings.closedDistrictHeight.value,
+      openedDistrictHeight: state.visualizationSettings.openedDistrictHeight.value,
+      districtLabelMargin: state.visualizationSettings.districtLabelMargin.value,
       districtPadding: state.visualizationSettings.districtPadding.value,
       enableAnimations: state.visualizationSettings.enableAnimations.value,
       animationDuration: state.visualizationSettings.animationDuration.value,
-      districtLabelPlacement:
-        state.visualizationSettings.districtLabelPlacement.value,
+      districtLabelPlacement: state.visualizationSettings.districtLabelPlacement.value,
     }))
   );
 
@@ -190,11 +142,7 @@ function CityDistrictLabelContent({
       districtLabelMargin
     );
 
-    if (
-      labelPosition.x === target.x &&
-      labelPosition.y === target.y &&
-      labelPosition.z === target.z
-    ) {
+    if (labelPosition.x === target.x && labelPosition.y === target.y && labelPosition.z === target.z) {
       return;
     }
 
@@ -216,7 +164,6 @@ function CityDistrictLabelContent({
     } else {
       setLabelPosition(target.clone());
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     isOpen,
     enableAnimations,
@@ -233,19 +180,12 @@ function CityDistrictLabelContent({
   // along the side given by the label placement, i.e., along the depth if it
   // is placed left or right (rotated label).
   const availableLabelWidth =
-    (districtLabelPlacement === 'left' || districtLabelPlacement === 'right'
-      ? layout.depth
-      : layout.width) -
+    (districtLabelPlacement === 'left' || districtLabelPlacement === 'right' ? layout.depth : layout.width) -
     2 * districtPadding;
   const displayName = getEntityDisplayName(district.name, district.id);
   // Everything after the name (e.g., annotation icon) is always kept
   const labelSuffix = displayName.substring(district.name.length);
-  const labelText = truncateLabelToWidth(
-    district.name,
-    labelSuffix,
-    fontSize,
-    availableLabelWidth
-  );
+  const labelText = truncateLabelToWidth(district.name, labelSuffix, fontSize, availableLabelWidth);
 
   return (
     <Text

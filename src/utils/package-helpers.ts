@@ -1,9 +1,5 @@
 import { getAllPackagesInApplication } from 'explorviz-frontend/src/utils/application-helpers';
-import {
-  Class,
-  Package,
-  StructureLandscapeData,
-} from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
+import { Class, Package, StructureLandscapeData } from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
 
 /**
  * Returns the package's classes
@@ -13,31 +9,18 @@ export function getClassesInPackage(pckg: Package, recursive = true): Class[] {
     return [...pckg.classes];
   }
 
-  return [
-    ...pckg.classes,
-    ...pckg.subPackages
-      .map((subPackage) => getClassesInPackage(subPackage))
-      .flat(),
-  ];
+  return [...pckg.classes, ...pckg.subPackages.map((subPackage) => getClassesInPackage(subPackage)).flat()];
 }
 
 /**
  * Returns the package's sub-packages
  */
-export function getSubPackagesOfPackage(
-  pckg: Package,
-  recursive = true
-): Package[] {
+export function getSubPackagesOfPackage(pckg: Package, recursive = true): Package[] {
   if (!recursive) {
     return [...pckg.subPackages];
   }
 
-  return [
-    ...pckg.subPackages,
-    ...pckg.subPackages
-      .map((subPackage) => getSubPackagesOfPackage(subPackage))
-      .flat(),
-  ];
+  return [...pckg.subPackages, ...pckg.subPackages.map((subPackage) => getSubPackagesOfPackage(subPackage)).flat()];
 }
 
 /**
@@ -52,30 +35,20 @@ export function getAncestorPackages(pckg: Package): Package[] {
   return [pckg.parent, ...getAncestorPackages(pckg.parent)];
 }
 
-export function packageContainsClass(
-  component: Package,
-  clazz: Class
-): boolean {
+export function packageContainsClass(component: Package, clazz: Class): boolean {
   return (
     component.classes.includes(clazz) ||
     (component.subPackages.length > 0 &&
-      component.subPackages.some((subPackage) =>
-        packageContainsClass(subPackage, clazz)
-      ))
+      component.subPackages.some((subPackage) => packageContainsClass(subPackage, clazz)))
   );
 }
 
-export function getPackageById(
-  landscapeStructure: StructureLandscapeData,
-  id: string
-): Package | undefined {
+export function getPackageById(landscapeStructure: StructureLandscapeData, id: string): Package | undefined {
   for (const node of landscapeStructure.nodes) {
     for (const application of node.applications) {
       const allPackagesinApplication = getAllPackagesInApplication(application);
 
-      const possibleMatch = allPackagesinApplication.find(
-        (pckg) => pckg.id === id
-      );
+      const possibleMatch = allPackagesinApplication.find((pckg) => pckg.id === id);
 
       if (possibleMatch) {
         return possibleMatch;

@@ -4,25 +4,13 @@ import { defineConfig, loadEnv } from 'vite';
 
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), '');
-  const landscapeTarget =
-    env.LANDSCAPE_SERV_URL ||
-    env.VITE_LANDSCAPE_SERV_URL ||
-    'http://localhost:8085';
-  const codeAnalyzerTarget =
-    env.CODE_ANALYZER_URL ||
-    env.VITE_CODE_ANALYZER_URL ||
-    'http://localhost:8078';
-  const traceTarget =
-    env.TRACE_SERV_URL || env.VITE_TRACE_SERV_URL || 'http://localhost:8081';
-  const metricsTarget =
-    env.METRICS_SERV_URL ||
-    env.VITE_METRICS_SERV_URL ||
-    'http://localhost:8082';
-  const logTarget =
-    env.LOG_SERV_URL || env.VITE_LOG_SERV_URL || 'http://localhost:8083';
+  const landscapeTarget = env.LANDSCAPE_SERV_URL || env.VITE_LANDSCAPE_SERV_URL || 'http://localhost:8085';
+  const codeAnalyzerTarget = env.CODE_ANALYZER_URL || env.VITE_CODE_ANALYZER_URL || 'http://localhost:8078';
+  const traceTarget = env.TRACE_SERV_URL || env.VITE_TRACE_SERV_URL || 'http://localhost:8081';
+  const metricsTarget = env.METRICS_SERV_URL || env.VITE_METRICS_SERV_URL || 'http://localhost:8082';
+  const logTarget = env.LOG_SERV_URL || env.VITE_LOG_SERV_URL || 'http://localhost:8083';
 
-  const userTarget =
-    env.USER_SERV_URL || env.VITE_USER_SERV_URL || 'http://localhost:8084';
+  const userTarget = env.USER_SERV_URL || env.VITE_USER_SERV_URL || 'http://localhost:8084';
 
   return {
     plugins: [
@@ -34,10 +22,7 @@ export default defineConfig(({ mode }) => {
     ],
     resolve: {
       alias: {
-        '~bootstrap': path.resolve(
-          import.meta.dirname,
-          'node_modules/bootstrap'
-        ),
+        '~bootstrap': path.resolve(import.meta.dirname, 'node_modules/bootstrap'),
         'explorviz-frontend': path.resolve(import.meta.dirname),
       },
     },
@@ -52,11 +37,10 @@ export default defineConfig(({ mode }) => {
           target: 'http://localhost:9123',
           changeOrigin: true,
         },
-        '^/v3/landscapes/[^/]+/(?:communication|timestamps|trace-data)(?:/.*|\\?[^/]+|$)':
-          {
-            target: traceTarget,
-            changeOrigin: true,
-          },
+        '^/v3/landscapes/[^/]+/(?:communication|timestamps|trace-data)(?:/.*|\\?[^/]+|$)': {
+          target: traceTarget,
+          changeOrigin: true,
+        },
         '^/v3/landscapes/[^/]+/spans(?:/.*|\\?[^/]+|$)': {
           target: traceTarget,
           changeOrigin: true,

@@ -35,9 +35,7 @@ export default class CommunicationLayout {
     copy.endY = this.endY;
     copy.endZ = this.endZ;
     copy.lineThickness = this.lineThickness;
-    copy.pointsFor3D = this.pointsFor3D.map(
-      (point) => new THREE.Vector3(point.x, point.y, point.z)
-    );
+    copy.pointsFor3D = this.pointsFor3D.map((point) => new THREE.Vector3(point.x, point.y, point.z));
     return copy;
   }
 
@@ -72,11 +70,7 @@ export default class CommunicationLayout {
   }
 
   getCurve({ yOffset = 0 }) {
-    return new THREE.QuadraticBezierCurve3(
-      this.startPoint,
-      this.getMiddlePoint({ yOffset }),
-      this.endPoint
-    );
+    return new THREE.QuadraticBezierCurve3(this.startPoint, this.getMiddlePoint({ yOffset }), this.endPoint);
   }
 
   equals(obj?: CommunicationLayout) {

@@ -12,9 +12,7 @@ import Button from 'react-bootstrap/Button';
 import { useShallow } from 'zustand/react/shallow';
 
 export default function EvolutionRenderingButtons() {
-  const repoNameCommitTreeMap = useEvolutionDataRepositoryStore(
-    (state) => state._repoNameCommitTreeMap
-  );
+  const repoNameCommitTreeMap = useEvolutionDataRepositoryStore((state) => state._repoNameCommitTreeMap);
 
   const commitTreeState = useCommitTreeStateStore(
     useShallow((state) => ({
@@ -27,33 +25,24 @@ export default function EvolutionRenderingButtons() {
 
   const renderingService = useRenderingServiceStore(
     useShallow((state) => ({
-      triggerRenderingForSelectedCommits:
-        state.triggerRenderingForSelectedCommits,
-      rerenderEvolutionLandscapeWithCurrentFilter:
-        state.rerenderEvolutionLandscapeWithCurrentFilter,
+      triggerRenderingForSelectedCommits: state.triggerRenderingForSelectedCommits,
+      rerenderEvolutionLandscapeWithCurrentFilter: state.rerenderEvolutionLandscapeWithCurrentFilter,
     }))
   );
 
-  const {
-    buildingComparisonVisibility,
-    applyEvolutionModeRenderingConfiguration,
-  } = useVisibilityServiceStore(
+  const { buildingComparisonVisibility, applyEvolutionModeRenderingConfiguration } = useVisibilityServiceStore(
     useShallow((state) => ({
-      buildingComparisonVisibility:
-        state._evolutionModeRenderingConfiguration.buildingComparisonVisibility,
-      applyEvolutionModeRenderingConfiguration:
-        state.applyEvolutionModeRenderingConfiguration,
+      buildingComparisonVisibility: state._evolutionModeRenderingConfiguration.buildingComparisonVisibility,
+      applyEvolutionModeRenderingConfiguration: state.applyEvolutionModeRenderingConfiguration,
     }))
   );
 
-  const hasSelectableCommits = Array.from(repoNameCommitTreeMap.values()).some(
-    (tree) => tree.branches.some((branch) => branchHasAnalyzedCommits(branch))
+  const hasSelectableCommits = Array.from(repoNameCommitTreeMap.values()).some((tree) =>
+    tree.branches.some((branch) => branchHasAnalyzedCommits(branch))
   );
 
   const isDiffMode =
-    (commitTreeState.selectedCommits.get(
-      commitTreeState.currentSelectedRepositoryName
-    )?.length || 0) === 2;
+    (commitTreeState.selectedCommits.get(commitTreeState.currentSelectedRepositoryName)?.length || 0) === 2;
 
   const unselectAllSelectedCommits = () => {
     commitTreeState.resetSelectedCommits();
@@ -69,18 +58,11 @@ export default function EvolutionRenderingButtons() {
     renderingService.triggerRenderingForSelectedCommits();
   };
 
-  const setBuildingComparisonVisibility = (
-    visibility: BuildingComparisonVisibility
-  ) => {
-    const currentConfig = useVisibilityServiceStore
-      .getState()
-      .getCloneOfEvolutionModeRenderingConfiguration();
+  const setBuildingComparisonVisibility = (visibility: BuildingComparisonVisibility) => {
+    const currentConfig = useVisibilityServiceStore.getState().getCloneOfEvolutionModeRenderingConfiguration();
 
-    const hasChanged = (
-      Object.keys(visibility) as (keyof BuildingComparisonVisibility)[]
-    ).some(
-      (key) =>
-        currentConfig.buildingComparisonVisibility[key] !== visibility[key]
+    const hasChanged = (Object.keys(visibility) as (keyof BuildingComparisonVisibility)[]).some(
+      (key) => currentConfig.buildingComparisonVisibility[key] !== visibility[key]
     );
 
     if (!hasChanged) {

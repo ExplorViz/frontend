@@ -1,14 +1,7 @@
 import { useState } from 'react';
 
 import { Container, Text } from '@react-three/uikit';
-import {
-  Button,
-  Label,
-  RadioGroup,
-  RadioGroupItem,
-  Slider,
-  Switch,
-} from '@react-three/uikit-default';
+import { Button, Label, RadioGroup, RadioGroupItem, Slider, Switch } from '@react-three/uikit-default';
 import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
 import {
   isButtonSetting,
@@ -19,20 +12,10 @@ import {
   VisualizationSettingId,
 } from '../../settings/settings-schemas';
 
-export default function SubsettingsMenu({
-  settingId,
-}: {
-  settingId: VisualizationSettingId;
-}) {
-  const setting = useUserSettingsStore(
-    (state) => state.visualizationSettings[settingId]
-  );
-  const updateUserSetting = useUserSettingsStore(
-    (state) => state.updateSetting
-  );
-  const [sliderValue, setSliderValue] = useState<number>(
-    isRangeSetting(setting) ? setting.value : 0
-  );
+export default function SubsettingsMenu({ settingId }: { settingId: VisualizationSettingId }) {
+  const setting = useUserSettingsStore((state) => state.visualizationSettings[settingId]);
+  const updateUserSetting = useUserSettingsStore((state) => state.updateSetting);
+  const [sliderValue, setSliderValue] = useState<number>(() => (isRangeSetting(setting) ? setting.value : 0));
 
   const updateFlagSetting = (value?: boolean) => {
     try {
@@ -68,10 +51,7 @@ export default function SubsettingsMenu({
     <>
       {isFlagSetting(setting) && (
         <Container flexDirection="row" alignItems="center" gap={8}>
-          <Switch
-            defaultChecked={!setting.value}
-            onClick={() => updateFlagSetting(!setting.value)}
-          />
+          <Switch defaultChecked={!setting.value} onClick={() => updateFlagSetting(!setting.value)} />
           <Label>
             <Text>{setting.displayName}</Text>
           </Label>
@@ -112,6 +92,7 @@ export default function SubsettingsMenu({
           <RadioGroup>
             {setting.options.map((option) => (
               <RadioGroupItem
+                key={option}
                 onClick={() => {
                   updateSelectSetting(option);
                 }}

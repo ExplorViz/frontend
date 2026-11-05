@@ -14,16 +14,10 @@ export function KubeDiagramContextMenu({
       className="bg-white shadow border rounded-md select-none kube-context-menu"
       style={{ position: 'fixed', top: y, left: x }}
     >
-      <li
-        className="context-menu-item"
-        onClick={onResetView}
-      >
+      <li className="context-menu-item" onClick={onResetView}>
         Reset View
       </li>
-      <li
-        className="context-menu-item"
-        onClick={onClearHighlighting}
-      >
+      <li className="context-menu-item" onClick={onClearHighlighting}>
         Clear Highlighting
       </li>
     </ul>

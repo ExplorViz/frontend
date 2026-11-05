@@ -35,17 +35,14 @@ export default function EvolutionAnimationButton({
 
   const togglePanel = () => {
     if (!showPanel && overriddenLayoutRef.current === null) {
-      overriddenLayoutRef.current =
-        useUserSettingsStore.getState().visualizationSettings.buildingLayoutAlgorithm.value;
+      overriddenLayoutRef.current = useUserSettingsStore.getState().visualizationSettings.buildingLayoutAlgorithm.value;
     }
     setShowPanel((prev) => !prev);
   };
   useEffect(() => {
     const restoreLayout = () => {
       if (overriddenLayoutRef.current === null) return;
-      useUserSettingsStore
-        .getState()
-        .updateSetting('buildingLayoutAlgorithm', overriddenLayoutRef.current);
+      useUserSettingsStore.getState().updateSetting('buildingLayoutAlgorithm', overriddenLayoutRef.current);
       overriddenLayoutRef.current = null;
     };
     window.addEventListener('beforeunload', restoreLayout);
@@ -54,31 +51,19 @@ export default function EvolutionAnimationButton({
       window.removeEventListener('beforeunload', restoreLayout);
       useEvolutionAnimationStore.getState().actions.reset();
       setShowPanel(false);
-      useRenderingServiceStore
-        .getState()
-        .setAnalysisModeFromEvolutionRenderingConfig(NORMAL_RENDER_CONFIG);
-      useVisibilityServiceStore
-        .getState()
-        .applyEvolutionModeRenderingConfiguration(NORMAL_RENDER_CONFIG);
+      useRenderingServiceStore.getState().setAnalysisModeFromEvolutionRenderingConfig(NORMAL_RENDER_CONFIG);
+      useVisibilityServiceStore.getState().applyEvolutionModeRenderingConfiguration(NORMAL_RENDER_CONFIG);
       restoreLayout();
     };
   }, [landscapeToken]);
 
   return (
     <>
-      <Button
-        type="button"
-        variant={variant}
-        size={size}
-        className={className}
-        onClick={togglePanel}
-      >
+      <Button type="button" variant={variant} size={size} className={className} onClick={togglePanel}>
         Evolution Animation
       </Button>
 
-      {showPanel && (
-        <EvolutionAnimationPanel onClose={() => setShowPanel(false)} />
-      )}
+      {showPanel && <EvolutionAnimationPanel onClose={() => setShowPanel(false)} />}
       {/*Show playback controls once frames are loaded*/}
       {(showPanel || hasFrames) && <EvolutionPlaybackControls />}
     </>

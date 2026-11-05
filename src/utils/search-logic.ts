@@ -1,10 +1,5 @@
 import { useModelStore } from 'explorviz-frontend/src/stores/repos/model-repository';
-import {
-  Building,
-  City,
-  District,
-  isCity,
-} from 'explorviz-frontend/src/utils/landscape-schemes/flat-landscape';
+import { Building, City, District, isCity } from 'explorviz-frontend/src/utils/landscape-schemes/flat-landscape';
 
 export default function getPossibleEntityNames(name: string) {
   const searchString = name.toLowerCase();
@@ -28,17 +23,14 @@ export default function getPossibleEntityNames(name: string) {
     }
 
     if (
-      (value.name.toLowerCase().includes(searchString) ||
-        value.fqn?.toLowerCase().includes(searchString)) &&
+      (value.name.toLowerCase().includes(searchString) || value.fqn?.toLowerCase().includes(searchString)) &&
       !returnValueIncludedModelIds.includes(value.id)
     ) {
       returnValueIncludedModelIds.push(value.id);
       returnValue.push({
         fqn: value.fqn,
         modelId: value.id,
-        applicationName: isCity(value)
-          ? value.name
-          : useModelStore.getState().getCity(value.parentCityId)?.name,
+        applicationName: isCity(value) ? value.name : useModelStore.getState().getCity(value.parentCityId)?.name,
       });
     }
   }

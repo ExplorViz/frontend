@@ -5,11 +5,7 @@ import { LandscapeToken } from 'explorviz-frontend/src/stores/landscape-token';
 import { Popover, Tooltip } from 'react-bootstrap';
 import OverlayTrigger from 'react-bootstrap/OverlayTrigger';
 
-export default function AdditionalTokenInfo({
-  token,
-}: {
-  token: LandscapeToken;
-}) {
+export default function AdditionalTokenInfo({ token }: { token: LandscapeToken }) {
   const user = useAuthStore.getInitialState().user;
 
   const handleClick = (event: any) => {
@@ -51,18 +47,9 @@ export default function AdditionalTokenInfo({
 
   return (
     <div onClick={(event) => handleClick(event)}>
-      <OverlayTrigger
-        placement={'bottom'}
-        trigger={['hover', 'focus']}
-        overlay={<Tooltip>Show Token Details</Tooltip>}
-      >
+      <OverlayTrigger placement={'bottom'} trigger={['hover', 'focus']} overlay={<Tooltip>Show Token Details</Tooltip>}>
         <div className="additional-token-info">
-          <OverlayTrigger
-            placement={'bottom'}
-            trigger="click"
-            overlay={popover}
-            rootClose
-          >
+          <OverlayTrigger placement={'bottom'} trigger="click" overlay={popover} rootClose>
             <InfoIcon verticalAlign="middle" size="small" />
           </OverlayTrigger>
         </div>

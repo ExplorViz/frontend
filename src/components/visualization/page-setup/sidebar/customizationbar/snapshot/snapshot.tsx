@@ -15,18 +15,12 @@ interface SnapshotProps {
   minimizedAnnotations: AnnotationData[];
 }
 
-export default function Snapshot({
-  landscapeData,
-  landscapeToken,
-}: SnapshotProps) {
+export default function Snapshot({ landscapeData, landscapeToken }: SnapshotProps) {
   const authUser = useAuthStore((state) => state.user);
-  const saveSnapshotToStore = useSnapshotTokenStore(
-    (state) => state.saveSnapshot
-  );
+  const saveSnapshotToStore = useSnapshotTokenStore((state) => state.saveSnapshot);
   const exportFile = useSnapshotTokenStore((state) => state.exportFile);
 
-  const [saveSnaphotBtnDisabled, setSaveSnaphotBtnDisabled] =
-    useState<boolean>(true);
+  const [saveSnaphotBtnDisabled, setSaveSnaphotBtnDisabled] = useState<boolean>(true);
   const [snapshotName, setSnapshotName] = useState<string>('');
 
   const reset = () => {
@@ -68,12 +62,7 @@ export default function Snapshot({
     <>
       <div className="flex justify-content-between mt-3">
         <h6 className="bold">Snapshot Name:</h6>
-        <input
-          id="name"
-          className="form-control mr-2"
-          onInput={updateName}
-          value={snapshotName}
-        />
+        <input id="name" className="form-control mr-2" onInput={updateName} value={snapshotName} />
       </div>
       <div className="flex mt-3">
         <Button

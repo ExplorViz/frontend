@@ -11,12 +11,7 @@ import {
   RepoNameCommitTreeMap,
 } from 'explorviz-frontend/src/utils/evolution-schemes/evolution-data';
 
-export type CommitStatisticsView =
-  | 'year'
-  | 'month'
-  | 'day'
-  | 'weekday'
-  | 'timeOfDay';
+export type CommitStatisticsView = 'year' | 'month' | 'day' | 'weekday' | 'timeOfDay';
 
 export type CommitStatisticsAggregateOptions = {
   dateFrom?: string;
@@ -47,20 +42,7 @@ export type CommitStatisticsChartData = {
   authorSeries?: CommitStatisticsAuthorSeries[];
 };
 
-const MONTH_LABELS = [
-  'Jan',
-  'Feb',
-  'Mar',
-  'Apr',
-  'May',
-  'Jun',
-  'Jul',
-  'Aug',
-  'Sep',
-  'Oct',
-  'Nov',
-  'Dec',
-];
+const MONTH_LABELS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
 const WEEKDAY_LABELS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 
@@ -88,9 +70,7 @@ export const COMMIT_STATISTICS_VIEW_OPTIONS: Array<{
   { value: 'year', label: 'Commits per Year' },
 ];
 
-export function getBranchesWithCommits(
-  commitTree: CommitTree | undefined
-): Branch[] {
+export function getBranchesWithCommits(commitTree: CommitTree | undefined): Branch[] {
   if (!commitTree) {
     return [];
   }
@@ -98,38 +78,25 @@ export function getBranchesWithCommits(
   return commitTree.branches.filter((branch) => branch.commits.length > 0);
 }
 
-export function getBranchCommits(
-  commitTree: CommitTree | undefined,
-  branchName: string
-): CommitNode[] {
+export function getBranchCommits(commitTree: CommitTree | undefined, branchName: string): CommitNode[] {
   if (!commitTree) {
     return [];
   }
 
-  const branch = commitTree.branches.find(
-    (candidate) => candidate.name === branchName
-  );
+  const branch = commitTree.branches.find((candidate) => candidate.name === branchName);
   return branch?.commits ?? [];
 }
 
-export function getBranchesWithDatedCommits(
-  branch: Branch | undefined
-): boolean {
-  return (
-    branch?.commits.some((commit) => getCommitDateMs(commit) != null) ?? false
-  );
+export function getBranchesWithDatedCommits(branch: Branch | undefined): boolean {
+  return branch?.commits.some((commit) => getCommitDateMs(commit) != null) ?? false;
 }
 
-export function getDatedBranchNames(
-  commitTree: CommitTree | undefined
-): string[] {
+export function getDatedBranchNames(commitTree: CommitTree | undefined): string[] {
   if (!commitTree) {
     return [];
   }
 
-  return commitTree.branches
-    .filter((branch) => getBranchesWithDatedCommits(branch))
-    .map((branch) => branch.name);
+  return commitTree.branches.filter((branch) => getBranchesWithDatedCommits(branch)).map((branch) => branch.name);
 }
 
 /**
@@ -147,9 +114,7 @@ export function getSharedDatedBranchNames(
   let sharedNames: Set<string> | null = null;
 
   for (const repoName of selectedRepoNames) {
-    const branchNames = new Set(
-      getDatedBranchNames(repoNameCommitTreeMap.get(repoName))
-    );
+    const branchNames = new Set(getDatedBranchNames(repoNameCommitTreeMap.get(repoName)));
 
     if (sharedNames == null) {
       sharedNames = branchNames;
@@ -163,9 +128,7 @@ export function getSharedDatedBranchNames(
     }
   }
 
-  return [...(sharedNames ?? [])].sort((left, right) =>
-    left.localeCompare(right)
-  );
+  return [...(sharedNames ?? [])].sort((left, right) => left.localeCompare(right));
 }
 
 export function getCommitsForReposAndBranch(
@@ -180,9 +143,7 @@ export function getCommitsForReposAndBranch(
   const commits: CommitNode[] = [];
 
   for (const repoName of selectedRepoNames) {
-    commits.push(
-      ...getBranchCommits(repoNameCommitTreeMap.get(repoName), branchName)
-    );
+    commits.push(...getBranchCommits(repoNameCommitTreeMap.get(repoName), branchName));
   }
 
   return commits;
@@ -205,18 +166,13 @@ export function getCommitsForReposAndBranchNames(
       continue;
     }
 
-    commits.push(
-      ...getBranchCommits(repoNameCommitTreeMap.get(repoName), branchName)
-    );
+    commits.push(...getBranchCommits(repoNameCommitTreeMap.get(repoName), branchName));
   }
 
   return commits;
 }
 
-function parseDateInputBoundary(
-  value: string | undefined,
-  endOfDay: boolean
-): number | null {
+function parseDateInputBoundary(value: string | undefined, endOfDay: boolean): number | null {
   if (!value?.trim()) {
     return null;
   }
@@ -232,11 +188,7 @@ function parseDateInputBoundary(
     : new Date(year, month - 1, day, 0, 0, 0, 0).getTime();
 }
 
-export function filterCommitsByDateRange(
-  commits: CommitNode[],
-  dateFrom?: string,
-  dateTo?: string
-): CommitNode[] {
+export function filterCommitsByDateRange(commits: CommitNode[], dateFrom?: string, dateTo?: string): CommitNode[] {
   const fromMs = parseDateInputBoundary(dateFrom, false);
   const toMs = parseDateInputBoundary(dateTo, true);
 
@@ -300,9 +252,7 @@ function recordCommitInBucket(
   accumulator.authorCounts.set(authorKey, { label, counts });
 }
 
-function buildAuthorSeries(
-  accumulator: AuthorBucketAccumulator
-): CommitStatisticsAuthorSeries[] {
+function buildAuthorSeries(accumulator: AuthorBucketAccumulator): CommitStatisticsAuthorSeries[] {
   return [...accumulator.authorCounts.entries()]
     .map(([authorKey, entry]) => ({
       authorKey,
@@ -431,9 +381,7 @@ function enumerateDays(startKey: string, endKey: string): string[] {
   end.setHours(0, 0, 0, 0);
 
   while (cursor.getTime() <= end.getTime()) {
-    days.push(
-      formatDateKey(cursor.getFullYear(), cursor.getMonth(), cursor.getDate())
-    );
+    days.push(formatDateKey(cursor.getFullYear(), cursor.getMonth(), cursor.getDate()));
     cursor.setDate(cursor.getDate() + 1);
   }
 
@@ -523,10 +471,7 @@ function aggregateByMonth(commits: CommitNode[]): CommitStatisticsChartData {
     };
   }
 
-  const yearMonths = enumerateYearMonths(
-    committedYearMonths[0],
-    committedYearMonths[committedYearMonths.length - 1]
-  );
+  const yearMonths = enumerateYearMonths(committedYearMonths[0], committedYearMonths[committedYearMonths.length - 1]);
 
   const years: string[] = [];
   const monthLabels: string[] = [];
@@ -541,9 +486,7 @@ function aggregateByMonth(commits: CommitNode[]): CommitStatisticsChartData {
   }
 
   const accumulator = createAuthorBucketAccumulator(yearMonths.length);
-  const yearMonthToIndex = new Map(
-    yearMonths.map((yearMonth, index) => [yearMonth, index])
-  );
+  const yearMonthToIndex = new Map(yearMonths.map((yearMonth, index) => [yearMonth, index]));
 
   for (const commit of commits) {
     const commitDateMs = getCommitDateMs(commit);
@@ -575,11 +518,7 @@ function aggregateByMonth(commits: CommitNode[]): CommitStatisticsChartData {
   );
 }
 
-function aggregateByDay(
-  commits: CommitNode[],
-  dateFrom?: string,
-  dateTo?: string
-): CommitStatisticsChartData {
+function aggregateByDay(commits: CommitNode[], dateFrom?: string, dateTo?: string): CommitStatisticsChartData {
   const range = resolveDayChartRange(commits, dateFrom, dateTo);
   if (!range) {
     return {
@@ -671,9 +610,7 @@ function aggregateByWeekday(commits: CommitNode[]): CommitStatisticsChartData {
   );
 }
 
-function aggregateByTimeOfDay(
-  commits: CommitNode[]
-): CommitStatisticsChartData {
+function aggregateByTimeOfDay(commits: CommitNode[]): CommitStatisticsChartData {
   const includeAuthors = commitsHaveAuthorData(commits);
   const accumulator = createAuthorBucketAccumulator(24);
 
@@ -683,19 +620,12 @@ function aggregateByTimeOfDay(
       continue;
     }
 
-    recordCommitInBucket(
-      accumulator,
-      new Date(commitDateMs).getHours(),
-      commit,
-      includeAuthors
-    );
+    recordCommitInBucket(accumulator, new Date(commitDateMs).getHours(), commit, includeAuthors);
   }
 
   return finalizeChartData(
     {
-      labels: accumulator.totals.map(
-        (_, hour) => `${String(hour).padStart(2, '0')}:00`
-      ),
+      labels: accumulator.totals.map((_, hour) => `${String(hour).padStart(2, '0')}:00`),
       xAxisTitle: 'Time of day',
       yAxisTitle: 'Commits',
     },
@@ -731,9 +661,7 @@ export function filterCommitStatisticsByAuthors(
     return chartData;
   }
 
-  const filteredSeries = chartData.authorSeries.filter((series) =>
-    selectedAuthorKeys.has(series.authorKey)
-  );
+  const filteredSeries = chartData.authorSeries.filter((series) => selectedAuthorKeys.has(series.authorKey));
   const values = chartData.labels.map((_, index) =>
     filteredSeries.reduce((sum, series) => sum + series.values[index], 0)
   );

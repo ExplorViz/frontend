@@ -1,10 +1,6 @@
 import IdeCrossCommunicationEvent from 'explorviz-frontend/src/ide/ide-cross-communication-event';
 import eventEmitter from 'explorviz-frontend/src/utils/event-emitter';
-import {
-  Application,
-  Class,
-  Package,
-} from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
+import { Application, Class, Package } from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
 import ClazzCommunicationMesh from 'explorviz-frontend/src/view-objects/3d/city/clazz-communication-mesh';
 import CommunicationArrowMesh from 'explorviz-frontend/src/view-objects/3d/city/communication-arrow-mesh';
 import { Object3DEventMap } from 'three';
@@ -71,10 +67,7 @@ export default class IdeCrossCommunication {
   handleDoubleClickOnMesh: (meshID: string) => void;
   lookAtMesh: (meshID: string) => void;
 
-  constructor(
-    handleDoubleClickOnMesh: (meshID: string) => void,
-    lookAtMesh: (meshID: string) => void
-  ) {
+  constructor(handleDoubleClickOnMesh: (meshID: string) => void, lookAtMesh: (meshID: string) => void) {
     this.handleDoubleClickOnMesh = handleDoubleClickOnMesh;
     this.lookAtMesh = lookAtMesh;
 
@@ -103,13 +96,7 @@ export default class IdeCrossCommunication {
             break;
 
           case 'doubleClickOnMesh':
-            OpenObject(
-              this.handleDoubleClickOnMesh,
-              data.fqn,
-              data.occurrenceID,
-              this.lookAtMesh,
-              vizDataRaw
-            );
+            OpenObject(this.handleDoubleClickOnMesh, data.fqn, data.occurrenceID, this.lookAtMesh, vizDataRaw);
 
             break;
 
@@ -135,14 +122,9 @@ export default class IdeCrossCommunication {
     );
   }
 
-  private getVizData(
-    foundationCommunicationLinks: CommunicationLink[]
-  ): VizDataRaw {
-    const openApplications = useApplicationRendererStore
-      .getState()
-      .getOpenApplications();
-    const communicationLinks: CommunicationLink[] =
-      foundationCommunicationLinks;
+  private getVizData(foundationCommunicationLinks: CommunicationLink[]): VizDataRaw {
+    const openApplications = useApplicationRendererStore.getState().getOpenApplications();
+    const communicationLinks: CommunicationLink[] = foundationCommunicationLinks;
     openApplications.forEach((element) => {
       const application = element;
 
@@ -158,9 +140,7 @@ export default class IdeCrossCommunication {
             targetMeshID: meshIDs[1],
             methodName: meshIDs[2],
           };
-          if (
-            communicationLinks.findIndex((e) => e.meshID == element.id) == -1
-          ) {
+          if (communicationLinks.findIndex((e) => e.meshID == element.id) == -1) {
             communicationLinks.push(tempCL);
           }
         });
@@ -174,9 +154,7 @@ export default class IdeCrossCommunication {
   }
 
   jumpToLocation(object: THREE.Object3D<Object3DEventMap>) {
-    const vizDataRaw: VizDataRaw = this.getVizData(
-      foundationCommunicationLinksGlobal
-    );
+    const vizDataRaw: VizDataRaw = this.getVizData(foundationCommunicationLinksGlobal);
     const vizDataOrderTuple: OrderTuple[] = VizDataToOrderTuple(vizDataRaw);
     emitToBackend({
       action: IDEApiActions.JumpToLocation,
@@ -191,9 +169,7 @@ export default class IdeCrossCommunication {
   refreshVizData(cl: CommunicationLink[]) {
     foundationCommunicationLinksGlobal = cl;
 
-    const vizDataRaw: VizDataRaw = this.getVizData(
-      foundationCommunicationLinksGlobal
-    );
+    const vizDataRaw: VizDataRaw = this.getVizData(foundationCommunicationLinksGlobal);
     const vizDataOrderTuple: OrderTuple[] = VizDataToOrderTuple(vizDataRaw);
 
     emitToBackend({
@@ -230,11 +206,7 @@ function getOrderedParents(dataModel: Application): ParentOrder {
   return result;
 }
 
-function parentPackage(
-  fqn: string,
-  subpackages: Package[],
-  classes: Class[]
-): ParentOrder[] {
+function parentPackage(fqn: string, subpackages: Package[], classes: Class[]): ParentOrder[] {
   const temp: ParentOrder[] = [];
 
   if (subpackages.length === 0) {
@@ -282,21 +254,13 @@ function getFqnForMeshes(orderedParents: ParentOrder): {
 
   if (orderedParents.methods.length != 0) {
     orderedParents.methods.forEach((element) => {
-      meshTemp.meshNames = meshTemp.meshNames.concat(
-        getFqnForMeshes(element).meshNames
-      );
-      meshTemp.meshIds = meshTemp.meshIds.concat(
-        getFqnForMeshes(element).meshIds
-      );
+      meshTemp.meshNames = meshTemp.meshNames.concat(getFqnForMeshes(element).meshNames);
+      meshTemp.meshIds = meshTemp.meshIds.concat(getFqnForMeshes(element).meshIds);
     });
   } else {
     orderedParents.childs.forEach((element) => {
-      meshTemp.meshNames = meshTemp.meshNames.concat(
-        getFqnForMeshes(element).meshNames
-      );
-      meshTemp.meshIds = meshTemp.meshIds.concat(
-        getFqnForMeshes(element).meshIds
-      );
+      meshTemp.meshNames = meshTemp.meshNames.concat(getFqnForMeshes(element).meshNames);
+      meshTemp.meshIds = meshTemp.meshIds.concat(getFqnForMeshes(element).meshIds);
     });
   }
 
@@ -308,10 +272,7 @@ function VizDataToOrderTuple(vizData: VizDataRaw): OrderTuple[] {
     const orderedParents = getOrderedParents(element.dataModel.application);
     const meshes = getFqnForMeshes(orderedParents);
     let tempOT: OrderTuple = { hierarchyModel: orderedParents, meshes: meshes };
-    tempOT = addCommunicationLinksToOrderTuple(
-      tempOT,
-      vizData.communicationLinks
-    );
+    tempOT = addCommunicationLinksToOrderTuple(tempOT, vizData.communicationLinks);
     vizDataOrderTuple.push(tempOT);
   });
   return vizDataOrderTuple;
@@ -394,10 +355,7 @@ function isInParentOrder(po: ParentOrder, name: string): boolean {
   return tempBool;
 }
 
-function resetFoundation(
-  doSomethingOnMesh: (meshID: string) => void,
-  orderTuple: OrderTuple[]
-) {
+function resetFoundation(doSomethingOnMesh: (meshID: string) => void, orderTuple: OrderTuple[]) {
   orderTuple.forEach((ot) => {
     doSomethingOnMesh(ot.hierarchyModel.meshid);
   });
@@ -422,25 +380,15 @@ function getIdFromMesh(mesh: THREE.Object3D<Object3DEventMap>): string {
     return 'Not implemented';
   }
 }
-function addCommunicationLinksToOrderTuple(
-  ot: OrderTuple,
-  communicationLinks: CommunicationLink[]
-): OrderTuple {
+function addCommunicationLinksToOrderTuple(ot: OrderTuple, communicationLinks: CommunicationLink[]): OrderTuple {
   const tempOT = ot;
 
   communicationLinks.forEach((cl) => {
-    const communicationLinkFQNIndex = ot.meshes.meshIds.findIndex(
-      (e) => e === cl.targetMeshID
-    );
+    const communicationLinkFQNIndex = ot.meshes.meshIds.findIndex((e) => e === cl.targetMeshID);
     if (communicationLinkFQNIndex >= 0) {
-      const communicationLinkFQN =
-        ot.meshes.meshNames[communicationLinkFQNIndex] + '.' + cl.methodName;
+      const communicationLinkFQN = ot.meshes.meshNames[communicationLinkFQNIndex] + '.' + cl.methodName;
 
-      tempOT.hierarchyModel = insertCommunicationInParentOrder(
-        cl,
-        communicationLinkFQN,
-        tempOT.hierarchyModel
-      );
+      tempOT.hierarchyModel = insertCommunicationInParentOrder(cl, communicationLinkFQN, tempOT.hierarchyModel);
       tempOT.meshes.meshNames.push(communicationLinkFQN);
       tempOT.meshes.meshIds.push(cl.meshID);
     }
@@ -467,9 +415,7 @@ function insertCommunicationInParentOrder(
   } else {
     const temp: ParentOrder[] = [];
     po.childs.forEach((element) => {
-      temp.push(
-        insertCommunicationInParentOrder(cl, communicationLinkFQN, element)
-      );
+      temp.push(insertCommunicationInParentOrder(cl, communicationLinkFQN, element));
     });
     return {
       fqn: po.fqn,

@@ -1,12 +1,5 @@
-import {
-  isApplication,
-  isClass,
-  isPackage,
-} from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
-import {
-  HAPNode,
-  HierarchicalAttractionSystem,
-} from 'explorviz-frontend/src/view-objects/3d/city/edge-bundling-utils';
+import { isApplication, isClass, isPackage } from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
+import { HAPNode, HierarchicalAttractionSystem } from 'explorviz-frontend/src/view-objects/3d/city/edge-bundling-utils';
 import * as THREE from 'three';
 
 export class HAPSystemManager {
@@ -90,13 +83,7 @@ export class HAPSystemManager {
         }
         return pos;
       };
-      this.buildApplicationHierarchy(
-        app,
-        appNode,
-        getPositionWithApp,
-        getLevel,
-        app
-      );
+      this.buildApplicationHierarchy(app, appNode, getPositionWithApp, getLevel, app);
     });
 
     this.landscapeHAPTree = landscapeRoot;
@@ -150,11 +137,7 @@ export class HAPSystemManager {
       });
     }
 
-    const buildTree = (
-      element: any,
-      parent: HAPNode | null,
-      depth: number = 0
-    ): HAPNode | null => {
+    const buildTree = (element: any, parent: HAPNode | null, depth: number = 0): HAPNode | null => {
       if (!element || typeof element !== 'object') {
         return null;
       }
@@ -169,11 +152,7 @@ export class HAPSystemManager {
         if (position.lengthSq() < 1) {
           const angle = depth * 0.5;
           const radius = 30 + depth * 15;
-          position = new THREE.Vector3(
-            Math.cos(angle) * radius,
-            20 + depth * 20,
-            Math.sin(angle) * radius
-          );
+          position = new THREE.Vector3(Math.cos(angle) * radius, 20 + depth * 20, Math.sin(angle) * radius);
         }
 
         const node: HAPNode = {
@@ -212,9 +191,7 @@ export class HAPSystemManager {
 
           if (childNodes.length > 0) {
             const virtualPackageNode: HAPNode = {
-              id:
-                element.id ||
-                `pkg_${depth}_${Math.random().toString(36).substr(2, 9)}`,
+              id: element.id || `pkg_${depth}_${Math.random().toString(36).substr(2, 9)}`,
               position: getPosition(element),
               level: getLevel(element),
               children: childNodes,
@@ -310,9 +287,7 @@ export class HAPSystemManager {
     if (isPackage(element)) {
       if (leafPackagesOnly) {
         const children = getChildren(element);
-        const hasSubPackages = children.some(
-          (child) => child.type === 'package' || child.type === 'Package'
-        );
+        const hasSubPackages = children.some((child) => child.type === 'package' || child.type === 'Package');
         return !hasSubPackages;
       } else {
         return true;
@@ -333,14 +308,7 @@ export class HAPSystemManager {
     getLevel: (element: any) => number,
     leafPackagesOnly: boolean
   ): void {
-    this.buildApplicationHAPTree(
-      applicationId,
-      rootElement,
-      getChildren,
-      getPosition,
-      getLevel,
-      leafPackagesOnly
-    );
+    this.buildApplicationHAPTree(applicationId, rootElement, getChildren, getPosition, getLevel, leafPackagesOnly);
   }
 
   // Recursively register all HAP nodes
@@ -362,9 +330,7 @@ export class HAPSystemManager {
   }
 
   // Get HAP system for an application
-  public getHAPSystem(
-    applicationId: string
-  ): HierarchicalAttractionSystem | null {
+  public getHAPSystem(applicationId: string): HierarchicalAttractionSystem | null {
     return this.hapSystems.get(applicationId) || null;
   }
 
@@ -381,10 +347,7 @@ export class HAPSystemManager {
     // Delete all HAP-Nodes for application
     const elementsToRemove: string[] = [];
     this.elementToHAP.forEach((node, elementId) => {
-      if (
-        node.element &&
-        this.isElementInApplication(node.element, applicationId)
-      ) {
+      if (node.element && this.isElementInApplication(node.element, applicationId)) {
         elementsToRemove.push(elementId);
       }
     });
@@ -405,19 +368,13 @@ export class HAPSystemManager {
     return false;
   }
 
-  public visualizeHAPs(
-    applicationId: string,
-    scene: THREE.Scene,
-    layoutMap?: Map<string, any>
-  ): void {
+  public visualizeHAPs(applicationId: string, scene: THREE.Scene, layoutMap?: Map<string, any>): void {
     const system = this.getHAPSystem(applicationId);
     if (!system) {
       return;
     }
 
-    const landscapeGroup = scene.children.find(
-      (child) => child.type === 'Group' && child.scale.x < 1
-    ) as THREE.Group;
+    const landscapeGroup = scene.children.find((child) => child.type === 'Group' && child.scale.x < 1) as THREE.Group;
 
     if (!landscapeGroup) {
       return;
@@ -425,9 +382,7 @@ export class HAPSystemManager {
 
     // Use unique group name based on applicationId to avoid conflicts
     const groupName = `HAP_GROUP_${applicationId}`;
-    let hapGroup = landscapeGroup.children.find(
-      (child) => child.name === groupName
-    ) as THREE.Group;
+    let hapGroup = landscapeGroup.children.find((child) => child.name === groupName) as THREE.Group;
 
     if (!hapGroup) {
       hapGroup = new THREE.Group();
@@ -480,10 +435,7 @@ export class HAPSystemManager {
     };
 
     // Collect nodes by level for instancing
-    const nodesByLevel: Map<
-      number,
-      Array<{ node: HAPNode; size: number; position: THREE.Vector3 }>
-    > = new Map();
+    const nodesByLevel: Map<number, Array<{ node: HAPNode; size: number; position: THREE.Vector3 }>> = new Map();
     const linesToAdd: THREE.Line[] = [];
 
     // First pass: collect all nodes and categorize by level
@@ -497,15 +449,9 @@ export class HAPSystemManager {
       // Create line to parent if exists
       if (node.parent) {
         const parentVisPos = getVisPosition(node.parent);
-        const lineGeometry = new THREE.BufferGeometry().setFromPoints([
-          nodeVisPos,
-          parentVisPos,
-        ]);
+        const lineGeometry = new THREE.BufferGeometry().setFromPoints([nodeVisPos, parentVisPos]);
 
-        const line = new THREE.Line(
-          lineGeometry,
-          this.getLineMaterial(node.level)
-        );
+        const line = new THREE.Line(lineGeometry, this.getLineMaterial(node.level));
         line.name = `HAP_LINE_${node.id}`;
         linesToAdd.push(line);
       }
@@ -549,11 +495,7 @@ export class HAPSystemManager {
       const material = this.getSphereMaterial(level);
 
       // Create instanced mesh
-      const instancedMesh = new THREE.InstancedMesh(
-        geometry,
-        material,
-        nodes.length
-      );
+      const instancedMesh = new THREE.InstancedMesh(geometry, material, nodes.length);
       instancedMesh.name = `HAP_INSTANCED_LEVEL_${level}`;
 
       // Set positions for all instances
@@ -660,13 +602,7 @@ export class HAPSystemManager {
 
       // Recursive for non-class elements
       if (childLevel > 0) {
-        this.buildApplicationHierarchy(
-          child,
-          childNode,
-          getPosition,
-          getLevel,
-          application
-        );
+        this.buildApplicationHierarchy(child, childNode, getPosition, getLevel, application);
       }
     }
   }
@@ -755,22 +691,14 @@ export class HAPSystemManager {
       let newPosition: THREE.Vector3;
 
       // Packages with centroid function
-      if (
-        getPackageCentroid &&
-        (node.element.type === 'package' || node.element.type === 'Package')
-      ) {
+      if (getPackageCentroid && (node.element.type === 'package' || node.element.type === 'Package')) {
         newPosition = getPackageCentroid(node.element);
         packageUpdates++;
       } else {
         newPosition = getPosition(node.element);
       }
 
-      if (
-        !newPosition ||
-        isNaN(newPosition.x) ||
-        isNaN(newPosition.y) ||
-        isNaN(newPosition.z)
-      ) {
+      if (!newPosition || isNaN(newPosition.x) || isNaN(newPosition.y) || isNaN(newPosition.z)) {
         return;
       }
 
@@ -780,18 +708,9 @@ export class HAPSystemManager {
         node.position.copy(newPosition);
         updateCount++;
 
-        if (node.element.type === 'class' || node.element.type === 'Class')
-          classUpdates++;
-        else if (
-          node.element.type === 'package' ||
-          node.element.type === 'Package'
-        )
-          packageUpdates++;
-        else if (
-          node.element.type === 'application' ||
-          node.element.type === 'Application'
-        )
-          appUpdates++;
+        if (node.element.type === 'class' || node.element.type === 'Class') classUpdates++;
+        else if (node.element.type === 'package' || node.element.type === 'Package') packageUpdates++;
+        else if (node.element.type === 'application' || node.element.type === 'Application') appUpdates++;
       }
 
       node.children.forEach(updateNodePositions);
@@ -844,10 +763,7 @@ export class HAPSystemManager {
 
     const elementsToRemove: string[] = [];
     this.elementToHAP.forEach((node, elementId) => {
-      if (
-        node.element &&
-        this.isElementInApplication(node.element, applicationId)
-      ) {
+      if (node.element && this.isElementInApplication(node.element, applicationId)) {
         elementsToRemove.push(elementId);
       }
     });
@@ -861,19 +777,13 @@ export class HAPSystemManager {
             const position = getPosition(pkg);
 
             if (position.lengthSq() < 1) {
-              const hash = pkg.id
-                .split('')
-                .reduce((acc: number, char: string) => {
-                  return char.charCodeAt(0) + ((acc << 5) - acc);
-                }, 0);
+              const hash = pkg.id.split('').reduce((acc: number, char: string) => {
+                return char.charCodeAt(0) + ((acc << 5) - acc);
+              }, 0);
 
               const angle = (hash % 360) * (Math.PI / 180);
               const radius = 50 + (hash % 30);
-              return new THREE.Vector3(
-                Math.cos(angle) * radius,
-                getLevel(pkg) * 20 + 30,
-                Math.sin(angle) * radius
-              );
+              return new THREE.Vector3(Math.cos(angle) * radius, getLevel(pkg) * 20 + 30, Math.sin(angle) * radius);
             }
 
             return position;

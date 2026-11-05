@@ -1,6 +1,6 @@
 import { useCopilotReadable } from '@copilotkit/react-core';
-import { ChatbotContext } from 'explorviz-frontend/src/components/chatbot/chatbot-context';
-import { EditingContext } from 'explorviz-frontend/src/components/editing/editing-context';
+import { ChatbotContext } from 'explorviz-frontend/src/components/chatbot/chatbot-context-store';
+import { EditingContext } from 'explorviz-frontend/src/components/editing/editing-context-store';
 import { useModelStore } from 'explorviz-frontend/src/stores/repos/model-repository';
 import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
 import { useVisualizationStore } from 'explorviz-frontend/src/stores/visualization-store';
@@ -14,17 +14,10 @@ interface CopilotResourcesProps {
 }
 
 export function CopilotResources({ cities }: CopilotResourcesProps) {
-  const {
-    closedDistrictIds,
-    highlightedEntityIds,
-    hoveredEntityId,
-    removedDistrictIds,
-  } = useVisualizationStore();
+  const { closedDistrictIds, highlightedEntityIds, hoveredEntityId, removedDistrictIds } = useVisualizationStore();
 
   const { canGoBack, canGoForward } = use(EditingContext);
-  const visualizationSettings = useUserSettingsStore(
-    (state) => state.visualizationSettings
-  );
+  const visualizationSettings = useUserSettingsStore((state) => state.visualizationSettings);
 
   const flattenSettings = (settings: VisualizationSettings) => {
     const result: Record<string, unknown> = {};
@@ -73,12 +66,8 @@ export function CopilotResources({ cities }: CopilotResourcesProps) {
       };
     });
 
-  const {
-    showToolsSidebar,
-    showSettingsSidebar,
-    selectedToolbarTool,
-    selectedSettingsSidebarTab,
-  } = use(ChatbotContext);
+  const { showToolsSidebar, showSettingsSidebar, selectedToolbarTool, selectedSettingsSidebarTab } =
+    use(ChatbotContext);
 
   useCopilotReadable({
     description:
@@ -107,18 +96,15 @@ export function CopilotResources({ cities }: CopilotResourcesProps) {
     value: JSON.stringify([...removedDistrictIds]),
   });
   useCopilotReadable({
-    description:
-      'Indicates whether the user can navigate back in their editing history of the 3D landscape data.',
+    description: 'Indicates whether the user can navigate back in their editing history of the 3D landscape data.',
     value: JSON.stringify(canGoBack),
   });
   useCopilotReadable({
-    description:
-      'Indicates whether the user can navigate forward in their editing history of the 3D landscape data.',
+    description: 'Indicates whether the user can navigate forward in their editing history of the 3D landscape data.',
     value: JSON.stringify(canGoForward),
   });
   useCopilotReadable({
-    description:
-      'Get the current visualization settings as a map of setting IDs to their values.',
+    description: 'Get the current visualization settings as a map of setting IDs to their values.',
     value: JSON.stringify(flattenSettings(visualizationSettings)),
   });
   useCopilotReadable({
@@ -127,18 +113,15 @@ export function CopilotResources({ cities }: CopilotResourcesProps) {
     value: JSON.stringify(flattenSettings(defaultVizSettings)),
   });
   useCopilotReadable({
-    description:
-      'Indicates whether the tools sidebar in the visualization UI is currently visible.',
+    description: 'Indicates whether the tools sidebar in the visualization UI is currently visible.',
     value: JSON.stringify(showToolsSidebar),
   });
   useCopilotReadable({
-    description:
-      'Indicates whether the settings sidebar in the visualization UI is currently visible.',
+    description: 'Indicates whether the settings sidebar in the visualization UI is currently visible.',
     value: JSON.stringify(showSettingsSidebar),
   });
   useCopilotReadable({
-    description:
-      'Gets the identifier of the currently opened component in the tools sidebar, or null if none is open.',
+    description: 'Gets the identifier of the currently opened component in the tools sidebar, or null if none is open.',
     value: JSON.stringify(selectedToolbarTool),
   });
   useCopilotReadable({

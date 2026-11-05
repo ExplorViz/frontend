@@ -16,9 +16,7 @@ interface AdditionalSnapshotInfoProps {
   };
 }
 
-export default function AdditionalSnapshotInfo(
-  args: AdditionalSnapshotInfoProps
-) {
+export default function AdditionalSnapshotInfo(args: AdditionalSnapshotInfoProps) {
   const user = useAuthStore((state) => state.user);
   const [focusedClicks, setFocusedClicks] = useState<number>(0);
 
@@ -52,10 +50,7 @@ export default function AdditionalSnapshotInfo(
   };
 
   const popover = (
-    <Popover
-      id={args.token.landscapeToken.value}
-      title={args.token.landscapeToken.alias}
-    >
+    <Popover id={args.token.landscapeToken.value} title={args.token.landscapeToken.alias}>
       <Popover.Header>{args.token.landscapeToken.alias}</Popover.Header>
       <Popover.Body>
         <table className="table table-striped" style={{ width: '100%' }}>
@@ -65,9 +60,7 @@ export default function AdditionalSnapshotInfo(
                 <b>Owner</b>
               </td>
               <td style={{ wordBreak: 'break-all' }}>
-                {args.token.landscapeToken.ownerId === user?.sub
-                  ? 'You'
-                  : args.token.landscapeToken.ownerId}
+                {args.token.landscapeToken.ownerId === user?.sub ? 'You' : args.token.landscapeToken.ownerId}
               </td>
               <td></td>
             </tr>
@@ -86,9 +79,7 @@ export default function AdditionalSnapshotInfo(
                   {' '}
                   <b>Secret</b>
                 </td>
-                <td style={{ wordBreak: 'break-all' }}>
-                  {args.token.landscapeToken.secret}
-                </td>
+                <td style={{ wordBreak: 'break-all' }}>{args.token.landscapeToken.secret}</td>
                 <td>
                   <CopyButton text={args.token.landscapeToken.secret} />
                 </td>
@@ -113,12 +104,7 @@ export default function AdditionalSnapshotInfo(
           onBlur={(event) => hidePopover(event)} // There could be problems with onBlur not working as expected
           onClick={(event) => onClick(event)}
         >
-          <OverlayTrigger
-            placement={'bottom'}
-            trigger="click"
-            overlay={popover}
-            rootClose
-          >
+          <OverlayTrigger placement={'bottom'} trigger="click" overlay={popover} rootClose>
             <InfoIcon verticalAlign="middle" size="small" fill="#777" />
           </OverlayTrigger>
         </a>

@@ -1,8 +1,5 @@
 import { useModelStore } from 'explorviz-frontend/src/stores/repos/model-repository';
-import {
-  City,
-  District,
-} from 'explorviz-frontend/src/utils/landscape-schemes/flat-landscape';
+import { City, District } from 'explorviz-frontend/src/utils/landscape-schemes/flat-landscape';
 
 export function useLiveCity(cityId: string): City | undefined {
   return useModelStore((state) => state.cities[cityId]);

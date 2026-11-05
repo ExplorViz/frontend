@@ -1,4 +1,3 @@
-import { useEffect, useRef } from 'react';
 import Select, { MenuPlacement } from 'react-select';
 
 interface PageSizeSelectorArgs {
@@ -9,35 +8,15 @@ interface PageSizeSelectorArgs {
   changePageSize(size: number): void;
 }
 
-export default function PageSizeSelector({
-  label,
-  pageSizes,
-  size,
-  position,
-  changePageSize,
-}: PageSizeSelectorArgs) {
-  const menuPlacement = useRef<MenuPlacement>('auto');
-
-  useEffect(() => {
-    if (position === 'above') {
-      menuPlacement.current = 'top';
-    } else if (position === 'below') {
-      menuPlacement.current = 'bottom';
-    } else if (
-      position === 'top' ||
-      position === 'bottom' ||
-      position === 'auto'
-    ) {
-      menuPlacement.current = position;
-    }
-  }, []);
+export default function PageSizeSelector({ label, pageSizes, size, position, changePageSize }: PageSizeSelectorArgs) {
+  const menuPlacement: MenuPlacement = position === 'above' ? 'top' : position === 'below' ? 'bottom' : position;
 
   return (
     <div className="d-flex flex-row">
       {label && <div className="mr-2 align-self-center">{label}</div>}
       <div className="page-size-select">
         <Select
-          menuPlacement={menuPlacement.current}
+          menuPlacement={menuPlacement}
           isSearchable={false}
           options={pageSizes}
           value={size}

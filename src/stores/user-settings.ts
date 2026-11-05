@@ -29,10 +29,7 @@ interface UserSettingsState {
   shareVisualizationSettings: () => void;
   updateSettings: (settings: VisualizationSettings) => void;
   updateSetting: (name: VisualizationSettingId, value?: unknown) => void;
-  setColorScheme: (
-    schemeId: ColorSchemeId,
-    saveToLocalStorage?: boolean
-  ) => void;
+  setColorScheme: (schemeId: ColorSchemeId, saveToLocalStorage?: boolean) => void;
   setColorsFromSettings: () => void;
   setVisualizationSettings: (value: VisualizationSettings) => void;
 
@@ -41,11 +38,7 @@ interface UserSettingsState {
   savePreset: (presetName: string) => boolean;
   loadPreset: (presetName: string) => boolean;
   removePreset: (presetName: string) => boolean;
-  renamePreset: (
-    oldName: string,
-    newName: string,
-    overwrite?: boolean
-  ) => boolean;
+  renamePreset: (oldName: string, newName: string, overwrite?: boolean) => boolean;
   listPresets: () => string[];
   setSelectedPreset: (presetName: string | null) => void;
 }
@@ -84,9 +77,7 @@ export const useUserSettingsStore = create<UserSettingsState>()(
           }
           // Trigger zustand update
           set({
-            visualizationSettings: JSON.parse(
-              JSON.stringify(visualizationSettings)
-            ),
+            visualizationSettings: JSON.parse(JSON.stringify(visualizationSettings)),
           });
         }
         get().setColorsFromSettings();
@@ -149,9 +140,7 @@ export const useUserSettingsStore = create<UserSettingsState>()(
         // color settings (e.g. minimapBgColor); assigning scheme[id] for those
         // writes undefined and turns the minimap background black.
         const newVisualizationSettings = { ...get().visualizationSettings };
-        for (const settingId of Object.keys(
-          scheme
-        ) as (keyof typeof scheme)[]) {
+        for (const settingId of Object.keys(scheme) as (keyof typeof scheme)[]) {
           const current = newVisualizationSettings[settingId];
           if (!current || !isColorSetting(current)) continue;
           newVisualizationSettings[settingId] = {
@@ -276,10 +265,7 @@ export const useUserSettingsStore = create<UserSettingsState>()(
       },
 
       setSelectedPreset: (presetName: string | null) => {
-        if (
-          !presetName ||
-          (typeof presetName === 'string' && presetName.trim().length === 0)
-        ) {
+        if (!presetName || (typeof presetName === 'string' && presetName.trim().length === 0)) {
           set({ selectedPreset: null });
         } else {
           set({ selectedPreset: presetName.trim() });
@@ -292,10 +278,7 @@ export const useUserSettingsStore = create<UserSettingsState>()(
       partialize: (state) =>
         Object.fromEntries(
           Object.entries(state).filter(
-            ([key]) =>
-              key === 'visualizationSettings' ||
-              key === 'presets' ||
-              key === 'selectedPreset'
+            ([key]) => key === 'visualizationSettings' || key === 'presets' || key === 'selectedPreset'
           )
         ),
       merge: (persistedState: any, currentState) => {
@@ -308,16 +291,11 @@ export const useUserSettingsStore = create<UserSettingsState>()(
           ...currentState.visualizationSettings,
         };
 
-        if (
-          persistedState.visualizationSettings &&
-          typeof persistedState.visualizationSettings === 'object'
-        ) {
+        if (persistedState.visualizationSettings && typeof persistedState.visualizationSettings === 'object') {
           let settingId: keyof VisualizationSettings;
           for (settingId in currentState.visualizationSettings) {
-            const defaultSetting =
-              currentState.visualizationSettings[settingId];
-            const storedSetting =
-              persistedState.visualizationSettings[settingId];
+            const defaultSetting = currentState.visualizationSettings[settingId];
+            const storedSetting = persistedState.visualizationSettings[settingId];
 
             if (storedSetting === undefined || storedSetting === null) {
               console.warn(

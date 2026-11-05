@@ -1,16 +1,12 @@
 import React, { useEffect, useRef, useState } from 'react';
 
-import {
-  LocationIcon,
-  ShareAndroidIcon,
-  TrashIcon,
-} from '@primer/octicons-react';
+import { LocationIcon, ShareAndroidIcon, TrashIcon } from '@primer/octicons-react';
 import AnnotationData from 'explorviz-frontend/src/components/visualization/rendering/annotations/annotation-data';
 import { useAnnotationHandlerStore } from 'explorviz-frontend/src/stores/annotation-handler';
 import { usePlayroomConnectionStore } from 'explorviz-frontend/src/stores/collaboration/playroom-connection-store';
 import { useToastHandlerStore } from 'explorviz-frontend/src/stores/toast-handler';
 import { Position2D } from 'explorviz-frontend/src/types/pointer-types';
-import { pingByModelId } from 'explorviz-frontend/src/view-objects/3d/city/animated-ping-r3f';
+import { pingByModelId } from 'explorviz-frontend/src/view-objects/3d/city/ping-animation';
 import Button from 'react-bootstrap/Button';
 import OverlayTrigger from 'react-bootstrap/OverlayTrigger';
 import Tooltip from 'react-bootstrap/Tooltip';
@@ -21,15 +17,10 @@ interface AnnotationCoordinatorProps {
   removeAnnotation(annotationId: number): void;
 }
 
-export default function AnnotationCoordinator({
-  annotationData,
-  removeAnnotation,
-}: AnnotationCoordinatorProps) {
+export default function AnnotationCoordinator({ annotationData, removeAnnotation }: AnnotationCoordinatorProps) {
   const isConnected = usePlayroomConnectionStore((state) => state.isConnected);
   const isOnline = () => isConnected;
-  const showErrorToastMessage = useToastHandlerStore(
-    (state) => state.showErrorToastMessage
-  );
+  const showErrorToastMessage = useToastHandlerStore((state) => state.showErrorToastMessage);
 
   const annotationHandler = useAnnotationHandlerStore(
     useShallow((state) => ({
@@ -44,12 +35,8 @@ export default function AnnotationCoordinator({
     }))
   );
 
-  const [annotationTitle, setAnnotationTitle] = useState<string>(
-    annotationData.annotationTitle
-  );
-  const [annotationText, setAnnotationText] = useState<string>(
-    annotationData.annotationText
-  );
+  const [annotationTitle, setAnnotationTitle] = useState<string>(annotationData.annotationTitle);
+  const [annotationText, setAnnotationText] = useState<string>(annotationData.annotationText);
 
   const element = useRef<HTMLDivElement | null>(null);
   const lastMousePosition = useRef<Position2D>({ x: 0, y: 0 });
@@ -70,18 +57,14 @@ export default function AnnotationCoordinator({
 
   const onPointerOver = () => {
     annotationHandler.setAnnotationData([
-      ...annotationHandler.annotationData.filter(
-        (an) => an.annotationId !== annotationData.annotationId
-      ),
+      ...annotationHandler.annotationData.filter((an) => an.annotationId !== annotationData.annotationId),
       { ...annotationData, hovered: true },
     ]);
   };
 
   const onPointerOut = () => {
     annotationHandler.setAnnotationData([
-      ...annotationHandler.annotationData.filter(
-        (an) => an.annotationId !== annotationData.annotationId
-      ),
+      ...annotationHandler.annotationData.filter((an) => an.annotationId !== annotationData.annotationId),
       { ...annotationData, hovered: false },
     ]);
   };
@@ -133,28 +116,20 @@ export default function AnnotationCoordinator({
     // Prevent annotation position outside of rendering canvas in x-Direction
     if (newPositionX < 0) {
       newPositionX = 0;
-    } else if (
-      containerDiv.clientHeight &&
-      newPositionX > containerDiv.clientWidth - annotationWidth
-    ) {
+    } else if (containerDiv.clientHeight && newPositionX > containerDiv.clientWidth - annotationWidth) {
       newPositionX = containerDiv.clientWidth - annotationWidth;
     }
 
     // Prevent annotation position outside of rendering canvas in y-Direction
     if (newPositionY < 0) {
       newPositionY = 0;
-    } else if (
-      containerDiv.clientHeight &&
-      newPositionY > containerDiv.clientHeight - annotationHeight
-    ) {
+    } else if (containerDiv.clientHeight && newPositionY > containerDiv.clientHeight - annotationHeight) {
       newPositionY = containerDiv.clientHeight - annotationHeight;
     }
 
     // Update ref for final save
-    currentAnnotationPosition.current.x -=
-      element.current!.offsetLeft - newPositionX;
-    currentAnnotationPosition.current.y -=
-      element.current!.offsetTop - newPositionY;
+    currentAnnotationPosition.current.x -= element.current!.offsetLeft - newPositionX;
+    currentAnnotationPosition.current.y -= element.current!.offsetTop - newPositionY;
 
     element.current!.style.left = `${newPositionX}px`;
     element.current!.style.top = `${newPositionY}px`;
@@ -198,11 +173,7 @@ export default function AnnotationCoordinator({
 
     const containerWidth = containerDiv.clientWidth;
 
-    if (
-      annotationHeight === undefined ||
-      annotationWidth === undefined ||
-      containerWidth === undefined
-    ) {
+    if (annotationHeight === undefined || annotationWidth === undefined || containerWidth === undefined) {
       return;
     }
 
@@ -223,8 +194,7 @@ export default function AnnotationCoordinator({
     // position at right edge of cancas
     if (annotationLeftPosition + annotationWidth > containerWidth) {
       const extraAnnotationMarginFromAtBottom = 5;
-      annotationLeftPosition =
-        containerWidth - annotationWidth - extraAnnotationMarginFromAtBottom;
+      annotationLeftPosition = containerWidth - annotationWidth - extraAnnotationMarginFromAtBottom;
     }
 
     // Preven annotation positioning on left(outside) of rendering canvas =>
@@ -246,29 +216,20 @@ export default function AnnotationCoordinator({
     }
 
     annotationHandler.setAnnotationData([
-      ...annotationHandler.annotationData.filter(
-        (an) => an.annotationId !== annotationData.annotationId
-      ),
+      ...annotationHandler.annotationData.filter((an) => an.annotationId !== annotationData.annotationId),
       { ...annotationData, hidden: !annotationData.hidden },
     ]);
   };
 
   const minimizeAnnotation = () => {
     if (annotationData.inEdit) {
-      useToastHandlerStore
-        .getState()
-        .showErrorToastMessage('Please exit edit mode before minimizing.');
+      useToastHandlerStore.getState().showErrorToastMessage('Please exit edit mode before minimizing.');
       return;
     }
 
-    annotationHandler.setMinimizedAnnotationData([
-      ...annotationHandler.minimizedAnnotations,
-      { ...annotationData },
-    ]);
+    annotationHandler.setMinimizedAnnotationData([...annotationHandler.minimizedAnnotations, { ...annotationData }]);
     annotationHandler.setAnnotationData([
-      ...annotationHandler.annotationData.filter(
-        (an) => an.annotationId !== annotationData.annotationId
-      ),
+      ...annotationHandler.annotationData.filter((an) => an.annotationId !== annotationData.annotationId),
     ]);
   };
 
@@ -307,9 +268,7 @@ export default function AnnotationCoordinator({
                 </div>
                 <div className="d-flex justify-content-between">
                   <div></div>
-                  <label className="annotation-header-last-editor">
-                    Last change by {annotationData.lastEditor}
-                  </label>
+                  <label className="annotation-header-last-editor">Last change by {annotationData.lastEditor}</label>
                 </div>
                 <div className="d-flex justify-content-between">
                   {annotationData.inEdit ? (
@@ -322,16 +281,10 @@ export default function AnnotationCoordinator({
                       onChange={(e) => setAnnotationTitle(e.target.value)}
                     />
                   ) : (
-                    <label className="mr-2 annotation-title-label">
-                      {annotationTitle}
-                    </label>
+                    <label className="mr-2 annotation-title-label">{annotationTitle}</label>
                   )}
 
-                  <OverlayTrigger
-                    placement="top"
-                    trigger={['hover', 'focus']}
-                    overlay={<Tooltip>Ping</Tooltip>}
-                  >
+                  <OverlayTrigger placement="top" trigger={['hover', 'focus']} overlay={<Tooltip>Ping</Tooltip>}>
                     <Button variant="primary" onClick={ping}>
                       <LocationIcon size="small" className="align-middle" />
                     </Button>
@@ -341,19 +294,10 @@ export default function AnnotationCoordinator({
                     <OverlayTrigger
                       placement="top"
                       trigger={['hover', 'focus']}
-                      overlay={
-                        <Tooltip>This is not an online session.</Tooltip>
-                      }
+                      overlay={<Tooltip>This is not an online session.</Tooltip>}
                     >
-                      <Button
-                        className="annotation-share-button"
-                        variant="outline-secondary"
-                        disabled
-                      >
-                        <ShareAndroidIcon
-                          size="small"
-                          className="align-right"
-                        />
+                      <Button className="annotation-share-button" variant="outline-secondary" disabled>
+                        <ShareAndroidIcon size="small" className="align-right" />
                       </Button>
                     </OverlayTrigger>
                   ) : annotationData.shared ? (
@@ -362,36 +306,22 @@ export default function AnnotationCoordinator({
                       trigger={['hover', 'focus']}
                       overlay={<Tooltip>Annotation is shared</Tooltip>}
                     >
-                      <Button
-                        className="annotation-share-button"
-                        variant="outline-secondary"
-                        disabled
-                      >
-                        <ShareAndroidIcon
-                          size="small"
-                          className="align-right"
-                        />
+                      <Button className="annotation-share-button" variant="outline-secondary" disabled>
+                        <ShareAndroidIcon size="small" className="align-right" />
                       </Button>
                     </OverlayTrigger>
                   ) : (
                     <OverlayTrigger
                       placement="top"
                       trigger={['hover', 'focus']}
-                      overlay={
-                        <Tooltip>Share annotation with other users.</Tooltip>
-                      }
+                      overlay={<Tooltip>Share annotation with other users.</Tooltip>}
                     >
                       <Button
                         className="annotation-share-button"
                         variant="primary"
-                        onClick={() =>
-                          annotationHandler.shareAnnotation(annotationData)
-                        }
+                        onClick={() => annotationHandler.shareAnnotation(annotationData)}
                       >
-                        <ShareAndroidIcon
-                          size="small"
-                          className="align-right"
-                        />
+                        <ShareAndroidIcon size="small" className="align-right" />
                       </Button>
                     </OverlayTrigger>
                   )}
@@ -418,9 +348,7 @@ export default function AnnotationCoordinator({
                     <Button
                       className="annotation-close-button"
                       variant="outline-danger"
-                      onClick={() =>
-                        removeAnnotation(annotationData.annotationId)
-                      }
+                      onClick={() => removeAnnotation(annotationData.annotationId)}
                     >
                       <TrashIcon size="small" className="align-right" />
                     </Button>
@@ -491,9 +419,7 @@ export default function AnnotationCoordinator({
                 <div className="d-flex justify-content-between">
                   <label className="annotation-header-label">Annotation</label>
                 </div>
-                <label className="form-control mr-2 annotation-title-display">
-                  {annotationTitle}
-                </label>
+                <label className="form-control mr-2 annotation-title-display">{annotationTitle}</label>
                 <label>
                   Associated to '
                   {annotationData.entity && 'name' in annotationData.entity
@@ -511,9 +437,7 @@ export default function AnnotationCoordinator({
                 Creator:
                 {annotationData.owner}
               </label>
-              <label className="annotation-header-last-editor-top">
-                Last change by {annotationData.lastEditor}
-              </label>
+              <label className="annotation-header-last-editor-top">Last change by {annotationData.lastEditor}</label>
             </div>
             <div className="d-flex justify-content-between">
               {annotationData.inEdit ? (
@@ -526,9 +450,7 @@ export default function AnnotationCoordinator({
                   onChange={(e) => setAnnotationTitle(e.target.value)}
                 />
               ) : (
-                <label className="mr-2 annotation-title-label-minimized">
-                  {annotationTitle}
-                </label>
+                <label className="mr-2 annotation-title-label-minimized">{annotationTitle}</label>
               )}
 
               {!isOnline() ? (
@@ -537,11 +459,7 @@ export default function AnnotationCoordinator({
                   trigger={['hover', 'focus']}
                   overlay={<Tooltip>This is not an online session.</Tooltip>}
                 >
-                  <Button
-                    className="annotation-share-button"
-                    variant="outline-secondary"
-                    disabled
-                  >
+                  <Button className="annotation-share-button" variant="outline-secondary" disabled>
                     <ShareAndroidIcon size="small" className="align-right" />
                   </Button>
                 </OverlayTrigger>
@@ -551,11 +469,7 @@ export default function AnnotationCoordinator({
                   trigger={['hover', 'focus']}
                   overlay={<Tooltip>Annotation is shared</Tooltip>}
                 >
-                  <Button
-                    className="annotation-share-button"
-                    variant="outline-secondary"
-                    disabled
-                  >
+                  <Button className="annotation-share-button" variant="outline-secondary" disabled>
                     <ShareAndroidIcon size="small" className="align-right" />
                   </Button>
                 </OverlayTrigger>
@@ -563,16 +477,12 @@ export default function AnnotationCoordinator({
                 <OverlayTrigger
                   placement="top"
                   trigger={['hover', 'focus']}
-                  overlay={
-                    <Tooltip>Share annotation with other users.</Tooltip>
-                  }
+                  overlay={<Tooltip>Share annotation with other users.</Tooltip>}
                 >
                   <Button
                     className="annotation-share-button"
                     variant="primary"
-                    onClick={() =>
-                      annotationHandler.shareAnnotation(annotationData)
-                    }
+                    onClick={() => annotationHandler.shareAnnotation(annotationData)}
                   >
                     <ShareAndroidIcon size="small" className="align-right" />
                   </Button>
@@ -612,12 +522,7 @@ export default function AnnotationCoordinator({
                 {annotationData.inEdit ? (
                   <>
                     <div className="annotation-text">
-                      <textarea
-                        id="annotationtext"
-                        value={annotationText}
-                        rows={4}
-                        cols={45}
-                      />
+                      <textarea id="annotationtext" value={annotationText} rows={4} cols={45} />
                     </div>
                     <Button
                       title="Update"
@@ -635,13 +540,7 @@ export default function AnnotationCoordinator({
                 ) : (
                   <>
                     <div className="annotation-text">
-                      <textarea
-                        id="annotationtext"
-                        value={annotationText}
-                        rows={4}
-                        cols={45}
-                        readOnly
-                      />
+                      <textarea id="annotationtext" value={annotationText} rows={4} cols={45} readOnly />
                     </div>
                     <Button
                       title="Update"

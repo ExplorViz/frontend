@@ -6,28 +6,13 @@ import DistrictConfig from './districts/district-config';
 export default function EntityConfig() {
   return (
     <Tabs defaultActiveKey="buildings">
-      <Tab
-        eventKey="buildings"
-        title="Buildings"
-        className="border border-top-0 p-3"
-        tabClassName="text-dark"
-      >
+      <Tab eventKey="buildings" title="Buildings" className="border border-top-0 p-3" tabClassName="text-dark">
         <BuildingConfig />
       </Tab>
-      <Tab
-        eventKey="districts"
-        title="Districts"
-        className="border border-top-0 p-3"
-        tabClassName="text-dark"
-      >
+      <Tab eventKey="districts" title="Districts" className="border border-top-0 p-3" tabClassName="text-dark">
         <DistrictConfig />
       </Tab>
-      <Tab
-        eventKey="cities"
-        title="Cities"
-        className="border border-top-0 p-3"
-        tabClassName="text-dark"
-      >
+      <Tab eventKey="cities" title="Cities" className="border border-top-0 p-3" tabClassName="text-dark">
         <CityConfig />
       </Tab>
     </Tabs>

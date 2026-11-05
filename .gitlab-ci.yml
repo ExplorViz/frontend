@@ -3,7 +3,7 @@ include:
     file: '.gitlab-ci-explorviz-common.yml'
 
 variables:
-  NODE_OPTIONS: "--max-old-space-size=4096"
+  NODE_OPTIONS: '--max-old-space-size=4096'
 
 default:
   tags:
@@ -31,9 +31,10 @@ linting:
     - node --version
     - npm install -g pnpm
     - pnpm --version
-    - pnpm install
+    - pnpm install --frozen-lockfile
   script:
     - pnpm run lint
+    - pnpm run format:check
   artifacts:
     expire_in: 1h
     paths:

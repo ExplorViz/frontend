@@ -1,8 +1,5 @@
 import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
-import {
-  FlatLandscapeEntityType,
-  ModelType,
-} from 'explorviz-frontend/src/utils/landscape-schemes/flat-landscape';
+import { FlatLandscapeEntityType, ModelType } from 'explorviz-frontend/src/utils/landscape-schemes/flat-landscape';
 import { getLabelForModelType } from 'explorviz-frontend/src/utils/model-type-utils';
 import { CSSProperties } from 'react';
 import { Badge } from 'react-bootstrap';
@@ -26,31 +23,13 @@ interface ModelTypeBadgeProps {
  * Displays a badge indicating a {@link ModelType} value. The badge's color is set
  * to match a particular kind of entity (building, city, district) with that type value.
  */
-export default function ModelTypeBadge({
-  type,
-  flatEntityType,
-  pill,
-  className,
-  style,
-}: ModelTypeBadgeProps) {
-  const buildingColor = useUserSettingsStore(
-    (state) => state.visualizationSettings.buildingColor
-  );
-  const districtColor = useUserSettingsStore(
-    (state) => state.visualizationSettings.districtRootLevelColor
-  );
-  const cityColor = useUserSettingsStore(
-    (state) => state.visualizationSettings.foundationColor
-  );
-  const buildingColorOverrides = useUserSettingsStore(
-    (state) => state.visualizationSettings.buildingColorOverrides
-  );
-  const districtColorOverrides = useUserSettingsStore(
-    (state) => state.visualizationSettings.districtColorOverrides
-  );
-  const cityColorOverrides = useUserSettingsStore(
-    (state) => state.visualizationSettings.cityColorOverrides
-  );
+export default function ModelTypeBadge({ type, flatEntityType, pill, className, style }: ModelTypeBadgeProps) {
+  const buildingColor = useUserSettingsStore((state) => state.visualizationSettings.buildingColor);
+  const districtColor = useUserSettingsStore((state) => state.visualizationSettings.districtRootLevelColor);
+  const cityColor = useUserSettingsStore((state) => state.visualizationSettings.foundationColor);
+  const buildingColorOverrides = useUserSettingsStore((state) => state.visualizationSettings.buildingColorOverrides);
+  const districtColorOverrides = useUserSettingsStore((state) => state.visualizationSettings.districtColorOverrides);
+  const cityColorOverrides = useUserSettingsStore((state) => state.visualizationSettings.cityColorOverrides);
 
   const color =
     flatEntityType === 'building'
@@ -79,9 +58,7 @@ export default function ModelTypeBadge({
         ...style,
       }}
     >
-      <samp>
-        {getLabelForModelType(type ?? 'unknown') ?? type?.toUpperCase()}
-      </samp>
+      <samp>{getLabelForModelType(type ?? 'unknown') ?? type?.toUpperCase()}</samp>
     </Badge>
   );
 }

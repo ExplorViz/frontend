@@ -1,11 +1,10 @@
 import { useCopilotChat } from '@copilotkit/react-core';
-import { ChatbotContext } from 'explorviz-frontend/src/components/chatbot/chatbot-context';
+import { ChatbotContext } from 'explorviz-frontend/src/components/chatbot/chatbot-context-store';
 import { Dropdown } from 'explorviz-frontend/src/components/visualization/page-setup/dropdown';
 import { use } from 'react';
 
 export function ModelDropdown() {
-  const { selectedProvider, selectedModel, setSelectedModel } =
-    use(ChatbotContext);
+  const { selectedProvider, selectedModel, setSelectedModel } = use(ChatbotContext);
   const { reset } = useCopilotChat();
 
   function onSelect(model: typeof selectedModel) {

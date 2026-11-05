@@ -1,9 +1,5 @@
 import { type EntityFilterMode } from 'explorviz-frontend/src/stores/entity-filtering-store';
-import {
-  ModelType,
-  type Building,
-  type Language,
-} from 'explorviz-frontend/src/utils/landscape-schemes/flat-landscape';
+import { ModelType, type Building, type Language } from 'explorviz-frontend/src/utils/landscape-schemes/flat-landscape';
 import { normalizeLanguage } from 'explorviz-frontend/src/utils/language-utils';
 import {
   compileSearchExpressions,
@@ -29,8 +25,7 @@ export type CompiledBuildingFilter = {
   readonly isFiltered: (building: Building) => boolean;
 };
 
-const getMetricValue = (building: Building, metricKey: string): number =>
-  building.metrics?.[metricKey]?.current ?? 0;
+const getMetricValue = (building: Building, metricKey: string): number => building.metrics?.[metricKey]?.current ?? 0;
 
 const NOTHING_FILTERED: CompiledBuildingFilter = {
   isActive: false,
@@ -41,16 +36,12 @@ const NOTHING_FILTERED: CompiledBuildingFilter = {
  * Resolves the filter criteria into a predicate once, instead of re-deriving
  * per-building work (regex compilation, threshold lookups) for every candidate.
  */
-export function compileBuildingFilter(
-  criteria: BuildingFilterCriteria
-): CompiledBuildingFilter {
-  const filtersByModelType =
-    criteria.filterMode === 'Remove' && criteria.hiddenModelTypes.size > 0;
+export function compileBuildingFilter(criteria: BuildingFilterCriteria): CompiledBuildingFilter {
+  const filtersByModelType = criteria.filterMode === 'Remove' && criteria.hiddenModelTypes.size > 0;
 
   // In "Hide" mode a hidden language is applied by the visibility checks rather
   // than by removing the building from the landscape.
-  const filtersByLanguage =
-    criteria.filterMode === 'Remove' && criteria.hiddenLanguages.size > 0;
+  const filtersByLanguage = criteria.filterMode === 'Remove' && criteria.hiddenLanguages.size > 0;
 
   // Metric values default to zero and thresholds default to the metric minimum
   // of zero, so only a positive threshold can exclude anything.
@@ -58,39 +49,25 @@ export function compileBuildingFilter(
     (metricName) => (criteria.metricThresholds[metricName] ?? 0) > 0
   );
 
-  const inclusionExpressions = compileSearchExpressions(
-    criteria.inclusionExpressions
-  );
-  const exclusionExpressions = compileSearchExpressions(
-    criteria.exclusionExpressions
-  );
+  const inclusionExpressions = compileSearchExpressions(criteria.inclusionExpressions);
+  const exclusionExpressions = compileSearchExpressions(criteria.exclusionExpressions);
 
-  const matchesFqn =
-    inclusionExpressions.length > 0 || exclusionExpressions.length > 0;
+  const matchesFqn = inclusionExpressions.length > 0 || exclusionExpressions.length > 0;
 
-  if (
-    !filtersByModelType &&
-    !filtersByLanguage &&
-    activeMetricNames.length === 0 &&
-    !matchesFqn
-  ) {
+  if (!filtersByModelType && !filtersByLanguage && activeMetricNames.length === 0 && !matchesFqn) {
     return NOTHING_FILTERED;
   }
 
   const isFiltered = (building: Building): boolean => {
     if (
       (filtersByModelType && criteria.hiddenModelTypes.has(building.type)) ||
-      (filtersByLanguage &&
-        criteria.hiddenLanguages.has(normalizeLanguage(building.language)))
+      (filtersByLanguage && criteria.hiddenLanguages.has(normalizeLanguage(building.language)))
     ) {
       return true;
     }
 
     for (const metricName of activeMetricNames) {
-      if (
-        getMetricValue(building, metricName) <
-        criteria.metricThresholds[metricName]
-      ) {
+      if (getMetricValue(building, metricName) < criteria.metricThresholds[metricName]) {
         return true;
       }
     }
@@ -101,10 +78,7 @@ export function compileBuildingFilter(
 
     const buildingFqn = building.fqn ?? building.name;
 
-    if (
-      inclusionExpressions.length > 0 &&
-      !matchesAnyCompiledExpression(buildingFqn, inclusionExpressions)
-    ) {
+    if (inclusionExpressions.length > 0 && !matchesAnyCompiledExpression(buildingFqn, inclusionExpressions)) {
       return true;
     }
 
@@ -131,10 +105,7 @@ export function collectFilteredBuildings(
   return filtered;
 }
 
-export function countRemainingBuildings(
-  buildings: Record<string, Building>,
-  filter: CompiledBuildingFilter
-): number {
+export function countRemainingBuildings(buildings: Record<string, Building>, filter: CompiledBuildingFilter): number {
   const buildingList = Object.values(buildings);
   if (!filter.isActive) {
     return buildingList.length;

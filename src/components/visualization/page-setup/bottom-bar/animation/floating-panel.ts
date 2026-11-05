@@ -3,17 +3,23 @@ import type { PointerEvent as ReactPointerEvent } from 'react';
 
 export type FloatingPanelPosition = { left: number; top: number };
 
-export function useFloatingPanel(
-  anchor: () => FloatingPanelPosition | null,
-  dockGap: number
-) {
+export function useFloatingPanel(anchor: () => FloatingPanelPosition | null, dockGap: number) {
   const [element, setElement] = useState<HTMLElement | null>(null);
   const [isMinimized, setIsMinimized] = useState(false);
   const restoreTop = useRef<string | null>(null);
   const restoreLeft = useRef<string | null>(null);
   const lastPointer = useRef({ x: 0, y: 0 });
+  const elementRef = useRef<HTMLElement | null>(null);
   const anchorRef = useRef(anchor);
-  anchorRef.current = anchor;
+
+  useEffect(() => {
+    anchorRef.current = anchor;
+  });
+
+  const ref = useCallback((node: HTMLElement | null) => {
+    elementRef.current = node;
+    setElement(node);
+  }, []);
 
   const stopDrag = useCallback(() => {
     document.onpointerup = null;
@@ -21,40 +27,42 @@ export function useFloatingPanel(
   }, []);
 
   useEffect(() => {
-    if (!element) return;
+    const panel = elementRef.current;
+    if (!panel) return;
     const position = anchorRef.current();
     if (!position) return;
-    element.style.left = `${position.left}px`;
-    element.style.top = `${position.top}px`;
+    panel.style.left = `${position.left}px`;
+    panel.style.top = `${position.top}px`;
   }, [element]);
 
   useEffect(() => stopDrag, [stopDrag]);
 
   useEffect(() => {
-    if (!element) return;
+    const panel = elementRef.current;
+    if (!panel) return;
 
     if (!isMinimized) {
-      element.style.bottom = '';
+      panel.style.bottom = '';
       if (restoreTop.current !== null) {
-        element.style.top = restoreTop.current;
+        panel.style.top = restoreTop.current;
         restoreTop.current = null;
       }
       if (restoreLeft.current !== null) {
-        element.style.left = restoreLeft.current;
+        panel.style.left = restoreLeft.current;
         restoreLeft.current = null;
       }
       return;
     }
 
-    restoreTop.current = element.style.top;
-    restoreLeft.current = element.style.left;
-    element.style.top = 'auto';
+    restoreTop.current = panel.style.top;
+    restoreLeft.current = panel.style.left;
+    panel.style.top = 'auto';
     const home = anchorRef.current();
-    if (home) element.style.left = `${home.left}px`;
+    if (home) panel.style.left = `${home.left}px`;
 
     const bar = document.getElementById('bottom-bar-container');
     const dock = () => {
-      element.style.bottom = `${(bar?.getBoundingClientRect().height ?? 0) + dockGap}px`;
+      panel.style.bottom = `${(bar?.getBoundingClientRect().height ?? 0) + dockGap}px`;
     };
     dock();
 
@@ -67,7 +75,8 @@ export function useFloatingPanel(
   const onDragStart = useCallback(
     (event: ReactPointerEvent) => {
       event.stopPropagation();
-      if (isMinimized || !element) return;
+      const panel = elementRef.current;
+      if (isMinimized || !panel) return;
 
       lastPointer.current = { x: event.clientX, y: event.clientY };
       document.onpointerup = stopDrag;
@@ -77,17 +86,17 @@ export function useFloatingPanel(
         const diffY = lastPointer.current.y - moveEvent.clientY;
         lastPointer.current = { x: moveEvent.clientX, y: moveEvent.clientY };
 
-        const maxLeft = window.innerWidth - element.offsetWidth;
-        const maxTop = window.innerHeight - element.offsetHeight;
-        element.style.left = `${Math.min(Math.max(0, element.offsetLeft - diffX), maxLeft)}px`;
-        element.style.top = `${Math.min(Math.max(0, element.offsetTop - diffY), maxTop)}px`;
+        const maxLeft = window.innerWidth - panel.offsetWidth;
+        const maxTop = window.innerHeight - panel.offsetHeight;
+        panel.style.left = `${Math.min(Math.max(0, panel.offsetLeft - diffX), maxLeft)}px`;
+        panel.style.top = `${Math.min(Math.max(0, panel.offsetTop - diffY), maxTop)}px`;
       };
     },
     [element, isMinimized, stopDrag]
   );
 
   return {
-    ref: setElement,
+    ref,
     isMinimized,
     toggleMinimized: useCallback(() => setIsMinimized((v) => !v), []),
     onDragStart,

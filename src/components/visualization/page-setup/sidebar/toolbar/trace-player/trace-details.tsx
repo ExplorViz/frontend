@@ -9,16 +9,10 @@ import { useLandscapeTokenStore } from 'explorviz-frontend/src/stores/landscape-
 import { useRenderingServiceStore } from 'explorviz-frontend/src/stores/rendering-service';
 import { useModelStore } from 'explorviz-frontend/src/stores/repos/model-repository';
 import { useToastHandlerStore } from 'explorviz-frontend/src/stores/toast-handler';
-import {
-  highlightById,
-  removeAllHighlighting,
-} from 'explorviz-frontend/src/utils/city-rendering/highlighting';
+import { highlightById, removeAllHighlighting } from 'explorviz-frontend/src/utils/city-rendering/highlighting';
 import { CROSS_COMMIT_IDENTIFIER } from 'explorviz-frontend/src/utils/evolution-schemes/evolution-data';
 import { CommSummary } from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/communication';
-import {
-  Span,
-  TraceOverview,
-} from 'explorviz-frontend/src/utils/landscape-schemes/telemetry/traces';
+import { Span, TraceOverview } from 'explorviz-frontend/src/utils/landscape-schemes/telemetry/traces';
 import { useCallback, useEffect, useState } from 'react';
 import { Accordion, Button, Card, Spinner } from 'react-bootstrap';
 import TraceTree from './trace-tree';
@@ -30,16 +24,12 @@ export interface SpanTree {
 }
 
 function toSpanTree(spans: Span[]) {
-  const spanById = new Map<string, SpanTree>(
-    spans.values().map((span) => [span.spanId, { data: span, children: [] }])
-  );
+  const spanById = new Map<string, SpanTree>(spans.values().map((span) => [span.spanId, { data: span, children: [] }]));
 
   const roots: SpanTree[] = [];
 
   for (const span of spanById.values()) {
-    const parent = span.data.parentSpanId
-      ? spanById.get(span.data.parentSpanId)
-      : undefined;
+    const parent = span.data.parentSpanId ? spanById.get(span.data.parentSpanId) : undefined;
 
     if (parent) {
       span.parent = parent;
@@ -75,36 +65,21 @@ interface TraceDetailsProps {
   onBackClick(): void;
 }
 
-export default function TraceDetails({
-  traceOverview,
-  onBackClick,
-}: TraceDetailsProps) {
+export default function TraceDetails({ traceOverview, onBackClick }: TraceDetailsProps) {
   const cities = useModelStore((state) => state.cities);
-  const aggregatedCommunications = useModelStore(
-    (state) => state.aggregatedCommunications
-  );
-  const telemetryKeyToEntityId = useModelStore(
-    (state) => state.telemetryKeyToEntityId
-  );
+  const aggregatedCommunications = useModelStore((state) => state.aggregatedCommunications);
+  const telemetryKeyToEntityId = useModelStore((state) => state.telemetryKeyToEntityId);
   const landscapeToken = useLandscapeTokenStore((state) => state.token);
   const lookAtEntity = useCameraControlsStore((state) => state.lookAtEntity);
-  const setCommunications = useCommunicationStore(
-    (state) => state.setCommunications
-  );
-  const setVisualizationPaused = useRenderingServiceStore(
-    (state) => state.setVisualizationPaused
-  );
-  const showErrorToastMessage = useToastHandlerStore(
-    (state) => state.showErrorToastMessage
-  );
+  const setCommunications = useCommunicationStore((state) => state.setCommunications);
+  const setVisualizationPaused = useRenderingServiceStore((state) => state.setVisualizationPaused);
+  const showErrorToastMessage = useToastHandlerStore((state) => state.showErrorToastMessage);
 
   const [spanData, setSpanData] = useState<{
     tree: SpanTree[];
     flat: Span[];
   } | null>(null);
-  const [selectedSpanIndex, setSelectedSpanIndex] = useState<number | null>(
-    null
-  );
+  const [selectedSpanIndex, setSelectedSpanIndex] = useState<number | null>(null);
 
   const handleSpanChange = useCallback(
     (newSpan: Span, parent?: Span) => {
@@ -129,8 +104,7 @@ export default function TraceDetails({
         : Object.values(cities).find((c) => c.name === parent.serviceName)?.id;
 
       const comm = Object.values(aggregatedCommunications).find(
-        (c) =>
-          c.sourceEntity.id === parentEntityid && c.targetEntity.id === entityId
+        (c) => c.sourceEntity.id === parentEntityid && c.targetEntity.id === entityId
       );
       if (comm) {
         highlightById(comm.id);
@@ -143,10 +117,7 @@ export default function TraceDetails({
     if (selectedSpanIndex === null || spanData === null) {
       return;
     }
-    const newIndex = Math.min(
-      Math.max(selectedSpanIndex - 1, 0),
-      spanData.flat.length - 1
-    );
+    const newIndex = Math.min(Math.max(selectedSpanIndex - 1, 0), spanData.flat.length - 1);
 
     const newSpan = spanData.flat[newIndex];
     const parent = spanData.flat.find((s) => s.spanId === newSpan.parentSpanId);
@@ -213,13 +184,7 @@ export default function TraceDetails({
     };
 
     fetchAndUpdate();
-  }, [
-    traceOverview,
-    landscapeToken,
-    fetchSpans,
-    handleSpanChange,
-    showErrorToastMessage,
-  ]);
+  }, [traceOverview, landscapeToken, fetchSpans, handleSpanChange, showErrorToastMessage]);
 
   useEffect(() => {
     if (!landscapeToken) {
@@ -244,9 +209,7 @@ export default function TraceDetails({
             aggregatedFileCommunication: receivedComm,
           },
 
-          currentRuntimeLandscapeData: new Map(
-            state.currentRuntimeLandscapeData
-          ).set(CROSS_COMMIT_IDENTIFIER, {
+          currentRuntimeLandscapeData: new Map(state.currentRuntimeLandscapeData).set(CROSS_COMMIT_IDENTIFIER, {
             ...state.currentRuntimeLandscapeData.get(CROSS_COMMIT_IDENTIFIER)!,
             aggregatedFileCommunication: receivedComm,
           }),
@@ -263,30 +226,18 @@ export default function TraceDetails({
 
     const prevComms = useCommunicationStore.getState().allCommunication;
     const prevAggregatedFileCommunication =
-      useRenderingServiceStore.getState()._landscapeData!
-        .aggregatedFileCommunication;
+      useRenderingServiceStore.getState()._landscapeData!.aggregatedFileCommunication;
 
     return function restorePreviousCommunication() {
       if (!fetchedData) {
         return;
       }
 
-      if (
-        Object.is(
-          useCommunicationStore.getState().allCommunication,
-          fetchedData
-        )
-      ) {
+      if (Object.is(useCommunicationStore.getState().allCommunication, fetchedData)) {
         setCommunications(prevComms);
       }
 
-      if (
-        Object.is(
-          useRenderingServiceStore.getState()._landscapeData
-            ?.aggregatedFileCommunication,
-          fetchedData
-        )
-      ) {
+      if (Object.is(useRenderingServiceStore.getState()._landscapeData?.aggregatedFileCommunication, fetchedData)) {
         useRenderingServiceStore.setState((state) => ({
           ...state,
 
@@ -295,9 +246,7 @@ export default function TraceDetails({
             aggregatedFileCommunication: prevAggregatedFileCommunication,
           },
 
-          currentRuntimeLandscapeData: new Map(
-            state.currentRuntimeLandscapeData
-          ).set(CROSS_COMMIT_IDENTIFIER, {
+          currentRuntimeLandscapeData: new Map(state.currentRuntimeLandscapeData).set(CROSS_COMMIT_IDENTIFIER, {
             ...state.currentRuntimeLandscapeData.get(CROSS_COMMIT_IDENTIFIER)!,
             aggregatedFileCommunication: prevAggregatedFileCommunication,
           }),
@@ -318,11 +267,7 @@ export default function TraceDetails({
   return (
     <div>
       <div className="d-flex justify-content-center align-items-center position-relative">
-        <Button
-          variant="outline-white"
-          onClick={onBackClick}
-          className="position-absolute start-0 px-0 py-0 border-0"
-        >
+        <Button variant="outline-white" onClick={onBackClick} className="position-absolute start-0 px-0 py-0 border-0">
           &larr;
         </Button>
         <h6 className="mt-1 mb-1">
@@ -330,33 +275,31 @@ export default function TraceDetails({
         </h6>
       </div>
 
-      {spanData !== null &&
-        spanData.flat.length > 0 &&
-        selectedSpanIndex !== null && (
-          <div className="d-flex justify-content-center align-items-center">
-            <Button
-              variant="white"
-              size="sm"
-              onClick={handleStepBackClick}
-              disabled={selectedSpanIndex === 0}
-              className="border-0"
-            >
-              <ChevronLeftIcon />
-            </Button>
-            <span className="user-select-none">
-              {selectedSpanIndex + 1} / {spanData.flat.length}
-            </span>
-            <Button
-              variant="white"
-              size="sm"
-              onClick={handleStepForwardClick}
-              disabled={selectedSpanIndex === spanData.flat.length - 1}
-              className="border-0"
-            >
-              <ChevronRightIcon />
-            </Button>
-          </div>
-        )}
+      {spanData !== null && spanData.flat.length > 0 && selectedSpanIndex !== null && (
+        <div className="d-flex justify-content-center align-items-center">
+          <Button
+            variant="white"
+            size="sm"
+            onClick={handleStepBackClick}
+            disabled={selectedSpanIndex === 0}
+            className="border-0"
+          >
+            <ChevronLeftIcon />
+          </Button>
+          <span className="user-select-none">
+            {selectedSpanIndex + 1} / {spanData.flat.length}
+          </span>
+          <Button
+            variant="white"
+            size="sm"
+            onClick={handleStepForwardClick}
+            disabled={selectedSpanIndex === spanData.flat.length - 1}
+            className="border-0"
+          >
+            <ChevronRightIcon />
+          </Button>
+        </div>
+      )}
 
       <div className="d-flex flex-column gap-2">
         {spanData !== null && spanData.flat.length > 0 && (
@@ -375,37 +318,22 @@ export default function TraceDetails({
               <Card.Body>
                 <h6 className="mb-0">
                   <b>
-                    {selectedSpan.serviceName}: {selectedSpan.name}{' '}
-                    <SpanKindBadge kind={selectedSpan.kind} />
+                    {selectedSpan.serviceName}: {selectedSpan.name} <SpanKindBadge kind={selectedSpan.kind} />
                   </b>
                 </h6>
 
                 <Accordion defaultActiveKey="span-attributes" alwaysOpen>
-                  <Accordion.Item
-                    eventKey="span-attributes"
-                    className="border-0 py-1"
-                  >
-                    <Accordion.Button className="p-0 bg-transparent shadow-none">
-                      Span Attributes
-                    </Accordion.Button>
+                  <Accordion.Item eventKey="span-attributes" className="border-0 py-1">
+                    <Accordion.Button className="p-0 bg-transparent shadow-none">Span Attributes</Accordion.Button>
                     <Accordion.Body className="p-0">
-                      <AttributesTable
-                        attributes={selectedSpan.spanAttributes}
-                      />
+                      <AttributesTable attributes={selectedSpan.spanAttributes} />
                     </Accordion.Body>
                   </Accordion.Item>
 
-                  <Accordion.Item
-                    eventKey="resource-attributes"
-                    className="border-0 py-1"
-                  >
-                    <Accordion.Button className="p-0 bg-transparent shadow-none">
-                      Resource Attributes
-                    </Accordion.Button>
+                  <Accordion.Item eventKey="resource-attributes" className="border-0 py-1">
+                    <Accordion.Button className="p-0 bg-transparent shadow-none">Resource Attributes</Accordion.Button>
                     <Accordion.Body className="p-0">
-                      <AttributesTable
-                        attributes={selectedSpan.resourceAttributes}
-                      />
+                      <AttributesTable attributes={selectedSpan.resourceAttributes} />
                     </Accordion.Body>
                   </Accordion.Item>
                 </Accordion>

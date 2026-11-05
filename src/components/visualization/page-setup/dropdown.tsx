@@ -12,12 +12,7 @@ interface DropdownProps<T extends Item> {
   fallbackLabel: string;
 }
 
-export function Dropdown<T extends Item>({
-  items,
-  selectedItem,
-  onSelect,
-  fallbackLabel,
-}: DropdownProps<T>) {
+export function Dropdown<T extends Item>({ items, selectedItem, onSelect, fallbackLabel }: DropdownProps<T>) {
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
@@ -35,10 +30,7 @@ export function Dropdown<T extends Item>({
   // Close dropdown on outside click
   useEffect(() => {
     const handleClickOutside = ({ target }: MouseEvent) => {
-      if (
-        dropdownRef.current &&
-        !dropdownRef.current.contains(target as HTMLElement)
-      ) {
+      if (dropdownRef.current && !dropdownRef.current.contains(target as HTMLElement)) {
         setIsOpen(false);
       }
     };
@@ -60,16 +52,9 @@ export function Dropdown<T extends Item>({
       >
         {selectedItem?.id || fallbackLabel}
       </button>
-      <div
-        className={`dropdown-menu dropdown-menu-right ${isOpen ? 'show' : ''}`}
-        aria-labelledby="dropdownMenuButton"
-      >
+      <div className={`dropdown-menu dropdown-menu-right ${isOpen ? 'show' : ''}`} aria-labelledby="dropdownMenuButton">
         {items.map((item) => (
-          <div
-            key={item.id}
-            className="dropdown-item pointer-cursor"
-            onClick={() => handleSelect(item)}
-          >
+          <div key={item.id} className="dropdown-item pointer-cursor" onClick={() => handleSelect(item)}>
             {item.id}
           </div>
         ))}

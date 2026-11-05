@@ -15,18 +15,9 @@ interface LanguageBadgeProps {
  * Displays a badge indicating a {@link Language} value. The badge's color
  * is set to match the color of buildings with that particular language value.
  */
-export default function LanguageBadge({
-  language,
-  pill,
-  className,
-  style,
-}: LanguageBadgeProps) {
-  const buildingColor = useUserSettingsStore(
-    (state) => state.visualizationSettings.buildingColor
-  );
-  const buildingColorOverrides = useUserSettingsStore(
-    (state) => state.visualizationSettings.buildingColorOverrides
-  );
+export default function LanguageBadge({ language, pill, className, style }: LanguageBadgeProps) {
+  const buildingColor = useUserSettingsStore((state) => state.visualizationSettings.buildingColor);
+  const buildingColorOverrides = useUserSettingsStore((state) => state.visualizationSettings.buildingColorOverrides);
 
   const badgeColor =
     buildingColorOverrides.value.language[language ?? 'LANGUAGE_UNSPECIFIED'] ??

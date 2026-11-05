@@ -17,14 +17,10 @@ export default function SelectSetting({
   settingId: VisualizationSettingId;
   formatOptionLabel?: (option: unknown) => string;
 }) {
-  const setting = useUserSettingsStore(
-    (state) => state.visualizationSettings[settingId]
-  ) as SelectSettingData<unknown>;
-  const options = (defaultVizSettings[settingId] as SelectSettingData<unknown>)
-    .options;
+  const setting = useUserSettingsStore((state) => state.visualizationSettings[settingId]) as SelectSettingData<unknown>;
+  const options = (defaultVizSettings[settingId] as SelectSettingData<unknown>).options;
 
-  const getOptionLabel = (option: unknown) =>
-    formatOptionLabel?.(option) ?? String(option);
+  const getOptionLabel = (option: unknown) => formatOptionLabel?.(option) ?? String(option);
 
   const handleInput = (newValue: unknown) => {
     onChange(settingId, newValue);
@@ -38,11 +34,7 @@ export default function SelectSetting({
       </label>
       <div className="d-flex justify-content-between align-items-center">
         <div>
-          <DropdownButton
-            id="dropdown-basic-button"
-            title={getOptionLabel(setting.value)}
-            variant="primary"
-          >
+          <DropdownButton id="dropdown-basic-button" title={getOptionLabel(setting.value)} variant="primary">
             {options.map((option) => (
               <Dropdown.Item
                 key={option as string}

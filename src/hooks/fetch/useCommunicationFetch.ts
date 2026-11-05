@@ -1,9 +1,6 @@
 import { useAuthStore } from 'explorviz-frontend/src/stores/auth';
 import { getTraceServiceUrl } from 'explorviz-frontend/src/utils/landscape-http-request-util';
-import {
-  CommSummary,
-  isCommSummary,
-} from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/communication';
+import { CommSummary, isCommSummary } from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/communication';
 import { useCallback } from 'react';
 
 export interface CommunicationSearchParams {
@@ -50,9 +47,7 @@ export default function useCommunicationFetch() {
         throw new Error('Trace service URL not configured');
       }
 
-      const requestUrl = new URL(
-        `${traceServiceUrl}/v3/landscapes/${params.landscapeTokenId}/communication`
-      );
+      const requestUrl = new URL(`${traceServiceUrl}/v3/landscapes/${params.landscapeTokenId}/communication`);
 
       for (const [key, value] of Object.entries(params)) {
         if (value !== undefined) {

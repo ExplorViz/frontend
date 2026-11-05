@@ -8,10 +8,7 @@ interface SettingsSidebarProps {
   children: ReactNode;
 }
 
-export default function SettingsSidebar({
-  closeSettingsSidebar,
-  children,
-}: SettingsSidebarProps) {
+export default function SettingsSidebar({ closeSettingsSidebar, children }: SettingsSidebarProps) {
   return (
     <>
       <div id="sidebarButtonContainer">

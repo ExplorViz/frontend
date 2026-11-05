@@ -1,9 +1,6 @@
 import { ShareAndroidIcon } from '@primer/octicons-react';
 import { format } from 'date-fns';
-import {
-  TinySnapshot,
-  useSnapshotTokenStore,
-} from 'explorviz-frontend/src/stores/snapshot-token';
+import { TinySnapshot, useSnapshotTokenStore } from 'explorviz-frontend/src/stores/snapshot-token';
 import convertDate from 'explorviz-frontend/src/utils/helpers/time-convter';
 import { useState } from 'react';
 import { Button, Modal, OverlayTrigger, Tooltip } from 'react-bootstrap';
@@ -16,16 +13,16 @@ interface ShareSnapshotArgs {
 }
 
 export default function ShareSnapshot(args: ShareSnapshotArgs) {
-  const [setExpireDateMenu, setsetExpireDateMenu] = useState<boolean>(false);
+  const [showExpireDateMenu, setShowExpireDateMenu] = useState<boolean>(false);
 
   const [expDate, setExpDate] = useState<number | null>(null);
 
   const openMenu = () => {
-    setsetExpireDateMenu(true);
+    setShowExpireDateMenu(true);
   };
 
   const closeMenu = () => {
-    setsetExpireDateMenu(false);
+    setShowExpireDateMenu(false);
     setExpDate(null);
   };
 
@@ -38,29 +35,19 @@ export default function ShareSnapshot(args: ShareSnapshotArgs) {
   const shareSnapshot = async (snapshot: TinySnapshot) => {
     const localExpDate = expDate !== null ? expDate : 0;
 
-    await useSnapshotTokenStore
-      .getState()
-      .shareSnapshot(snapshot, localExpDate);
+    await useSnapshotTokenStore.getState().shareSnapshot(snapshot, localExpDate);
     closeMenu();
     args.reload();
   };
 
   return (
     <div id="colorPresets" className="dropdown">
-      <OverlayTrigger
-        placement="bottom"
-        trigger={['hover', 'focus']}
-        overlay={<Tooltip>Share Snapshot</Tooltip>}
-      >
-        <a
-          className="button-svg-with-hover"
-          type="button"
-          onClick={() => openMenu()}
-        >
+      <OverlayTrigger placement="bottom" trigger={['hover', 'focus']} overlay={<Tooltip>Share Snapshot</Tooltip>}>
+        <a className="button-svg-with-hover" type="button" onClick={() => openMenu()}>
           <ShareAndroidIcon size="small" className="octicon align-middle" />
         </a>
       </OverlayTrigger>
-      <Modal show={setExpireDateMenu} onHide={closeMenu}>
+      <Modal show={showExpireDateMenu} onHide={closeMenu}>
         <Modal.Header>
           <Modal.Title>
             Set expiry Date <i>- Optional</i>{' '}
@@ -68,13 +55,7 @@ export default function ShareSnapshot(args: ShareSnapshotArgs) {
         </Modal.Header>
         <Modal.Body>
           <div className="d-flex justify-content-between">
-            <input
-              id="date"
-              className="form-control mr-2"
-              type="date"
-              min={today}
-              onInput={updateExpDate}
-            />
+            <input id="date" className="form-control mr-2" type="date" min={today} onInput={updateExpDate} />
           </div>
         </Modal.Body>
         <Modal.Footer>

@@ -10,38 +10,21 @@ interface DistrictModelConfigProps {
   formatValueLabel?(value: string): string | undefined;
 }
 
-export default function DistrictModelConfig({
-  overrideGroupKey,
-  values,
-  formatValueLabel,
-}: DistrictModelConfigProps) {
-  const districtColorOverrides = useUserSettingsStore(
-    (state) => state.visualizationSettings.districtColorOverrides
-  );
+export default function DistrictModelConfig({ overrideGroupKey, values, formatValueLabel }: DistrictModelConfigProps) {
+  const districtColorOverrides = useUserSettingsStore((state) => state.visualizationSettings.districtColorOverrides);
 
   return (
     <Accordion className="building-config-language-accordion">
       {values.map((value) => (
-        <Accordion.Item
-          eventKey={value}
-          key={value}
-          className="building-config-language-item"
-        >
+        <Accordion.Item eventKey={value} key={value} className="building-config-language-item">
           <Accordion.Header>
             <span className="building-config-language-header">
-              <ColorIndicator
-                color={districtColorOverrides.value[overrideGroupKey][value]}
-              />
-              <span className="building-config-language-name">
-                {formatValueLabel?.(value) ?? value}
-              </span>
+              <ColorIndicator color={districtColorOverrides.value[overrideGroupKey][value]} />
+              <span className="building-config-language-name">{formatValueLabel?.(value) ?? value}</span>
             </span>
           </Accordion.Header>
           <Accordion.Body>
-            <DistrictModelConfigItem
-              overrideGroupKey={overrideGroupKey}
-              value={value}
-            />
+            <DistrictModelConfigItem overrideGroupKey={overrideGroupKey} value={value} />
           </Accordion.Body>
         </Accordion.Item>
       ))}
@@ -54,13 +37,8 @@ interface DistrictModelConfigItemProps {
   value: string;
 }
 
-function DistrictModelConfigItem({
-  overrideGroupKey,
-  value,
-}: DistrictModelConfigItemProps) {
-  const districtColorOverrides = useUserSettingsStore(
-    (state) => state.visualizationSettings.districtColorOverrides
-  );
+function DistrictModelConfigItem({ overrideGroupKey, value }: DistrictModelConfigItemProps) {
+  const districtColorOverrides = useUserSettingsStore((state) => state.visualizationSettings.districtColorOverrides);
   const updateSetting = useUserSettingsStore((state) => state.updateSetting);
 
   const selectedColor = districtColorOverrides.value[overrideGroupKey][value];
@@ -76,8 +54,7 @@ function DistrictModelConfigItem({
   };
 
   const handleResetColor = () => {
-    const defaultValue =
-      defaultVizSettings.districtColorOverrides.value[overrideGroupKey][value];
+    const defaultValue = defaultVizSettings.districtColorOverrides.value[overrideGroupKey][value];
     handleChangeColor(defaultValue);
   };
 
@@ -89,9 +66,7 @@ function DistrictModelConfigItem({
           label="District color"
           initialValue={null}
           value={selectedColor}
-          onChange={(v) =>
-            v !== null ? handleChangeColor(v) : handleResetColor()
-          }
+          onChange={(v) => (v !== null ? handleChangeColor(v) : handleResetColor())}
         />
       </div>
     </div>

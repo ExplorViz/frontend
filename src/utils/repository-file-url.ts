@@ -1,22 +1,15 @@
-import {
-  Commit,
-  CROSS_COMMIT_IDENTIFIER,
-} from 'explorviz-frontend/src/utils/evolution-schemes/evolution-data';
+import { Commit, CROSS_COMMIT_IDENTIFIER } from 'explorviz-frontend/src/utils/evolution-schemes/evolution-data';
 
 const HOST_FILE_URL_COMMIT_PATTERN = /(\/(?:-\/blob|blob|src)\/)([^/]+)(\/)/;
 
 type GitHost = 'github' | 'gitlab' | 'bitbucket' | 'unknown';
 
-function normalizeRepositoryUrl(
-  repositoryUrl: string | undefined
-): string | undefined {
+function normalizeRepositoryUrl(repositoryUrl: string | undefined): string | undefined {
   if (!repositoryUrl?.trim()) {
     return undefined;
   }
 
-  return repositoryUrl.endsWith('.git')
-    ? repositoryUrl.slice(0, -4)
-    : repositoryUrl;
+  return repositoryUrl.endsWith('.git') ? repositoryUrl.slice(0, -4) : repositoryUrl;
 }
 
 function getGitHost(repositoryUrl: string): GitHost {
@@ -42,35 +35,22 @@ function isValidCommitHash(commitId: string): boolean {
   return commitId.length > 0 && commitId !== CROSS_COMMIT_IDENTIFIER;
 }
 
-export function fqnToRepositoryPath(
-  fqn: string | undefined,
-  repositoryName: string | undefined
-): string | undefined {
+export function fqnToRepositoryPath(fqn: string | undefined, repositoryName: string | undefined): string | undefined {
   if (!fqn?.trim()) {
     return undefined;
   }
 
   const normalizedFqn = fqn.replace(/\\/g, '/');
-  if (
-    repositoryName?.trim() &&
-    normalizedFqn.startsWith(`${repositoryName}/`)
-  ) {
+  if (repositoryName?.trim() && normalizedFqn.startsWith(`${repositoryName}/`)) {
     return normalizedFqn.substring(repositoryName.length + 1);
   }
 
   return normalizedFqn;
 }
 
-function buildTreeUrlForHost(
-  repositoryUrl: string,
-  commitSha: string,
-  directoryPath?: string
-): string | undefined {
+function buildTreeUrlForHost(repositoryUrl: string, commitSha: string, directoryPath?: string): string | undefined {
   const normalizedDirectoryPath = directoryPath?.replace(/\\/g, '/').trim();
-  const pathSuffix =
-    normalizedDirectoryPath && normalizedDirectoryPath.length > 0
-      ? `/${normalizedDirectoryPath}`
-      : '';
+  const pathSuffix = normalizedDirectoryPath && normalizedDirectoryPath.length > 0 ? `/${normalizedDirectoryPath}` : '';
 
   switch (getGitHost(repositoryUrl)) {
     case 'github':
@@ -104,22 +84,14 @@ export function buildDirectoryTreeUrl(
 ): string | undefined {
   const repositoryUrl = normalizeRepositoryUrl(remoteUrl);
   const directoryPath = fqnToRepositoryPath(fqn, repositoryName);
-  if (
-    !repositoryUrl ||
-    !commitHash ||
-    !directoryPath ||
-    !isValidCommitHash(commitHash)
-  ) {
+  if (!repositoryUrl || !commitHash || !directoryPath || !isValidCommitHash(commitHash)) {
     return undefined;
   }
 
   return buildTreeUrlForHost(repositoryUrl, commitHash, directoryPath);
 }
 
-function buildCommitPageUrl(
-  repositoryUrl: string,
-  commitHash: string
-): string | undefined {
+function buildCommitPageUrl(repositoryUrl: string, commitHash: string): string | undefined {
   if (!isValidCommitHash(commitHash)) {
     return undefined;
   }
@@ -141,10 +113,7 @@ function buildCommitCompareUrl(
   olderCommitHash: string,
   newerCommitHash: string
 ): string | undefined {
-  if (
-    !isValidCommitHash(olderCommitHash) ||
-    !isValidCommitHash(newerCommitHash)
-  ) {
+  if (!isValidCommitHash(olderCommitHash) || !isValidCommitHash(newerCommitHash)) {
     return undefined;
   }
 
@@ -174,17 +143,10 @@ export function buildCommitChartLinkUrl(
   }
 
   if (selectedCommitsForRepo.length === 1) {
-    return buildCommitPageUrl(
-      repositoryUrl,
-      selectedCommitsForRepo[0].commitId
-    );
+    return buildCommitPageUrl(repositoryUrl, selectedCommitsForRepo[0].commitId);
   }
 
-  return buildCommitCompareUrl(
-    repositoryUrl,
-    selectedCommitsForRepo[0].commitId,
-    selectedCommitsForRepo[1].commitId
-  );
+  return buildCommitCompareUrl(repositoryUrl, selectedCommitsForRepo[0].commitId, selectedCommitsForRepo[1].commitId);
 }
 
 export function getCommitChartLinkLabel(selectedCommitCount: number): string {

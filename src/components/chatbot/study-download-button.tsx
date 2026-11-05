@@ -4,20 +4,14 @@ import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-setting
 import { useVisualizationStore } from 'explorviz-frontend/src/stores/visualization-store';
 import { getCircularReplacer } from 'explorviz-frontend/src/utils/circular-replacer';
 import { defaultVizSettings } from 'explorviz-frontend/src/utils/settings/default-settings';
-import {
-  VisualizationSettingId,
-  VisualizationSettings,
-} from 'explorviz-frontend/src/utils/settings/settings-schemas';
+import { VisualizationSettingId, VisualizationSettings } from 'explorviz-frontend/src/utils/settings/settings-schemas';
 import { use } from 'react';
 import Button from 'react-bootstrap/Button';
-import { EditingContext } from '../editing/editing-context';
-import { ChatbotContext } from './chatbot-context';
+import { EditingContext } from '../editing/editing-context-store';
+import { ChatbotContext } from './chatbot-context-store';
 
 function flattenSettings(settings: VisualizationSettings) {
-  const flattened: Record<VisualizationSettingId, unknown> = {} as Record<
-    VisualizationSettingId,
-    unknown
-  >;
+  const flattened: Record<VisualizationSettingId, unknown> = {} as Record<VisualizationSettingId, unknown>;
   Object.entries(settings).forEach(([id, setting]) => {
     flattened[id as VisualizationSettingId] = (setting as any).value;
   });
@@ -26,12 +20,7 @@ function flattenSettings(settings: VisualizationSettings) {
 
 export function StudyDownloadButton() {
   const { messages } = useCopilotChatInternal();
-  const {
-    closedDistrictIds,
-    highlightedEntityIds,
-    hoveredEntityId,
-    removedDistrictIds,
-  } = useVisualizationStore();
+  const { closedDistrictIds, highlightedEntityIds, hoveredEntityId, removedDistrictIds } = useVisualizationStore();
   const {
     selectedProvider,
     selectedModel,
@@ -42,9 +31,7 @@ export function StudyDownloadButton() {
     selectedSettingsSidebarTab,
   } = use(ChatbotContext);
   const { canGoBack, canGoForward } = use(EditingContext);
-  const visualizationSettings = useUserSettingsStore(
-    (state) => state.visualizationSettings
-  );
+  const visualizationSettings = useUserSettingsStore((state) => state.visualizationSettings);
 
   const handleDownload = () => {
     const applicationSummary = landscapeData
@@ -78,17 +65,12 @@ export function StudyDownloadButton() {
     };
 
     try {
-      const blob = new Blob(
-        [JSON.stringify(payload, getCircularReplacer(true), 2)],
-        {
-          type: 'application/json',
-        }
-      );
+      const blob = new Blob([JSON.stringify(payload, getCircularReplacer(true), 2)], {
+        type: 'application/json',
+      });
       const url = URL.createObjectURL(blob);
       const link = document.createElement('a');
-      const fileName = `explorviz-copilot-study-${new Date()
-        .toISOString()
-        .replace(/[:.]/g, '-')}.json`;
+      const fileName = `explorviz-copilot-study-${new Date().toISOString().replace(/[:.]/g, '-')}.json`;
 
       link.href = url;
       link.download = fileName;
@@ -102,11 +84,7 @@ export function StudyDownloadButton() {
   };
 
   return (
-    <Button
-      title="Download study data (chat, landscape, resources)"
-      variant="primary"
-      onClick={handleDownload}
-    >
+    <Button title="Download study data (chat, landscape, resources)" variant="primary" onClick={handleDownload}>
       <DownloadIcon size="small" />
     </Button>
   );

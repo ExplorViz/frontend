@@ -82,25 +82,19 @@ export default function HotkeyHandler() {
         case 'a': {
           const newValue = !visualizationSettings.enableAnimations.value;
           updateSetting('enableAnimations', newValue);
-          showInfoToastMessage(
-            `Animations ${newValue ? 'enabled' : 'disabled'}`
-          );
+          showInfoToastMessage(`Animations ${newValue ? 'enabled' : 'disabled'}`);
           break;
         }
         case 'c': {
           const newValue = !isCommRendered;
           setIsCommRendered(newValue);
-          showInfoToastMessage(
-            `Communications ${newValue ? 'enabled' : 'disabled'}`
-          );
+          showInfoToastMessage(`Communications ${newValue ? 'enabled' : 'disabled'}`);
           break;
         }
         case 'f': {
           const newValue = !visualizationSettings.showFpsCounter.value;
           updateSetting('showFpsCounter', newValue);
-          showInfoToastMessage(
-            `FPS Counter ${newValue ? 'enabled' : 'disabled'}`
-          );
+          showInfoToastMessage(`FPS Counter ${newValue ? 'enabled' : 'disabled'}`);
           break;
         }
         case 'h': {
@@ -113,9 +107,7 @@ export default function HotkeyHandler() {
         case 'l': {
           const newValue = !visualizationSettings.isMagnifierActive.value;
           updateSetting('isMagnifierActive', newValue);
-          showInfoToastMessage(
-            `Magnifier ${newValue ? 'enabled' : 'disabled'}`
-          );
+          showInfoToastMessage(`Magnifier ${newValue ? 'enabled' : 'disabled'}`);
           break;
         }
         case 'm': {
@@ -135,9 +127,7 @@ export default function HotkeyHandler() {
         case 'x': {
           const newValue = !visualizationSettings.showAxesHelper.value;
           updateSetting('showAxesHelper', newValue);
-          showInfoToastMessage(
-            `Axes Helper ${newValue ? 'enabled' : 'disabled'}`
-          );
+          showInfoToastMessage(`Axes Helper ${newValue ? 'enabled' : 'disabled'}`);
           break;
         }
         default:

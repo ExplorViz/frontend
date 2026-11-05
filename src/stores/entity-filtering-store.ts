@@ -1,12 +1,6 @@
 import { useVisualizationStore } from 'explorviz-frontend/src/stores/visualization-store';
-import {
-  FlatLandscape,
-  Language,
-} from 'explorviz-frontend/src/utils/landscape-schemes/flat-landscape';
-import {
-  normalizeLanguage,
-  sortLanguages,
-} from 'explorviz-frontend/src/utils/language-utils';
+import { FlatLandscape, Language } from 'explorviz-frontend/src/utils/landscape-schemes/flat-landscape';
+import { normalizeLanguage, sortLanguages } from 'explorviz-frontend/src/utils/language-utils';
 import { BUILDING_METRIC_NAMES } from 'explorviz-frontend/src/utils/settings/settings-schemas';
 import { create } from 'zustand';
 
@@ -19,9 +13,7 @@ export type FqnFilterOption = {
 
 export type LanguageCount = readonly [language: Language, count: number];
 export type FileExtensionCount = readonly [extension: string, count: number];
-export type LanguageFileExtensionStats = Readonly<
-  Record<Language, readonly FileExtensionCount[]>
->;
+export type LanguageFileExtensionStats = Readonly<Record<Language, readonly FileExtensionCount[]>>;
 
 export function getFileExtensionFromPath(path: string): string {
   const fileName = path.split(/[/\\]/).pop() ?? path;
@@ -68,9 +60,7 @@ export function getFileExtensionGroupsFromBuildings(
     }));
 }
 
-export function getLanguageCountsFromBuildings(
-  buildings: Iterable<{ language?: Language }>
-): LanguageCount[] {
+export function getLanguageCountsFromBuildings(buildings: Iterable<{ language?: Language }>): LanguageCount[] {
   const counts = new Map<Language, number>();
 
   for (const building of buildings) {
@@ -78,9 +68,7 @@ export function getLanguageCountsFromBuildings(
     counts.set(lang, (counts.get(lang) ?? 0) + 1);
   }
 
-  return sortLanguages(Array.from(counts.keys())).map(
-    (language) => [language, counts.get(language)!] as const
-  );
+  return sortLanguages(Array.from(counts.keys())).map((language) => [language, counts.get(language)!] as const);
 }
 
 export function getLanguageFileExtensionStatsFromBuildings(
@@ -91,8 +79,7 @@ export function getLanguageFileExtensionStatsFromBuildings(
   for (const building of buildings) {
     const language = normalizeLanguage(building.language);
     const extension = getFileExtensionFromPath(building.fqn ?? building.name);
-    const extensionCounts =
-      countsByLanguage.get(language) ?? new Map<string, number>();
+    const extensionCounts = countsByLanguage.get(language) ?? new Map<string, number>();
 
     extensionCounts.set(extension, (extensionCounts.get(extension) ?? 0) + 1);
     countsByLanguage.set(language, extensionCounts);
@@ -135,53 +122,43 @@ interface EntityFilteringStoreState {
     setMinMethodCount: (value: number) => void;
     setBaselineFlatLandscape: (flatLandscape: FlatLandscape) => void;
     setBaselineLanguageStats: (stats: readonly LanguageCount[]) => void;
-    setBaselineLanguageFileExtensionStats: (
-      stats: LanguageFileExtensionStats
-    ) => void;
+    setBaselineLanguageFileExtensionStats: (stats: LanguageFileExtensionStats) => void;
     resetFilters: () => void;
   };
 }
 
-export const useEntityFilteringStore = create<EntityFilteringStoreState>(
-  (set) => ({
-    filterMode: 'Remove',
-    inclusionExpressions: [],
-    exclusionExpressions: [],
-    metricThresholds: getDefaultMetricThresholds(),
-    baselineFlatLandscape: null,
-    baselineLanguageStats: [],
-    baselineLanguageFileExtensionStats: {},
-    actions: {
-      setFilterMode: (mode) => set({ filterMode: mode }),
-      setInclusionExpressions: (expressions) =>
-        set({ inclusionExpressions: expressions ?? [] }),
-      setExclusionExpressions: (expressions) =>
-        set({ exclusionExpressions: expressions ?? [] }),
-      setMetricThreshold: (metric, value) =>
-        set((state) => ({
-          metricThresholds: { ...state.metricThresholds, [metric]: value },
-        })),
-      setMetricThresholds: (thresholds) =>
-        set({ metricThresholds: thresholds }),
-      setMinMethodCount: (value) =>
-        set((state) => ({
-          metricThresholds: { ...state.metricThresholds, functionCount: value },
-        })),
-      setBaselineFlatLandscape: (flatLandscape) =>
-        set({ baselineFlatLandscape: flatLandscape }),
-      setBaselineLanguageStats: (stats) =>
-        set({ baselineLanguageStats: stats }),
-      setBaselineLanguageFileExtensionStats: (stats) =>
-        set({ baselineLanguageFileExtensionStats: stats }),
-      resetFilters: () => {
-        useVisualizationStore.getState().actions.resetLanguageFilter();
-        set({
-          filterMode: 'Remove',
-          inclusionExpressions: [],
-          exclusionExpressions: [],
-          metricThresholds: getDefaultMetricThresholds(),
-        });
-      },
+export const useEntityFilteringStore = create<EntityFilteringStoreState>((set) => ({
+  filterMode: 'Remove',
+  inclusionExpressions: [],
+  exclusionExpressions: [],
+  metricThresholds: getDefaultMetricThresholds(),
+  baselineFlatLandscape: null,
+  baselineLanguageStats: [],
+  baselineLanguageFileExtensionStats: {},
+  actions: {
+    setFilterMode: (mode) => set({ filterMode: mode }),
+    setInclusionExpressions: (expressions) => set({ inclusionExpressions: expressions ?? [] }),
+    setExclusionExpressions: (expressions) => set({ exclusionExpressions: expressions ?? [] }),
+    setMetricThreshold: (metric, value) =>
+      set((state) => ({
+        metricThresholds: { ...state.metricThresholds, [metric]: value },
+      })),
+    setMetricThresholds: (thresholds) => set({ metricThresholds: thresholds }),
+    setMinMethodCount: (value) =>
+      set((state) => ({
+        metricThresholds: { ...state.metricThresholds, functionCount: value },
+      })),
+    setBaselineFlatLandscape: (flatLandscape) => set({ baselineFlatLandscape: flatLandscape }),
+    setBaselineLanguageStats: (stats) => set({ baselineLanguageStats: stats }),
+    setBaselineLanguageFileExtensionStats: (stats) => set({ baselineLanguageFileExtensionStats: stats }),
+    resetFilters: () => {
+      useVisualizationStore.getState().actions.resetLanguageFilter();
+      set({
+        filterMode: 'Remove',
+        inclusionExpressions: [],
+        exclusionExpressions: [],
+        metricThresholds: getDefaultMetricThresholds(),
+      });
     },
-  })
-);
+  },
+}));

@@ -21,10 +21,7 @@ export function unregisterContextMenuPick(): void {
   registeredPick = null;
 }
 
-export function contextMenuPickAt(
-  clientX: number,
-  clientY: number
-): ContextMenuHitEntity {
+export function contextMenuPickAt(clientX: number, clientY: number): ContextMenuHitEntity {
   return registeredPick?.(clientX, clientY) ?? { kind: 'empty' };
 }
 
@@ -36,24 +33,18 @@ function isIntersectionVisible(intersection: THREE.Intersection): boolean {
   return visible;
 }
 
-function classifyIntersection(
-  intersection: THREE.Intersection
-): ContextMenuHitEntity | null {
+function classifyIntersection(intersection: THREE.Intersection): ContextMenuHitEntity | null {
   const obj = intersection.object;
   const instanceId = intersection.instanceId;
 
   if (instanceId !== undefined && instanceId !== null) {
     if (typeof obj.name === 'string' && obj.name.startsWith('Districts of ')) {
-      const fn = obj.userData.explorvizResolveDistrictId as
-        | ((i: number) => string | undefined)
-        | undefined;
+      const fn = obj.userData.explorvizResolveDistrictId as ((i: number) => string | undefined) | undefined;
       const districtId = fn?.(instanceId);
       if (districtId) return { kind: 'district', districtId };
     }
     if (typeof obj.name === 'string' && obj.name.startsWith('Buildings-')) {
-      const fn = obj.userData.explorvizResolveBuildingId as
-        | ((i: number) => string | undefined)
-        | undefined;
+      const fn = obj.userData.explorvizResolveBuildingId as ((i: number) => string | undefined) | undefined;
       const buildingId = fn?.(instanceId);
       if (buildingId) return { kind: 'building', buildingId };
     }
@@ -62,11 +53,8 @@ function classifyIntersection(
 
   let current: THREE.Object3D | null = obj;
   while (current) {
-    const entity = current.userData.explorvizEntity as
-      | ExplorvizCityEntityTag
-      | undefined;
-    if (entity?.type === 'city' && entity.entityId)
-      return { kind: 'city', cityId: entity.entityId };
+    const entity = current.userData.explorvizEntity as ExplorvizCityEntityTag | undefined;
+    if (entity?.type === 'city' && entity.entityId) return { kind: 'city', cityId: entity.entityId };
     current = current.parent;
   }
 

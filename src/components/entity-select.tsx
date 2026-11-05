@@ -1,11 +1,8 @@
+import { keyedItems } from 'explorviz-frontend/src/utils/keyed-items';
 import React, { useState } from 'react';
 import Select, { FormatOptionLabelMeta, SelectInstance } from 'react-select';
 import { useModelStore } from '../stores/repos/model-repository';
-import {
-  Building,
-  City,
-  District,
-} from '../utils/landscape-schemes/flat-landscape';
+import { Building, City, District } from '../utils/landscape-schemes/flat-landscape';
 
 type Entity = City | District | Building;
 
@@ -89,10 +86,7 @@ export default function EntitySelect({
     selectedOption = selectedEntity;
   }
 
-  const formatOptionLabel = (
-    entity: Entity | null,
-    { inputValue }: FormatOptionLabelMeta<Entity>
-  ) => {
+  const formatOptionLabel = (entity: Entity | null, { inputValue }: FormatOptionLabelMeta<Entity>) => {
     if (!entity) {
       return <></>;
     }
@@ -108,12 +102,8 @@ export default function EntitySelect({
       const parts = label.split(new RegExp(`(${inputValue})`, 'gi'));
       withHighlights = (
         <>
-          {parts.map((part, index) =>
-            part.toLowerCase() === inputValue.toLowerCase() ? (
-              <strong key={index}>{part}</strong>
-            ) : (
-              part
-            )
+          {keyedItems(parts, (part) => part).map(({ item: part, key }) =>
+            part.toLowerCase() === inputValue.toLowerCase() ? <strong key={key}>{part}</strong> : part
           )}
         </>
       );

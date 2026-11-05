@@ -20,10 +20,7 @@ import {
 import { useState } from 'react';
 import { Button } from 'react-bootstrap';
 
-function isDependencyMet(
-  dependsOn: SettingDependency | undefined,
-  allSettings: VisualizationSettings
-): boolean {
+function isDependencyMet(dependsOn: SettingDependency | undefined, allSettings: VisualizationSettings): boolean {
   if (dependsOn === undefined) {
     return true;
   }
@@ -50,19 +47,11 @@ function isDependencyMet(
   return false;
 }
 
-function formatBuildingMetricOptionLabel(
-  option: unknown,
-  isCommitComparisonMode: boolean
-): string {
-  return formatBuildingMetricDisplayName(
-    option as SelectedBuildingMetric,
-    isCommitComparisonMode
-  );
+function formatBuildingMetricOptionLabel(option: unknown, isCommitComparisonMode: boolean): string {
+  return formatBuildingMetricDisplayName(option as SelectedBuildingMetric, isCommitComparisonMode);
 }
 
-function areWidthAndDepthLinkedByDefault(
-  settings: VisualizationSettings
-): boolean {
+function areWidthAndDepthLinkedByDefault(settings: VisualizationSettings): boolean {
   const widthMetric = settings.buildingWidthMetric.value;
   const depthMetric = settings.buildingDepthMetric.value;
   const widthMultiplier = settings.buildingWidthMultiplier.value;
@@ -80,96 +69,58 @@ function DimensionMetricCard({
   dimension: BuildingDimension;
   isCommitComparisonMode: boolean;
   onMetricChange: (settingId: VisualizationSettingId, value: unknown) => void;
-  onMultiplierChange: (
-    settingId: VisualizationSettingId,
-    value: number
-  ) => void;
+  onMultiplierChange: (settingId: VisualizationSettingId, value: number) => void;
 }) {
-  const visualizationSettings = useUserSettingsStore(
-    (state) => state.visualizationSettings
-  );
-  const { label, metricSettingId, multiplierSettingId } =
-    BUILDING_DIMENSION_SETTINGS[dimension];
+  const visualizationSettings = useUserSettingsStore((state) => state.visualizationSettings);
+  const { label, metricSettingId, multiplierSettingId } = BUILDING_DIMENSION_SETTINGS[dimension];
   const metricValue = visualizationSettings[metricSettingId].value;
   const showMultiplier =
     metricValue !== SelectedBuildingMetric.None &&
-    isDependencyMet(
-      visualizationSettings[multiplierSettingId].dependsOn,
-      visualizationSettings
-    );
+    isDependencyMet(visualizationSettings[multiplierSettingId].dependsOn, visualizationSettings);
 
   return (
     <div className="building-config-metric-card">
       <div className="building-config-dimension-header">
         <span className="building-config-dimension-label">{label}</span>
-        <span className="building-config-dimension-caption">
-          Maps a metric to building {label.toLowerCase()}
-        </span>
+        <span className="building-config-dimension-caption">Maps a metric to building {label.toLowerCase()}</span>
       </div>
       <SelectSetting
         settingId={metricSettingId}
         onChange={onMetricChange}
-        formatOptionLabel={(option) =>
-          formatBuildingMetricOptionLabel(option, isCommitComparisonMode)
-        }
+        formatOptionLabel={(option) => formatBuildingMetricOptionLabel(option, isCommitComparisonMode)}
       />
-      {showMultiplier && (
-        <RangeSetting
-          settingId={multiplierSettingId}
-          onChange={onMultiplierChange}
-        />
-      )}
+      {showMultiplier && <RangeSetting settingId={multiplierSettingId} onChange={onMultiplierChange} />}
     </div>
   );
 }
 
 export default function BuildingMetricSettings() {
-  const currentSelectedRepo = useCommitTreeStateStore(
-    (state) => state._currentSelectedRepositoryName
-  );
+  const currentSelectedRepo = useCommitTreeStateStore((state) => state._currentSelectedRepositoryName);
   const selectedCommitCount =
-    useCommitTreeStateStore(
-      (state) => state._selectedCommits.get(currentSelectedRepo)?.length
-    ) ?? 0;
+    useCommitTreeStateStore((state) => state._selectedCommits.get(currentSelectedRepo)?.length) ?? 0;
   const isCommitComparisonMode = selectedCommitCount >= 2;
 
-  const visualizationSettings = useUserSettingsStore(
-    (state) => state.visualizationSettings
-  );
-  const updateUserSetting = useUserSettingsStore(
-    (state) => state.updateSetting
-  );
-  const showErrorToastMessage = useToastHandlerStore(
-    (state) => state.showErrorToastMessage
-  );
+  const visualizationSettings = useUserSettingsStore((state) => state.visualizationSettings);
+  const updateUserSetting = useUserSettingsStore((state) => state.updateSetting);
+  const showErrorToastMessage = useToastHandlerStore((state) => state.showErrorToastMessage);
 
   const [areWidthDepthLinked, setAreWidthDepthLinked] = useState(() =>
-    areWidthAndDepthLinkedByDefault(
-      useUserSettingsStore.getState().visualizationSettings
-    )
+    areWidthAndDepthLinkedByDefault(useUserSettingsStore.getState().visualizationSettings)
   );
 
   const updateRangeSetting = (name: VisualizationSettingId, value: number) => {
     try {
       updateUserSetting(name, value);
     } catch (error: unknown) {
-      showErrorToastMessage(
-        error instanceof Error ? error.message : 'Failed to update setting.'
-      );
+      showErrorToastMessage(error instanceof Error ? error.message : 'Failed to update setting.');
     }
   };
 
-  const updateSelectSetting = (
-    name: VisualizationSettingId,
-    value: unknown
-  ) => {
+  const updateSelectSetting = (name: VisualizationSettingId, value: unknown) => {
     updateUserSetting(name, value);
   };
 
-  const updateLinkedMetricSetting = (
-    name: VisualizationSettingId,
-    value: unknown
-  ) => {
+  const updateLinkedMetricSetting = (name: VisualizationSettingId, value: unknown) => {
     updateSelectSetting(name, value);
 
     if (!areWidthDepthLinked) {
@@ -183,10 +134,7 @@ export default function BuildingMetricSettings() {
     }
   };
 
-  const updateLinkedMultiplierSetting = (
-    name: VisualizationSettingId,
-    value: number
-  ) => {
+  const updateLinkedMultiplierSetting = (name: VisualizationSettingId, value: number) => {
     updateRangeSetting(name, value);
 
     if (!areWidthDepthLinked) {
@@ -217,24 +165,19 @@ export default function BuildingMetricSettings() {
   return (
     <div className="building-config-metrics">
       <p className="building-config-section-description">
-        Choose which code and social activity metrics control building size. Use
-        multipliers to fine tune the visual scale.
+        Choose which code and social activity metrics control building size. Use multipliers to fine tune the visual
+        scale.
         {isCommitComparisonMode &&
           ' With two commits selected, dimensions reflect the absolute difference between the commits.'}
       </p>
 
       <div className="building-config-metric-card">
-        <SelectSetting
-          settingId={BUILDING_METRIC_MAPPING_SETTING_ID}
-          onChange={updateSelectSetting}
-        />
+        <SelectSetting settingId={BUILDING_METRIC_MAPPING_SETTING_ID} onChange={updateSelectSetting} />
       </div>
 
       <div
         className={`building-config-dimension-link-group${
-          areWidthDepthLinked
-            ? ' building-config-dimension-link-group--linked'
-            : ''
+          areWidthDepthLinked ? ' building-config-dimension-link-group--linked' : ''
         }`}
       >
         <DimensionMetricCard
@@ -245,10 +188,7 @@ export default function BuildingMetricSettings() {
         />
 
         <div className="building-config-dimension-link">
-          <div
-            className="building-config-dimension-link-line"
-            aria-hidden="true"
-          />
+          <div className="building-config-dimension-link-line" aria-hidden="true" />
           <Button
             type="button"
             variant={areWidthDepthLinked ? 'primary' : 'outline-secondary'}
@@ -256,28 +196,17 @@ export default function BuildingMetricSettings() {
             className="building-config-dimension-link-button"
             onClick={toggleWidthDepthLink}
             aria-pressed={areWidthDepthLinked}
-            aria-label={
-              areWidthDepthLinked
-                ? 'Unlink width and depth settings'
-                : 'Link width and depth settings'
-            }
+            aria-label={areWidthDepthLinked ? 'Unlink width and depth settings' : 'Link width and depth settings'}
             title={
               areWidthDepthLinked
                 ? 'Width and depth are linked. Click to unlink.'
                 : 'Link width and depth so they stay in sync.'
             }
           >
-            {areWidthDepthLinked ? (
-              <LinkIcon size={16} />
-            ) : (
-              <UnlinkIcon size={16} />
-            )}
+            {areWidthDepthLinked ? <LinkIcon size={16} /> : <UnlinkIcon size={16} />}
             <span>{areWidthDepthLinked ? 'Linked' : 'Unlinked'}</span>
           </Button>
-          <div
-            className="building-config-dimension-link-line"
-            aria-hidden="true"
-          />
+          <div className="building-config-dimension-link-line" aria-hidden="true" />
         </div>
 
         <DimensionMetricCard
@@ -297,17 +226,10 @@ export default function BuildingMetricSettings() {
 
       <div className="building-config-metric-card">
         <div className="building-config-dimension-header">
-          <span className="building-config-dimension-label">
-            Base footprint
-          </span>
-          <span className="building-config-dimension-caption">
-            Default width and depth when no metric is selected
-          </span>
+          <span className="building-config-dimension-label">Base footprint</span>
+          <span className="building-config-dimension-caption">Default width and depth when no metric is selected</span>
         </div>
-        <RangeSetting
-          settingId={BUILDING_FOOTPRINT_SETTING_ID}
-          onChange={updateRangeSetting}
-        />
+        <RangeSetting settingId={BUILDING_FOOTPRINT_SETTING_ID} onChange={updateRangeSetting} />
       </div>
     </div>
   );

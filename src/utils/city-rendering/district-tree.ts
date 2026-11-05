@@ -2,10 +2,7 @@ import { useModelStore } from 'explorviz-frontend/src/stores/repos/model-reposit
 import { isDistrictClosed } from 'explorviz-frontend/src/utils/city-rendering/district-close-state';
 import { Building } from 'explorviz-frontend/src/utils/landscape-schemes/flat-landscape';
 
-export function isBuildingHiddenByClosedDistrictAncestor(
-  building: Building,
-  closedDistrictIds: Set<string>
-): boolean {
+export function isBuildingHiddenByClosedDistrictAncestor(building: Building, closedDistrictIds: Set<string>): boolean {
   let parentDistrictId = building.parentDistrictId;
   const districts = useModelStore.getState().districts;
 
@@ -30,16 +27,12 @@ export function isBuildingHiddenByClosedDistricts(
   closedDistrictIds: Set<string>,
   building?: Building
 ): boolean {
-  const resolvedBuilding =
-    building ?? useModelStore.getState().getBuilding(buildingId);
+  const resolvedBuilding = building ?? useModelStore.getState().getBuilding(buildingId);
   if (!resolvedBuilding) {
     return false;
   }
 
-  return isBuildingHiddenByClosedDistrictAncestor(
-    resolvedBuilding,
-    closedDistrictIds
-  );
+  return isBuildingHiddenByClosedDistrictAncestor(resolvedBuilding, closedDistrictIds);
 }
 
 export function collectDistrictSubtreeIds(districtId: string): {
@@ -71,10 +64,7 @@ export function collectDistrictSubtreeIds(districtId: string): {
   return { districtIds, buildingIds };
 }
 
-export function filterBuildingIdsForCity(
-  cityId: string,
-  buildingIds: readonly string[]
-): string[] {
+export function filterBuildingIdsForCity(cityId: string, buildingIds: readonly string[]): string[] {
   const modelStore = useModelStore.getState();
   const seenBuildingIds = new Set<string>();
 
@@ -93,10 +83,7 @@ export function filterBuildingIdsForCity(
   });
 }
 
-export function filterDistrictIdsForCity(
-  cityId: string,
-  districtIds: readonly string[]
-): string[] {
+export function filterDistrictIdsForCity(cityId: string, districtIds: readonly string[]): string[] {
   const modelStore = useModelStore.getState();
   const seenDistrictIds = new Set<string>();
 

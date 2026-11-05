@@ -1,9 +1,5 @@
 import type { Comm } from '../../src/utils/landscape-schemes/dynamic/communication';
-import type {
-  Building,
-  City,
-  District,
-} from '../../src/utils/landscape-schemes/flat-landscape';
+import type { Building, City, District } from '../../src/utils/landscape-schemes/flat-landscape';
 
 export const city: City = {
   id: 'city',

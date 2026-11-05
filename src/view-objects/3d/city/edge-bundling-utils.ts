@@ -89,10 +89,7 @@ export class HierarchicalAttractionSystem {
     // Find common ancestor
     let commonIndex = 0;
     const minLength = Math.min(pathO.length, pathD.length);
-    while (
-      commonIndex < minLength &&
-      pathO[commonIndex].id === pathD[commonIndex].id
-    ) {
+    while (commonIndex < minLength && pathO[commonIndex].id === pathD[commonIndex].id) {
       commonIndex++;
     }
 
@@ -130,12 +127,7 @@ export class HierarchicalAttractionSystem {
     const landscapeRoot = this.hapManager.getLandscapeRoot();
 
     if (!landscapeRoot) {
-      return this.findLocalHAPPath(
-        origin,
-        destination,
-        streamline,
-        leafPackagesOnly
-      );
+      return this.findLocalHAPPath(origin, destination, streamline, leafPackagesOnly);
     }
 
     // 2. Calculate paths to GLOBAL root
@@ -172,10 +164,7 @@ export class HierarchicalAttractionSystem {
     let commonIndex = 0;
     const minLength = Math.min(pathO.length, pathD.length);
 
-    while (
-      commonIndex < minLength &&
-      pathO[commonIndex].id === pathD[commonIndex].id
-    ) {
+    while (commonIndex < minLength && pathO[commonIndex].id === pathD[commonIndex].id) {
       commonIndex++;
     }
 
@@ -216,9 +205,7 @@ export class HierarchicalAttractionSystem {
       if (node.level === 1) {
         // Package level
         // Check if this package has any child packages
-        const hasChildPackages = node.children.some(
-          (child) => child.level === 1
-        );
+        const hasChildPackages = node.children.some((child) => child.level === 1);
 
         // Keep only if no child packages (leaf package)
         return !hasChildPackages;
@@ -249,11 +236,7 @@ export class HierarchicalAttractionSystem {
     return streamlined;
   }
 
-  private addScattering(
-    points: THREE.Vector3[],
-    scatteringStrength: number = 0.3,
-    scatterRadius: number = 15
-  ): void {
+  private addScattering(points: THREE.Vector3[], scatteringStrength: number = 0.3, scatterRadius: number = 15): void {
     if (points.length < 3 || scatteringStrength <= 0) return;
 
     const effectiveRadius = scatterRadius * scatteringStrength;
@@ -419,10 +402,7 @@ export class HierarchicalAttractionSystem {
 }
 
 export class EdgeBundlingProcessor {
-  private static calculateCompatibility(
-    edge1: THREE.Vector3[],
-    edge2: THREE.Vector3[]
-  ): number {
+  private static calculateCompatibility(edge1: THREE.Vector3[], edge2: THREE.Vector3[]): number {
     if (edge1.length < 2 || edge2.length < 2) return 0;
 
     const start1 = edge1[0];
@@ -439,18 +419,11 @@ export class EdgeBundlingProcessor {
     const length1 = start1.distanceTo(end1);
     const length2 = start2.distanceTo(end2);
     const avgLength = (length1 + length2) / 2;
-    const scaleComp =
-      2 /
-      (Math.max(length1, length2) / avgLength +
-        avgLength / Math.min(length1, length2));
+    const scaleComp = 2 / (Math.max(length1, length2) / avgLength + avgLength / Math.min(length1, length2));
 
     // Position compatibility
-    const mid1 = new THREE.Vector3()
-      .addVectors(start1, end1)
-      .multiplyScalar(0.5);
-    const mid2 = new THREE.Vector3()
-      .addVectors(start2, end2)
-      .multiplyScalar(0.5);
+    const mid1 = new THREE.Vector3().addVectors(start1, end1).multiplyScalar(0.5);
+    const mid2 = new THREE.Vector3().addVectors(start2, end2).multiplyScalar(0.5);
     const dist = mid1.distanceTo(mid2);
     const maxDist = Math.max(start1.distanceTo(end1), start2.distanceTo(end2));
     const positionComp = maxDist / (maxDist + dist);
@@ -458,12 +431,8 @@ export class EdgeBundlingProcessor {
     return angleComp * scaleComp * positionComp;
   }
 
-  public static applyEdgeBundling(
-    edges: THREE.Vector3[][],
-    config: EdgeBundlingConfig
-  ): THREE.Vector3[][] {
-    const { bundleStrength, compatibilityThreshold, iterations, stepSize } =
-      config;
+  public static applyEdgeBundling(edges: THREE.Vector3[][], config: EdgeBundlingConfig): THREE.Vector3[][] {
+    const { bundleStrength, compatibilityThreshold, iterations, stepSize } = config;
 
     let currentEdges = edges.map((edge) => [...edge]);
 
@@ -486,10 +455,7 @@ export class EdgeBundlingProcessor {
             const otherEdge = currentEdges[k];
             const compatibility = this.calculateCompatibility(edge, otherEdge);
 
-            if (
-              compatibility > compatibilityThreshold &&
-              j < otherEdge.length
-            ) {
+            if (compatibility > compatibilityThreshold && j < otherEdge.length) {
               const attraction = new THREE.Vector3()
                 .subVectors(otherEdge[j], point)
                 .multiplyScalar(compatibility * bundleStrength);

@@ -15,10 +15,7 @@ import {
   StructureLandscapeData,
 } from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
 import { getAncestorPackages } from 'explorviz-frontend/src/utils/package-helpers';
-import {
-  EntityType,
-  RestructureAction,
-} from 'explorviz-frontend/src/utils/restructure-helper';
+import { EntityType, RestructureAction } from 'explorviz-frontend/src/utils/restructure-helper';
 import { create } from 'zustand';
 
 interface ChangelogState {
@@ -26,47 +23,22 @@ interface ChangelogState {
   deletedChangeLogEntries: Map<string, BaseChangeLogEntry[]>;
   resetChangeLog: () => void;
   createAppEntry: (app: Application, pckg: Package, clazz: Class) => void;
-  createPackageEntry: (
-    app: Application,
-    pckg: Package,
-    clazz: Class,
-    appEntry?: AppChangeLogEntry
-  ) => void;
+  createPackageEntry: (app: Application, pckg: Package, clazz: Class, appEntry?: AppChangeLogEntry) => void;
   createClassEntry: (
     app: Application,
     clazz: Class,
     pckgEntry?: PackageChangeLogEntry | SubPackageChangeLogEntry
   ) => void;
   renameAppEntry: (app: Application, newName: string) => void;
-  renamePackageEntry: (
-    app: Application,
-    pckg: Package,
-    newName: string
-  ) => void;
-  renameSubPackageEntry: (
-    app: Application,
-    pckg: Package,
-    newName: string
-  ) => void;
+  renamePackageEntry: (app: Application, pckg: Package, newName: string) => void;
+  renameSubPackageEntry: (app: Application, pckg: Package, newName: string) => void;
   renameClassEntry: (app: Application, clazz: Class, newName: string) => void;
   deleteAppEntry: (app: Application, undoInsert?: boolean) => void;
   storeDeletedEntries: (key: string) => void;
   addToDeletedEntriesMap: (key: string, entry: BaseChangeLogEntry) => void;
-  deletePackageEntry: (
-    app: Application,
-    pckg: Package,
-    undoInsert: boolean
-  ) => void;
-  deleteSubPackageEntry: (
-    app: Application,
-    pckg: Package,
-    undoInsert: boolean
-  ) => void;
-  deleteClassEntry: (
-    app: Application,
-    clazz: Class,
-    undoInsert: boolean
-  ) => void;
+  deletePackageEntry: (app: Application, pckg: Package, undoInsert: boolean) => void;
+  deleteSubPackageEntry: (app: Application, pckg: Package, undoInsert: boolean) => void;
+  deleteClassEntry: (app: Application, clazz: Class, undoInsert: boolean) => void;
   duplicateAppEntry: (app: Application) => void;
   copyPackageEntry: (
     app: Application,
@@ -111,10 +83,7 @@ interface ChangelogState {
     landscapeData: StructureLandscapeData
   ) => void;
   communicationEntry: (communication: AggregatedCommunication) => void;
-  renameOperationEntry: (
-    communication: AggregatedCommunication,
-    newName: string
-  ) => void;
+  renameOperationEntry: (communication: AggregatedCommunication, newName: string) => void;
   deleteCommunicationEntry: (communication: AggregatedCommunication) => void;
   getChangeLog: () => string[];
   restoreDeletedEntries: (key: string, collabMode?: boolean) => void;
@@ -122,14 +91,8 @@ interface ChangelogState {
     entityType: EntityType,
     entity: Application | Package | Class
   ) => BaseChangeLogEntry | undefined;
-  findCommunicationLogEntry: (
-    clazzOrId: Class | string,
-    searchById: boolean
-  ) => BaseChangeLogEntry | undefined;
-  isCreateBundle: (
-    entry: BaseChangeLogEntry,
-    bundledEntries: BaseChangeLogEntry[]
-  ) => BaseChangeLogEntry[] | undefined;
+  findCommunicationLogEntry: (clazzOrId: Class | string, searchById: boolean) => BaseChangeLogEntry | undefined;
+  isCreateBundle: (entry: BaseChangeLogEntry, bundledEntries: BaseChangeLogEntry[]) => BaseChangeLogEntry[] | undefined;
   removeLogEntriesUnderPackage: (app: Application, pckg: Package) => void;
   removeEntry: (entry: BaseChangeLogEntry, collabMode?: boolean) => void;
   removeEntries: (entries: BaseChangeLogEntry[], collabMode?: boolean) => void;
@@ -177,27 +140,14 @@ export const useChangelogStore = create<ChangelogState>((set, get) => ({
     eventEmitter.emit('showChangeLog');
   },
 
-  createPackageEntry: (
-    app: Application,
-    pckg: Package,
-    clazz: Class,
-    appEntry?: AppChangeLogEntry
-  ) => {
+  createPackageEntry: (app: Application, pckg: Package, clazz: Class, appEntry?: AppChangeLogEntry) => {
     if (pckg.parent) {
-      const pckgLogEntry = new SubPackageChangeLogEntry(
-        RestructureAction.Create,
-        app,
-        pckg
-      );
+      const pckgLogEntry = new SubPackageChangeLogEntry(RestructureAction.Create, app, pckg);
 
       set({ changeLogEntries: [...get().changeLogEntries, pckgLogEntry] });
       get().createClassEntry(app, clazz, pckgLogEntry);
     } else {
-      const pckgLogEntry = new PackageChangeLogEntry(
-        RestructureAction.Create,
-        app,
-        pckg
-      );
+      const pckgLogEntry = new PackageChangeLogEntry(RestructureAction.Create, app, pckg);
 
       if (appEntry) pckgLogEntry._createdWithApp = appEntry;
 
@@ -207,16 +157,8 @@ export const useChangelogStore = create<ChangelogState>((set, get) => ({
     }
   },
 
-  createClassEntry: (
-    app: Application,
-    clazz: Class,
-    pckgEntry?: PackageChangeLogEntry | SubPackageChangeLogEntry
-  ) => {
-    const clazzLogEntry = new ClassChangeLogEntry(
-      RestructureAction.Create,
-      app,
-      clazz
-    );
+  createClassEntry: (app: Application, clazz: Class, pckgEntry?: PackageChangeLogEntry | SubPackageChangeLogEntry) => {
+    const clazzLogEntry = new ClassChangeLogEntry(RestructureAction.Create, app, clazz);
     if (pckgEntry) clazzLogEntry.createdWithPackage = pckgEntry;
     set({ changeLogEntries: [...get().changeLogEntries, clazzLogEntry] });
     eventEmitter.emit('showChangeLog');
@@ -230,9 +172,7 @@ export const useChangelogStore = create<ChangelogState>((set, get) => ({
       appLogEntry.newName = newName;
       set({ changeLogEntries: [...get().changeLogEntries, appLogEntry] });
     } else {
-      let newChangeLogEntries = get().changeLogEntries.filter(
-        (c) => c != foundEntry
-      );
+      let newChangeLogEntries = get().changeLogEntries.filter((c) => c != foundEntry);
       if (foundEntry.app && foundEntry.action === RestructureAction.Create) {
         foundEntry.app.name = newName;
       } else {
@@ -245,27 +185,15 @@ export const useChangelogStore = create<ChangelogState>((set, get) => ({
   },
 
   renamePackageEntry: (app: Application, pckg: Package, newName: string) => {
-    const foundEntry = get().findBaseChangeLogEntry(
-      EntityType.Package,
-      pckg
-    ) as PackageChangeLogEntry;
+    const foundEntry = get().findBaseChangeLogEntry(EntityType.Package, pckg) as PackageChangeLogEntry;
 
     if (!foundEntry) {
-      const pckgLogEntry = new PackageChangeLogEntry(
-        RestructureAction.Rename,
-        app,
-        pckg
-      );
+      const pckgLogEntry = new PackageChangeLogEntry(RestructureAction.Rename, app, pckg);
       pckgLogEntry.newName = newName;
       set({ changeLogEntries: [...get().changeLogEntries, pckgLogEntry] });
     } else {
-      let newChangeLogEntries = get().changeLogEntries.filter(
-        (c) => c != foundEntry
-      );
-      if (
-        foundEntry.action === RestructureAction.Create ||
-        foundEntry.action === RestructureAction.CutInsert
-      ) {
+      let newChangeLogEntries = get().changeLogEntries.filter((c) => c != foundEntry);
+      if (foundEntry.action === RestructureAction.Create || foundEntry.action === RestructureAction.CutInsert) {
         foundEntry.pckg.name = newName;
       } else {
         foundEntry.newName = newName;
@@ -277,27 +205,15 @@ export const useChangelogStore = create<ChangelogState>((set, get) => ({
   },
 
   renameSubPackageEntry: (app: Application, pckg: Package, newName: string) => {
-    const foundEntry = get().findBaseChangeLogEntry(
-      EntityType.SubPackage,
-      pckg
-    ) as SubPackageChangeLogEntry;
+    const foundEntry = get().findBaseChangeLogEntry(EntityType.SubPackage, pckg) as SubPackageChangeLogEntry;
 
     if (!foundEntry) {
-      const pckgLogEntry = new SubPackageChangeLogEntry(
-        RestructureAction.Rename,
-        app,
-        pckg
-      );
+      const pckgLogEntry = new SubPackageChangeLogEntry(RestructureAction.Rename, app, pckg);
       pckgLogEntry.newName = newName;
       set({ changeLogEntries: [...get().changeLogEntries, pckgLogEntry] });
     } else {
-      let newChangeLogEntries = get().changeLogEntries.filter(
-        (c) => c != foundEntry
-      );
-      if (
-        foundEntry.action === RestructureAction.Create ||
-        foundEntry.action === RestructureAction.CutInsert
-      ) {
+      let newChangeLogEntries = get().changeLogEntries.filter((c) => c != foundEntry);
+      if (foundEntry.action === RestructureAction.Create || foundEntry.action === RestructureAction.CutInsert) {
         foundEntry.pckg.name = newName;
       } else {
         foundEntry.newName = newName;
@@ -309,23 +225,14 @@ export const useChangelogStore = create<ChangelogState>((set, get) => ({
   },
 
   renameClassEntry: (app: Application, clazz: Class, newName: string) => {
-    const foundEntry = get().findBaseChangeLogEntry(
-      EntityType.Clazz,
-      clazz
-    ) as ClassChangeLogEntry;
+    const foundEntry = get().findBaseChangeLogEntry(EntityType.Clazz, clazz) as ClassChangeLogEntry;
 
     if (!foundEntry || foundEntry.action === RestructureAction.CutInsert) {
-      const clazzLogEntry = new ClassChangeLogEntry(
-        RestructureAction.Rename,
-        app,
-        clazz
-      );
+      const clazzLogEntry = new ClassChangeLogEntry(RestructureAction.Rename, app, clazz);
       clazzLogEntry.newName = newName;
       set({ changeLogEntries: [...get().changeLogEntries, clazzLogEntry] });
     } else {
-      let newChangeLogEntries = get().changeLogEntries.filter(
-        (c) => c != foundEntry
-      );
+      let newChangeLogEntries = get().changeLogEntries.filter((c) => c != foundEntry);
       if (foundEntry.action === RestructureAction.Create) {
         foundEntry.clazz.name = newName;
       } else {
@@ -338,10 +245,7 @@ export const useChangelogStore = create<ChangelogState>((set, get) => ({
   },
 
   deleteAppEntry: (app: Application, undoInsert: boolean = false) => {
-    const foundEntry = get().findBaseChangeLogEntry(
-      EntityType.App,
-      app
-    ) as AppChangeLogEntry;
+    const foundEntry = get().findBaseChangeLogEntry(EntityType.App, app) as AppChangeLogEntry;
     let originalAppName = '';
 
     get().storeDeletedEntries(app.id);
@@ -368,10 +272,7 @@ export const useChangelogStore = create<ChangelogState>((set, get) => ({
               return entry.app?.id !== app.id;
             }
           } else {
-            return (
-              entry.communication?.sourceApp?.id !== app.id &&
-              entry.communication?.targetApp?.id !== app.id
-            );
+            return entry.communication?.sourceApp?.id !== app.id && entry.communication?.targetApp?.id !== app.id;
           }
         }),
       ],
@@ -407,15 +308,8 @@ export const useChangelogStore = create<ChangelogState>((set, get) => ({
     set({ deletedChangeLogEntries: newDeletedChangeLogEntries });
   },
 
-  deleteSubPackageEntry(
-    app: Application,
-    pckg: Package,
-    undoInsert: boolean = false
-  ) {
-    const foundEntry = get().findBaseChangeLogEntry(
-      EntityType.SubPackage,
-      pckg
-    ) as SubPackageChangeLogEntry;
+  deleteSubPackageEntry(app: Application, pckg: Package, undoInsert: boolean = false) {
+    const foundEntry = get().findBaseChangeLogEntry(EntityType.SubPackage, pckg) as SubPackageChangeLogEntry;
 
     // We don't want to undo the undo, thats why we dont store the data then
     if (!undoInsert) get().storeDeletedEntries(pckg.id);
@@ -443,11 +337,7 @@ export const useChangelogStore = create<ChangelogState>((set, get) => ({
       return;
     }
 
-    const pckgLogEntry = new SubPackageChangeLogEntry(
-      RestructureAction.Delete,
-      app,
-      pckg
-    );
+    const pckgLogEntry = new SubPackageChangeLogEntry(RestructureAction.Delete, app, pckg);
 
     get().addToDeletedEntriesMap(pckg.id, pckgLogEntry);
     if (originalPckgName !== '') {
@@ -459,22 +349,12 @@ export const useChangelogStore = create<ChangelogState>((set, get) => ({
 
   addToDeletedEntriesMap: (key: string, entry: BaseChangeLogEntry) => {
     let newDeletedChangeLogEntries = get().deletedChangeLogEntries;
-    newDeletedChangeLogEntries.set(key, [
-      ...newDeletedChangeLogEntries.get(key)!,
-      entry,
-    ]);
+    newDeletedChangeLogEntries.set(key, [...newDeletedChangeLogEntries.get(key)!, entry]);
     set({ deletedChangeLogEntries: newDeletedChangeLogEntries });
   },
 
-  deletePackageEntry: (
-    app: Application,
-    pckg: Package,
-    undoInsert: boolean = false
-  ) => {
-    const foundEntry = get().findBaseChangeLogEntry(
-      EntityType.Package,
-      pckg
-    ) as PackageChangeLogEntry;
+  deletePackageEntry: (app: Application, pckg: Package, undoInsert: boolean = false) => {
+    const foundEntry = get().findBaseChangeLogEntry(EntityType.Package, pckg) as PackageChangeLogEntry;
 
     if (!undoInsert) get().storeDeletedEntries(pckg.id);
 
@@ -485,9 +365,7 @@ export const useChangelogStore = create<ChangelogState>((set, get) => ({
 
     if (foundEntry) {
       set({
-        changeLogEntries: get().changeLogEntries.filter(
-          (entry: PackageChangeLogEntry) => entry.pckg?.id !== pckg.id
-        ),
+        changeLogEntries: get().changeLogEntries.filter((entry: PackageChangeLogEntry) => entry.pckg?.id !== pckg.id),
       });
       if (foundEntry.action === RestructureAction.Create) {
         eventEmitter.emit('showChangeLog');
@@ -501,11 +379,7 @@ export const useChangelogStore = create<ChangelogState>((set, get) => ({
       return;
     }
 
-    const pckgLogEntry = new PackageChangeLogEntry(
-      RestructureAction.Delete,
-      app,
-      pckg
-    );
+    const pckgLogEntry = new PackageChangeLogEntry(RestructureAction.Delete, app, pckg);
 
     get().addToDeletedEntriesMap(pckg.id, pckgLogEntry);
 
@@ -517,15 +391,8 @@ export const useChangelogStore = create<ChangelogState>((set, get) => ({
     eventEmitter.emit('showChangeLog');
   },
 
-  deleteClassEntry(
-    app: Application,
-    clazz: Class,
-    undoInsert: boolean = false
-  ) {
-    const foundEntry = get().findBaseChangeLogEntry(
-      EntityType.Clazz,
-      clazz
-    ) as ClassChangeLogEntry;
+  deleteClassEntry(app: Application, clazz: Class, undoInsert: boolean = false) {
+    const foundEntry = get().findBaseChangeLogEntry(EntityType.Clazz, clazz) as ClassChangeLogEntry;
     const commEntry = get().findCommunicationLogEntry(clazz, false);
 
     // We don't want to undo the undo, thats why we dont store the data then
@@ -543,9 +410,7 @@ export const useChangelogStore = create<ChangelogState>((set, get) => ({
     let originalClazzName = '';
     if (foundEntry) {
       set({
-        changeLogEntries: get().changeLogEntries.filter(
-          (entry: ClassChangeLogEntry) => entry.clazz?.id !== clazz.id
-        ),
+        changeLogEntries: get().changeLogEntries.filter((entry: ClassChangeLogEntry) => entry.clazz?.id !== clazz.id),
       });
       if (foundEntry.action === RestructureAction.Create) {
         return;
@@ -558,11 +423,7 @@ export const useChangelogStore = create<ChangelogState>((set, get) => ({
       return;
     }
 
-    const clazzLogEntry = new ClassChangeLogEntry(
-      RestructureAction.Delete,
-      app,
-      clazz
-    );
+    const clazzLogEntry = new ClassChangeLogEntry(RestructureAction.Delete, app, clazz);
 
     get().addToDeletedEntriesMap(clazz.id, clazzLogEntry);
     if (originalClazzName !== '') {
@@ -583,11 +444,7 @@ export const useChangelogStore = create<ChangelogState>((set, get) => ({
     original: Package,
     landscapeData: StructureLandscapeData
   ) => {
-    const pckgLogEntry = new PackageChangeLogEntry(
-      RestructureAction.CopyPaste,
-      app,
-      pckg
-    );
+    const pckgLogEntry = new PackageChangeLogEntry(RestructureAction.CopyPaste, app, pckg);
     pckgLogEntry.setDestination(destination, landscapeData);
     pckgLogEntry.setOriginal(original);
     set({ changeLogEntries: [...get().changeLogEntries, pckgLogEntry] });
@@ -600,11 +457,7 @@ export const useChangelogStore = create<ChangelogState>((set, get) => ({
     original: Package,
     landscapeData: StructureLandscapeData
   ) => {
-    const pckgLogEntry = new PackageChangeLogEntry(
-      RestructureAction.CopyPaste,
-      app,
-      pckg
-    );
+    const pckgLogEntry = new PackageChangeLogEntry(RestructureAction.CopyPaste, app, pckg);
     pckgLogEntry.setDestination(destination, landscapeData);
     pckgLogEntry.setOriginal(original);
     set({ changeLogEntries: [...get().changeLogEntries, pckgLogEntry] });
@@ -617,11 +470,7 @@ export const useChangelogStore = create<ChangelogState>((set, get) => ({
     original: Class,
     landscapeData: StructureLandscapeData
   ) => {
-    const clazzLogEntry = new ClassChangeLogEntry(
-      RestructureAction.CopyPaste,
-      app,
-      clazz
-    );
+    const clazzLogEntry = new ClassChangeLogEntry(RestructureAction.CopyPaste, app, clazz);
     clazzLogEntry.setDestination(destination, landscapeData);
     clazzLogEntry.setOriginal(original);
     set({ changeLogEntries: [...get().changeLogEntries, clazzLogEntry] });
@@ -644,11 +493,7 @@ export const useChangelogStore = create<ChangelogState>((set, get) => ({
         get()._updateCutInserLogEntries(app, pckg, destination, landscapeData);
       }
     } else {
-      const pckgLogEntry = new PackageChangeLogEntry(
-        RestructureAction.CutInsert,
-        app,
-        pckg
-      );
+      const pckgLogEntry = new PackageChangeLogEntry(RestructureAction.CutInsert, app, pckg);
       pckgLogEntry.setDestination(destination, landscapeData);
       pckgLogEntry.setOriginal(original);
       set({ changeLogEntries: [...get().changeLogEntries, pckgLogEntry] });
@@ -674,11 +519,7 @@ export const useChangelogStore = create<ChangelogState>((set, get) => ({
         get()._updateCutInserLogEntries(app, pckg, destination, landscapeData);
       }
     } else {
-      const pckgLogEntry = new SubPackageChangeLogEntry(
-        RestructureAction.CutInsert,
-        app,
-        pckg
-      );
+      const pckgLogEntry = new SubPackageChangeLogEntry(RestructureAction.CutInsert, app, pckg);
       pckgLogEntry.setDestination(destination, landscapeData);
       pckgLogEntry.setOriginal(original);
       set({ changeLogEntries: [...get().changeLogEntries, pckgLogEntry] });
@@ -693,10 +534,7 @@ export const useChangelogStore = create<ChangelogState>((set, get) => ({
     origin: Class,
     landscapeData: StructureLandscapeData
   ) => {
-    const foundEntry = get().findBaseChangeLogEntry(
-      EntityType.Clazz,
-      clazz
-    ) as ClassChangeLogEntry;
+    const foundEntry = get().findBaseChangeLogEntry(EntityType.Clazz, clazz) as ClassChangeLogEntry;
 
     if (foundEntry) {
       if (foundEntry.action === RestructureAction.Create) {
@@ -705,11 +543,7 @@ export const useChangelogStore = create<ChangelogState>((set, get) => ({
         foundEntry.setDestination(destination, landscapeData);
       }
     } else {
-      const clazzLogEntry = new ClassChangeLogEntry(
-        RestructureAction.CutInsert,
-        app,
-        clazz
-      );
+      const clazzLogEntry = new ClassChangeLogEntry(RestructureAction.CutInsert, app, clazz);
       clazzLogEntry.setDestination(destination, landscapeData);
       clazzLogEntry.setOriginal(origin);
       set({ changeLogEntries: [...get().changeLogEntries, clazzLogEntry] });
@@ -718,24 +552,14 @@ export const useChangelogStore = create<ChangelogState>((set, get) => ({
   },
 
   communicationEntry: (communication: AggregatedCommunication) => {
-    const commEntry = new CommunicationChangeLogEntry(
-      RestructureAction.Create,
-      communication
-    );
+    const commEntry = new CommunicationChangeLogEntry(RestructureAction.Create, communication);
     set({ changeLogEntries: [...get().changeLogEntries, commEntry] });
     eventEmitter.emit('showChangeLog');
   },
 
-  renameOperationEntry: (
-    communication: AggregatedCommunication,
-    newName: string
-  ) => {
+  renameOperationEntry: (communication: AggregatedCommunication, newName: string) => {
     const foundEntry = get().findCommunicationLogEntry(communication.id, true);
-    if (
-      foundEntry &&
-      foundEntry instanceof CommunicationChangeLogEntry &&
-      foundEntry.communication
-    ) {
+    if (foundEntry && foundEntry instanceof CommunicationChangeLogEntry && foundEntry.communication) {
       if (foundEntry.action === RestructureAction.Create) {
         foundEntry.communication.operationName = newName;
       } else if (foundEntry.action === RestructureAction.Rename) {
@@ -744,20 +568,14 @@ export const useChangelogStore = create<ChangelogState>((set, get) => ({
       eventEmitter.emit('showChangeLog');
       return;
     }
-    const commEntry = new CommunicationChangeLogEntry(
-      RestructureAction.Rename,
-      communication
-    );
+    const commEntry = new CommunicationChangeLogEntry(RestructureAction.Rename, communication);
     commEntry.newName = newName;
     set({ changeLogEntries: [...get().changeLogEntries, commEntry] });
     eventEmitter.emit('showChangeLog');
   },
 
   deleteCommunicationEntry: (communication: AggregatedCommunication) => {
-    const foundEntry = get().findCommunicationLogEntry(
-      communication.id,
-      true
-    ) as CommunicationChangeLogEntry;
+    const foundEntry = get().findCommunicationLogEntry(communication.id, true) as CommunicationChangeLogEntry;
     get().storeDeletedEntries(communication.id);
     let originalName = communication.operationName;
     if (foundEntry) {
@@ -770,10 +588,7 @@ export const useChangelogStore = create<ChangelogState>((set, get) => ({
       }
       originalName = foundEntry.originalOperationName as string;
     }
-    const commEntry = new CommunicationChangeLogEntry(
-      RestructureAction.Delete,
-      communication
-    );
+    const commEntry = new CommunicationChangeLogEntry(RestructureAction.Delete, communication);
     commEntry.originalOperationName = originalName;
     set({ changeLogEntries: [...get().changeLogEntries, commEntry] });
     eventEmitter.emit('showChangeLog');
@@ -806,16 +621,10 @@ export const useChangelogStore = create<ChangelogState>((set, get) => ({
 
     const lastEntry = deletedEntries.pop();
 
-    const index = get().changeLogEntries.findIndex(
-      (entry) => entry.id === lastEntry?.id
-    );
+    const index = get().changeLogEntries.findIndex((entry) => entry.id === lastEntry?.id);
 
     set({
-      changeLogEntries: get().changeLogEntries.splice(
-        0,
-        index + 1,
-        ...deletedEntries
-      ),
+      changeLogEntries: get().changeLogEntries.splice(0, index + 1, ...deletedEntries),
     });
 
     for (const deletedList of get().deletedChangeLogEntries.values()) {
@@ -835,10 +644,7 @@ export const useChangelogStore = create<ChangelogState>((set, get) => ({
     eventEmitter.emit('showChangeLog');
   },
 
-  findBaseChangeLogEntry: (
-    entityType: EntityType,
-    entity: Application | Package | Class
-  ) => {
+  findBaseChangeLogEntry: (entityType: EntityType, entity: Application | Package | Class) => {
     switch (entityType) {
       case EntityType.App: {
         const appEntries = get().changeLogEntries.filter(
@@ -869,33 +675,21 @@ export const useChangelogStore = create<ChangelogState>((set, get) => ({
     }
   },
 
-  findCommunicationLogEntry: (
-    clazzOrId: Class | string,
-    searchById: boolean = false
-  ) => {
+  findCommunicationLogEntry: (clazzOrId: Class | string, searchById: boolean = false) => {
     return get().changeLogEntries.find((entry) => {
       if (entry instanceof CommunicationChangeLogEntry) {
         if (searchById) {
           return entry.communication?.id === clazzOrId;
         } else {
-          return (
-            entry.communication?.sourceClass === clazzOrId ||
-            entry.communication?.targetClass === clazzOrId
-          );
+          return entry.communication?.sourceClass === clazzOrId || entry.communication?.targetClass === clazzOrId;
         }
       }
       return false;
     });
   },
 
-  isCreateBundle: (
-    entry: BaseChangeLogEntry,
-    bundledEntries: BaseChangeLogEntry[]
-  ) => {
-    if (
-      entry instanceof AppChangeLogEntry ||
-      entry instanceof CommunicationChangeLogEntry
-    ) {
+  isCreateBundle: (entry: BaseChangeLogEntry, bundledEntries: BaseChangeLogEntry[]) => {
+    if (entry instanceof AppChangeLogEntry || entry instanceof CommunicationChangeLogEntry) {
       return undefined;
     }
 
@@ -941,9 +735,7 @@ export const useChangelogStore = create<ChangelogState>((set, get) => ({
       ) {
         const ancestorPackages = getAncestorPackages(logEntry.pckg as Package);
         const affectedLogEntry =
-          ancestorPackages.some(
-            (ancestorPackages) => ancestorPackages.id === pckg.id
-          ) || logEntry.pckg?.id === pckg.id;
+          ancestorPackages.some((ancestorPackages) => ancestorPackages.id === pckg.id) || logEntry.pckg?.id === pckg.id;
         if (affectedLogEntry) {
           entriesToRemove.push(logEntry);
         }
@@ -951,10 +743,7 @@ export const useChangelogStore = create<ChangelogState>((set, get) => ({
 
       // Check if there are Communication Entries inside pckg, if there are then remove
       if (logEntry instanceof CommunicationChangeLogEntry) {
-        if (
-          logEntry.communication?.targetApp ===
-          logEntry.communication?.sourceApp
-        ) {
+        if (logEntry.communication?.targetApp === logEntry.communication?.sourceApp) {
           if (logEntry.communication?.sourceApp?.id === app.id) {
             get()._removeInternCommunicationsInsidePackage(
               logEntry,
@@ -986,18 +775,14 @@ export const useChangelogStore = create<ChangelogState>((set, get) => ({
 
     if (entriesToRemove.length) {
       set({
-        changeLogEntries: get().changeLogEntries.filter(
-          (c) => !entriesToRemove.includes(c)
-        ),
+        changeLogEntries: get().changeLogEntries.filter((c) => !entriesToRemove.includes(c)),
       });
     }
   },
 
   removeEntry: (entry: BaseChangeLogEntry, collabMode: boolean = false) => {
     if (!collabMode) {
-      useMessageSenderStore
-        .getState()
-        .sendChangeLogRemoveEntryMessage([entry.id]);
+      useMessageSenderStore.getState().sendChangeLogRemoveEntryMessage([entry.id]);
     }
 
     set({ changeLogEntries: get().changeLogEntries.filter((c) => c != entry) });
@@ -1018,9 +803,7 @@ export const useChangelogStore = create<ChangelogState>((set, get) => ({
     }
 
     set({
-      changeLogEntries: get().changeLogEntries.filter(
-        (c) => !entries.includes(c)
-      ),
+      changeLogEntries: get().changeLogEntries.filter((c) => !entries.includes(c)),
     });
 
     for (const deletedList of this.deletedChangeLogEntries.values()) {
@@ -1037,8 +820,7 @@ export const useChangelogStore = create<ChangelogState>((set, get) => ({
   ) => {
     const ancestorPackages = getAncestorPackages(commPckg);
     const affectedEntry =
-      commPckg.id === pckg.id ||
-      ancestorPackages.some((ancestorPckg) => ancestorPckg.id === pckg.id);
+      commPckg.id === pckg.id || ancestorPackages.some((ancestorPckg) => ancestorPckg.id === pckg.id);
     if (affectedEntry) {
       entriesToRemove.push(logEntry);
     }
@@ -1053,17 +835,14 @@ export const useChangelogStore = create<ChangelogState>((set, get) => ({
   ) => {
     let ancestorPackages = getAncestorPackages(sourcePckg);
     let affectedEntry =
-      sourcePckg.id === pckg.id ||
-      ancestorPackages.some((ancestorPckg) => ancestorPckg.id === pckg.id);
+      sourcePckg.id === pckg.id || ancestorPackages.some((ancestorPckg) => ancestorPckg.id === pckg.id);
 
     if (affectedEntry) {
       entriesToRemove.push(logEntry);
       return;
     }
     ancestorPackages = getAncestorPackages(targetPckg);
-    affectedEntry =
-      targetPckg.id === pckg.id ||
-      ancestorPackages.some((ancestorPckg) => ancestorPckg.id === pckg.id);
+    affectedEntry = targetPckg.id === pckg.id || ancestorPackages.some((ancestorPckg) => ancestorPckg.id === pckg.id);
 
     if (affectedEntry) {
       entriesToRemove.push(logEntry);
@@ -1079,23 +858,15 @@ export const useChangelogStore = create<ChangelogState>((set, get) => ({
     get().changeLogEntries.forEach((entry) => {
       if (entry.app?.id === app.id) {
         if (
-          (entry instanceof PackageChangeLogEntry ||
-            entry instanceof SubPackageChangeLogEntry) &&
+          (entry instanceof PackageChangeLogEntry || entry instanceof SubPackageChangeLogEntry) &&
           pckg.id === entry.pckg?.id
         ) {
           entry.updateOriginApp(destination, landscapeData);
         } else if (entry instanceof ClassChangeLogEntry) {
           const ancestorPackages = getAncestorPackages(entry.pckg as Package);
           const affectedEntry =
-            entry.pckg?.id === pckg.id ||
-            ancestorPackages.some(
-              (ancestorPackage) => ancestorPackage.id === pckg.id
-            );
-          if (
-            affectedEntry &&
-            (entry instanceof PackageChangeLogEntry ||
-              entry instanceof SubPackageChangeLogEntry)
-          )
+            entry.pckg?.id === pckg.id || ancestorPackages.some((ancestorPackage) => ancestorPackage.id === pckg.id);
+          if (affectedEntry && (entry instanceof PackageChangeLogEntry || entry instanceof SubPackageChangeLogEntry))
             entry.updateOriginApp(destination, landscapeData);
         }
       }
@@ -1109,36 +880,20 @@ export const useChangelogStore = create<ChangelogState>((set, get) => ({
     landscapeData: StructureLandscapeData
   ) => {
     get().changeLogEntries.forEach((entry) => {
-      if (
-        entry instanceof PackageChangeLogEntry &&
-        entry.destinationApp?.id === app.id
-      ) {
+      if (entry instanceof PackageChangeLogEntry && entry.destinationApp?.id === app.id) {
         if (entry.pckg?.id === pckg.id) {
           entry.setDestination(destination, landscapeData);
         }
-      } else if (
-        entry instanceof SubPackageChangeLogEntry &&
-        entry.destinationApp?.id === app.id
-      ) {
+      } else if (entry instanceof SubPackageChangeLogEntry && entry.destinationApp?.id === app.id) {
         if (entry.pckg?.id === pckg.id) {
           entry.setDestination(destination, landscapeData);
         }
-      } else if (
-        entry instanceof ClassChangeLogEntry &&
-        entry.destinationApp?.id === app.id
-      ) {
+      } else if (entry instanceof ClassChangeLogEntry && entry.destinationApp?.id === app.id) {
         const ancestorPackages = getAncestorPackages(entry.pckg as Package);
         const affectedEntry =
-          entry.pckg?.id === pckg.id ||
-          ancestorPackages.some(
-            (ancestorPackage) => ancestorPackage.id === pckg.id
-          );
+          entry.pckg?.id === pckg.id || ancestorPackages.some((ancestorPackage) => ancestorPackage.id === pckg.id);
 
-        if (
-          affectedEntry &&
-          (entry instanceof PackageChangeLogEntry ||
-            entry instanceof SubPackageChangeLogEntry)
-        )
+        if (affectedEntry && (entry instanceof PackageChangeLogEntry || entry instanceof SubPackageChangeLogEntry))
           entry.setDestination(destination, landscapeData);
       }
     });

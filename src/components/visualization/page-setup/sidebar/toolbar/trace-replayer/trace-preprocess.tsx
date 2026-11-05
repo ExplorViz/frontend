@@ -13,11 +13,7 @@ interface TracePreProcessProps {
   callback: (tree: TraceTree) => void;
 }
 
-export default function TracePreProcess({
-  tree,
-  timeline,
-  callback,
-}: TracePreProcessProps) {
+export default function TracePreProcess({ tree, timeline, callback }: TracePreProcessProps) {
   const min = 1;
   const max = 10;
   const step = 1;
@@ -76,9 +72,7 @@ export default function TracePreProcess({
 
   const pruneTree = (): void => {
     const visitor = new TraceTreeVisitor((node: TraceNode): void => {
-      node.children = node.children.filter(
-        (child) => child.start >= start && child.end <= end
-      );
+      node.children = node.children.filter((child) => child.start >= start && child.end <= end);
     });
     tree.accept(visitor);
   };
@@ -91,13 +85,7 @@ export default function TracePreProcess({
     const iter = (head: TraceTree | TraceNode): TraceNode | undefined => {
       frontier.push(...head.children);
       frontier.sort((a: TraceNode, b: TraceNode): number => {
-        return a.start === b.start
-          ? a.end === b.end
-            ? a.id < b.id
-              ? -1
-              : 1
-            : a.end - b.end
-          : a.start - b.start;
+        return a.start === b.start ? (a.end === b.end ? (a.id < b.id ? -1 : 1) : a.end - b.end) : a.start - b.start;
       });
       const next = frontier.shift();
       if (next !== undefined) {
@@ -152,25 +140,16 @@ export default function TracePreProcess({
       });
     }
 
-    const iterBottomUp = (
-      head: TraceTree | TraceNode
-    ): TraceNode | undefined => {
+    const iterBottomUp = (head: TraceTree | TraceNode): TraceNode | undefined => {
       if (head instanceof TraceNode && head.parent) {
         frontier.push(head.parent);
       }
       return frontier.shift();
     };
 
-    for (
-      let head = iterBottomUp(tree);
-      head !== undefined;
-      head = iterBottomUp(head)
-    ) {
+    for (let head = iterBottomUp(tree); head !== undefined; head = iterBottomUp(head)) {
       if (head.parent) {
-        head.parent.endDelay = Math.max(
-          head.endDelay + 1,
-          head.parent.endDelay
-        );
+        head.parent.endDelay = Math.max(head.endDelay + 1, head.parent.endDelay);
       }
     }
   };
@@ -221,20 +200,10 @@ export default function TracePreProcess({
       </div>
 
       <div className="mb-3">
-        <Button
-          className="btn-outline-secondary"
-          title="Ignore"
-          onClick={apply}
-          type="button"
-        >
+        <Button className="btn-outline-secondary" title="Ignore" onClick={apply} type="button">
           Apply
         </Button>
-        <Button
-          className="btn-danger"
-          title="Ignore"
-          onClick={ignore}
-          type="button"
-        >
+        <Button className="btn-danger" title="Ignore" onClick={ignore} type="button">
           Ignore
         </Button>
       </div>

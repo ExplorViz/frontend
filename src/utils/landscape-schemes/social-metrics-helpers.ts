@@ -1,9 +1,5 @@
 import { SocialMetricDto } from 'explorviz-frontend/src/stores/evolution-data-fetch-service';
-import {
-  Building,
-  FlatLandscape,
-  MetricValue,
-} from 'explorviz-frontend/src/utils/landscape-schemes/flat-landscape';
+import { Building, FlatLandscape, MetricValue } from 'explorviz-frontend/src/utils/landscape-schemes/flat-landscape';
 
 export const SOCIAL_METRICS: ReadonlySet<string> = new Set([
   'commitCount',
@@ -17,8 +13,8 @@ export const SOCIAL_METRICS: ReadonlySet<string> = new Set([
 ]);
 
 function buildDtoIndexes(dtos: SocialMetricDto[]) {
-  const byId = new Map<string, SocialMetricDto>;
-  const byFilePath = new Map<string, SocialMetricDto>;
+  const byId = new Map<string, SocialMetricDto>();
+  const byFilePath = new Map<string, SocialMetricDto>();
 
   for (const dto of dtos) {
     if (dto.fileRevisionId !== null && dto.fileRevisionId !== undefined) {
@@ -27,7 +23,6 @@ function buildDtoIndexes(dtos: SocialMetricDto[]) {
     if (dto.filePath) {
       byFilePath.set(dto.filePath, dto);
     }
-
   }
   return { byId, byFilePath };
 }
@@ -35,7 +30,7 @@ function buildDtoIndexes(dtos: SocialMetricDto[]) {
 function findDtoForBuilding(
   building: Building,
   byId: Map<string, SocialMetricDto>,
-  byFilePath: Map<string, SocialMetricDto>,
+  byFilePath: Map<string, SocialMetricDto>
 ): SocialMetricDto | undefined {
   const byIdSearch = byId.get(building.id);
   if (byIdSearch) {
@@ -48,7 +43,7 @@ function findDtoForBuilding(
 
   const splits = building.fqn.split('/');
   for (let i = 0; i < splits.length; i++) {
-    const hit = byFilePath.get(splits.slice(i).join('/'))
+    const hit = byFilePath.get(splits.slice(i).join('/'));
     if (hit) {
       return hit;
     }
@@ -56,9 +51,7 @@ function findDtoForBuilding(
   return undefined;
 }
 
-function withoutSocialMetrics(
-  metrics: Record<string, MetricValue> | undefined
-): Record<string, MetricValue> {
+function withoutSocialMetrics(metrics: Record<string, MetricValue> | undefined): Record<string, MetricValue> {
   const result: Record<string, MetricValue> = {};
 
   for (const [name, value] of Object.entries(metrics ?? {})) {
@@ -71,8 +64,8 @@ function withoutSocialMetrics(
 
 export function mergeSocialMetricsIntoFlatLandscape(
   flatLandscape: FlatLandscape,
-  dtos: SocialMetricDto[],
-  ): FlatLandscape {
+  dtos: SocialMetricDto[]
+): FlatLandscape {
   const { byId, byFilePath } = buildDtoIndexes(dtos);
   const matchedDtos = new Set<SocialMetricDto>();
   const buildings: Record<string, Building> = {};
@@ -96,8 +89,8 @@ export function mergeSocialMetricsIntoFlatLandscape(
 
   const unmatchedCount = dtos.length - matchedDtos.size;
   if (unmatchedCount > 0) {
-    console.warn(`Social metrics: ${unmatchedCount} of ${dtos.length} DTOs matched no building.`)
-  };
+    console.warn(`Social metrics: ${unmatchedCount} of ${dtos.length} DTOs matched no building.`);
+  }
 
   return { ...flatLandscape, buildings };
 }

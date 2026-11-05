@@ -2,8 +2,8 @@
 
 ## Technology Used
 
-To implement the collaboration services, the library [Playroomkit](https://joinplayroom.com/) is used. 
-Playroomkit was originally designed for browser-based multiplayer games. The main functionalities it provides are a lobby creation system, individual player states, a global state, and RPCs (Remote Procedure Calls). It does not require a dedicated backend server and works out of the box, operating entirely as a SaaS. 
+To implement the collaboration services, the library [Playroomkit](https://joinplayroom.com/) is used.
+Playroomkit was originally designed for browser-based multiplayer games. The main functionalities it provides are a lobby creation system, individual player states, a global state, and RPCs (Remote Procedure Calls). It does not require a dedicated backend server and works out of the box, operating entirely as a SaaS.
 Currently, we use Playroomkit without an account. This disables certain functionalities, such as a global lobby list and persistent player profiles.
 
 ## Implemented Collaboration Functionalities
@@ -36,13 +36,14 @@ A user can follow the camera of another user (spectate) by clicking the camera i
 
 #### Implementation
 
-The implementation can be found in the following files: 
-* `src/components/collaboration/visualization/page-setup/sidebar/customizationbar/collaboration/collaboration-controls.tsx`
-* `src/components/collaboration/sync/spectate-status-sync.tsx`
-* `src/components/visualization/rendering/collaboration-camera-sync.tsx`
-* `src/components/visualization/rendering/spectate-camera-controller.tsx`
-* `src/stores/collaboration/spectate-status-store.ts`
-* `src/stores/collaboration/spectate-user.ts`
+The implementation can be found in the following files:
+
+- `src/components/collaboration/visualization/page-setup/sidebar/customizationbar/collaboration/collaboration-controls.tsx`
+- `src/components/collaboration/sync/spectate-status-sync.tsx`
+- `src/components/visualization/rendering/collaboration-camera-sync.tsx`
+- `src/components/visualization/rendering/spectate-camera-controller.tsx`
+- `src/stores/collaboration/spectate-status-store.ts`
+- `src/stores/collaboration/spectate-user.ts`
 
 When User A wants to spectate User B, the following happens: User A updates its player state to indicate the intention to spectate User B. Since User B observes all player states, it notices this request and starts pushing its camera data (position, target, matrix, etc.) to its own player state. User A can then read this information from User B's player state and overwrite its local camera configuration with B's data.
 

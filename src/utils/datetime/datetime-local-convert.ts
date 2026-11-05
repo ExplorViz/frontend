@@ -6,9 +6,7 @@
  *
  * @see {@link https://developer.mozilla.org/en-US/docs/Web/HTML/Guides/Date_and_time_formats#local_date_and_time_strings|MDN Web Docs}
  */
-export function unixMillisecondsToDatetimeLocal(
-  ms: bigint | number | undefined
-) {
+export function unixMillisecondsToDatetimeLocal(ms: bigint | number | undefined) {
   if (ms === undefined) {
     return '';
   }

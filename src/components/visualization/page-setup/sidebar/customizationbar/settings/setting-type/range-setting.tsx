@@ -14,9 +14,7 @@ export default function RangeSetting({
   onChange: (settingId: VisualizationSettingId, value: number) => void;
   settingId: VisualizationSettingId;
 }) {
-  const setting = useUserSettingsStore.getState().visualizationSettings[
-    settingId
-  ]! as RangeSettingSchema;
+  const setting = useUserSettingsStore.getState().visualizationSettings[settingId]! as RangeSettingSchema;
 
   const handleInput = (newValue: number) => {
     onChange(settingId, newValue);

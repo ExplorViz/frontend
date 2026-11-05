@@ -1,11 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 
 import PopupData from 'explorviz-frontend/src/components/visualization/rendering/popups/popup-data';
-import {
-  Application,
-  Class,
-  Package,
-} from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
+import { Application, Class, Package } from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
 import { Button } from 'react-bootstrap';
 
 interface PopupWrapperArgs {
@@ -55,25 +51,15 @@ export default function PopupWrapper(args: PopupWrapperArgs) {
       const newMaxY = newMinY + localDivElement.clientHeight;
 
       // Set the element's new position:
-      if (
-        !xPositionInsideWindow(oldMinX, oldMaxX) ||
-        xPositionInsideWindow(newMinX, newMaxX)
-      ) {
+      if (!xPositionInsideWindow(oldMinX, oldMaxX) || xPositionInsideWindow(newMinX, newMaxX)) {
         localDivElement.style.left = `${newMinX}px`;
       }
 
-      if (
-        !yPositionInsideWindow(oldMinY, oldMaxY) ||
-        yPositionInsideWindow(newMinY, newMaxY)
-      ) {
+      if (!yPositionInsideWindow(oldMinY, oldMaxY) || yPositionInsideWindow(newMinY, newMaxY)) {
         localDivElement.style.top = `${newMinY}px`;
       }
 
-      localArgs.setPopupPosition(
-        +localArgs.popupData.entity.id,
-        newMinX,
-        newMinY
-      );
+      localArgs.setPopupPosition(+localArgs.popupData.entity.id, newMinX, newMinY);
     }
 
     moveElement(deltaX, deltaY);
@@ -97,11 +83,7 @@ export default function PopupWrapper(args: PopupWrapperArgs) {
 
     const containerWidth = containerDiv.clientWidth;
 
-    if (
-      popoverHeight === undefined ||
-      popoverWidth === undefined ||
-      containerWidth === undefined
-    ) {
+    if (popoverHeight === undefined || popoverWidth === undefined || containerWidth === undefined) {
       return;
     }
 
@@ -122,8 +104,7 @@ export default function PopupWrapper(args: PopupWrapperArgs) {
     // position at right edge of canvas
     if (popupLeftPosition + popoverWidth > containerWidth) {
       const extraPopupMarginFromAtBottom = 5;
-      popupLeftPosition =
-        containerWidth - popoverWidth - extraPopupMarginFromAtBottom;
+      popupLeftPosition = containerWidth - popoverWidth - extraPopupMarginFromAtBottom;
     }
 
     // Prevent popup positioning left(outside) of rendering canvas =>
@@ -177,7 +158,6 @@ export default function PopupWrapper(args: PopupWrapperArgs) {
 
     initializePanListener(dragElement);
     setupInitialPosition(dragElement);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   return (
@@ -189,12 +169,7 @@ export default function PopupWrapper(args: PopupWrapperArgs) {
         style={{ position: 'absolute', cursor: 'move' }}
       >
         <div className="d-flex">
-          <Button
-            title="ar-popup-close"
-            variant="primary"
-            onClick={closePopup}
-            onTouchStart={closePopup}
-          >
+          <Button title="ar-popup-close" variant="primary" onClick={closePopup} onTouchStart={closePopup}>
             X
           </Button>
         </div>

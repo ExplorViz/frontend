@@ -14,13 +14,7 @@ export class TraceNode {
   parent: TraceNode | null;
   children: TraceNode[];
 
-  constructor(
-    id: string,
-    name: string,
-    targetClass: Building,
-    start: number,
-    end: number
-  ) {
+  constructor(id: string, name: string, targetClass: Building, start: number, end: number) {
     this.id = id;
     this.name = name;
     this.targetClass = targetClass;
@@ -122,13 +116,7 @@ export class TraceTreeBuilder {
     const targetClass = this.classMap.get(span.functionId);
     if (targetClass) {
       const name = targetClass.name;
-      const node = new TraceNode(
-        span.spanId,
-        name,
-        targetClass,
-        span.startUnixNano,
-        span.endUnixNano
-      );
+      const node = new TraceNode(span.spanId, name, targetClass, span.startUnixNano, span.endUnixNano);
       node.targetClass = targetClass;
       return node;
     }

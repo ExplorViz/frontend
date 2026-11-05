@@ -35,10 +35,7 @@ describe('semantic zoom clusters', () => {
 
   it('recalculates distances immutably and discards stale clusters on replacement', () => {
     const state = useClusterStore.getState();
-    state.setClusters(
-      new Map([['a', 1]]),
-      new Map([[1, { id: 1, position: new Vector3(3, 4, 0) }]])
-    );
+    state.setClusters(new Map([['a', 1]]), new Map([[1, { id: 1, position: new Vector3(3, 4, 0) }]]));
     const previous = useClusterStore.getState().centroidDistances;
     state.calculateDistanceToCamera(new Vector3(3, 0, 0));
     expect(state.getCentroidDistance('a')).toBe(4);
@@ -50,15 +47,9 @@ describe('semantic zoom clusters', () => {
 
   it('clears all indices and distances', () => {
     const state = useClusterStore.getState();
-    state.setClusters(
-      new Map([['a', 1]]),
-      new Map([[1, { id: 1, position: new Vector3() }]]),
-      new Vector3()
-    );
+    state.setClusters(new Map([['a', 1]]), new Map([[1, { id: 1, position: new Vector3() }]]), new Vector3());
     state.clearClusters();
-    expect(useClusterStore.getState()).toEqual(
-      useClusterStore.getInitialState()
-    );
+    expect(useClusterStore.getState()).toEqual(useClusterStore.getInitialState());
   });
 });
 
@@ -70,16 +61,10 @@ it('replaces communication indices and metrics together, including reset', () =>
     metrics: { count: { min: 3, max: 3 } },
   };
   useCommunicationStore.getState().setCommunications(summary);
-  expect(
-    useCommunicationStore.getState().communicationById.get('call')
-  ).toEqual(communication);
+  expect(useCommunicationStore.getState().communicationById.get('call')).toEqual(communication);
   expect(useCommunicationStore.getState().metrics).toEqual(summary.metrics);
-  useCommunicationStore
-    .getState()
-    .setCommunications({ ...summary, communications: [] });
+  useCommunicationStore.getState().setCommunications({ ...summary, communications: [] });
   expect(useCommunicationStore.getState().communicationById.size).toBe(0);
   useCommunicationStore.getState().setCommunications(null);
-  expect(useCommunicationStore.getState()).toEqual(
-    useCommunicationStore.getInitialState()
-  );
+  expect(useCommunicationStore.getState()).toEqual(useCommunicationStore.getInitialState());
 });

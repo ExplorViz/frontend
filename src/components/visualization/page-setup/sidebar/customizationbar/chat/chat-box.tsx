@@ -2,13 +2,10 @@ import React, { useEffect, useRef, useState } from 'react';
 
 import { DownloadIcon, GearIcon, TrashIcon } from '@primer/octicons-react';
 import { useCameraControlsStore } from 'explorviz-frontend/src/stores/camera-controls-store';
-import {
-  ChatMessageInterface,
-  useChatStore,
-} from 'explorviz-frontend/src/stores/chat';
+import { ChatMessageInterface, useChatStore } from 'explorviz-frontend/src/stores/chat';
 import { useLocalUserStore } from 'explorviz-frontend/src/stores/collaboration/local-user';
 import { useToastHandlerStore } from 'explorviz-frontend/src/stores/toast-handler';
-import { pingReplay } from 'explorviz-frontend/src/view-objects/3d/city/animated-ping-r3f';
+import { pingReplay } from 'explorviz-frontend/src/view-objects/3d/city/ping-animation';
 import { me, usePlayersList } from 'playroomkit';
 import Button from 'react-bootstrap/Button';
 
@@ -33,12 +30,8 @@ export default function ChatBox() {
   const [isFilterEnabled, setIsFilterEnabled] = useState<boolean>(false);
   const [filterMode, setFilterMode] = useState<string>('');
   const [filterValue, setFilterValue] = useState<string>('');
-  const [selectedMessages, setSelectedMessages] = useState<Set<number>>(
-    new Set()
-  );
-  const showErrorToastMessage = useToastHandlerStore(
-    (state) => state.showErrorToastMessage
-  );
+  const [selectedMessages, setSelectedMessages] = useState<Set<number>>(() => new Set());
+  const showErrorToastMessage = useToastHandlerStore((state) => state.showErrorToastMessage);
 
   const chatThreadRef = useRef<HTMLUListElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -136,9 +129,7 @@ export default function ChatBox() {
     }
   };
 
-  const updateFilterValue = (
-    event: React.ChangeEvent<HTMLSelectElement | HTMLInputElement>
-  ) => {
+  const updateFilterValue = (event: React.ChangeEvent<HTMLSelectElement | HTMLInputElement>) => {
     setFilterValue(event.target.value);
     if (isFilterEnabled) {
       filterChat(filterMode, event.target.value);
@@ -147,10 +138,7 @@ export default function ChatBox() {
 
   const downloadChat = () => {
     const chatContent = chatMessages
-      .map(
-        (msg) =>
-          `${msg.timestamp} ${msg.userName}(${msg.userId}): ${msg.message}`
-      )
+      .map((msg) => `${msg.timestamp} ${msg.userName}(${msg.userId}): ${msg.message}`)
       .join('\n');
 
     const blob = new Blob([chatContent], { type: 'text/plain' });
@@ -232,12 +220,7 @@ export default function ChatBox() {
     return (
       <div className="filter-options">
         <label htmlFor="filter-checkbox">
-          <input
-            type="checkbox"
-            checked={isFilterEnabled}
-            id="filter-checkbox"
-            onChange={handleEnabledChange}
-          />
+          <input type="checkbox" checked={isFilterEnabled} id="filter-checkbox" onChange={handleEnabledChange} />
           <span>Enable Filtering</span>
         </label>
         <div className="radio-buttons-chat">
@@ -347,8 +330,7 @@ export default function ChatBox() {
                 )}
                 <li className={isEvent ? 'event-message' : 'Message'}>
                   {chatMessage.message}
-                  {(chatMessage.eventType === 'ping' ||
-                    chatMessage.eventType === 'highlight') && (
+                  {(chatMessage.eventType === 'ping' || chatMessage.eventType === 'highlight') && (
                     <Button
                       variant="link"
                       className="event-button"
@@ -357,15 +339,11 @@ export default function ChatBox() {
                         handleEventClick(chatMessage);
                       }}
                     >
-                      {chatMessage.eventType === 'highlight'
-                        ? 'Look At'
-                        : 'Replay'}
+                      {chatMessage.eventType === 'highlight' ? 'Look At' : 'Replay'}
                     </Button>
                   )}
                 </li>
-                {!isEvent && (
-                  <div className="chat-timestamp">{chatMessage.timestamp}</div>
-                )}
+                {!isEvent && <div className="chat-timestamp">{chatMessage.timestamp}</div>}
               </div>
             );
           })}

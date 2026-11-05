@@ -3,15 +3,15 @@ name: Release Tagged Docker Image
 on:
   push:
     tags:
-      - "*"
+      - '*'
   workflow_dispatch:
     inputs:
       image_tag:
-        description: "Docker image tag to publish (e.g. v1.2.3)"
+        description: 'Docker image tag to publish (e.g. v1.2.3)'
         required: true
         type: string
       ref:
-        description: "Git ref to build (branch, tag, or commit SHA). Defaults to main."
+        description: 'Git ref to build (branch, tag, or commit SHA). Defaults to main.'
         required: false
         type: string
         default: main

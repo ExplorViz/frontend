@@ -1,17 +1,7 @@
-import {
-  type DiagramType,
-  useDiagramGenerator,
-} from 'explorviz-frontend/src/hooks/useDiagramGenerator';
+import { type DiagramType, useDiagramGenerator } from 'explorviz-frontend/src/hooks/useDiagramGenerator';
 import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
 import { defaultColors } from 'explorviz-frontend/src/utils/settings/color-schemes';
-import React, {
-  useCallback,
-  useEffect,
-  useLayoutEffect,
-  useMemo,
-  useRef,
-  useState,
-} from 'react';
+import React, { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import ColorPicker from '../../customizationbar/settings/color-picker';
 import { KubeDiagramContextMenu } from './context-menu';
 import { DiagramGeneratorMenu } from './diagram-generator-menu';
@@ -26,17 +16,10 @@ type DiagramPageProps = React.SVGProps<SVGSVGElement> & {
   onNodeClick?: (nodeName: string) => void;
 };
 
-export default function DiagramPage({
-  onNodeClick,
-  ...props
-}: DiagramPageProps) {
+export default function DiagramPage({ onNodeClick, ...props }: DiagramPageProps) {
   const { generate, svg, isRunning, error } = useDiagramGenerator();
-  const [persistedSvg] = useState<string | null>(() =>
-    localStorage.getItem('generated-diagram-svg')
-  );
-  const [loadedSvgs, setLoadedSvgs] = useState<Map<string, React.ReactNode>>(
-    () => new Map()
-  );
+  const [persistedSvg] = useState<string | null>(() => localStorage.getItem('generated-diagram-svg'));
+  const [loadedSvgs, setLoadedSvgs] = useState<Map<string, React.ReactNode>>(() => new Map());
   const [optionsOpen, setOptionsOpen] = useState(false);
   const [contextMenu, setContextMenu] = useState<{
     x: number;
@@ -83,14 +66,10 @@ export default function DiagramPage({
   } = useHoverPopup();
 
   const diagramColor = useUserSettingsStore(
-    (state) =>
-      state.visualizationSettings.k8sDiagramColor?.value ??
-      defaultColors.k8sDiagramColor
+    (state) => state.visualizationSettings.k8sDiagramColor?.value ?? defaultColors.k8sDiagramColor
   );
   const highlightedEntityColor = useUserSettingsStore(
-    (state) =>
-      state.visualizationSettings.highlightedEntityColor?.value ??
-      defaultColors.highlightedEntityColor
+    (state) => state.visualizationSettings.highlightedEntityColor?.value ?? defaultColors.highlightedEntityColor
   );
   const updateSetting = useUserSettingsStore((state) => state.updateSetting);
 
@@ -110,12 +89,7 @@ export default function DiagramPage({
     const svgElement = parseSvgElement(effectiveSvg);
     if (!svgElement) return;
 
-    preloadLocalSvgs(
-      svgElement,
-      diagramColor,
-      highlightedEntityColor,
-      svgToReactNode
-    )
+    preloadLocalSvgs(svgElement, diagramColor, highlightedEntityColor, svgToReactNode)
       .then(setLoadedSvgs)
       .catch((err) => console.error('Error preloading SVGs:', err));
   }, [effectiveSvg, diagramColor, highlightedEntityColor]);
@@ -123,10 +97,7 @@ export default function DiagramPage({
   const svgElement = useMemo<React.ReactNode>(() => {
     if (!effectiveSvg) return null;
 
-    const highlightedPositions = buildHighlightedPositions(
-      effectiveSvg,
-      highlightedNodeNames
-    );
+    const highlightedPositions = buildHighlightedPositions(effectiveSvg, highlightedNodeNames);
     const ctx: DiagramRenderContext = {
       loadedSvgs,
       highlightedPositions,
@@ -175,10 +146,7 @@ export default function DiagramPage({
 
   return (
     <div className="kube-diagrams-root">
-      <button
-        onClick={() => setOptionsOpen(!optionsOpen)}
-        className="kube-diagrams-options-toggle"
-      >
+      <button onClick={() => setOptionsOpen(!optionsOpen)} className="kube-diagrams-options-toggle">
         <span>{optionsOpen ? '▼' : '▶'}</span>
         <span>Options</span>
       </button>
@@ -210,9 +178,7 @@ export default function DiagramPage({
         onContextMenu={handleContextMenu}
         onMouseOver={handleDiagramMouseOver}
       >
-        {svgElement ?? (
-          <div className="kube-diagrams-empty">No diagram generated yet</div>
-        )}
+        {svgElement ?? <div className="kube-diagrams-empty">No diagram generated yet</div>}
       </div>
 
       {contextMenu && (

@@ -3,14 +3,8 @@ import { useLayoutStore } from 'explorviz-frontend/src/stores/layout-store';
 import { useModelStore } from 'explorviz-frontend/src/stores/repos/model-repository';
 import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
 import { useVisualizationStore } from 'explorviz-frontend/src/stores/visualization-store';
-import {
-  isDistrictClosed,
-  isDistrictOpen,
-} from 'explorviz-frontend/src/utils/city-rendering/district-close-state';
-import {
-  closeDistrict,
-  openDistrict,
-} from 'explorviz-frontend/src/utils/city-rendering/entity-manipulation';
+import { isDistrictClosed, isDistrictOpen } from 'explorviz-frontend/src/utils/city-rendering/district-close-state';
+import { closeDistrict, openDistrict } from 'explorviz-frontend/src/utils/city-rendering/entity-manipulation';
 import { useEffect } from 'react';
 import { useShallow } from 'zustand/react/shallow';
 
@@ -47,22 +41,15 @@ export default function AutoDistrictOpenerR3F() {
   } = useUserSettingsStore(
     useShallow((state) => ({
       enableClustering: state.visualizationSettings.enableClustering.value,
-      autoOpenCloseDistricts:
-        state.visualizationSettings.autoOpenCloseDistricts.value,
-      districtOpenCloseDistanceThreshold:
-        state.visualizationSettings.districtOpenCloseDistanceThreshold.value,
-      districtNestingInfluence:
-        state.visualizationSettings.districtNestingInfluence.value,
-      districtSizeInfluence:
-        state.visualizationSettings.districtSizeInfluence.value,
-      distanceUpdateFrequency:
-        state.visualizationSettings.distanceUpdateFrequency.value,
+      autoOpenCloseDistricts: state.visualizationSettings.autoOpenCloseDistricts.value,
+      districtOpenCloseDistanceThreshold: state.visualizationSettings.districtOpenCloseDistanceThreshold.value,
+      districtNestingInfluence: state.visualizationSettings.districtNestingInfluence.value,
+      districtSizeInfluence: state.visualizationSettings.districtSizeInfluence.value,
+      distanceUpdateFrequency: state.visualizationSettings.distanceUpdateFrequency.value,
     }))
   );
 
-  const closedDistrictIds = useVisualizationStore(
-    (state) => state.closedDistrictIds
-  );
+  const closedDistrictIds = useVisualizationStore((state) => state.closedDistrictIds);
 
   const { centroidDistances, getCentroidDistance } = useClusterStore(
     useShallow((state) => ({
@@ -76,11 +63,7 @@ export default function AutoDistrictOpenerR3F() {
   const getAllDistricts = useModelStore((state) => state.getAllDistricts);
 
   useEffect(() => {
-    if (
-      !enableClustering ||
-      !autoOpenCloseDistricts ||
-      distanceUpdateFrequency <= 0
-    ) {
+    if (!enableClustering || !autoOpenCloseDistricts || distanceUpdateFrequency <= 0) {
       return;
     }
     const districts = getAllDistricts();
@@ -103,8 +86,7 @@ export default function AutoDistrictOpenerR3F() {
       const districtLevel = getDistrictLevel(district.id);
       // Larger districts get a larger threshold, so they open from farther away.
       const layout = districtLayouts.get(district.id);
-      const relativeSize =
-        layout && maxArea > 0 ? Math.sqrt(layout.area / maxArea) : 0;
+      const relativeSize = layout && maxArea > 0 ? Math.sqrt(layout.area / maxArea) : 0;
       const effectiveThreshold =
         districtOpenCloseDistanceThreshold *
         Math.pow(1 - districtNestingInfluence, districtLevel) *
@@ -112,30 +94,23 @@ export default function AutoDistrictOpenerR3F() {
       const isWithinThreshold = distance <= effectiveThreshold;
 
       if (isWithinThreshold && !isCurrentlyOpen) {
-        const parentIsOpen =
-          !district.parentDistrictId ||
-          isDistrictOpen(district.parentDistrictId, closedDistrictIds);
+        const parentIsOpen = !district.parentDistrictId || isDistrictOpen(district.parentDistrictId, closedDistrictIds);
 
         if (parentIsOpen) {
           openDistrict(district.id, false);
         }
       } else if (!isWithinThreshold && isCurrentlyOpen) {
-        const validatedChildDistrictIds = district.districtIds.filter(
-          (childDistrictId) => {
-            const childDistrict = useModelStore
-              .getState()
-              .getDistrict(childDistrictId);
-            return (
-              childDistrict != null &&
-              childDistrict.parentCityId === district.parentCityId &&
-              childDistrict.parentDistrictId === district.id
-            );
-          }
-        );
+        const validatedChildDistrictIds = district.districtIds.filter((childDistrictId) => {
+          const childDistrict = useModelStore.getState().getDistrict(childDistrictId);
+          return (
+            childDistrict != null &&
+            childDistrict.parentCityId === district.parentCityId &&
+            childDistrict.parentDistrictId === district.id
+          );
+        });
 
-        const allInnerDistrictsClosed = validatedChildDistrictIds.every(
-          (childDistrictId) =>
-            isDistrictClosed(childDistrictId, closedDistrictIds)
+        const allInnerDistrictsClosed = validatedChildDistrictIds.every((childDistrictId) =>
+          isDistrictClosed(childDistrictId, closedDistrictIds)
         );
 
         if (allInnerDistrictsClosed) {

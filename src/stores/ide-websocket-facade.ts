@@ -11,22 +11,20 @@ interface IdeWebsocketFacadeState {
   closeConnection: (landscapeToken?: string) => void;
 }
 
-export const useIdeWebsocketFacadeStore = create<IdeWebsocketFacadeState>(
-  (set, get) => ({
-    roomName: 'undefined', // tracked
-    isConnected: false, // tracked
-    numConnectedIDEs: 0, // tracked
+export const useIdeWebsocketFacadeStore = create<IdeWebsocketFacadeState>((set, get) => ({
+  roomName: 'undefined', // tracked
+  isConnected: false, // tracked
+  numConnectedIDEs: 0, // tracked
 
-    refreshVizData: (cl: CommunicationLink[]) => {
-      eventEmitter.emit('ide-refresh-data', cl);
-    },
+  refreshVizData: (cl: CommunicationLink[]) => {
+    eventEmitter.emit('ide-refresh-data', cl);
+  },
 
-    restartConnection: (landscapeToken?: string) => {
-      eventEmitter.emit('ide-restart-connection', landscapeToken);
-    },
+  restartConnection: (landscapeToken?: string) => {
+    eventEmitter.emit('ide-restart-connection', landscapeToken);
+  },
 
-    closeConnection: (landscapeToken?: string) => {
-      eventEmitter.emit('ide-close-connection', landscapeToken);
-    },
-  })
-);
+  closeConnection: (landscapeToken?: string) => {
+    eventEmitter.emit('ide-close-connection', landscapeToken);
+  },
+}));

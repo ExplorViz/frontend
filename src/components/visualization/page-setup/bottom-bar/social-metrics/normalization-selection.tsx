@@ -32,9 +32,7 @@ export default function NormalizationSelection() {
         id="social-normalization-logscale"
         label="Log scale"
         checked={normalization.logScale}
-        onChange={(e) =>
-          setNormalization({ ...normalization, logScale: e.target.checked })
-        }
+        onChange={(e) => setNormalization({ ...normalization, logScale: e.target.checked })}
       />
       <Form.Select
         size="sm"

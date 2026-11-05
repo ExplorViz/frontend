@@ -5,9 +5,7 @@ import { useEffect, useRef } from 'react';
 
 // This component syncs the globally shared annotations with the local annotations list
 export function CollaborationAnnotationSync() {
-  const snapshotSelected = useSnapshotTokenStore(
-    (state) => state.snapshotSelected
-  );
+  const snapshotSelected = useSnapshotTokenStore((state) => state.snapshotSelected);
   const [globalAnnotations] = useMultiplayerState('sharedAnnotations', {});
   const lastSharedRefs = useRef<number[]>([]);
 
@@ -40,10 +38,7 @@ export function CollaborationAnnotationSync() {
           wasMoved: true,
         });
       } else if (!localAnno.inEdit) {
-        if (
-          localAnno.annotationText !== anno.text ||
-          localAnno.annotationTitle !== anno.title
-        ) {
+        if (localAnno.annotationText !== anno.text || localAnno.annotationTitle !== anno.title) {
           store._updateExistingAnnotation(localAnno, anno.text, anno.title);
         }
       }
@@ -51,10 +46,7 @@ export function CollaborationAnnotationSync() {
 
     // Annotation has been closed
     localAnnotations.forEach((localAnno) => {
-      if (
-        localAnno.shared &&
-        currentGlobal[localAnno.annotationId] === undefined
-      ) {
+      if (localAnno.shared && currentGlobal[localAnno.annotationId] === undefined) {
         store.removeAnnotation(localAnno.annotationId);
       }
     });
@@ -80,11 +72,7 @@ export function CollaborationAnnotationSync() {
 
         const globalAnno = currentGlobal[anno.annotationId];
 
-        if (
-          !globalAnno ||
-          globalAnno.text !== anno.annotationText ||
-          globalAnno.title !== anno.annotationTitle
-        ) {
+        if (!globalAnno || globalAnno.text !== anno.annotationText || globalAnno.title !== anno.annotationTitle) {
           currentGlobal[anno.annotationId] = {
             entityId: anno.entityId,
             title: anno.annotationTitle,

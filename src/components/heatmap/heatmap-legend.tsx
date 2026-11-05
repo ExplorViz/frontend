@@ -8,10 +8,7 @@ import {
   useHeatmapStore,
 } from 'explorviz-frontend/src/stores/heatmap/heatmap-store';
 import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
-import {
-  getColorGradient,
-  revertKey,
-} from 'explorviz-frontend/src/utils/heatmap/simple-heatmap';
+import { getColorGradient, revertKey } from 'explorviz-frontend/src/utils/heatmap/simple-heatmap';
 import { CloseButton } from 'react-bootstrap';
 import Button from 'react-bootstrap/Button';
 import OverlayTrigger from 'react-bootstrap/OverlayTrigger';
@@ -113,55 +110,29 @@ export default function HeatmapLegend() {
       </div>
       <div className="d-flex justify-content-between align-items-center mb-2">
         <div>Gradient:</div>
-        <select
-          onChange={(e) => setGradient(e.target.value as HeatmapGradient)}
-          value={selectedGradient}
-        >
+        <select onChange={(e) => setGradient(e.target.value as HeatmapGradient)} value={selectedGradient}>
           <option value={HeatmapGradient.DEFAULT_GRADIENT}>Default</option>
-          <option value={HeatmapGradient.TEMPERATURE_GRADIENT}>
-            Temperature
-          </option>
-          <option value={HeatmapGradient.MONOCHROME_GRADIENT}>
-            Monochrome
-          </option>
+          <option value={HeatmapGradient.TEMPERATURE_GRADIENT}>Temperature</option>
+          <option value={HeatmapGradient.MONOCHROME_GRADIENT}>Monochrome</option>
         </select>
       </div>
       <div className="d-flex justify-content-between align-items-center mb-2">
         <div>Mapping:</div>
-        <select
-          onChange={(e) =>
-            setValueMapping(e.target.value as HeatmapValueMapping)
-          }
-          value={selectedValueMapping}
-        >
+        <select onChange={(e) => setValueMapping(e.target.value as HeatmapValueMapping)} value={selectedValueMapping}>
           <option value={HeatmapValueMapping.LINEAR}>Linear</option>
           <option value={HeatmapValueMapping.LOGARITHMIC}>Logarithmic</option>
         </select>
       </div>
 
-      <div
-        id="legend-header"
-        className="d-flex justify-content-between align-items-center"
-      >
+      <div id="legend-header" className="d-flex justify-content-between align-items-center">
         <div>
           <OverlayTrigger
             placement="top"
             trigger={['hover', 'focus']}
-            overlay={
-              <Tooltip>
-                Share heatmap with other users? Green: Yes, Grey: No
-              </Tooltip>
-            }
+            overlay={<Tooltip>Share heatmap with other users? Green: Yes, Grey: No</Tooltip>}
           >
-            <Button
-              variant={heatmapShared ? 'success' : 'secondary'}
-              onClick={toggleShared}
-            >
-              <ShareAndroidIcon
-                verticalAlign="middle"
-                size="small"
-                fill="#777"
-              />
+            <Button variant={heatmapShared ? 'success' : 'secondary'} onClick={toggleShared}>
+              <ShareAndroidIcon verticalAlign="middle" size="small" fill="#777" />
             </Button>
           </OverlayTrigger>
         </div>
@@ -190,11 +161,7 @@ export default function HeatmapLegend() {
           <div className="d-flex flex-row mt-2">
             <>
               <div id="heatmap-legend" ref={legendRef}>
-                <canvas
-                  id="legend-canvas"
-                  height="100%"
-                  ref={canvasRef}
-                ></canvas>
+                <canvas id="legend-canvas" height="100%" ref={canvasRef}></canvas>
               </div>
               <div id="heatmap-legend-label">
                 {LEGEND_RATIOS.map((ratio, index) => (

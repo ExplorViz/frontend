@@ -24,10 +24,7 @@ export const defaultSettingsSidebarState: SettingsSidebarState = {
   selectedTab: null,
 };
 
-export const SettingsSidebarContext = createContext<
-  SettingsSidebarState & SettingsSidebarActions
->({
+export const SettingsSidebarContext = createContext<SettingsSidebarState & SettingsSidebarActions>({
   ...defaultSettingsSidebarState,
-  openSettingsSidebarTab: () =>
-    console.error('Settings sidebar context provider missing'),
+  openSettingsSidebarTab: () => console.error('Settings sidebar context provider missing'),
 });

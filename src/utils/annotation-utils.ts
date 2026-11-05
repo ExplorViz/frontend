@@ -7,18 +7,13 @@ import { useAnnotationHandlerStore } from 'explorviz-frontend/src/stores/annotat
  */
 export function isEntityAnnotated(entityId: string): boolean {
   const annotationData = useAnnotationHandlerStore.getState().annotationData;
-  const minimizedAnnotations =
-    useAnnotationHandlerStore.getState().minimizedAnnotations;
+  const minimizedAnnotations = useAnnotationHandlerStore.getState().minimizedAnnotations;
 
   // Check if entity has an annotation in active annotations
-  const hasActiveAnnotation = annotationData.some(
-    (annotation) => annotation.entityId === entityId
-  );
+  const hasActiveAnnotation = annotationData.some((annotation) => annotation.entityId === entityId);
 
   // Check if entity has an annotation in minimized annotations
-  const hasMinimizedAnnotation = minimizedAnnotations.some(
-    (annotation) => annotation.entityId === entityId
-  );
+  const hasMinimizedAnnotation = minimizedAnnotations.some((annotation) => annotation.entityId === entityId);
 
   return hasActiveAnnotation || hasMinimizedAnnotation;
 }
@@ -29,10 +24,7 @@ export function isEntityAnnotated(entityId: string): boolean {
  * @param entityId - The ID of the entity to check for annotations
  * @returns The display name with annotation icon if applicable
  */
-export function getEntityDisplayName(
-  entityName: string,
-  entityId: string
-): string {
+export function getEntityDisplayName(entityName: string, entityId: string): string {
   if (isEntityAnnotated(entityId)) {
     return `${entityName} ${getAnnotationIcon()}`;
   }
@@ -54,11 +46,7 @@ export function getAnnotationIcon(): string {
  * @param maxLength - The maximum length for the display name
  * @returns The display name with annotation icon, properly truncated if needed
  */
-export function getTruncatedDisplayName(
-  entityName: string,
-  entityId: string,
-  maxLength: number
-): string {
+export function getTruncatedDisplayName(entityName: string, entityId: string, maxLength: number): string {
   const isAnnotated = isEntityAnnotated(entityId);
   const icon = isAnnotated ? getAnnotationIcon() : '';
   const displayName = getEntityDisplayName(entityName, entityId);

@@ -14,9 +14,7 @@ import type { FlatLandscape } from '../src/utils/landscape-schemes/flat-landscap
 import { BUILDING_METRIC_NAMES } from '../src/utils/settings/settings-schemas';
 import { building, city, district } from './fixtures/landscape';
 
-const criteria = (
-  overrides: Partial<BuildingFilterCriteria> = {}
-): BuildingFilterCriteria => ({
+const criteria = (overrides: Partial<BuildingFilterCriteria> = {}): BuildingFilterCriteria => ({
   filterMode: 'Remove',
   hiddenModelTypes: new Set(),
   hiddenLanguages: new Set(),
@@ -35,37 +33,20 @@ describe('building filter pipeline', () => {
     expect(countRemainingBuildings({ building }, filter)).toBe(1);
   });
 
-  it.each(['Hide', 'Remove'] as const)(
-    'applies type and language removal only in Remove mode (%s)',
-    (filterMode) => {
-      const byType = compileBuildingFilter(
-        criteria({ filterMode, hiddenModelTypes: new Set(['code']) })
-      );
-      const byLanguage = compileBuildingFilter(
-        criteria({ filterMode, hiddenLanguages: new Set(['JAVA']) })
-      );
-      expect(byType.isFiltered(building)).toBe(filterMode === 'Remove');
-      expect(byLanguage.isFiltered({ ...building, language: 'JAVA' })).toBe(
-        filterMode === 'Remove'
-      );
-      expect(byLanguage.isFiltered({ ...building, language: 'PYTHON' })).toBe(
-        false
-      );
-    }
-  );
+  it.each(['Hide', 'Remove'] as const)('applies type and language removal only in Remove mode (%s)', (filterMode) => {
+    const byType = compileBuildingFilter(criteria({ filterMode, hiddenModelTypes: new Set(['code']) }));
+    const byLanguage = compileBuildingFilter(criteria({ filterMode, hiddenLanguages: new Set(['JAVA']) }));
+    expect(byType.isFiltered(building)).toBe(filterMode === 'Remove');
+    expect(byLanguage.isFiltered({ ...building, language: 'JAVA' })).toBe(filterMode === 'Remove');
+    expect(byLanguage.isFiltered({ ...building, language: 'PYTHON' })).toBe(false);
+  });
 
   it('uses inclusive metric thresholds, treating missing metrics as zero', () => {
     const key = BUILDING_METRIC_NAMES[0];
-    const filter = compileBuildingFilter(
-      criteria({ metricThresholds: { [key]: 10 } })
-    );
+    const filter = compileBuildingFilter(criteria({ metricThresholds: { [key]: 10 } }));
     expect(filter.isFiltered(building)).toBe(true);
-    expect(
-      filter.isFiltered({ ...building, metrics: { [key]: { current: 9 } } })
-    ).toBe(true);
-    expect(
-      filter.isFiltered({ ...building, metrics: { [key]: { current: 10 } } })
-    ).toBe(false);
+    expect(filter.isFiltered({ ...building, metrics: { [key]: { current: 9 } } })).toBe(true);
+    expect(filter.isFiltered({ ...building, metrics: { [key]: { current: 10 } } })).toBe(false);
   });
 
   it('combines inclusion and exclusion, falling back to names without FQNs', () => {
@@ -80,9 +61,7 @@ describe('building filter pipeline', () => {
         exclusionExpressions: ['**/*.test.ts'],
       })
     );
-    expect(
-      collectFilteredBuildings(buildings, filter).map((b) => b.id)
-    ).toEqual(['excluded', 'other']);
+    expect(collectFilteredBuildings(buildings, filter).map((b) => b.id)).toEqual(['excluded', 'other']);
     expect(countRemainingBuildings(buildings, filter)).toBe(1);
   });
 });
@@ -123,12 +102,7 @@ function landscape(): FlatLandscape {
 describe('comparison filtering and hierarchy pruning', () => {
   it('returns the original landscape when all comparison categories are visible', () => {
     const input = landscape();
-    expect(
-      filterFlatLandscapeByBuildingComparisonVisibility(
-        input,
-        ALL_BUILDING_COMPARISONS_VISIBLE
-      )
-    ).toBe(input);
+    expect(filterFlatLandscapeByBuildingComparisonVisibility(input, ALL_BUILDING_COMPARISONS_VISIBLE)).toBe(input);
   });
   it('preserves ancestors of surviving buildings and leaves source data untouched', () => {
     const input = landscape();
@@ -140,10 +114,7 @@ describe('comparison filtering and hierarchy pruning', () => {
     expect(Object.keys(filtered.buildings)).toEqual(['building']);
     expect(Object.keys(filtered.districts)).toEqual(['district', 'nested']);
     expect(filtered.cities.city.districtIds).toEqual(['district']);
-    expect(filtered.cities.city.allContainedDistrictIds).toEqual([
-      'district',
-      'nested',
-    ]);
+    expect(filtered.cities.city.allContainedDistrictIds).toEqual(['district', 'nested']);
     expect(filtered.cities.city.allContainedBuildingIds).toEqual(['building']);
     expect(filtered.cities.city.buildingIds).toEqual([]);
     expect(input).toEqual(original);

@@ -85,8 +85,7 @@ function stopsFromGradient(gradient: Gradient): { pos: number; color: RGB }[] {
 
   // Ensure hard boundaries at 0 and 1 for safety.
   if (stops[0].pos > 0) stops.unshift({ pos: 0, color: stops[0].color });
-  if (stops[stops.length - 1].pos < 1)
-    stops.push({ pos: 1, color: stops[stops.length - 1].color });
+  if (stops[stops.length - 1].pos < 1) stops.push({ pos: 1, color: stops[stops.length - 1].color });
 
   return stops;
 }
@@ -104,8 +103,7 @@ export function getSimpleHeatmapColor(
   value: number,
   max: number,
   gradient: Gradient = getColorGradient(),
-  valueMapping: HeatmapValueMapping = useHeatmapStore.getState()
-    .selectedValueMapping
+  valueMapping: HeatmapValueMapping = useHeatmapStore.getState().selectedValueMapping
 ): string {
   const ratio = normalizeMetricValue(value, max, valueMapping);
 
@@ -113,8 +111,7 @@ export function getSimpleHeatmapColor(
 
   // Quick clamps
   if (ratio <= stops[0].pos) return toRgbString(stops[0].color);
-  if (ratio >= stops[stops.length - 1].pos)
-    return toRgbString(stops[stops.length - 1].color);
+  if (ratio >= stops[stops.length - 1].pos) return toRgbString(stops[stops.length - 1].color);
 
   // Find the interval [a, b] such that a.pos <= ratio <= b.pos
   for (let i = 0; i < stops.length - 1; i++) {
@@ -135,11 +132,7 @@ export function getSimpleHeatmapColor(
   return toRgbString(stops[stops.length - 1].color);
 }
 
-function normalizeMetricValue(
-  value: number,
-  max: number,
-  valueMapping: HeatmapValueMapping
-): number {
+function normalizeMetricValue(value: number, max: number, valueMapping: HeatmapValueMapping): number {
   if (!(max > 0 && Number.isFinite(max))) {
     return 0;
   }

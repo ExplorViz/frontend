@@ -1,125 +1,29 @@
 import { CopilotKit } from '@copilotkit/react-core';
 import { CopilotErrorBoundary } from 'explorviz-frontend/src/components/chatbot/copilot-error-boundary';
 import { type LandscapeData } from 'explorviz-frontend/src/utils/landscape-schemes/landscape-data';
-import {
-  createContext,
-  PropsWithChildren,
-  RefObject,
-  use,
-  useEffect,
-  useState,
-} from 'react';
+import { PropsWithChildren, RefObject, use, useEffect, useState } from 'react';
 import { SettingsSidebarTab } from '../visualization/page-setup/sidebar/customizationbar/settings-sidebar-context';
 import { ToolbarTool } from '../visualization/page-setup/sidebar/toolbar/toolbar-context';
 import { CopilotResources } from './copilot-resources';
 import { CopilotTools } from './copilot-tools';
+import {
+  EMPTY_MODEL,
+  EMPTY_PROVIDER,
+  type ChatbotContextData,
+  type EntityFilteringController,
+  type EntitySearchController,
+  type Model,
+  type Provider,
+  type SidebarSelectionOptions,
+  ChatbotContext,
+} from './chatbot-context-store';
 import { PingIndicator } from './ping-indicator';
 
 const copilotUrl: string =
-  (import.meta.env.VITE_COPILOT_SERV_URL as string | undefined) ||
-  (import.meta.env.PROD ? window.location.origin : '');
+  (import.meta.env.VITE_COPILOT_SERV_URL as string | undefined) || (import.meta.env.PROD ? window.location.origin : '');
 
 const PROVIDER_STORAGE_KEY = 'explorviz-copilot-provider';
 const MODEL_STORAGE_KEY = 'explorviz-copilot-model';
-
-interface Model {
-  id: string;
-  name: string;
-}
-
-interface Provider {
-  id: string;
-  name: string;
-  models: Model[];
-}
-
-const EMPTY_MODEL: Model = { id: '', name: '' };
-const EMPTY_PROVIDER: Provider = { id: '', name: '', models: [] };
-
-export type EntityFilteringFilters = {
-  minClassMethodCount?: number;
-};
-
-export type EntityFilteringController = {
-  applyFilters: (filters: EntityFilteringFilters) => void;
-  reset: () => void;
-};
-
-export type EntitySearchController = {
-  search: (params: { query: string; selectAll?: boolean }) => void;
-  selectEntities: (ids: string[]) => void;
-  reset: () => void;
-};
-
-export type SidebarSelectionOptions = {
-  showSidebar?: boolean;
-};
-
-interface Context {
-  providers: Provider[];
-  selectedProvider: Provider;
-  setSelectedProvider: (provider: Provider) => void;
-  selectedModel: Model;
-  setSelectedModel: (model: Model) => void;
-  landscapeData: LandscapeData | null;
-  pingScreenAtPoint: (x: number, y: number) => void;
-  showToolsSidebar: boolean;
-  setShowToolsSidebar: (open: boolean) => void;
-  showSettingsSidebar: boolean;
-  setShowSettingsSidebar: (open: boolean) => void;
-  selectedToolbarTool: ToolbarTool | null;
-  setSelectedToolbarTool: (
-    tool: ToolbarTool | null,
-    options?: SidebarSelectionOptions
-  ) => void;
-  selectedSettingsSidebarTab: string | null;
-  setSelectedSettingsSidebarTab: (
-    tab: SettingsSidebarTab | null,
-    options?: SidebarSelectionOptions
-  ) => void;
-  entityFilteringControllerRef: RefObject<EntityFilteringController | null> | null;
-  entitySearchControllerRef: RefObject<EntitySearchController | null> | null;
-  providersError: string | null;
-  isLoadingProviders: boolean;
-  reloadProviders: () => void;
-  isCopilotRuntimeReady: boolean;
-  copilotRuntimeError: string | null;
-  copilotRuntimeUrl: string | undefined;
-  copilotRuntimeHeaders: Record<string, string>;
-  copilotRuntimeKey: string;
-  reportCopilotCrash: (error: Error) => void;
-}
-
-const defaultContext: Context = {
-  providers: [],
-  selectedProvider: EMPTY_PROVIDER,
-  setSelectedProvider: () => {},
-  selectedModel: EMPTY_MODEL,
-  setSelectedModel: () => {},
-  landscapeData: null,
-  pingScreenAtPoint: () => {},
-  showToolsSidebar: false,
-  setShowToolsSidebar: () => {},
-  showSettingsSidebar: false,
-  setShowSettingsSidebar: () => {},
-  selectedToolbarTool: null,
-  setSelectedToolbarTool: () => {},
-  selectedSettingsSidebarTab: null,
-  setSelectedSettingsSidebarTab: () => {},
-  entityFilteringControllerRef: null,
-  entitySearchControllerRef: null,
-  providersError: null,
-  isLoadingProviders: false,
-  reloadProviders: () => {},
-  isCopilotRuntimeReady: false,
-  copilotRuntimeError: null,
-  copilotRuntimeUrl: undefined,
-  copilotRuntimeHeaders: {},
-  copilotRuntimeKey: 'none:none',
-  reportCopilotCrash: () => {},
-};
-
-export const ChatbotContext = createContext(defaultContext);
 
 function isUnreachableChatServiceError(error: unknown): boolean {
   if (!(error instanceof Error)) return false;
@@ -136,15 +40,9 @@ interface ChatbotProviderProps extends PropsWithChildren {
   showSettingsSidebar: boolean;
   setShowSettingsSidebar: (open: boolean) => void;
   selectedToolbarTool: ToolbarTool | null;
-  setSelectedToolbarTool: (
-    tool: ToolbarTool | null,
-    options?: SidebarSelectionOptions
-  ) => void;
+  setSelectedToolbarTool: (tool: ToolbarTool | null, options?: SidebarSelectionOptions) => void;
   selectedSettingsSidebarTab: string | null;
-  setSelectedSettingsSidebarTab: (
-    tab: SettingsSidebarTab | null,
-    options?: SidebarSelectionOptions
-  ) => void;
+  setSelectedSettingsSidebarTab: (tab: SettingsSidebarTab | null, options?: SidebarSelectionOptions) => void;
   entityFilteringControllerRef: RefObject<EntityFilteringController | null> | null;
   entitySearchControllerRef: RefObject<EntitySearchController | null> | null;
 }
@@ -165,16 +63,13 @@ export function ChatbotProvider({
   entitySearchControllerRef,
 }: ChatbotProviderProps) {
   const [providers, setProviders] = useState<Provider[]>([]);
-  const [selectedProvider, setSelectedProvider] =
-    useState<Provider>(EMPTY_PROVIDER);
+  const [selectedProvider, setSelectedProvider] = useState<Provider>(EMPTY_PROVIDER);
   const [selectedModel, setSelectedModel] = useState<Model>(EMPTY_MODEL);
   const [activePing, setActivePing] = useState<{ x: number; y: number }>();
   const [providersError, setProvidersError] = useState<string | null>(null);
   const [isLoadingProviders, setIsLoadingProviders] = useState(false);
   const [reloadCounter, setReloadCounter] = useState(0);
-  const [copilotRuntimeError, setCopilotRuntimeError] = useState<string | null>(
-    null
-  );
+  const [copilotRuntimeError, setCopilotRuntimeError] = useState<string | null>(null);
 
   function setSelectedProviderPersistent(provider: Provider) {
     setSelectedProvider(provider);
@@ -212,8 +107,7 @@ export function ChatbotProvider({
 
   function handleCopilotCrash(error: Error) {
     setCopilotRuntimeError(
-      error.message ||
-        'The AI chat integration stopped unexpectedly. The visualization remains available.'
+      error.message || 'The AI chat integration stopped unexpectedly. The visualization remains available.'
     );
   }
 
@@ -223,9 +117,7 @@ export function ChatbotProvider({
     }
 
     if (!copilotUrl) {
-      setProvidersError(
-        'VITE_COPILOT_SERV_URL is not configured. The chatbot is disabled.'
-      );
+      setProvidersError('VITE_COPILOT_SERV_URL is not configured. The chatbot is disabled.');
       return;
     }
 
@@ -240,9 +132,7 @@ export function ChatbotProvider({
           signal: controller.signal,
         });
         if (!response.ok) {
-          throw new Error(
-            `Provider service responded with HTTP ${response.status}`
-          );
+          throw new Error(`Provider service responded with HTTP ${response.status}`);
         }
         const data: { providers?: Provider[] } = await response.json();
         const fetched = Array.isArray(data?.providers) ? data.providers : [];
@@ -267,14 +157,11 @@ export function ChatbotProvider({
           // ignore unavailable storage
         }
 
-        const provider =
-          fetched.find(({ id }) => id === storedProviderId) ?? fetched[0];
+        const provider = fetched.find(({ id }) => id === storedProviderId) ?? fetched[0];
         setSelectedProviderPersistent(provider);
 
         if (provider.models.length > 0) {
-          const model =
-            provider.models.find(({ id }) => id === storedModelId) ??
-            provider.models[0];
+          const model = provider.models.find(({ id }) => id === storedModelId) ?? provider.models[0];
           setSelectedModelPersistent(model);
         } else {
           setSelectedModel(EMPTY_MODEL);
@@ -337,7 +224,7 @@ export function ChatbotProvider({
     Boolean(copilotRuntimeUrl) &&
     !copilotRuntimeError;
 
-  const chatbotContextValue: Context = {
+  const chatbotContextValue: ChatbotContextData = {
     providers,
     selectedProvider,
     setSelectedProvider: setSelectedProviderPersistent,
@@ -374,15 +261,10 @@ export function ChatbotProvider({
   );
 }
 
-function handleCopilotKitError(errorEvent: {
-  message?: string;
-  error?: unknown;
-}) {
+function handleCopilotKitError(errorEvent: { message?: string; error?: unknown }) {
   const message =
     errorEvent.message ??
-    (errorEvent.error instanceof Error
-      ? errorEvent.error.message
-      : 'CopilotKit reported an error.');
+    (errorEvent.error instanceof Error ? errorEvent.error.message : 'CopilotKit reported an error.');
   console.warn('[CopilotKit]', message, errorEvent);
 }
 
@@ -407,11 +289,7 @@ export function CopilotRuntime({ children }: PropsWithChildren) {
   const cities = Object.values(landscapeData?.flatLandscapeData?.cities ?? {});
 
   return (
-    <CopilotErrorBoundary
-      fallback={children}
-      resetKey={copilotRuntimeKey}
-      onError={reportCopilotCrash}
-    >
+    <CopilotErrorBoundary fallback={children} resetKey={copilotRuntimeKey} onError={reportCopilotCrash}>
       <CopilotKit
         key={copilotRuntimeKey}
         enableInspector={false}

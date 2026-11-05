@@ -1,9 +1,6 @@
 import { requestCommunicationSpans } from 'explorviz-frontend/src/utils/landscape-http-request-util';
 import AggregatedCommunication from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/aggregated-communication';
-import {
-  CommSpans,
-  SpanPair,
-} from 'explorviz-frontend/src/utils/landscape-schemes/telemetry/traces';
+import { CommSpans, SpanPair } from 'explorviz-frontend/src/utils/landscape-schemes/telemetry/traces';
 import { useEffect, useRef, useState } from 'react';
 import { Accordion, Spinner } from 'react-bootstrap';
 import SpanDetailsCard from '../span-details-card';
@@ -13,9 +10,7 @@ interface CommunicationSpansTabProps {
 }
 
 /** Displays the spans underlying a communication in a scrollable list */
-export default function CommunicationSpansTab({
-  communication,
-}: CommunicationSpansTabProps) {
+export default function CommunicationSpansTab({ communication }: CommunicationSpansTabProps) {
   const [commSpans, setCommSpans] = useState<CommSpans | null>(null);
 
   const spanRefs = useRef(new Map<string, HTMLElement>());
@@ -33,9 +28,7 @@ export default function CommunicationSpansTab({
   }, [communication]);
 
   const scrollToSpanPair = (pair: SpanPair) => {
-    const element = spanRefs.current.get(
-      `${pair.parentSpanId}-${pair.childSpanId}`
-    );
+    const element = spanRefs.current.get(`${pair.parentSpanId}-${pair.childSpanId}`);
     if (element) {
       element.scrollIntoView({
         behavior: 'smooth',
@@ -52,11 +45,7 @@ export default function CommunicationSpansTab({
           <span className="ms-2">Loading spans...</span>
         </div>
       ) : commSpans.pairs.length > 0 ? (
-        <Accordion
-          alwaysOpen={true}
-          className="pe-1"
-          style={{ width: '500px', minWidth: '500px' }}
-        >
+        <Accordion alwaysOpen={true} className="pe-1" style={{ width: '500px', minWidth: '500px' }}>
           {commSpans.pairs.map((pair) => {
             const parentSpan = commSpans.spans[pair.parentSpanId];
             const childSpan = commSpans.spans[pair.childSpanId];
@@ -81,40 +70,28 @@ export default function CommunicationSpansTab({
                 <Accordion.Body
                   ref={(element) => {
                     if (element) {
-                      spanRefs.current.set(
-                        `${pair.parentSpanId}-${pair.childSpanId}`,
-                        element
-                      );
+                      spanRefs.current.set(`${pair.parentSpanId}-${pair.childSpanId}`, element);
                     } else {
-                      spanRefs.current.delete(
-                        `${pair.parentSpanId}-${pair.childSpanId}`
-                      );
+                      spanRefs.current.delete(`${pair.parentSpanId}-${pair.childSpanId}`);
                     }
                   }}
                 >
                   <h6>
-                    Parent span{' '}
-                    <code className="text-dark">({pair.parentSpanId})</code>:
+                    Parent span <code className="text-dark">({pair.parentSpanId})</code>:
                   </h6>
                   <SpanDetailsCard span={parentSpan} />
                   <br />
                   <h6>
-                    Child span{' '}
-                    <code className="text-dark">({pair.childSpanId})</code>:
+                    Child span <code className="text-dark">({pair.childSpanId})</code>:
                   </h6>
-                  <SpanDetailsCard
-                    span={childSpan}
-                    onParentSpanIdClick={() => scrollToSpanPair(pair)}
-                  />
+                  <SpanDetailsCard span={childSpan} onParentSpanIdClick={() => scrollToSpanPair(pair)} />
                 </Accordion.Body>
               </Accordion.Item>
             );
           })}
         </Accordion>
       ) : (
-        <div className="text-center text-muted p-3">
-          Failed to fetch spans for this communication.
-        </div>
+        <div className="text-center text-muted p-3">Failed to fetch spans for this communication.</div>
       )}
     </div>
   );

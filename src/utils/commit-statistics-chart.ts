@@ -37,10 +37,7 @@ function getVisibleYearGroupIndices(
 
     if (index > 0) {
       const previousCenter = getGroupCenter(yearGroups[index - 1]);
-      if (
-        (center - previousCenter) * pixelsPerBar <
-        MIN_PIXELS_PER_YEAR_LABEL
-      ) {
+      if ((center - previousCenter) * pixelsPerBar < MIN_PIXELS_PER_YEAR_LABEL) {
         return;
       }
     }
@@ -58,10 +55,7 @@ function getVisibleYearGroupIndices(
   return visibleIndices;
 }
 
-function getLegendRowCount(
-  legendItemCount: number,
-  chartWidth: number
-): number {
+function getLegendRowCount(legendItemCount: number, chartWidth: number): number {
   const itemsPerRow = Math.max(1, Math.floor((chartWidth - 40) / 120));
   return Math.ceil(Math.max(legendItemCount, 1) / itemsPerRow);
 }
@@ -70,11 +64,7 @@ function getLegendAreaHeight(rowCount: number): number {
   return 12 + rowCount * 22;
 }
 
-function getAxisBottomMargin(
-  hasYearGroups: boolean,
-  showMonthLabels: boolean,
-  hasAnyYearLabels: boolean
-): number {
+function getAxisBottomMargin(hasYearGroups: boolean, showMonthLabels: boolean, hasAnyYearLabels: boolean): number {
   if (!hasYearGroups) {
     return 60;
   }
@@ -117,10 +107,7 @@ function getBottomLayout(
   return { marginBottom, legendY };
 }
 
-function buildSingleSeriesData(
-  chartData: CommitStatisticsChartData,
-  barColor: string
-): Plotly.Data[] {
+function buildSingleSeriesData(chartData: CommitStatisticsChartData, barColor: string): Plotly.Data[] {
   return [
     {
       type: 'bar',
@@ -133,9 +120,7 @@ function buildSingleSeriesData(
   ];
 }
 
-function buildAuthorSeriesData(
-  chartData: CommitStatisticsChartData
-): Plotly.Data[] {
+function buildAuthorSeriesData(chartData: CommitStatisticsChartData): Plotly.Data[] {
   const hoverLabels = chartData.hoverLabels ?? chartData.labels;
 
   return (chartData.authorSeries ?? []).map((series) => ({
@@ -145,8 +130,7 @@ function buildAuthorSeriesData(
     y: series.values,
     marker: { color: series.color },
     customdata: hoverLabels,
-    hovertemplate:
-      '%{customdata}<br>%{fullData.name}: %{y} commits<extra></extra>',
+    hovertemplate: '%{customdata}<br>%{fullData.name}: %{y} commits<extra></extra>',
   }));
 }
 
@@ -164,21 +148,15 @@ export function buildCommitStatisticsPlotlyFigure(
   const yearGroups = chartData.yearGroups ?? [];
   const hasYearGroups = yearGroups.length > 0;
   const barCount = chartData.values.length;
-  const showMonthLabels =
-    hasYearGroups && barCount * MIN_PIXELS_PER_MONTH_LABEL <= chartWidth;
+  const showMonthLabels = hasYearGroups && barCount * MIN_PIXELS_PER_MONTH_LABEL <= chartWidth;
   const visibleYearGroupIndices = hasYearGroups
     ? getVisibleYearGroupIndices(yearGroups, barCount, chartWidth)
     : new Set<number>();
   const hasAnyYearLabels = visibleYearGroupIndices.size > 0;
-  const useAuthorSeries =
-    colorByAuthor && (chartData.authorSeries?.length ?? 0) > 0;
+  const useAuthorSeries = colorByAuthor && (chartData.authorSeries?.length ?? 0) > 0;
   const showLegend = useAuthorSeries;
   const legendItemCount = chartData.authorSeries?.length ?? 0;
-  const axisBottomMargin = getAxisBottomMargin(
-    hasYearGroups,
-    showMonthLabels,
-    hasAnyYearLabels
-  );
+  const axisBottomMargin = getAxisBottomMargin(hasYearGroups, showMonthLabels, hasAnyYearLabels);
   const { marginBottom, legendY } = getBottomLayout(
     chartHeight,
     chartWidth,
@@ -187,27 +165,24 @@ export function buildCommitStatisticsPlotlyFigure(
     legendItemCount
   );
 
-  const data = useAuthorSeries
-    ? buildAuthorSeriesData(chartData)
-    : buildSingleSeriesData(chartData, barColor);
+  const data = useAuthorSeries ? buildAuthorSeriesData(chartData) : buildSingleSeriesData(chartData, barColor);
 
-  const yearAnnotations: Partial<Plotly.Annotations>[] = yearGroups.flatMap(
-    (group, index) =>
-      visibleYearGroupIndices.has(index)
-        ? [
-            {
-              x: getGroupCenter(group),
-              y: showMonthLabels ? -0.16 : -0.08,
-              xref: 'x' as const,
-              yref: 'paper' as const,
-              text: group.year,
-              showarrow: false,
-              xanchor: 'center' as const,
-              yanchor: 'top' as const,
-              font: AXIS_LABEL_STYLE,
-            },
-          ]
-        : []
+  const yearAnnotations: Partial<Plotly.Annotations>[] = yearGroups.flatMap((group, index) =>
+    visibleYearGroupIndices.has(index)
+      ? [
+          {
+            x: getGroupCenter(group),
+            y: showMonthLabels ? -0.16 : -0.08,
+            xref: 'x' as const,
+            yref: 'paper' as const,
+            text: group.year,
+            showarrow: false,
+            xanchor: 'center' as const,
+            yanchor: 'top' as const,
+            font: AXIS_LABEL_STYLE,
+          },
+        ]
+      : []
   );
 
   const yearDividerShapes: Partial<Plotly.Shape>[] = hasYearGroups

@@ -1,4 +1,4 @@
-import { usePlayroomPlayers } from 'explorviz-frontend/src/components/collaboration/playroom-players-context';
+import { usePlayroomPlayers } from 'explorviz-frontend/src/components/collaboration/playroom-players-context-store';
 import { useRemoteHighlightingStore } from 'explorviz-frontend/src/stores/collaboration/remote-highlighting-store';
 import { myPlayer } from 'playroomkit';
 import { useEffect } from 'react';
@@ -7,9 +7,7 @@ import { useEffect } from 'react';
 export default function CollaborationHighlightingSync() {
   const players = usePlayroomPlayers();
   const me = myPlayer();
-  const setRemoteHighlights = useRemoteHighlightingStore(
-    (state) => state.setRemoteHighlights
-  );
+  const setRemoteHighlights = useRemoteHighlightingStore((state) => state.setRemoteHighlights);
 
   // Whenever a player is changing its state (or a new player joins), recompute the list of remote highlights
   // By completely recomputing the list, all highlights of a user that disconnects are deleted automatically

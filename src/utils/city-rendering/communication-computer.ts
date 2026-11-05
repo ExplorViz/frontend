@@ -1,10 +1,7 @@
 import { useModelStore } from 'explorviz-frontend/src/stores/repos/model-repository';
 import { findFirstEntityWithOpenedParent } from 'explorviz-frontend/src/utils/city-rendering/communication-layouter';
 import AggregatedCommunication from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/aggregated-communication';
-import {
-  Comm,
-  CommSummary,
-} from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/communication';
+import { Comm, CommSummary } from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/communication';
 import {
   FlatLandscape,
   isBuilding,
@@ -12,10 +9,7 @@ import {
   isDistrict,
 } from 'explorviz-frontend/src/utils/landscape-schemes/flat-landscape';
 
-export function computeBuildingCommunication(
-  flatLandscape: FlatLandscape,
-  aggregatedFileCommunication?: CommSummary
-) {
+export function computeBuildingCommunication(flatLandscape: FlatLandscape, aggregatedFileCommunication?: CommSummary) {
   if (
     !aggregatedFileCommunication ||
     !aggregatedFileCommunication.communications ||
@@ -91,25 +85,17 @@ export function computeAggregatedCommunication(allCommunications: Comm[]) {
     const effSourceId = resolveOpenedParent(sourceEntityId);
     const effTargetId = resolveOpenedParent(targetEntityId);
     if (!effSourceId || !effTargetId) {
-      console.error(
-        'Could not find source or target for communication.',
-        effSourceId,
-        effTargetId
-      );
+      console.error('Could not find source or target for communication.', effSourceId, effTargetId);
       return;
     }
 
-    const key =
-      effSourceId <= effTargetId
-        ? `${effSourceId}-${effTargetId}`
-        : `${effTargetId}-${effSourceId}`;
+    const key = effSourceId <= effTargetId ? `${effSourceId}-${effTargetId}` : `${effTargetId}-${effSourceId}`;
 
     if (groupedComms.has(key)) {
       const existing = groupedComms.get(key)!;
       // Aggregate metrics
       Object.entries(comm.metrics).forEach(([metricName, value]) => {
-        existing.metrics[metricName] =
-          (existing.metrics[metricName] || 0) + value;
+        existing.metrics[metricName] = (existing.metrics[metricName] || 0) + value;
       });
       const knownCommIds = seenCommIds.get(key)!;
       if (!knownCommIds.has(comm.id)) {
@@ -119,34 +105,18 @@ export function computeAggregatedCommunication(allCommunications: Comm[]) {
       existing.isBidirectional =
         existing.isBidirectional ||
         comm.isBidirectional ||
-        (existing.sourceEntity.id === effTargetId &&
-          existing.targetEntity.id === effSourceId);
-      existing.isRecursive =
-        existing.isRecursive || effSourceId === effTargetId;
-      existing.fromUnixNano =
-        comm.fromUnixNano < existing.fromUnixNano
-          ? comm.fromUnixNano
-          : existing.fromUnixNano;
-      existing.toUnixNano =
-        comm.toUnixNano > existing.toUnixNano
-          ? comm.toUnixNano
-          : existing.toUnixNano;
+        (existing.sourceEntity.id === effTargetId && existing.targetEntity.id === effSourceId);
+      existing.isRecursive = existing.isRecursive || effSourceId === effTargetId;
+      existing.fromUnixNano = comm.fromUnixNano < existing.fromUnixNano ? comm.fromUnixNano : existing.fromUnixNano;
+      existing.toUnixNano = comm.toUnixNano > existing.toUnixNano ? comm.toUnixNano : existing.toUnixNano;
     } else {
       const sourceEntity = modelStore.getModel(effSourceId);
       const targetEntity = modelStore.getModel(effTargetId);
-      if (
-        !isBuilding(sourceEntity) &&
-        !isDistrict(sourceEntity) &&
-        !isCity(sourceEntity)
-      ) {
+      if (!isBuilding(sourceEntity) && !isDistrict(sourceEntity) && !isCity(sourceEntity)) {
         console.error('No source entity for communication found.');
         return;
       }
-      if (
-        !isBuilding(targetEntity) &&
-        !isDistrict(targetEntity) &&
-        !isCity(targetEntity)
-      ) {
+      if (!isBuilding(targetEntity) && !isDistrict(targetEntity) && !isCity(targetEntity)) {
         console.error('No target entity for communication found.');
         return;
       }
@@ -175,12 +145,8 @@ export function computeAggregatedCommunication(allCommunications: Comm[]) {
   return aggregatedComms;
 }
 
-export function calculateAggregatedCommunications(
-  buildingCommunications?: Comm[]
-) {
-  const comms =
-    buildingCommunications ??
-    useModelStore.getState().getAllBuildingCommunications();
+export function calculateAggregatedCommunications(buildingCommunications?: Comm[]) {
+  const comms = buildingCommunications ?? useModelStore.getState().getAllBuildingCommunications();
 
   if (comms.length === 0) {
     useModelStore.getState().setAggregatedCommunications([]);
@@ -188,8 +154,7 @@ export function calculateAggregatedCommunications(
   }
 
   const getModel = useModelStore.getState().getModel;
-  const telemetryKeyToEntityId =
-    useModelStore.getState().telemetryKeyToEntityId;
+  const telemetryKeyToEntityId = useModelStore.getState().telemetryKeyToEntityId;
 
   const visibleComms = comms.filter((c) => {
     const sourceId = telemetryKeyToEntityId.get(c.sourceEntityKey);
@@ -198,14 +163,10 @@ export function calculateAggregatedCommunications(
   });
 
   const aggregatedCommunications = computeAggregatedCommunication(visibleComms);
-  useModelStore
-    .getState()
-    .setAggregatedCommunications(aggregatedCommunications);
+  useModelStore.getState().setAggregatedCommunications(aggregatedCommunications);
 }
 
-function computeCommunicationMetrics(
-  classCommunications: AggregatedCommunication[]
-) {
+function computeCommunicationMetrics(classCommunications: AggregatedCommunication[]) {
   // Spreading into Math.max overflows the call stack for large landscapes.
   let maxRequests = 0;
   for (const communication of classCommunications) {
@@ -218,8 +179,7 @@ function computeCommunicationMetrics(
   classCommunications.forEach((communication) => {
     const totalRequests = communication.metrics.requestCount || 0;
     if (maxRequests > 0) {
-      communication.metrics.normalizedRequestCount =
-        totalRequests / maxRequests;
+      communication.metrics.normalizedRequestCount = totalRequests / maxRequests;
     } else {
       communication.metrics.normalizedRequestCount = 1;
     }
@@ -231,10 +191,7 @@ export function computeRestructuredAggregatedCommunication(
   classCommunication: AggregatedCommunication[],
   copiedAggregatedCommunications: Map<string, AggregatedCommunication[]>,
   updatedAggregatedCommunications: Map<string, AggregatedCommunication[]>,
-  deletedAggregatedCommunication: Map<
-    string,
-    AggregatedCommunication[]
-  > = new Map()
+  deletedAggregatedCommunication: Map<string, AggregatedCommunication[]> = new Map()
 ) {
   if (classCommunication.length) {
     classCommunication.forEach((comm) => {
@@ -252,16 +209,12 @@ export function computeRestructuredAggregatedCommunication(
     const allDeletedComms: AggregatedCommunication[] = [];
     deletedAggregatedCommunication.forEach((value) => {
       value.forEach((deletedComm) => {
-        const foundComm = classCommunications.filter(
-          (comm) => comm.id === deletedComm.id
-        );
+        const foundComm = classCommunications.filter((comm) => comm.id === deletedComm.id);
         if (foundComm.length) allDeletedComms.push(...foundComm);
       });
     });
 
-    classCommunications = classCommunications.filter(
-      (comm) => !allDeletedComms.includes(comm)
-    );
+    classCommunications = classCommunications.filter((comm) => !allDeletedComms.includes(comm));
   }
 
   if (updatedAggregatedCommunications.size) {
@@ -273,9 +226,7 @@ export function computeRestructuredAggregatedCommunication(
 
     classCommunications = classCommunications.concat(allUpdatedComms);
     const removeUnwantedComms = classCommunications.filter(
-      (comm) =>
-        !comm.sourceEntity.id.includes('removed') &&
-        !comm.targetEntity.id.includes('removed')
+      (comm) => !comm.sourceEntity.id.includes('removed') && !comm.targetEntity.id.includes('removed')
     );
     classCommunications = removeUnwantedComms;
   }

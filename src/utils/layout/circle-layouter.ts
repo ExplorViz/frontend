@@ -1,12 +1,6 @@
 import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
-import {
-  City,
-  FlatLandscape,
-} from 'explorviz-frontend/src/utils/landscape-schemes/flat-landscape';
-import {
-  Application,
-  Package,
-} from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
+import { City, FlatLandscape } from 'explorviz-frontend/src/utils/landscape-schemes/flat-landscape';
+import { Application, Package } from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
 import BoxLayout from 'explorviz-frontend/src/utils/layout/box-layout';
 
 let CITY_LABEL_MARGIN: number;
@@ -37,10 +31,7 @@ export function setCircleLayoutSettings() {
  * Collects all package IDs from an application recursively.
  * Used to remove package layouts from the layout map when circle layout is enabled.
  */
-export function collectPackageIds(
-  application: Application,
-  removedComponentIds: Set<string>
-): Set<string> {
+export function collectPackageIds(application: Application, removedComponentIds: Set<string>): Set<string> {
   const packageIds = new Set<string>();
 
   function collectPackageIdsRecursive(pkg: Package) {
@@ -87,9 +78,7 @@ export function applyCircleLayoutToClasses(
     const appWidth = cityLayout.width;
     const appDepth = cityLayout.depth;
     const radius =
-      Math.min(appWidth, appDepth) * 0.5 -
-      BUILDING_FOOTPRINT / 2 -
-      Math.max(CITY_LABEL_MARGIN, CITY_PADDING);
+      Math.min(appWidth, appDepth) * 0.5 - BUILDING_FOOTPRINT / 2 - Math.max(CITY_LABEL_MARGIN, CITY_PADDING);
 
     // Arrange buildings in a circle with equal angular spacing
     const angleStep = (2 * Math.PI) / buildings.length;
@@ -114,12 +103,8 @@ export function applyCircleLayoutToClasses(
 
       const classAngle = index * angleStep;
 
-      const classX =
-        radius * Math.cos(classAngle) +
-        cityLayout.width / 2 -
-        BUILDING_FOOTPRINT / 2;
-      const classZ =
-        radius * Math.sin(classAngle) + cityLayout.depth / 2 + zMarginOffset;
+      const classX = radius * Math.cos(classAngle) + cityLayout.width / 2 - BUILDING_FOOTPRINT / 2;
+      const classZ = radius * Math.sin(classAngle) + cityLayout.depth / 2 + zMarginOffset;
 
       classLayout.positionX = classX;
       classLayout.positionZ = classZ;

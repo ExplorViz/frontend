@@ -18,10 +18,7 @@ export function getLocalSvgPath(imageHref: string): string | null {
  * Load an SVG from the public directory and return its content.
  * Returns null if the file doesn't exist.
  */
-export async function loadSvg(
-  path: string,
-  diagramColor: string,
-): Promise<string | null> {
+export async function loadSvg(path: string, diagramColor: string): Promise<string | null> {
   if (svgCache.has(path)) {
     const svg = svgCache.get(path) ?? null;
     return svg ? applyColorsToSvg(svg, diagramColor) : null;
@@ -54,9 +51,7 @@ export async function loadSvg(
 export function computeGraphvizViewBox(svgElement: SvgElementNode): string | null {
   const graphGroup = svgElement.children?.find(
     (n): n is SvgElementNode =>
-      n.type === 'element' &&
-      n.tagName === 'g' &&
-      typeof (n as SvgElementNode).properties?.transform === 'string'
+      n.type === 'element' && n.tagName === 'g' && typeof (n as SvgElementNode).properties?.transform === 'string'
   );
   if (!graphGroup) return null;
 
@@ -67,7 +62,10 @@ export function computeGraphvizViewBox(svgElement: SvgElementNode): string | nul
   const tx = parseFloat(m[1]);
   const ty = parseFloat(m[2]);
 
-  let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+  let minX = Infinity,
+    minY = Infinity,
+    maxX = -Infinity,
+    maxY = -Infinity;
 
   function expand(svgX: number, svgY: number) {
     if (!isFinite(svgX) || !isFinite(svgY)) return;
@@ -119,11 +117,7 @@ export function computeGraphvizViewBox(svgElement: SvgElementNode): string | nul
   // Walk all children of the graph group.
   // Skip index 0 when it is the background polygon (full-page white rectangle).
   graphGroup.children?.forEach((child, index) => {
-    if (
-      index === 0 &&
-      child.type === 'element' &&
-      (child as SvgElementNode).tagName === 'polygon'
-    ) {
+    if (index === 0 && child.type === 'element' && (child as SvgElementNode).tagName === 'polygon') {
       return;
     }
     walkNode(child);
@@ -138,16 +132,9 @@ export function computeGraphvizViewBox(svgElement: SvgElementNode): string | nul
 }
 
 /** Graphviz-specific SVG attributes that are not valid HTML/SVG and trigger React DOM warnings. */
-const GRAPHVIZ_ONLY_PROPS = new Set([
-  'fit-margin-top',
-  'fit-margin-bottom',
-  'fit-margin-left',
-  'fit-margin-right',
-]);
+const GRAPHVIZ_ONLY_PROPS = new Set(['fit-margin-top', 'fit-margin-bottom', 'fit-margin-left', 'fit-margin-right']);
 
-export function normalizeSvgProps(
-  props: Record<string, any> = {}
-): Record<string, any> {
+export function normalizeSvgProps(props: Record<string, any> = {}): Record<string, any> {
   const normalized: Record<string, any> = {};
 
   for (const [key, value] of Object.entries(props)) {
@@ -164,9 +151,7 @@ export function normalizeSvgProps(
           value.split(';').forEach((declaration) => {
             const [prop, val] = declaration.split(':');
             if (prop && val) {
-              const camelProp = prop
-                .trim()
-                .replace(/-([a-z])/g, (_, c) => c.toUpperCase());
+              const camelProp = prop.trim().replace(/-([a-z])/g, (_, c) => c.toUpperCase());
               styleObj[camelProp] = val.trim();
             }
           });
@@ -200,32 +185,22 @@ export function decodeXmlEntities(value: string): string {
 }
 
 export function decodeHtmlEntities(str: string): string {
-  return str.replace(/&#(\d+);/g, (_, code) =>
-    String.fromCharCode(Number(code))
-  );
+  return str.replace(/&#(\d+);/g, (_, code) => String.fromCharCode(Number(code)));
 }
 
 export function collectTextFromAnchor(anchor: SvgElementNode): string {
   if (!anchor.children) return '';
 
   return anchor.children
-    .filter(
-      (child): child is SvgElementNode =>
-        child.type === 'element' && child.tagName === 'text'
-    )
+    .filter((child): child is SvgElementNode => child.type === 'element' && child.tagName === 'text')
     .map((textElement) => {
-      const textNode = textElement.children?.find(
-        (c): c is { type: 'text'; value: string } => c.type === 'text'
-      );
+      const textNode = textElement.children?.find((c): c is { type: 'text'; value: string } => c.type === 'text');
       return textNode ? decodeHtmlEntities(textNode.value) : '';
     })
     .join('');
 }
 
-export function findImagesByLabel(
-  root: SvgRootNode,
-  target: string
-): SvgElementNode[] {
+export function findImagesByLabel(root: SvgRootNode, target: string): SvgElementNode[] {
   const results: SvgElementNode[] = [];
 
   function walk(node: SvgNode) {
@@ -234,8 +209,7 @@ export function findImagesByLabel(
         const label = collectTextFromAnchor(node);
         if (label === target) {
           const imageNode = node.children?.find(
-            (c): c is SvgElementNode =>
-              c.type === 'element' && c.tagName === 'image'
+            (c): c is SvgElementNode => c.type === 'element' && c.tagName === 'image'
           );
           if (imageNode) {
             results.push(imageNode);
@@ -251,26 +225,14 @@ export function findImagesByLabel(
 }
 
 /** Apply colors to SVG content by replacing the Kubernetes blue fill/stroke. */
-export function applyColorsToSvg(
-  svgContent: string,
-  diagramColor: string,
-): string {
-  return svgContent.replace(
-    /#326[cC][eE]5[0-9a-fA-F]{0,2}|rgb\s*\(\s*50\s*,\s*108\s*,\s*229\s*\)/gi,
-    diagramColor
-  );
+export function applyColorsToSvg(svgContent: string, diagramColor: string): string {
+  return svgContent.replace(/#326[cC][eE]5[0-9a-fA-F]{0,2}|rgb\s*\(\s*50\s*,\s*108\s*,\s*229\s*\)/gi, diagramColor);
 }
 
 /** Extract all unique local SVG paths referenced by <image> elements in the AST. */
-export function extractLocalSvgPaths(
-  node: SvgNode,
-  paths = new Set<string>()
-): Set<string> {
+export function extractLocalSvgPaths(node: SvgNode, paths = new Set<string>()): Set<string> {
   if (node.type === 'element') {
-    if (
-      node.tagName === 'image' &&
-      (node.properties?.href || node.properties?.['xlink:href'])
-    ) {
+    if (node.tagName === 'image' && (node.properties?.href || node.properties?.['xlink:href'])) {
       const href = node.properties?.href || node.properties?.['xlink:href'];
       const localPath = getLocalSvgPath(href);
       if (localPath) {
@@ -292,7 +254,7 @@ export async function preloadLocalSvgs(
   node: SvgNode,
   diagramColor: string,
   highlightedEntityColor: string,
-  toReactNode: (svg: string) => React.ReactNode,
+  toReactNode: (svg: string) => React.ReactNode
 ): Promise<Map<string, React.ReactNode>> {
   const paths = extractLocalSvgPaths(node);
   const loadedSvgs = new Map<string, React.ReactNode>();
@@ -325,9 +287,5 @@ export async function preloadLocalSvgs(
  */
 export function parseSvgElement(svgString: string): SvgElementNode | null {
   const ast = parse(svgString) as SvgRootNode;
-  return (
-    ast.children.find(
-      (n): n is SvgElementNode => n.type === 'element' && n.tagName === 'svg'
-    ) ?? null
-  );
+  return ast.children.find((n): n is SvgElementNode => n.type === 'element' && n.tagName === 'svg') ?? null;
 }

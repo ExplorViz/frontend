@@ -94,8 +94,7 @@ export default function DualRangeSlider({
       return;
     }
 
-    const newRange: [number, number] =
-      index === 0 ? [newValue, range[1]] : [range[0], newValue];
+    const newRange: [number, number] = index === 0 ? [newValue, range[1]] : [range[0], newValue];
     if (newRange[0] > newRange[1]) {
       setSwapThumbs((state) => !state);
       [newRange[0], newRange[1]] = [newRange[1], newRange[0]];
@@ -120,8 +119,7 @@ export default function DualRangeSlider({
     return clamp(snappedValue, min, max);
   };
 
-  const handleMove = (index: 0 | 1, clientX: number) =>
-    updateValue(index, pointerPositionToValue(clientX));
+  const handleMove = (index: 0 | 1, clientX: number) => updateValue(index, pointerPositionToValue(clientX));
 
   const handleTrackPointerDown = (e: React.PointerEvent<HTMLElement>) => {
     if (disabled) return;
@@ -229,21 +227,9 @@ export default function DualRangeSlider({
         {/* Sort thumbs in DOM for intuitive tab order even after crossover */}
         {range[0] <= range[1] ? thumbs : thumbs.toReversed()}
 
-        {lowerFormName && (
-          <input
-            type="hidden"
-            name={lowerFormName}
-            value={Math.min(range[0], range[1])}
-          />
-        )}
+        {lowerFormName && <input type="hidden" name={lowerFormName} value={Math.min(range[0], range[1])} />}
 
-        {upperFormName && (
-          <input
-            type="hidden"
-            name={upperFormName}
-            value={Math.max(range[0], range[1])}
-          />
-        )}
+        {upperFormName && <input type="hidden" name={upperFormName} value={Math.max(range[0], range[1])} />}
       </div>
     </div>
   );
@@ -265,17 +251,7 @@ interface SliderThumbProps {
   getTooltipText?: (value: number) => string;
 }
 
-function SliderThumb({
-  value,
-  min,
-  max,
-  step,
-  disabled,
-  ref,
-  onMove,
-  onStep,
-  getTooltipText,
-}: SliderThumbProps) {
+function SliderThumb({ value, min, max, step, disabled, ref, onMove, onStep, getTooltipText }: SliderThumbProps) {
   const [isDragging, setIsDragging] = useState<boolean>(false);
   const [pointerIds, setPointerIds] = useState<Set<number>>(() => new Set());
 
@@ -330,9 +306,7 @@ function SliderThumb({
   };
 
   const handlePointerUp: React.PointerEventHandler<HTMLElement> = (e) => {
-    setPointerIds(
-      (state) => new Set([...state].filter((v) => v !== e.pointerId))
-    );
+    setPointerIds((state) => new Set([...state].filter((v) => v !== e.pointerId)));
     const thumbDiv = thumbDivRef.current;
     if (thumbDiv && thumbDiv.hasPointerCapture(e.pointerId)) {
       thumbDiv.releasePointerCapture(e.pointerId);
@@ -377,9 +351,7 @@ function SliderThumb({
         trigger={['focus']}
         overlay={(props) => {
           popperRef.current = props.popper;
-          return (
-            <Tooltip {...props}>{getTooltipText?.(value) ?? value}</Tooltip>
-          );
+          return <Tooltip {...props}>{getTooltipText?.(value) ?? value}</Tooltip>;
         }}
       >
         <div

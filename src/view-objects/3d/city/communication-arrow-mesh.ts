@@ -56,11 +56,7 @@ export default class CommunicationArrowMesh extends BaseMesh {
     }
   }
 
-  setLength(
-    length: number,
-    headLength = length * 0.2,
-    headWidth = headLength * 0.2
-  ) {
+  setLength(length: number, headLength = length * 0.2, headWidth = headLength * 0.2) {
     this.scale.set(headWidth, headLength, headWidth);
     this.updateMatrix();
   }
@@ -99,11 +95,7 @@ export default class CommunicationArrowMesh extends BaseMesh {
     if (arg === 'vr' && !this.isHovered) {
       this.isHovered = true;
       this.position.y += this.HOVER_Y_TRANSLATION;
-      this.scale.set(
-        this.HOVER_SCALE_FACTOR,
-        this.HOVER_SCALE_FACTOR,
-        this.HOVER_SCALE_FACTOR
-      );
+      this.scale.set(this.HOVER_SCALE_FACTOR, this.HOVER_SCALE_FACTOR, this.HOVER_SCALE_FACTOR);
     }
   }
 

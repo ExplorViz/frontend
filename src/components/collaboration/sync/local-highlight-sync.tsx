@@ -7,12 +7,8 @@ import { useEffect, useRef } from 'react';
 // This component functions as a middleware: It combines the local and remote highlights into a single list that is read by the renderer
 export default function LocalHighlightSync() {
   const me = myPlayer();
-  const localHighlights = useLocalHighlightStore(
-    (state) => state.localHighlightedIds
-  );
-  const remoteHighlights = useRemoteHighlightingStore(
-    (state) => state.remoteHighlights
-  );
+  const localHighlights = useLocalHighlightStore((state) => state.localHighlightedIds);
+  const remoteHighlights = useRemoteHighlightingStore((state) => state.remoteHighlights);
 
   const lastCombinedRef = useRef<string>('');
 

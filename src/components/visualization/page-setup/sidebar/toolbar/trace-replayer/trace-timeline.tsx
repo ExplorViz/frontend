@@ -13,14 +13,7 @@ interface TraceTimelineProps {
   callback: (cursor: number) => void;
 }
 
-export default function TraceTimeline({
-  timeline,
-  select,
-  cursor,
-  observer,
-  selection,
-  callback,
-}: TraceTimelineProps) {
+export default function TraceTimeline({ timeline, select, cursor, observer, selection, callback }: TraceTimelineProps) {
   const divRef = useRef<HTMLDivElement | null>(null);
   const { cursor: storeCursor, setCursor } = useTraceReplayStore(
     useShallow((state) => ({
@@ -36,8 +29,7 @@ export default function TraceTimeline({
     scrollZoom: false,
   };
 
-  const max =
-    timeline.length === 0 ? 0 : Math.max(...timeline.map((node) => node.end));
+  const max = timeline.length === 0 ? 0 : Math.max(...timeline.map((node) => node.end));
 
   const data = [
     {
@@ -171,14 +163,8 @@ export default function TraceTimeline({
 
       return () => {
         if (divRef.current) {
-          (divRef.current as any).removeEventListener(
-            'plotly_click',
-            handleClick
-          );
-          (divRef.current as any).removeEventListener(
-            'plotly_selected',
-            handleSelect
-          );
+          (divRef.current as any).removeEventListener('plotly_click', handleClick);
+          (divRef.current as any).removeEventListener('plotly_selected', handleSelect);
         }
       };
     }

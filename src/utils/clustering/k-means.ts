@@ -1,9 +1,6 @@
 import * as THREE from 'three';
 import { ClusterCentroid } from '../../stores/cluster-store';
-import {
-  getWorldPositionOfModel,
-  getWorldPositionsForEntities,
-} from '../layout-helper';
+import { getWorldPositionOfModel, getWorldPositionsForEntities } from '../layout-helper';
 
 export interface ClusteringResult {
   entityToCluster: Map<string, number>;
@@ -27,10 +24,7 @@ export const MAX_CLUSTER_COUNT = 500;
  * Maps a normalized cluster-count setting (0 = one cluster, 1 = one cluster
  * per entity) to an absolute cluster count, capped at `MAX_CLUSTER_COUNT`.
  */
-export function computeClusterCount(
-  n: number,
-  normalizedClusterCount: number
-): number {
+export function computeClusterCount(n: number, normalizedClusterCount: number): number {
   const normalized = Math.max(0, Math.min(1, normalizedClusterCount));
   const uncapped = 1 + Math.floor(normalized * (n - 1));
   return Math.max(1, Math.min(n, MAX_CLUSTER_COUNT, uncapped));
@@ -39,20 +33,14 @@ export function computeClusterCount(
 /**
  * Calculates the Euclidean distance between two 3D points
  */
-function euclideanDistance(
-  point1: THREE.Vector3,
-  point2: THREE.Vector3
-): number {
+function euclideanDistance(point1: THREE.Vector3, point2: THREE.Vector3): number {
   return point1.distanceTo(point2);
 }
 
 /**
  * Initializes k centroids using the k-means++ initialization algorithm.
  */
-function initializeCentroids(
-  points: THREE.Vector3[],
-  k: number
-): THREE.Vector3[] {
+function initializeCentroids(points: THREE.Vector3[], k: number): THREE.Vector3[] {
   if (points.length === 0 || k === 0) {
     return [];
   }
@@ -104,10 +92,7 @@ function initializeCentroids(
 /**
  * Assigns each point to the nearest centroid
  */
-function assignClusters(
-  points: THREE.Vector3[],
-  centroids: THREE.Vector3[]
-): number[] {
+function assignClusters(points: THREE.Vector3[], centroids: THREE.Vector3[]): number[] {
   const assignments: number[] = [];
 
   for (const point of points) {
@@ -131,11 +116,7 @@ function assignClusters(
 /**
  * Updates centroids based on current cluster assignments
  */
-function updateCentroids(
-  points: THREE.Vector3[],
-  assignments: number[],
-  k: number
-): THREE.Vector3[] {
+function updateCentroids(points: THREE.Vector3[], assignments: number[], k: number): THREE.Vector3[] {
   const newCentroids: THREE.Vector3[] = [];
   const clusterSums: THREE.Vector3[] = [];
   const clusterCounts: number[] = [];
@@ -169,11 +150,7 @@ function updateCentroids(
 /**
  * Checks if centroids have converged (changed less than threshold)
  */
-function hasConverged(
-  oldCentroids: THREE.Vector3[],
-  newCentroids: THREE.Vector3[],
-  threshold: number = 0.01
-): boolean {
+function hasConverged(oldCentroids: THREE.Vector3[], newCentroids: THREE.Vector3[], threshold: number = 0.01): boolean {
   if (oldCentroids.length !== newCentroids.length) {
     return false;
   }
@@ -243,10 +220,7 @@ export function kMeansClustering(
  *   - 1 = one cluster per entity, up to `MAX_CLUSTER_COUNT` (see there)
  * @returns Clustering result with entity-to-cluster mapping and centroids
  */
-export function clusterEntities(
-  entityIds: string[],
-  normalizedClusterCount: number = 0.3
-): ClusteringResult {
+export function clusterEntities(entityIds: string[], normalizedClusterCount: number = 0.3): ClusteringResult {
   if (entityIds.length === 0) {
     return {
       entityToCluster: new Map<string, number>(),
@@ -309,10 +283,7 @@ export function clusterEntities(
 // ---------------------------------------------------------------------------
 
 interface WorkerRequest {
-  resolve: (result: {
-    assignments: Int32Array;
-    centroids: Float32Array;
-  }) => void;
+  resolve: (result: { assignments: Int32Array; centroids: Float32Array }) => void;
   reject: (err: Error) => void;
 }
 
@@ -373,9 +344,7 @@ function kMeansClusteringAsync(
     const worker = getWorker();
     const id = _nextId++;
     _pending.set(id, { resolve, reject });
-    worker.postMessage({ id, points, k, maxIterations, convergenceThreshold }, [
-      points.buffer,
-    ]);
+    worker.postMessage({ id, points, k, maxIterations, convergenceThreshold }, [points.buffer]);
   });
 }
 
@@ -413,10 +382,7 @@ export async function clusterEntitiesAsync(
   const k = computeClusterCount(n, normalizedClusterCount);
 
   // Run k-means off the main thread; `positions` buffer is transferred
-  const { assignments, centroids: rawCentroids } = await kMeansClusteringAsync(
-    positions,
-    k
-  );
+  const { assignments, centroids: rawCentroids } = await kMeansClusteringAsync(positions, k);
 
   // Rebuild typed results as Maps with THREE.Vector3 centroids
   const entityToCluster = new Map<string, number>();
@@ -428,11 +394,7 @@ export async function clusterEntitiesAsync(
   for (let i = 0; i < k; i++) {
     centroidsMap.set(i, {
       id: i,
-      position: new THREE.Vector3(
-        rawCentroids[i * 3],
-        rawCentroids[i * 3 + 1],
-        rawCentroids[i * 3 + 2]
-      ),
+      position: new THREE.Vector3(rawCentroids[i * 3], rawCentroids[i * 3 + 1], rawCentroids[i * 3 + 2]),
     });
   }
 

@@ -8,21 +8,16 @@ import { useEffect, useRef } from 'react';
 import { useShallow } from 'zustand/react/shallow';
 
 export default function SocialMetricsPanel() {
-  const {
-    contributors,
-    selectedContributorIds,
-    selectedTimeRange,
-    normalization,
-    updateSocialMetrics,
-  } = useSocialMetricsStore(
-    useShallow((state) => ({
-      contributors: state.contributors,
-      selectedContributorIds: state.selectedContributorIds,
-      selectedTimeRange: state.selectedTimeRange,
-      normalization: state.normalization,
-      updateSocialMetrics: state.updateSocialMetrics,
-    }))
-  );
+  const { contributors, selectedContributorIds, selectedTimeRange, normalization, updateSocialMetrics } =
+    useSocialMetricsStore(
+      useShallow((state) => ({
+        contributors: state.contributors,
+        selectedContributorIds: state.selectedContributorIds,
+        selectedTimeRange: state.selectedTimeRange,
+        normalization: state.normalization,
+        updateSocialMetrics: state.updateSocialMetrics,
+      }))
+    );
 
   const didMountRef = useRef(false);
   useEffect(() => {
@@ -35,19 +30,12 @@ export default function SocialMetricsPanel() {
       updateSocialMetrics();
     }, 300);
     return () => clearTimeout(t);
-  }, [
-    selectedContributorIds,
-    selectedTimeRange,
-    normalization,
-    updateSocialMetrics,
-  ]);
+  }, [selectedContributorIds, selectedTimeRange, normalization, updateSocialMetrics]);
 
   if (contributors.length === 0) {
     return (
       <div className="timeline-no-timestamps-outer">
-        <div className="timeline-no-timestamps-inner">
-          No contributor data is available
-        </div>
+        <div className="timeline-no-timestamps-inner">No contributor data is available</div>
       </div>
     );
   }

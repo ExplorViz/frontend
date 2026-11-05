@@ -14,7 +14,7 @@ import { useVisualizationStore } from 'explorviz-frontend/src/stores/visualizati
 import { isDistrictOpen } from 'explorviz-frontend/src/utils/city-rendering/district-close-state';
 import * as EntityManipulation from 'explorviz-frontend/src/utils/city-rendering/entity-manipulation';
 import { isDistrictVisible } from 'explorviz-frontend/src/utils/city-rendering/entity-visibility';
-import { useSharedEntityVisibilityContext } from 'explorviz-frontend/src/utils/city-rendering/entity-visibility-provider';
+import { useSharedEntityVisibilityContext } from 'explorviz-frontend/src/utils/city-rendering/entity-visibility-provider-store';
 import { getHighlightingColorForEntity } from 'explorviz-frontend/src/utils/city-rendering/highlighting';
 import { emitContextMenuFromWorld } from 'explorviz-frontend/src/utils/context-menu-bridge';
 import calculateColorBrightness from 'explorviz-frontend/src/utils/helpers/threejs-helpers';
@@ -23,14 +23,7 @@ import { TypeOfAnalysis } from 'explorviz-frontend/src/utils/landscape-schemes/s
 import BoxLayout from 'explorviz-frontend/src/utils/layout/box-layout';
 import gsap from 'gsap';
 import { forwardRef, useCallback, useEffect, useMemo, useRef } from 'react';
-import {
-  BoxGeometry,
-  Color,
-  Matrix4,
-  MeshLambertMaterial,
-  Quaternion,
-  Vector3,
-} from 'three';
+import { BoxGeometry, Color, Matrix4, MeshLambertMaterial, Quaternion, Vector3 } from 'three';
 import { useShallow } from 'zustand/react/shallow';
 
 // add InstancedMesh2 to the jsx catalog i.e use it as a jsx component
@@ -54,611 +47,542 @@ function killAllTweens(tweens: Map<string, gsap.core.Tween>) {
 }
 
 // eslint-disable-next-line
-const CityDistricts = forwardRef<InstancedMesh2, Args>(
-  ({ districtIds, layoutMap, city }, ref) => {
-    const geometry = useRef<BoxGeometry>(new BoxGeometry());
-    const material = useRef<MeshLambertMaterial>(new MeshLambertMaterial());
+const CityDistricts = forwardRef<InstancedMesh2, Args>(({ districtIds, layoutMap, city }, ref) => {
+  const geometry = useRef<BoxGeometry>(new BoxGeometry());
+  const material = useRef<MeshLambertMaterial>(new MeshLambertMaterial());
 
-    const instanceIdToDistrictId = useMemo(() => new Map<number, string>(), []);
-    const districtIdToInstanceId = useMemo(() => new Map<string, number>(), []);
+  const instanceIdToDistrictId = useMemo(() => new Map<number, string>(), []);
+  const districtIdToInstanceId = useMemo(() => new Map<string, number>(), []);
 
-    const meshRef = useRef<InstancedMesh2 | null>(null);
+  const meshRef = useRef<InstancedMesh2 | null>(null);
 
-    const activeTweens = useRef(new Map<string, gsap.core.Tween>());
+  const activeTweens = useRef(new Map<string, gsap.core.Tween>());
 
-    useEffect(() => {
-      const tweens = activeTweens.current;
-      return () => killAllTweens(tweens);
-    }, []);
+  useEffect(() => {
+    const tweens = activeTweens.current;
+    return () => killAllTweens(tweens);
+  }, []);
 
-    const {
-      closedDistrictIds,
-      highlightedEntityIds,
-      hoveredEntityId,
-      setHoveredEntity,
-    } = useVisualizationStore(
-      useShallow((state) => ({
-        closedDistrictIds: state.closedDistrictIds,
-        highlightedEntityIds: state.highlightedEntityIds,
-        hoveredEntityId: state.hoveredEntityId,
-        setHoveredEntity: state.actions.setHoveredEntityId,
-      }))
-    );
+  const { closedDistrictIds, highlightedEntityIds, hoveredEntityId, setHoveredEntity } = useVisualizationStore(
+    useShallow((state) => ({
+      closedDistrictIds: state.closedDistrictIds,
+      highlightedEntityIds: state.highlightedEntityIds,
+      hoveredEntityId: state.hoveredEntityId,
+      setHoveredEntity: state.actions.setHoveredEntityId,
+    }))
+  );
 
-    const visibilityContext = useSharedEntityVisibilityContext();
+  const visibilityContext = useSharedEntityVisibilityContext();
 
-    const visibilityContextRef = useRef(visibilityContext);
-    visibilityContextRef.current = visibilityContext;
+  const visibilityContextRef = useRef(visibilityContext);
+  visibilityContextRef.current = visibilityContext;
 
-    const {
-      castShadows,
-      closedDistrictHeight,
-      districtRootLevelColor,
-      districtDeepestLevelColor,
-      districtColorOverrides,
-      enableAnimations,
-      enableHoverEffects,
-      highlightedEntityColor,
-      openedDistrictHeight,
+  const {
+    castShadows,
+    closedDistrictHeight,
+    districtRootLevelColor,
+    districtDeepestLevelColor,
+    districtColorOverrides,
+    enableAnimations,
+    enableHoverEffects,
+    highlightedEntityColor,
+    openedDistrictHeight,
+    addedDistrictColor,
+    removedDistrictColor,
+    unchangedDistrictColor,
+    animationDuration,
+    entityOpacity,
+  } = useUserSettingsStore(
+    useShallow((state) => ({
+      castShadows: state.visualizationSettings.castShadows.value,
+      highlightedEntityColor: state.visualizationSettings.highlightedEntityColor.value,
+      districtRootLevelColor: state.visualizationSettings.districtRootLevelColor.value,
+      districtDeepestLevelColor: state.visualizationSettings.districtDeepestLevelColor.value,
+      districtColorOverrides: state.visualizationSettings.districtColorOverrides,
+      closedDistrictHeight: state.visualizationSettings.closedDistrictHeight.value,
+      openedDistrictHeight: state.visualizationSettings.openedDistrictHeight.value,
+      enableAnimations: state.visualizationSettings.enableAnimations.value,
+      enableHoverEffects: state.visualizationSettings.enableHoverEffects.value,
+      addedDistrictColor: state.visualizationSettings.addedDistrictColor.value,
+      removedDistrictColor: state.visualizationSettings.removedDistrictColor.value,
+      unchangedDistrictColor: state.visualizationSettings.unchangedDistrictColor.value,
+      animationDuration: state.visualizationSettings.animationDuration.value,
+      entityOpacity: state.visualizationSettings.entityOpacity.value,
+    }))
+  );
+
+  const isCollaborationConnected = usePlayroomConnectionStore((state) => state.isConnected);
+  const remoteHighlights = useRemoteHighlightingStore((state) => state.remoteHighlights);
+
+  const { heatmapActive, selectedBuildingMetric } = useHeatmapStore(
+    useShallow((state) => ({
+      heatmapActive: state.isActive(),
+      selectedBuildingMetric: state.getSelectedBuildingMetric(),
+    }))
+  );
+
+  const { evoConfig } = useVisibilityServiceStore(
+    useShallow((state) => ({
+      evoConfig: state._evolutionModeRenderingConfiguration,
+    }))
+  );
+
+  const _selectedCommits = useCommitTreeStateStore((state) => state._selectedCommits);
+  const currentSelectedRepo = useCommitTreeStateStore((state) => state._currentSelectedRepositoryName);
+
+  const isDiffMode = (_selectedCommits.get(currentSelectedRepo)?.length || 0) === 2;
+
+  const { addPopup } = usePopupHandlerStore(
+    useShallow((state) => ({
+      addPopup: state.addPopup,
+    }))
+  );
+
+  const sceneLayers = useVisualizationStore((state) => state.sceneLayers);
+
+  const districts = useModelStore((state) => state.districts);
+
+  const computeColor = useCallback(
+    (districtId: string) => {
+      const district = districts[districtId];
+      if (!district) return new Color('white');
+
+      if (heatmapActive) {
+        return new Color('white');
+      }
+
+      if ((isDiffMode || evoConfig.renderOnlyDifferences) && district.commitComparison) {
+        if (district.commitComparison === 'ADDED') {
+          return new Color(addedDistrictColor);
+        } else if (district.commitComparison === 'REMOVED') {
+          return new Color(removedDistrictColor);
+        } else {
+          return new Color(unchangedDistrictColor);
+        }
+      }
+
+      if (district.originOfData === TypeOfAnalysis.Editing) {
+        return new Color(addedDistrictColor);
+      }
+
+      const isHovered = hoveredEntityId === districtId;
+      const isHighlighted = highlightedEntityIds.has(districtId);
+
+      const layout = layoutMap.get(districtId);
+      if (!layout) return new Color('white');
+
+      const colorOverride = districtColorOverrides.value.modelType[district.type];
+
+      let baseColor: Color;
+      if (isHighlighted) {
+        baseColor = getHighlightingColorForEntity(districtId);
+      } else {
+        // If a color override is set (which defines just one color),
+        // we simply brighten that color up for the depth gradient
+        const rootColor = new Color(colorOverride ?? districtRootLevelColor);
+        const deepestColor = colorOverride
+          ? new Color(colorOverride).offsetHSL(0, 0, 0.35)
+          : new Color(districtDeepestLevelColor);
+
+        // Calculate gradient color based on level
+        const rootLevel = 1;
+        const deepestLevel = useLayoutStore.getState().maxDistrictDepth ?? 20;
+        if (rootLevel === deepestLevel) {
+          // All districts are at the same level, use top level color
+          baseColor = new Color(districtRootLevelColor);
+        } else {
+          // Interpolate between top and deepest level colors
+          const alpha = (layout.level - rootLevel) / (deepestLevel - rootLevel); // 0.0 to 1.0
+          baseColor = rootColor.clone().lerp(deepestColor, alpha);
+        }
+      }
+
+      if (enableHoverEffects && isHovered) {
+        return calculateColorBrightness(baseColor, 1.1);
+      } else {
+        return baseColor;
+      }
+    },
+    [
       addedDistrictColor,
       removedDistrictColor,
       unchangedDistrictColor,
-      animationDuration,
-      entityOpacity,
-    } = useUserSettingsStore(
-      useShallow((state) => ({
-        castShadows: state.visualizationSettings.castShadows.value,
-        highlightedEntityColor:
-          state.visualizationSettings.highlightedEntityColor.value,
-        districtRootLevelColor:
-          state.visualizationSettings.districtRootLevelColor.value,
-        districtDeepestLevelColor:
-          state.visualizationSettings.districtDeepestLevelColor.value,
-        districtColorOverrides:
-          state.visualizationSettings.districtColorOverrides,
-        closedDistrictHeight:
-          state.visualizationSettings.closedDistrictHeight.value,
-        openedDistrictHeight:
-          state.visualizationSettings.openedDistrictHeight.value,
-        enableAnimations: state.visualizationSettings.enableAnimations.value,
-        enableHoverEffects:
-          state.visualizationSettings.enableHoverEffects.value,
-        addedDistrictColor:
-          state.visualizationSettings.addedDistrictColor.value,
-        removedDistrictColor:
-          state.visualizationSettings.removedDistrictColor.value,
-        unchangedDistrictColor:
-          state.visualizationSettings.unchangedDistrictColor.value,
-        animationDuration: state.visualizationSettings.animationDuration.value,
-        entityOpacity: state.visualizationSettings.entityOpacity.value,
-      }))
-    );
-
-    const isCollaborationConnected = usePlayroomConnectionStore(
-      (state) => state.isConnected
-    );
-    const remoteHighlights = useRemoteHighlightingStore(
-      (state) => state.remoteHighlights
-    );
-
-    const { heatmapActive, selectedBuildingMetric } = useHeatmapStore(
-      useShallow((state) => ({
-        heatmapActive: state.isActive(),
-        selectedBuildingMetric: state.getSelectedBuildingMetric(),
-      }))
-    );
-
-    const { evoConfig } = useVisibilityServiceStore(
-      useShallow((state) => ({
-        evoConfig: state._evolutionModeRenderingConfiguration,
-      }))
-    );
-
-    const _selectedCommits = useCommitTreeStateStore(
-      (state) => state._selectedCommits
-    );
-    const currentSelectedRepo = useCommitTreeStateStore(
-      (state) => state._currentSelectedRepositoryName
-    );
-
-    const isDiffMode =
-      (_selectedCommits.get(currentSelectedRepo)?.length || 0) === 2;
-
-    const { addPopup } = usePopupHandlerStore(
-      useShallow((state) => ({
-        addPopup: state.addPopup,
-      }))
-    );
-
-    const sceneLayers = useVisualizationStore((state) => state.sceneLayers);
-
-    const districts = useModelStore((state) => state.districts);
-
-    const computeColor = useCallback(
-      (districtId: string) => {
-        const district = districts[districtId];
-        if (!district) return new Color('white');
-
-        if (heatmapActive) {
-          return new Color('white');
-        }
-
-        if (
-          (isDiffMode || evoConfig.renderOnlyDifferences) &&
-          district.commitComparison
-        ) {
-          if (district.commitComparison === 'ADDED') {
-            return new Color(addedDistrictColor);
-          } else if (district.commitComparison === 'REMOVED') {
-            return new Color(removedDistrictColor);
-          } else {
-            return new Color(unchangedDistrictColor);
-          }
-        }
-
-        if (district.originOfData === TypeOfAnalysis.Editing) {
-          return new Color(addedDistrictColor);
-        }
-
-        const isHovered = hoveredEntityId === districtId;
-        const isHighlighted = highlightedEntityIds.has(districtId);
-
-        const layout = layoutMap.get(districtId);
-        if (!layout) return new Color('white');
-
-        const colorOverride =
-          districtColorOverrides.value.modelType[district.type];
-
-        let baseColor: Color;
-        if (isHighlighted) {
-          baseColor = getHighlightingColorForEntity(districtId);
-        } else {
-          // If a color override is set (which defines just one color),
-          // we simply brighten that color up for the depth gradient
-          const rootColor = new Color(colorOverride ?? districtRootLevelColor);
-          const deepestColor = colorOverride
-            ? new Color(colorOverride).offsetHSL(0, 0, 0.35)
-            : new Color(districtDeepestLevelColor);
-
-          // Calculate gradient color based on level
-          const rootLevel = 1;
-          const deepestLevel = useLayoutStore.getState().maxDistrictDepth ?? 20;
-          if (rootLevel === deepestLevel) {
-            // All districts are at the same level, use top level color
-            baseColor = new Color(districtRootLevelColor);
-          } else {
-            // Interpolate between top and deepest level colors
-            const alpha =
-              (layout.level - rootLevel) / (deepestLevel - rootLevel); // 0.0 to 1.0
-            baseColor = rootColor.clone().lerp(deepestColor, alpha);
-          }
-        }
-
-        if (enableHoverEffects && isHovered) {
-          return calculateColorBrightness(baseColor, 1.1);
-        } else {
-          return baseColor;
-        }
-      },
-      [
-        addedDistrictColor,
-        removedDistrictColor,
-        unchangedDistrictColor,
-        districtRootLevelColor,
-        districtDeepestLevelColor,
-        districtColorOverrides,
-        enableHoverEffects,
-        hoveredEntityId,
-        highlightedEntityIds,
-        heatmapActive,
-        layoutMap,
-        evoConfig.renderOnlyDifferences,
-        isDiffMode,
-        districts,
-      ]
-    );
-
-    const computeInstances = useCallback(() => {
-      // Early return
-      if (ref === null || typeof ref === 'function') {
-        return;
-      }
-      if (!meshRef.current) return;
-      killAllTweens(activeTweens.current);
-      meshRef.current.clearInstances();
-      instanceIdToDistrictId.clear();
-      districtIdToInstanceId.clear();
-
-      const configuredDistrictIds = districtIds.filter((districtId) => {
-        const district = useModelStore.getState().getDistrict(districtId);
-        return district != null && layoutMap.has(districtId);
-      });
-
-      if (configuredDistrictIds.length === 0) {
-        return;
-      }
-
-      const mesh = meshRef.current.addInstances(
-        configuredDistrictIds.length,
-        (obj, index) => {
-          const districtId = configuredDistrictIds[index];
-          const district = useModelStore.getState().getDistrict(districtId);
-          if (!district) {
-            obj.visible = false;
-            return;
-          }
-
-          const layout = layoutMap.get(district.id);
-          if (!layout) {
-            obj.visible = false;
-            return;
-          }
-
-          instanceIdToDistrictId.set(obj.id, district.id);
-          districtIdToInstanceId.set(district.id, obj.id);
-
-          const isOpen = isDistrictOpen(district.id, closedDistrictIds);
-
-          const closedPosition = layout.center.clone();
-          // Y-Position of layout is center of opened district
-          closedPosition.y = layout.positionY + closedDistrictHeight / 2;
-
-          if (isOpen) {
-            obj.position.set(layout.center.x, layout.center.y, layout.center.z);
-          } else {
-            obj.position.set(
-              closedPosition.x,
-              closedPosition.y,
-              closedPosition.z
-            );
-          }
-
-          obj.scale.set(
-            layout.width,
-            isOpen ? openedDistrictHeight : closedDistrictHeight,
-            layout.depth
-          );
-          obj.visible = isDistrictVisible(
-            district.id,
-            visibilityContextRef.current
-          );
-          obj.color = computeColor(district.id);
-          obj.updateMatrix();
-        }
-      );
-      mesh.computeBVH();
-
-      meshRef.current.userData.explorvizResolveDistrictId = (
-        meshInstanceId: number
-      ) => instanceIdToDistrictId.get(meshInstanceId);
-    }, [
-      ref,
-      districtIds,
-      layoutMap,
-      closedDistrictIds,
-      closedDistrictHeight,
-      openedDistrictHeight,
-      computeColor,
-      districtIdToInstanceId,
-      instanceIdToDistrictId,
-    ]);
-
-    const animateDistrictChange = useCallback(() => {
-      const currentMeshRef = meshRef.current;
-      if (!currentMeshRef) return;
-
-      instanceIdToDistrictId.forEach((districtId, instanceId) => {
-        const tempMatrix = new Matrix4();
-        const pos = new Vector3();
-        const quat = new Quaternion();
-        const scale = new Vector3();
-
-        const isOpen = isDistrictOpen(districtId, closedDistrictIds);
-
-        // target values based on layout / district state
-        const layout = layoutMap.get(districtId);
-        if (!layout) {
-          currentMeshRef.setVisibilityAt(instanceId, false);
-          return;
-        }
-
-        const targetPositionX = layout.center.x;
-        const targetPositionY = isOpen
-          ? layout.center.y
-          : layout.positionY + closedDistrictHeight / 2;
-        const targetPositionZ = layout.center.z;
-        const targetWidth = layout.width;
-        const targetDepth = layout.depth;
-        const targetHeight = isOpen
-          ? openedDistrictHeight
-          : closedDistrictHeight;
-
-        activeTweens.current.get(districtId)?.kill();
-        activeTweens.current.delete(districtId);
-
-        try {
-          currentMeshRef.getMatrixAt(instanceId, tempMatrix);
-        } catch (err) {
-          console.error('Failed to get matrix at', instanceId, err);
-          return;
-        }
-        tempMatrix.decompose(pos, quat, scale);
-
-        const isUninitialized =
-          pos.x === 0 &&
-          pos.y === 0 &&
-          pos.z === 0 &&
-          scale.x === 1 &&
-          scale.y === 1 &&
-          scale.z === 1;
-        if (isUninitialized) {
-          pos.set(targetPositionX, targetPositionY, targetPositionZ);
-          scale.set(targetWidth, targetHeight, targetDepth);
-          tempMatrix.compose(pos, quat, scale);
-          currentMeshRef.setMatrixAt(instanceId, tempMatrix);
-          return;
-        }
-
-        // skip animation if nothing changed for the district instance
-        if (
-          pos.x === targetPositionX &&
-          pos.y === targetPositionY &&
-          pos.z === targetPositionZ &&
-          scale.x === targetWidth &&
-          scale.y === targetHeight &&
-          scale.z === targetDepth
-        ) {
-          return;
-        }
-
-        // current values for animation
-        const values = {
-          width: scale.x,
-          depth: scale.z,
-          height: scale.y,
-          positionX: pos.x,
-          positionY: pos.y,
-          positionZ: pos.z,
-        };
-
-        const tween: gsap.core.Tween = gsap.to(values, {
-          duration: animationDuration,
-          // animate to target
-          width: targetWidth,
-          height: targetHeight,
-          depth: targetDepth,
-          positionX: targetPositionX,
-          positionY: targetPositionY,
-          positionZ: targetPositionZ,
-          onComplete: () => {
-            if (activeTweens.current.get(districtId) === tween) {
-              activeTweens.current.delete(districtId);
-            }
-          },
-          onUpdate: () => {
-            // update local pos/scale, compose matrix and write back
-            scale.x = values.width;
-            scale.y = values.height;
-            scale.z = values.depth;
-            pos.x = values.positionX;
-            pos.y = values.positionY;
-            pos.z = values.positionZ;
-            tempMatrix.compose(pos, quat, scale);
-            // use captured currentMeshRef to avoid stale ref issues
-            currentMeshRef.setMatrixAt(instanceId, tempMatrix);
-          },
-        });
-        activeTweens.current.set(districtId, tween);
-      });
-    }, [
-      closedDistrictIds,
-      layoutMap,
-      closedDistrictHeight,
-      openedDistrictHeight,
-      animationDuration,
-      instanceIdToDistrictId,
-    ]);
-
-    useEffect(() => {
-      if (ref === null || typeof ref === 'function' || !meshRef.current) {
-        return;
-      }
-
-      const configuredDistrictIds = districtIds.filter((districtId) => {
-        const district = useModelStore.getState().getDistrict(districtId);
-        return district != null && layoutMap.has(districtId);
-      });
-
-      const instancesMatchDistricts =
-        configuredDistrictIds.length > 0 &&
-        districtIdToInstanceId.size === configuredDistrictIds.length &&
-        configuredDistrictIds.every((districtId) =>
-          districtIdToInstanceId.has(districtId)
-        );
-      if (instancesMatchDistricts && enableAnimations) {
-        animateDistrictChange();
-      } else {
-        computeInstances();
-      }
-    }, [
-      districtIds,
-      layoutMap,
-      closedDistrictIds,
-      enableAnimations,
-      animateDistrictChange,
-      computeInstances,
-      ref,
-      districtIdToInstanceId.size,
-    ]);
-
-    useEffect(() => {
-      if (ref === null || typeof ref === 'function' || !meshRef.current) {
-        return;
-      }
-      districtIdToInstanceId.forEach((instanceId, districtId) => {
-        meshRef.current?.setVisibilityAt(
-          instanceId,
-          isDistrictVisible(districtId, visibilityContext)
-        );
-      });
-    }, [
-      visibilityContext,
-      ref,
-      districtIds,
-      districtIdToInstanceId,
-      districtIdToInstanceId.size,
-    ]);
-
-    useEffect(() => {
-      if (ref === null || typeof ref === 'function') {
-        return;
-      }
-      if (!meshRef.current) return;
-
-      // only compute the bvh on mount
-      meshRef.current.computeBVH();
-    }, [ref]);
-
-    useEffect(() => {
-      material.current.transparent = entityOpacity < 1.0;
-      material.current.opacity = entityOpacity;
-      material.current.needsUpdate = true;
-    }, [entityOpacity, material]);
-
-    useEffect(() => {
-      if (ref === null || typeof ref === 'function' || !meshRef.current) {
-        return;
-      }
-      districtIdToInstanceId.forEach((instanceId, districtId) => {
-        meshRef.current?.setColorAt(instanceId, computeColor(districtId));
-      });
-    }, [
-      highlightedEntityIds,
-      highlightedEntityColor,
-      isCollaborationConnected,
-      remoteHighlights,
-      hoveredEntityId,
-      heatmapActive,
-      selectedBuildingMetric,
       districtRootLevelColor,
       districtDeepestLevelColor,
-      districtIdToInstanceId,
-      computeColor,
-      ref,
-    ]);
+      districtColorOverrides,
+      enableHoverEffects,
+      hoveredEntityId,
+      highlightedEntityIds,
+      heatmapActive,
+      layoutMap,
+      evoConfig.renderOnlyDifferences,
+      isDiffMode,
+      districts,
+    ]
+  );
 
-    const handleClick = (e: ThreeEvent<MouseEvent>) => {
-      if (ref === null || typeof ref === 'function') {
+  const computeInstances = useCallback(() => {
+    // Early return
+    if (ref === null || typeof ref === 'function') {
+      return;
+    }
+    if (!meshRef.current) return;
+    killAllTweens(activeTweens.current);
+    meshRef.current.clearInstances();
+    instanceIdToDistrictId.clear();
+    districtIdToInstanceId.clear();
+
+    const configuredDistrictIds = districtIds.filter((districtId) => {
+      const district = useModelStore.getState().getDistrict(districtId);
+      return district != null && layoutMap.has(districtId);
+    });
+
+    if (configuredDistrictIds.length === 0) {
+      return;
+    }
+
+    const mesh = meshRef.current.addInstances(configuredDistrictIds.length, (obj, index) => {
+      const districtId = configuredDistrictIds[index];
+      const district = useModelStore.getState().getDistrict(districtId);
+      if (!district) {
+        obj.visible = false;
         return;
       }
-      if (!meshRef.current) return;
-      const { instanceId } = e;
-      if (instanceId === undefined) return;
-      e.stopPropagation();
-      const districtId = instanceIdToDistrictId.get(instanceId);
-      if (!districtId) return;
 
-      const district = useModelStore.getState().getDistrict(districtId);
-      addPopup({
-        entityId: districtId,
-        entity: district,
-        position: {
-          x: e.clientX,
-          y: e.clientY,
+      const layout = layoutMap.get(district.id);
+      if (!layout) {
+        obj.visible = false;
+        return;
+      }
+
+      instanceIdToDistrictId.set(obj.id, district.id);
+      districtIdToInstanceId.set(district.id, obj.id);
+
+      const isOpen = isDistrictOpen(district.id, closedDistrictIds);
+
+      const closedPosition = layout.center.clone();
+      // Y-Position of layout is center of opened district
+      closedPosition.y = layout.positionY + closedDistrictHeight / 2;
+
+      if (isOpen) {
+        obj.position.set(layout.center.x, layout.center.y, layout.center.z);
+      } else {
+        obj.position.set(closedPosition.x, closedPosition.y, closedPosition.z);
+      }
+
+      obj.scale.set(layout.width, isOpen ? openedDistrictHeight : closedDistrictHeight, layout.depth);
+      obj.visible = isDistrictVisible(district.id, visibilityContextRef.current);
+      obj.color = computeColor(district.id);
+      obj.updateMatrix();
+    });
+    mesh.computeBVH();
+
+    meshRef.current.userData.explorvizResolveDistrictId = (meshInstanceId: number) =>
+      instanceIdToDistrictId.get(meshInstanceId);
+  }, [
+    ref,
+    districtIds,
+    layoutMap,
+    closedDistrictIds,
+    closedDistrictHeight,
+    openedDistrictHeight,
+    computeColor,
+    districtIdToInstanceId,
+    instanceIdToDistrictId,
+  ]);
+
+  const animateDistrictChange = useCallback(() => {
+    const currentMeshRef = meshRef.current;
+    if (!currentMeshRef) return;
+
+    instanceIdToDistrictId.forEach((districtId, instanceId) => {
+      const tempMatrix = new Matrix4();
+      const pos = new Vector3();
+      const quat = new Quaternion();
+      const scale = new Vector3();
+
+      const isOpen = isDistrictOpen(districtId, closedDistrictIds);
+
+      // target values based on layout / district state
+      const layout = layoutMap.get(districtId);
+      if (!layout) {
+        currentMeshRef.setVisibilityAt(instanceId, false);
+        return;
+      }
+
+      const targetPositionX = layout.center.x;
+      const targetPositionY = isOpen ? layout.center.y : layout.positionY + closedDistrictHeight / 2;
+      const targetPositionZ = layout.center.z;
+      const targetWidth = layout.width;
+      const targetDepth = layout.depth;
+      const targetHeight = isOpen ? openedDistrictHeight : closedDistrictHeight;
+
+      activeTweens.current.get(districtId)?.kill();
+      activeTweens.current.delete(districtId);
+
+      try {
+        currentMeshRef.getMatrixAt(instanceId, tempMatrix);
+      } catch (err) {
+        console.error('Failed to get matrix at', instanceId, err);
+        return;
+      }
+      tempMatrix.decompose(pos, quat, scale);
+
+      const isUninitialized =
+        pos.x === 0 && pos.y === 0 && pos.z === 0 && scale.x === 1 && scale.y === 1 && scale.z === 1;
+      if (isUninitialized) {
+        pos.set(targetPositionX, targetPositionY, targetPositionZ);
+        scale.set(targetWidth, targetHeight, targetDepth);
+        tempMatrix.compose(pos, quat, scale);
+        currentMeshRef.setMatrixAt(instanceId, tempMatrix);
+        return;
+      }
+
+      // skip animation if nothing changed for the district instance
+      if (
+        pos.x === targetPositionX &&
+        pos.y === targetPositionY &&
+        pos.z === targetPositionZ &&
+        scale.x === targetWidth &&
+        scale.y === targetHeight &&
+        scale.z === targetDepth
+      ) {
+        return;
+      }
+
+      // current values for animation
+      const values = {
+        width: scale.x,
+        depth: scale.z,
+        height: scale.y,
+        positionX: pos.x,
+        positionY: pos.y,
+        positionZ: pos.z,
+      };
+
+      const tween: gsap.core.Tween = gsap.to(values, {
+        duration: animationDuration,
+        // animate to target
+        width: targetWidth,
+        height: targetHeight,
+        depth: targetDepth,
+        positionX: targetPositionX,
+        positionY: targetPositionY,
+        positionZ: targetPositionZ,
+        onComplete: () => {
+          if (activeTweens.current.get(districtId) === tween) {
+            activeTweens.current.delete(districtId);
+          }
+        },
+        onUpdate: () => {
+          // update local pos/scale, compose matrix and write back
+          scale.x = values.width;
+          scale.y = values.height;
+          scale.z = values.depth;
+          pos.x = values.positionX;
+          pos.y = values.positionY;
+          pos.z = values.positionZ;
+          tempMatrix.compose(pos, quat, scale);
+          // use captured currentMeshRef to avoid stale ref issues
+          currentMeshRef.setMatrixAt(instanceId, tempMatrix);
         },
       });
-    };
+      activeTweens.current.set(districtId, tween);
+    });
+  }, [
+    closedDistrictIds,
+    layoutMap,
+    closedDistrictHeight,
+    openedDistrictHeight,
+    animationDuration,
+    instanceIdToDistrictId,
+  ]);
 
-    const handleDoubleClick = (e: ThreeEvent<MouseEvent>) => {
-      if (ref === null || typeof ref === 'function') {
-        return;
-      }
-      if (!meshRef.current) {
-        return;
-      }
-      const { instanceId } = e;
+  useEffect(() => {
+    if (ref === null || typeof ref === 'function' || !meshRef.current) {
+      return;
+    }
 
-      if (instanceId === undefined) {
-        return;
-      }
-      e.stopPropagation();
-      const districtId = instanceIdToDistrictId.get(instanceId);
-      if (!districtId) {
-        return;
-      }
+    const configuredDistrictIds = districtIds.filter((districtId) => {
+      const district = useModelStore.getState().getDistrict(districtId);
+      return district != null && layoutMap.has(districtId);
+    });
 
-      // Toggle open/close state
-      if (!isDistrictOpen(districtId, closedDistrictIds)) {
-        EntityManipulation.openDistrict(districtId);
-      } else {
-        EntityManipulation.closeDistrict(districtId);
-      }
-    };
+    const instancesMatchDistricts =
+      configuredDistrictIds.length > 0 &&
+      districtIdToInstanceId.size === configuredDistrictIds.length &&
+      configuredDistrictIds.every((districtId) => districtIdToInstanceId.has(districtId));
+    if (instancesMatchDistricts && enableAnimations) {
+      animateDistrictChange();
+    } else {
+      computeInstances();
+    }
+  }, [
+    districtIds,
+    layoutMap,
+    closedDistrictIds,
+    enableAnimations,
+    animateDistrictChange,
+    computeInstances,
+    ref,
+    districtIdToInstanceId.size,
+  ]);
 
-    const handleOnPointerOver = (e: ThreeEvent<MouseEvent>) => {
-      if (ref === null || typeof ref === 'function') {
-        return;
-      }
-      if (!meshRef.current) return;
-      const { instanceId } = e;
-      if (instanceId === undefined) return;
-      e.stopPropagation();
+  useEffect(() => {
+    if (ref === null || typeof ref === 'function' || !meshRef.current) {
+      return;
+    }
+    districtIdToInstanceId.forEach((instanceId, districtId) => {
+      meshRef.current?.setVisibilityAt(instanceId, isDistrictVisible(districtId, visibilityContext));
+    });
+  }, [visibilityContext, ref, districtIds, districtIdToInstanceId, districtIdToInstanceId.size]);
 
-      const districtId = instanceIdToDistrictId.get(instanceId);
-      if (!districtId) return;
+  useEffect(() => {
+    if (ref === null || typeof ref === 'function') {
+      return;
+    }
+    if (!meshRef.current) return;
 
-      setHoveredEntity(districtId);
-    };
+    // only compute the bvh on mount
+    meshRef.current.computeBVH();
+  }, [ref]);
 
-    const handleOnPointerOut = (event: ThreeEvent<MouseEvent>) => {
-      event.stopPropagation();
-      setHoveredEntity(null);
-    };
+  useEffect(() => {
+    material.current.transparent = entityOpacity < 1.0;
+    material.current.opacity = entityOpacity;
+    material.current.needsUpdate = true;
+  }, [entityOpacity, material]);
 
-    const handleRightClick = (e: ThreeEvent<MouseEvent>) => {
-      if (ref === null || typeof ref === 'function') {
-        return;
-      }
-      if (!meshRef.current) return;
-      const { instanceId } = e;
-      if (instanceId === undefined) return;
-      const districtId = instanceIdToDistrictId.get(instanceId);
-      if (!districtId) return;
-      e.stopPropagation();
-      emitContextMenuFromWorld({ kind: 'district', districtId }, e.nativeEvent);
-    };
+  useEffect(() => {
+    if (ref === null || typeof ref === 'function' || !meshRef.current) {
+      return;
+    }
+    districtIdToInstanceId.forEach((instanceId, districtId) => {
+      meshRef.current?.setColorAt(instanceId, computeColor(districtId));
+    });
+  }, [
+    highlightedEntityIds,
+    highlightedEntityColor,
+    isCollaborationConnected,
+    remoteHighlights,
+    hoveredEntityId,
+    heatmapActive,
+    selectedBuildingMetric,
+    districtRootLevelColor,
+    districtDeepestLevelColor,
+    districtIdToInstanceId,
+    computeColor,
+    ref,
+  ]);
 
-    const [
-      handleClickWithPrevent,
-      handleDoubleClickWithPrevent,
-      handleRightClickWithPrevent,
-    ] = useClickPreventionOnDoubleClick(handleClick, handleDoubleClick, {
+  const handleClick = (e: ThreeEvent<MouseEvent>) => {
+    if (ref === null || typeof ref === 'function') {
+      return;
+    }
+    if (!meshRef.current) return;
+    const { instanceId } = e;
+    if (instanceId === undefined) return;
+    e.stopPropagation();
+    const districtId = instanceIdToDistrictId.get(instanceId);
+    if (!districtId) return;
+
+    const district = useModelStore.getState().getDistrict(districtId);
+    addPopup({
+      entityId: districtId,
+      entity: district,
+      position: {
+        x: e.clientX,
+        y: e.clientY,
+      },
+    });
+  };
+
+  const handleDoubleClick = (e: ThreeEvent<MouseEvent>) => {
+    if (ref === null || typeof ref === 'function') {
+      return;
+    }
+    if (!meshRef.current) {
+      return;
+    }
+    const { instanceId } = e;
+
+    if (instanceId === undefined) {
+      return;
+    }
+    e.stopPropagation();
+    const districtId = instanceIdToDistrictId.get(instanceId);
+    if (!districtId) {
+      return;
+    }
+
+    // Toggle open/close state
+    if (!isDistrictOpen(districtId, closedDistrictIds)) {
+      EntityManipulation.openDistrict(districtId);
+    } else {
+      EntityManipulation.closeDistrict(districtId);
+    }
+  };
+
+  const handleOnPointerOver = (e: ThreeEvent<MouseEvent>) => {
+    if (ref === null || typeof ref === 'function') {
+      return;
+    }
+    if (!meshRef.current) return;
+    const { instanceId } = e;
+    if (instanceId === undefined) return;
+    e.stopPropagation();
+
+    const districtId = instanceIdToDistrictId.get(instanceId);
+    if (!districtId) return;
+
+    setHoveredEntity(districtId);
+  };
+
+  const handleOnPointerOut = (event: ThreeEvent<MouseEvent>) => {
+    event.stopPropagation();
+    setHoveredEntity(null);
+  };
+
+  const handleRightClick = (e: ThreeEvent<MouseEvent>) => {
+    if (ref === null || typeof ref === 'function') {
+      return;
+    }
+    if (!meshRef.current) return;
+    const { instanceId } = e;
+    if (instanceId === undefined) return;
+    const districtId = instanceIdToDistrictId.get(instanceId);
+    if (!districtId) return;
+    e.stopPropagation();
+    emitContextMenuFromWorld({ kind: 'district', districtId }, e.nativeEvent);
+  };
+
+  const [handleClickWithPrevent, handleDoubleClickWithPrevent, handleRightClickWithPrevent] =
+    useClickPreventionOnDoubleClick(handleClick, handleDoubleClick, {
       onRightClick: handleRightClick,
     });
 
-    return (
-      <instancedMesh2
-        layers={sceneLayers.District}
-        ref={(m) => {
-          meshRef.current = m;
-          if (typeof ref === 'function') ref(m);
-          else if (ref) ref.current = m;
-        }}
-        name={'Districts of ' + city.name}
-        castShadow={castShadows}
-        args={[geometry.current, material.current]}
-        onClick={handleClickWithPrevent}
-        onContextMenu={handleRightClickWithPrevent}
-        {...(enableHoverEffects && {
-          onPointerOver: handleOnPointerOver,
-          onPointerOut: handleOnPointerOut,
-        })}
-        onDoubleClick={handleDoubleClickWithPrevent}
-        frustumCulled={false}
-        perObjectFrustumCulled={false}
-      ></instancedMesh2>
-    );
-  }
-);
+  return (
+    <instancedMesh2
+      layers={sceneLayers.District}
+      ref={(m) => {
+        meshRef.current = m;
+        if (typeof ref === 'function') ref(m);
+        else if (ref) ref.current = m;
+      }}
+      name={'Districts of ' + city.name}
+      castShadow={castShadows}
+      args={[geometry.current, material.current]}
+      onClick={handleClickWithPrevent}
+      onContextMenu={handleRightClickWithPrevent}
+      {...(enableHoverEffects && {
+        onPointerOver: handleOnPointerOver,
+        onPointerOut: handleOnPointerOut,
+      })}
+      onDoubleClick={handleDoubleClickWithPrevent}
+      frustumCulled={false}
+      perObjectFrustumCulled={false}
+    ></instancedMesh2>
+  );
+});
 
 export default CityDistricts;
