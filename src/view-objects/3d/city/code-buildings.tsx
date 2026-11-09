@@ -12,6 +12,7 @@ import { useModelStore } from 'explorviz-frontend/src/stores/repos/model-reposit
 import { useToastHandlerStore } from 'explorviz-frontend/src/stores/toast-handler';
 import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
 import { useVisualizationStore } from 'explorviz-frontend/src/stores/visualization-store';
+import { buildingTransformMatches } from 'explorviz-frontend/src/utils/city-rendering/building-transform';
 import { resolveBuildingForVisibility } from 'explorviz-frontend/src/utils/city-rendering/entity-visibility';
 import { useSharedEntityVisibilityContext } from 'explorviz-frontend/src/utils/city-rendering/entity-visibility-provider-store';
 import { getHighlightingColorForEntity } from 'explorviz-frontend/src/utils/city-rendering/highlighting';
@@ -354,122 +355,6 @@ const GeometryGroup: React.FC<GeometryGroupProps> = ({ geometryType, buildingIds
     });
   };
 
-  useEffect(() => {
-    if (buildingIdToInstanceIdRef.current.size === 0) {
-      return;
-    }
-    if (meshRef === null || typeof meshRef === 'function' || !meshRef.current) {
-      return;
-    }
-
-    const mesh = meshRef.current;
-
-    buildingIdToInstanceIdRef.current.forEach((instanceId, buildingId) => {
-      // Immersive grow effect owns this building's height while active.
-      if (buildingId === activeImmersiveMeshId) {
-        return;
-      }
-
-      const tempMatrix = new Matrix4();
-      const pos = new Vector3();
-      const quat = new Quaternion();
-      const scale = new Vector3();
-
-      const building = useModelStore.getState().getBuilding(buildingId);
-      const layout = layoutMap.get(buildingId);
-      if (!building || !layout) {
-        return;
-      }
-
-      const targetHeight = getBuildingHeight(building);
-      const targetPositionX = layout.center.x;
-      const targetPositionY = layout.position.y + targetHeight / 2;
-      const targetPositionZ = layout.center.z;
-      const targetWidth = layout.width;
-      const targetDepth = layout.depth;
-
-      if (enableAnimations) {
-        try {
-          mesh.getMatrixAt(instanceId, tempMatrix);
-        } catch {
-          return;
-        }
-        tempMatrix.decompose(pos, quat, scale);
-
-        if (
-          pos.x === targetPositionX &&
-          pos.y === targetPositionY &&
-          pos.z === targetPositionZ &&
-          scale.x === targetWidth &&
-          scale.y === targetHeight &&
-          scale.z === targetDepth
-        ) {
-          return;
-        }
-
-        const values = {
-          width: scale.x,
-          depth: scale.z,
-          height: scale.y,
-          positionX: pos.x,
-          positionY: pos.y,
-          positionZ: pos.z,
-        };
-
-        gsap.to(values, {
-          duration: animationDuration,
-          width: targetWidth,
-          height: targetHeight,
-          depth: targetDepth,
-          positionX: targetPositionX,
-          positionY: targetPositionY,
-          positionZ: targetPositionZ,
-          onUpdate: () => {
-            scale.x = values.width;
-            scale.y = values.height;
-            scale.z = values.depth;
-            pos.x = values.positionX;
-            pos.y = values.positionY;
-            pos.z = values.positionZ;
-            tempMatrix.compose(pos, quat, scale);
-            if (!meshRef || typeof meshRef === 'function') return;
-            mesh.setMatrixAt(instanceId, tempMatrix);
-          },
-        });
-        return;
-      }
-
-      try {
-        mesh.getMatrixAt(instanceId, tempMatrix);
-      } catch {
-        return;
-      }
-      tempMatrix.decompose(pos, quat, scale);
-      /*if (useEvolutionAnimationStore.getState().stableFrame !== null) {
-        scale.set(targetWidth, targetHeight, targetDepth);
-        pos.set(targetPositionX, targetPositionY, targetPositionZ);
-      } else {
-      scale.y = targetHeight;
-      pos.y = layout.position.y + targetHeight / 2;
-      }*/
-      scale.set(targetWidth, targetHeight, targetDepth);
-      pos.set(targetPositionX, targetPositionY, targetPositionZ);
-      tempMatrix.compose(pos, quat, scale);
-      mesh.setMatrixAt(instanceId, tempMatrix);
-    });
-  }, [
-    buildingFootprint,
-    buildingHeightMultiplier,
-    heightMetric,
-    metricMapping,
-    metricBuckets,
-    buildings,
-    enableAnimations,
-    animationDuration,
-    layoutMap,
-    activeImmersiveMeshId,
-  ]);
-
   // Compute mesh instances or animate changes
   useEffect(() => {
     if (meshRef === null || typeof meshRef === 'function' || !meshRef.current) {
@@ -492,60 +377,58 @@ const GeometryGroup: React.FC<GeometryGroupProps> = ({ geometryType, buildingIds
       buildingIds.every((id) => buildingIdToInstanceIdRef.current.has(id));
 
     if (hasMatchingInstances) {
-      if (enableAnimations) {
-        if (buildingIdToInstanceIdRef.current.size === 0) {
+      const tweens: gsap.core.Tween[] = [];
+      const mesh = meshRef.current;
+      buildingIdToInstanceIdRef.current.forEach((instanceId, buildingId) => {
+        if (buildingId === activeImmersiveMeshId) {
           return;
         }
 
-        const mesh = meshRef.current;
-        buildingIdToInstanceIdRef.current.forEach((instanceId, buildingId) => {
-          if (buildingId === activeImmersiveMeshId) {
-            return;
-          }
+        const tempMatrix = new Matrix4();
+        const pos = new Vector3();
+        const quat = new Quaternion();
+        const scale = new Vector3();
 
-          const tempMatrix = new Matrix4();
-          const pos = new Vector3();
-          const quat = new Quaternion();
-          const scale = new Vector3();
+        const building = useModelStore.getState().getBuilding(buildingId);
+        const layout = layoutMap.get(buildingId);
+        if (!building || !layout) return;
 
-          const building = useModelStore.getState().getBuilding(buildingId);
-          const layout = layoutMap.get(buildingId);
-          if (!building || !layout) return;
+        const targetHeight = getBuildingHeight(building);
+        const targetPositionX = layout.center.x;
+        const targetPositionY = layout.position.y + targetHeight / 2;
+        const targetPositionZ = layout.center.z;
+        const targetWidth = layout.width;
+        const targetDepth = layout.depth;
 
-          const targetHeight = getBuildingHeight(building);
-          const targetPositionX = layout.center.x;
-          const targetPositionY = layout.position.y + targetHeight / 2;
-          const targetPositionZ = layout.center.z;
-          const targetWidth = layout.width;
-          const targetDepth = layout.depth;
+        try {
+          mesh.getMatrixAt(instanceId, tempMatrix);
+        } catch {
+          return;
+        }
+        tempMatrix.decompose(pos, quat, scale);
 
-          try {
-            mesh.getMatrixAt(instanceId, tempMatrix);
-          } catch {
-            return;
-          }
-          tempMatrix.decompose(pos, quat, scale);
+        const targetPosition = new Vector3(targetPositionX, targetPositionY, targetPositionZ);
+        const targetScale = new Vector3(targetWidth, targetHeight, targetDepth);
+        if (buildingTransformMatches(pos, scale, targetPosition, targetScale)) {
+          return;
+        }
 
-          if (
-            pos.x === targetPositionX &&
-            pos.y === targetPositionY &&
-            pos.z === targetPositionZ &&
-            scale.x === targetWidth &&
-            scale.y === targetHeight &&
-            scale.z === targetDepth
-          ) {
-            return;
-          }
+        if (!enableAnimations) {
+          tempMatrix.compose(targetPosition, quat, targetScale);
+          mesh.setMatrixAt(instanceId, tempMatrix);
+          return;
+        }
 
-          const values = {
-            width: scale.x,
-            depth: scale.z,
-            height: scale.y,
-            positionX: pos.x,
-            positionY: pos.y,
-            positionZ: pos.z,
-          };
+        const values = {
+          width: scale.x,
+          depth: scale.z,
+          height: scale.y,
+          positionX: pos.x,
+          positionY: pos.y,
+          positionZ: pos.z,
+        };
 
+        tweens.push(
           gsap.to(values, {
             duration: animationDuration,
             width: targetWidth,
@@ -565,11 +448,11 @@ const GeometryGroup: React.FC<GeometryGroupProps> = ({ geometryType, buildingIds
               if (!meshRef || typeof meshRef === 'function') return;
               mesh.setMatrixAt(instanceId, tempMatrix);
             },
-          });
-        });
-      }
+          })
+        );
+      });
       applyInstanceAppearance(meshRef.current);
-      return;
+      return () => tweens.forEach((tween) => tween.kill());
     }
 
     meshRef.current.clearInstances();
