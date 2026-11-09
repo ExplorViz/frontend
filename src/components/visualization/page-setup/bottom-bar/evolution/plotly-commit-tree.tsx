@@ -159,38 +159,6 @@ function resolveClickedCommitIndex(
   return bestIndex;
 }
 
-type PlotlyFullLayoutAxis = {
-  _rangeInitial0?: number | string;
-  _rangeInitial1?: number | string;
-  range?: [unknown, unknown];
-};
-
-type PlotlyChartDivWithLayout = PlotlyChartDiv & {
-  _fullLayout?: {
-    xaxis: PlotlyFullLayoutAxis;
-    yaxis: PlotlyFullLayoutAxis;
-  };
-};
-
-function getDefaultAxisRange(
-  axis: PlotlyFullLayoutAxis | undefined,
-  fallbackRange?: [unknown, unknown]
-): [unknown, unknown] | undefined {
-  if (axis?._rangeInitial0 !== undefined && axis?._rangeInitial1 !== undefined) {
-    return [axis._rangeInitial0, axis._rangeInitial1];
-  }
-
-  if (fallbackRange) {
-    return fallbackRange;
-  }
-
-  if (axis?.range) {
-    return [axis.range[0], axis.range[1]];
-  }
-
-  return undefined;
-}
-
 function getLayoutAxisRanges(chartLayout: ReturnType<typeof buildLayout>): {
   xRange?: [unknown, unknown];
   yRange?: [unknown, unknown];
@@ -529,10 +497,6 @@ export default function PlotlyCommitTree() {
   const dashedLineTraceIndexRef = useRef<number | null>(null);
   const interactionTimeoutRef = useRef<number | undefined>(undefined);
   const isInteractingRef = useRef(false);
-  const defaultAxisRangesRef = useRef<{
-    x: [unknown, unknown];
-    y: [unknown, unknown];
-  } | null>(null);
   const selectedCommitsRef = useRef(selectedCommits);
 
   useEffect(() => {
@@ -652,17 +616,6 @@ export default function PlotlyCommitTree() {
 
       attachCommitChartListeners(plotlyCommitDivRef.current as PlotlyChartDiv, listenerRefs);
 
-      queueMicrotask(() => {
-        const plotlyDiv = plotlyCommitDivRef.current as PlotlyChartDivWithLayout | null;
-        const layoutRanges = getLayoutAxisRanges(chartLayout);
-        const xRange = getDefaultAxisRange(plotlyDiv?._fullLayout?.xaxis, layoutRanges.xRange);
-        const yRange = getDefaultAxisRange(plotlyDiv?._fullLayout?.yaxis, layoutRanges.yRange);
-
-        if (xRange && yRange) {
-          defaultAxisRangesRef.current = { x: xRange, y: yRange };
-        }
-      });
-
       chartReadyRef.current = true;
       return true;
     },
@@ -727,18 +680,19 @@ export default function PlotlyCommitTree() {
   }, []);
 
   const refocusChart = () => {
-    const plotlyDiv = plotlyCommitDivRef.current as PlotlyChartDivWithLayout | null;
-    if (!plotlyDiv?._fullLayout) {
+    const plotlyDiv = plotlyCommitDivRef.current;
+    if (!plotlyDiv || !chartReadyRef.current || !chartSeries) {
       return;
     }
 
     isInteractingRef.current = false;
     window.clearTimeout(interactionTimeoutRef.current);
 
-    const layoutRanges = chartLayout ? getLayoutAxisRanges(chartLayout) : { xRange: undefined, yRange: undefined };
-    const storedRanges = defaultAxisRangesRef.current;
-    const xRange = storedRanges?.x ?? getDefaultAxisRange(plotlyDiv._fullLayout.xaxis, layoutRanges.xRange);
-    const yRange = storedRanges?.y ?? getDefaultAxisRange(plotlyDiv._fullLayout.yaxis, layoutRanges.yRange);
+    // Plotly mutates layout ranges while panning and zooming. Rebuild the
+    // bounds from the current series so refocusing always fits all visible commits.
+    const { xRange, yRange } = getLayoutAxisRanges(
+      buildLayout(selectedMetric, chartSeries.yValues, chartSeries.xValues, xAxisPlacement, chartSeries.commits.length)
+    );
 
     if (!xRange || !yRange) {
       return;
