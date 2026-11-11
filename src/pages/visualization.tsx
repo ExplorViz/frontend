@@ -44,6 +44,7 @@ import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import BottomBar from '../components/visualization/page-setup/bottom-bar/bottom-bar';
 import {
   BottomBarActions,
+  BottomBarChartView,
   BottomBarContext,
   BottomBarState,
 } from '../components/visualization/page-setup/bottom-bar/bottom-bar-context';
@@ -95,9 +96,9 @@ export default function Visualization() {
   const [visualizationPaused, setVisualizationPaused] = useState<boolean>(false);
   const [timelineDataObjectHandler] = useState<TimelineDataObjectHandler>(() => new TimelineDataObjectHandler());
 
-  const [bottomBarState, setBottomBarState] = useState<BottomBarState>({
+  const [selectedChartOverride, setSelectedChart] = useState<BottomBarChartView>();
+  const [bottomBarState, setBottomBarState] = useState<Omit<BottomBarState, 'selectedChart'>>({
     isExpanded: true,
-    selectedChart: 'commit-chart',
     runtimeMetricsState: {
       selectedMetric: null,
       selectedEntity: null,
@@ -107,11 +108,7 @@ export default function Visualization() {
   const bottomBarActions: BottomBarActions = {
     setIsExpanded: (isExpanded) => setBottomBarState((state) => ({ ...state, isExpanded: isExpanded })),
 
-    setSelectedChart: (selectedChart) =>
-      setBottomBarState((state) => ({
-        ...state,
-        selectedChart: selectedChart,
-      })),
+    setSelectedChart,
 
     setSelectedMetric: (metric, entity) =>
       setBottomBarState((state) => ({
@@ -160,6 +157,16 @@ export default function Visualization() {
   const fetchAndStoreRepositoryCommitTrees = useEvolutionDataRepositoryStore(
     (state) => state.fetchAndStoreRepositoryCommitTrees
   );
+  const hasCommitData = useEvolutionDataRepositoryStore((state) =>
+    Array.from(state._repoNameCommitTreeMap.values()).some((tree) =>
+      tree.branches.some((branch) => branch.commits.length > 0)
+    )
+  );
+  const hasRuntimeData = useTimestampRepositoryStore(
+    (state) =>
+      state.timestampsForDebugSnapshots.size > 0 ||
+      Array.from(state.commitToTimestampMap.values()).some((timestamps) => timestamps.size > 0)
+  );
   const setDefaultState = useCommitTreeStateStore((state) => state.setDefaultState);
   const snapshotToken = useSnapshotTokenStore((state) => state.snapshotToken);
   const landscapeTokenServiceToken = useLandscapeTokenStore((state) => state.token);
@@ -169,6 +176,8 @@ export default function Visualization() {
   // # endregion
 
   // #region Computed values
+  const selectedChart = selectedChartOverride ?? (hasRuntimeData && !hasCommitData ? 'runtime-chart' : 'commit-chart');
+
   const isLandscapeExistentAndEmpty =
     renderingServiceLandscapeData !== null &&
     (!renderingServiceLandscapeData.flatLandscapeData ||
@@ -339,8 +348,6 @@ export default function Visualization() {
       // check what kind of rendering we should start
       if (initialCommit1 && initialCommit1.length > 0) {
         showEvolutionVisualization = setDefaultState(repoNameCommitTreeMap, initialCommit1, initialCommit2);
-
-        bottomBarActions.setSelectedChart('commit-chart');
       }
 
       if (showEvolutionVisualization) {
@@ -409,7 +416,7 @@ export default function Visualization() {
 
   // Browser mode
   return (
-    <BottomBarContext value={{ ...bottomBarState, ...bottomBarActions }}>
+    <BottomBarContext value={{ ...bottomBarState, ...bottomBarActions, selectedChart }}>
       <div id="vizspace">
         {/* Loading screen  */}
         {!allLandscapeDataExistsAndNotEmpty && (

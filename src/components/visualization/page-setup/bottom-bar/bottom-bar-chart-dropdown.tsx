@@ -40,9 +40,7 @@ export default function BottomBarChartDropdown({ selectedView, onSelectView }: B
 
   const handleSelect = (view: BottomBarChartView) => {
     setIsOpen(false);
-    if (view !== selectedView) {
-      onSelectView(view);
-    }
+    onSelectView(view);
   };
 
   const selectableCharts: BottomBarChartView[] = [
