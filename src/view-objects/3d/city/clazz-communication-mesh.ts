@@ -14,6 +14,8 @@ import {
   HierarchicalAttractionSystem,
 } from './edge-bundling-utils';
 
+export const mountedCommunicationMeshes = new Map<string, ClazzCommunicationMesh>();
+
 export default class ClazzCommunicationMesh extends BaseMesh {
   dataModel: ClazzCommuMeshDataModel;
 
@@ -607,6 +609,12 @@ export default class ClazzCommunicationMesh extends BaseMesh {
 
   public requestRender(): void {
     this._needsRender = true;
+  }
+
+  getCommunicationCurve(): THREE.Curve<THREE.Vector3> | undefined {
+    if (this.geometry instanceof THREE.TubeGeometry) {
+      return this.geometry.parameters.path;
+    }
   }
 
   private renderOriginalAlgorithm(curveSegments: number): void {
