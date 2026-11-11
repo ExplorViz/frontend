@@ -16,7 +16,7 @@ import { CommSummary } from 'explorviz-frontend/src/utils/landscape-schemes/dyna
 import { Span, TraceOverview } from 'explorviz-frontend/src/utils/landscape-schemes/telemetry/traces';
 import { mountedCommunicationMeshes } from 'explorviz-frontend/src/view-objects/3d/city/clazz-communication-mesh';
 import gsap from 'gsap';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { type KeyboardEvent, useCallback, useEffect, useRef, useState } from 'react';
 import { Accordion, Button, Card, Spinner } from 'react-bootstrap';
 import { Vector3 } from 'three';
 import TraceTree from './trace-tree';
@@ -207,10 +207,10 @@ export default function TraceDetails({ traceOverview, onBackClick }: TraceDetail
   );
 
   const handleStepBackClick = () => {
-    if (selectedSpanIndex === null || spanData === null) {
+    if (selectedSpanIndex === null || selectedSpanIndex === 0 || spanData === null) {
       return;
     }
-    const newIndex = Math.min(Math.max(selectedSpanIndex - 1, 0), spanData.flat.length - 1);
+    const newIndex = selectedSpanIndex - 1;
 
     const newSpan = spanData.flat[newIndex];
     const parent = spanData.flat.find((s) => s.spanId === newSpan.parentSpanId);
@@ -220,16 +220,30 @@ export default function TraceDetails({ traceOverview, onBackClick }: TraceDetail
   };
 
   const handleStepForwardClick = () => {
-    if (selectedSpanIndex === null || spanData === null) {
+    if (selectedSpanIndex === null || spanData === null || selectedSpanIndex >= spanData.flat.length - 1) {
       return;
     }
-    const newIndex = Math.min(selectedSpanIndex + 1, spanData.flat.length - 1);
+    const newIndex = selectedSpanIndex + 1;
 
     const newSpan = spanData.flat[newIndex];
     const parent = spanData.flat.find((s) => s.spanId === newSpan.parentSpanId);
 
     setSelectedSpanIndex(newIndex);
     handleSpanChange(newSpan, parent, spanData.flat[selectedSpanIndex]);
+  };
+
+  const handleKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
+    if (event.altKey || event.ctrlKey || event.metaKey || (event.key !== 'ArrowLeft' && event.key !== 'ArrowRight')) {
+      return;
+    }
+
+    event.preventDefault();
+    event.stopPropagation();
+    if (event.key === 'ArrowLeft') {
+      handleStepBackClick();
+    } else {
+      handleStepForwardClick();
+    }
   };
 
   const handleSpanClick = (spanId: string) => {
@@ -360,7 +374,7 @@ export default function TraceDetails({ traceOverview, onBackClick }: TraceDetail
   const selectedSpan = spanData?.flat[selectedSpanIndex ?? 0];
 
   return (
-    <div>
+    <div onKeyDown={handleKeyDown}>
       <div className="d-flex justify-content-center align-items-center position-relative">
         <Button variant="outline-white" onClick={onBackClick} className="position-absolute start-0 px-0 py-0 border-0">
           &larr;
