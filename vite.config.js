@@ -37,7 +37,7 @@ export default defineConfig(({ mode }) => {
           target: 'http://localhost:9123',
           changeOrigin: true,
         },
-        '^/v3/landscapes/[^/]+/(?:communication|timestamps|trace-data)(?:/.*|\\?[^/]+|$)': {
+        '^/v3/landscapes/[^/]+/(?:communication|timestamps|trace-data|traces)(?:/.*|\\?[^/]+|$)': {
           target: traceTarget,
           changeOrigin: true,
         },

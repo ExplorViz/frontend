@@ -60,7 +60,7 @@ server {
 
   # BEGIN trace-service
 
-  location ~ ^/v3/landscapes/[^/]+/(?:communication|timestamps|trace-data)(?:/.*|$) {
+  location ~ ^/v3/landscapes/[^/]+/(?:communication|timestamps|trace-data|traces)(?:/.*|$) {
     set $upstream_trace ${TRACE_SERV_URL};
     proxy_pass $upstream_trace;
   }
