@@ -1,6 +1,8 @@
 import { useRoomState as useColyseusRoomState } from '@colyseus/react';
 import { Client, type Room } from '@colyseus/sdk';
+import { freshAccessToken } from 'explorviz-frontend/src/stores/auth';
 import { useToastHandlerStore } from 'explorviz-frontend/src/stores/toast-handler';
+import { isLoginSkipped } from 'explorviz-frontend/src/utils/auth-config';
 import { COLLABORATION_SERVICE_PATH } from 'explorviz-frontend/src/utils/collaboration/collaboration-service';
 import {
   CONTRACT_VERSION,
@@ -47,6 +49,8 @@ export const useRoomConnectionStore = create<RoomConnectionState>((set, get) => 
     if (get().room || get().connecting) return;
     set({ connecting: true });
     try {
+      // The service checks the login only now, so hand it a token that is not about to expire.
+      serviceClient().auth.token = (isLoginSkipped() ? undefined : await freshAccessToken()) ?? '';
       const room = await connect({ contractVersion: CONTRACT_VERSION, name });
       room.onLeave((code) => {
         if (get().room !== room) return;
@@ -104,6 +108,8 @@ function refusalMessage(error: unknown) {
       return 'The room is full.';
     case JoinRefusal.CONTRACT_MISMATCH:
       return 'The collaboration service was updated. Please reload the page.';
+    case JoinRefusal.LOGIN_REQUIRED:
+      return 'Please log in again to collaborate.';
     default:
       return `Could not connect to the room: ${(error as Error | undefined)?.message ?? error}`;
   }

@@ -14,7 +14,7 @@ export const ROOM_NAME = "collaboration";
 export type JoinOptions = {
   /** The client's CONTRACT_VERSION. */
   contractVersion: number;
-  /** The display name, typed by the person while login is off. */
+  /** The display name, typed by the person. Ignored while login is on: the name then comes from the login. */
   name: string;
 };
 
@@ -29,6 +29,8 @@ export const JoinRefusal = {
   CONTRACT_MISMATCH: 4100,
   /** The Room already has its maximum number of Participants. */
   ROOM_FULL: 4101,
+  /** Login is on and the request carried no valid login token. */
+  LOGIN_REQUIRED: 4102,
 } as const;
 
 /**
@@ -50,6 +52,8 @@ export type ClientMessages = {
   kick: { sessionId: string };
   /** Host only: makes the Participant with this session id the Host instead. */
   handOverHost: { sessionId: string };
+  /** Changes the sender's own color to a CSS hex color such as "#e6194b". Other values are ignored. */
+  setColor: { color: string };
 };
 
 /**
