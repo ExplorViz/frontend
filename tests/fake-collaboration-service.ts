@@ -17,9 +17,30 @@ import { act } from '@testing-library/react';
  * together; the generated `CollaborationState` type checks the snapshot side.
  */
 
-const Participant = schema({ name: t.string(), color: t.string() }, 'Participant');
-const CollaborationState = schema({ participants: t.map(Participant), hostId: t.string() }, 'CollaborationState');
+const Participant = schema({ name: t.string(), color: t.string(), muted: t.boolean().default(false) }, 'Participant');
+const ChatEntry = schema(
+  {
+    id: t.string(),
+    kind: t.string(),
+    authorId: t.string(),
+    authorName: t.string(),
+    authorColor: t.string(),
+    text: t.string(),
+    time: t.number(),
+  },
+  'ChatEntry'
+);
+const CollaborationState = schema(
+  { participants: t.map(Participant), hostId: t.string(), chat: t.array(ChatEntry) },
+  'CollaborationState'
+);
 type ServerState = InstanceType<typeof CollaborationState>;
+
+/**
+ * How the fake Room answers a `request`: return a refusal reason to reject
+ * it (as the service's `ctx.reject(reason)` does), or nothing to resolve it.
+ */
+export type FakeRequestHandler = (sessionId: string, payload: any) => string | void;
 
 /** A refusal as the SDK reports it: an error with the service's error code. */
 export class FakeServerError extends Error {
@@ -67,6 +88,13 @@ export class FakeClientRoom {
     this.sent.push({ type, payload });
   }
 
+  /** Recorded in `sent` like `send`; answered by the handler the test gave `FakeServerRoom.answer`. */
+  async request(type: string, payload?: unknown) {
+    this.sent.push({ type, payload });
+    const reason = this.server.handle(this.sessionId, type, payload);
+    if (reason !== undefined) throw Object.assign(new Error('request rejected'), { name: 'rejected', reason });
+  }
+
   async leave(consented = true) {
     this.server.remove(this.sessionId);
     this.closed(consented ? 4000 : 1000);
@@ -84,8 +112,32 @@ export class FakeServerRoom {
   readonly state: ServerState = new CollaborationState();
   private readonly encoder = new Encoder(this.state);
   readonly clients = new Map<string, FakeClientRoom>();
+  private readonly handlers = new Map<string, FakeRequestHandler>();
+  private chatEntries = 0;
 
   constructor(readonly code: string) {}
+
+  /** Answer requests of this type with the handler; unanswered types resolve without effect. */
+  answer(type: string, handler: FakeRequestHandler) {
+    this.handlers.set(type, handler);
+  }
+
+  handle(sessionId: string, type: string, payload: unknown) {
+    return this.handlers.get(type)?.(sessionId, payload) ?? undefined;
+  }
+
+  /** Adds a chat entry (a message unless `kind` says otherwise); call it inside `update`. */
+  appendChatEntry(entry: { kind?: string; authorId: string; authorName: string; authorColor?: string; text: string }) {
+    this.state.chat.push(
+      new ChatEntry({
+        kind: 'message',
+        authorColor: '',
+        ...entry,
+        id: `entry-${++this.chatEntries}`,
+        time: Date.now(),
+      })
+    );
+  }
 
   seat(sessionId: string, name: string) {
     const client = new FakeClientRoom(this, sessionId);
@@ -165,6 +217,7 @@ export class FakeCollaborationService {
     this.refusal = undefined;
     this.endpoint = undefined;
     this.codes = 0;
+    this.sessions = 0;
   }
 
   private throwRefusal() {

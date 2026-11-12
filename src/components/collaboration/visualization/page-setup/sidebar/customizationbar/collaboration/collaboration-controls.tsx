@@ -1,5 +1,7 @@
+import ChatBox from 'explorviz-frontend/src/components/visualization/page-setup/sidebar/customizationbar/chat/chat-box';
 import { useAuthStore } from 'explorviz-frontend/src/stores/auth';
 import { isLoginSkipped } from 'explorviz-frontend/src/utils/auth-config';
+import { setParticipantMuted, useChat } from 'explorviz-frontend/src/utils/collaboration/chat';
 import { isCollaborationServiceReachable } from 'explorviz-frontend/src/utils/collaboration/collaboration-service';
 import { useRoomConnectionStore, useRoomState } from 'explorviz-frontend/src/utils/collaboration/room-connection';
 import { useEffect, useState } from 'react';
@@ -12,6 +14,7 @@ type Reachability = 'checking' | 'reachable' | 'unreachable';
 export default function CollaborationControls() {
   const [reachability, setReachability] = useState<Reachability>('checking');
   const room = useRoomConnectionStore((state) => state.room);
+  const keptChat = useChat().entries.length > 0;
 
   useEffect(() => {
     let active = true;
@@ -39,6 +42,11 @@ export default function CollaborationControls() {
             </p>
           )}
           {reachability === 'reachable' && <RoomEntryForm />}
+          {keptChat && (
+            <div className="mt-3">
+              <ChatBox />
+            </div>
+          )}
         </>
       )}
     </div>
@@ -126,6 +134,7 @@ function RoomPanel() {
   const { room, leaveRoom } = useRoomConnectionStore();
   const state = useRoomState();
   if (!room) return null;
+  const isHost = state?.hostId === room.sessionId;
 
   return (
     <div>
@@ -144,12 +153,27 @@ function RoomPanel() {
             <span>{participant.name}</span>
             {sessionId === room.sessionId && <span className="small text-muted">(you)</span>}
             {sessionId === state?.hostId && <span className="badge bg-secondary">Host</span>}
+            {participant.muted && <span className="small text-muted">muted</span>}
+            {isHost && sessionId !== room.sessionId && (
+              <Button
+                variant="link"
+                size="sm"
+                className="p-0 ms-auto"
+                aria-label={`${participant.muted ? 'Unmute' : 'Mute'} ${participant.name}`}
+                onClick={() => setParticipantMuted(sessionId, !participant.muted)}
+              >
+                {participant.muted ? 'Unmute' : 'Mute'}
+              </Button>
+            )}
           </li>
         ))}
       </ul>
       <Button variant="outline-danger" size="sm" className="w-100" onClick={() => leaveRoom()}>
         Leave room
       </Button>
+      <div className="mt-3">
+        <ChatBox />
+      </div>
     </div>
   );
 }

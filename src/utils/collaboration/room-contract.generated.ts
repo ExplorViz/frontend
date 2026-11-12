@@ -31,11 +31,48 @@ export const JoinRefusal = {
   ROOM_FULL: 4101,
 } as const;
 
+/** A Room keeps this many chat entries; the oldest are dropped beyond that. */
+export const CHAT_HISTORY_LIMIT = 200;
+
+/** The longest chat message, in characters, after trimming. */
+export const MAX_CHAT_MESSAGE_LENGTH = 1000;
+
+/**
+ * What a chat entry is. Participants post messages; the service writes
+ * entries of other kinds itself (e.g. ping and highlight events).
+ */
+export const ChatEntryKind = {
+  /** A message a Participant posted. */
+  MESSAGE: "message",
+} as const;
+export type ChatEntryKind = (typeof ChatEntryKind)[keyof typeof ChatEntryKind];
+
+/**
+ * Reasons with which the service rejects a chat request. The SDK rejects
+ * `room.request(...)` with an error whose `reason` is one of these.
+ */
+export const ChatRefusal = {
+  /** The sender is muted by the Host. */
+  MUTED: "muted",
+  /** Only the Host (or, for deletion, the author) may do this. */
+  NOT_ALLOWED: "not_allowed",
+  /** The payload is malformed, empty, too long, or names nothing known. */
+  INVALID: "invalid",
+} as const;
+export type ChatRefusal = (typeof ChatRefusal)[keyof typeof ChatRefusal];
+
 /**
  * Messages a client sends to the Room: message type -> payload.
  * Each entry has a handler of the same name in CollaborationRoom's `messages`.
  */
-export type ClientMessages = {};
+export type ClientMessages = {
+  /** Post a chat message. Rejected with a ChatRefusal (e.g. "muted"). */
+  chatSend: { text: string };
+  /** Delete a chat entry for everyone. Allowed for its author and the Host. */
+  chatDelete: { entryId: string };
+  /** Mute or unmute a Participant (by session id). Host only. */
+  chatMute: { participantId: string; muted: boolean };
+};
 
 /**
  * Messages the Room sends to clients: message type -> payload.
@@ -47,9 +84,21 @@ export type ServerMessages = {};
 export type CollaborationState = {
   participants: Record<string, Participant>;
   hostId: string;
+  chat: ChatEntry[];
 };
 
 export type Participant = {
   name: string;
   color: string;
+  muted: boolean;
+};
+
+export type ChatEntry = {
+  id: string;
+  kind: string;
+  authorId: string;
+  authorName: string;
+  authorColor: string;
+  text: string;
+  time: number;
 };
