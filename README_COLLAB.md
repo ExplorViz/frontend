@@ -8,6 +8,8 @@ Inside a Room the section also shows the chat. Its history is Room state, so peo
 
 Shared so far: closed and hidden Districts. Joining always asks first, because it drops the person's own exploration (Districts, highlights, annotations, open popups); the notice offers to go back, to take a Snapshot first, or to drop it and join. Creating a Room hands the creator's Districts to the Room. After leaving, the person carries on with what they saw in the Room.
 
+The Host can switch District sharing off ("Share Districts" in the Room panel; on by default, shown to everyone). While it is off, everyone opens and closes Districts for themselves inside the Room: switching off hands the Room's Districts to everyone as their own, so no view changes; switching on makes the Host's own Districts the Room's and everyone's view jumps to them. Someone joining while it is off starts with all Districts open.
+
 A Room is on one Landscape, the creator's. Only the Host can switch it: when the Host opens another Landscape, the service switches the Room's and everyone loads it; whoever else opens another Landscape is taken back to the Room's. Joining a Room on another Landscape loads the Room's. A switch clears everything in the Room tied to the old Landscape (for now the closed and hidden Districts); the Participants, the chat and the District sharing option stay.
 
 ## Code

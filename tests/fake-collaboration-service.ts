@@ -42,7 +42,10 @@ const ChatEntry = schema(
   },
   'ChatEntry'
 );
-const Districts = schema({ closed: t.map('boolean'), hidden: t.map('boolean') }, 'Districts');
+const Districts = schema(
+  { shared: t.boolean().default(true), closed: t.map('boolean'), hidden: t.map('boolean') },
+  'Districts'
+);
 const CollaborationState = schema(
   {
     participants: t.map(Participant),
@@ -71,8 +74,22 @@ const MESSAGE_HANDLERS: Record<string, (state: ServerState, payload: any, from: 
     state.districts.closed.clear();
     state.districts.hidden.clear();
   },
-  districts: (state, actions) =>
-    applyDistrictActions({ closed: asIdSet(state.districts.closed), hidden: asIdSet(state.districts.hidden) }, actions),
+  districts: (state, actions) => {
+    if (!state.districts.shared) return;
+    applyDistrictActions({ closed: asIdSet(state.districts.closed), hidden: asIdSet(state.districts.hidden) }, actions);
+  },
+  // Without the service's Host check.
+  districtSharing: (state, { shared, districts }) => {
+    if (shared && !state.districts.shared) {
+      const sets = { closed: asIdSet(state.districts.closed), hidden: asIdSet(state.districts.hidden) };
+      applyDistrictActions(sets, [
+        { type: 'openAll' },
+        { type: 'close', ids: districts.closed },
+        { type: 'hide', ids: districts.hidden },
+      ]);
+    }
+    state.districts.shared = shared;
+  },
 };
 
 /**
