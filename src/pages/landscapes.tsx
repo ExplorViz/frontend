@@ -1,4 +1,3 @@
-import { getResponseErrorMessage } from 'explorviz-frontend/src/utils/response-error';
 import SnapshotSelection from 'explorviz-frontend/src/components/snapshot-selection';
 import TokenCreationModal, { LandscapeTokenCreateParams } from 'explorviz-frontend/src/components/token-creation-modal';
 import TokenSelection from 'explorviz-frontend/src/components/token-selection';
@@ -8,7 +7,8 @@ import { LandscapeToken, useLandscapeTokenStore } from 'explorviz-frontend/src/s
 import { SnapshotInfo, TinySnapshot, useSnapshotTokenStore } from 'explorviz-frontend/src/stores/snapshot-token';
 import { useToastHandlerStore } from 'explorviz-frontend/src/stores/toast-handler';
 import { requestLandscapeHasData } from 'explorviz-frontend/src/utils/landscape-http-request-util';
-import React, { useEffect, useRef, useState } from 'react';
+import { getResponseErrorMessage } from 'explorviz-frontend/src/utils/response-error';
+import { useEffect, useRef, useState } from 'react';
 import { Button, Modal, Tab, Tabs } from 'react-bootstrap';
 import { createSearchParams, useNavigate } from 'react-router-dom';
 import { RepoAnalysisModal } from '../components/repo-analysis-modal';
@@ -23,6 +23,7 @@ export default function Landscapes() {
   const [repoAnalysisModalIsOpen, setRepoAnalysisModalIsOpen] = useState<boolean>(false);
   const [selectedAnalysisToken, setSelectedAnalysisToken] = useState<LandscapeToken | undefined>(undefined);
   const [emptyLandscape, setEmptyLandscape] = useState<LandscapeToken | null>(null);
+  const [landscapeToDelete, setLandscapeToDelete] = useState<LandscapeToken | null>(null);
   const availabilityCheck = useRef<AbortController | null>(null);
 
   const [activeKey, setActiveKey] = useState<string>('landscapes');
@@ -148,19 +149,21 @@ export default function Landscapes() {
       closeTokenCreationModal();
       useToastHandlerStore.getState().showSuccessToastMessage(`Token created: ${token.value}`);
       refreshRoute();
-    } catch (e) {
-      useToastHandlerStore.getState().showErrorToastMessage(e.message);
+    } catch (e: unknown) {
+      if (e instanceof Error) {
+        useToastHandlerStore.getState().showErrorToastMessage(e.message);
+      }
     }
   };
 
-  const deleteToken = async (tokenId: string, event: React.MouseEvent) => {
-    event.stopPropagation();
-
+  const deleteToken = async (tokenId: string) => {
     try {
       await sendTokenDeleteRequest(tokenId);
       useToastHandlerStore.getState().showSuccessToastMessage('Token successfully deleted');
-    } catch (e) {
-      useToastHandlerStore.getState().showErrorToastMessage(e.message);
+    } catch (e: unknown) {
+      if (e instanceof Error) {
+        useToastHandlerStore.getState().showErrorToastMessage(e.message);
+      }
     }
     if (landscapeToken?.value === tokenId) {
       removeLandscapeToken();
@@ -263,7 +266,10 @@ export default function Landscapes() {
                 openRepoAnalysisModal={openRepoAnalysisModal}
                 selectToken={selectToken}
                 tokens={data.landscapeTokens}
-                deleteToken={deleteToken}
+                confirmDeleteToken={(token) => {
+                  availabilityCheck.current?.abort();
+                  setLandscapeToDelete(token);
+                }}
                 reload={reload}
               />
             </div>
@@ -280,6 +286,35 @@ export default function Landscapes() {
       </div>
 
       <div>
+        <Modal
+          show={landscapeToDelete !== null}
+          onHide={() => setLandscapeToDelete(null)}
+          aria-labelledby="delete-landscape-title"
+          centered
+        >
+          <Modal.Header closeButton>
+            <Modal.Title id="delete-landscape-title">Delete Landscape Data</Modal.Title>
+          </Modal.Header>
+          <Modal.Body>
+            Permanently delete <strong>{landscapeToDelete?.alias}</strong>?
+          </Modal.Body>
+          <Modal.Footer>
+            <Button variant="secondary" onClick={() => setLandscapeToDelete(null)} autoFocus>
+              Cancel
+            </Button>
+            <Button
+              variant="danger"
+              onClick={() => {
+                if (!landscapeToDelete) return;
+                setLandscapeToDelete(null);
+                void deleteToken(landscapeToDelete.value);
+              }}
+            >
+              Delete landscape
+            </Button>
+          </Modal.Footer>
+        </Modal>
+
         <Modal show={emptyLandscape !== null} onHide={() => setEmptyLandscape(null)} centered>
           <Modal.Header closeButton>
             <Modal.Title>No landscape data available</Modal.Title>

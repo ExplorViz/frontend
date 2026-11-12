@@ -26,7 +26,7 @@ interface TokenSelectionArgs {
   openTokenCreationModal(): void;
   openRepoAnalysisModal(token?: LandscapeToken): void;
   selectToken(token: LandscapeToken): void;
-  deleteToken(tokenId: string, event: React.MouseEvent): Promise<void>;
+  confirmDeleteToken(token: LandscapeToken): void;
   reload(): void;
 }
 
@@ -35,7 +35,7 @@ export default function TokenSelection({
   openTokenCreationModal,
   openRepoAnalysisModal,
   selectToken,
-  deleteToken,
+  confirmDeleteToken,
   reload,
 }: TokenSelectionArgs) {
   const [sortProperty, setSortProperty] = useState<keyof LandscapeToken>('value');
@@ -334,11 +334,15 @@ export default function TokenSelection({
                         </OverlayTrigger>
                       </li>
                       <li>
-                        <OverlayTrigger placement="bottom" overlay={<Tooltip>Delete token permanently</Tooltip>}>
+                        <OverlayTrigger placement="bottom" overlay={<Tooltip>Delete Landscape Data</Tooltip>}>
                           <button
                             className="button-svg-with-hover"
                             type="button"
-                            onClick={(e) => deleteToken(token.value, e)}
+                            aria-label={`Delete landscape ${token.alias}`}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              confirmDeleteToken(token);
+                            }}
                           >
                             <TrashIcon size="small" className="align-middle" />
                           </button>
