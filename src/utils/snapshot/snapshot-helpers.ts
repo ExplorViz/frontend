@@ -121,7 +121,7 @@ async function resolveSnapshotLandscapeData(snapshot: SnapshotToken): Promise<{
   }
 
   const epochNano = snapshot.serializedRoom?.landscape?.timestamp;
-  if (epochNano) {
+  if (epochNano !== undefined && epochNano !== null) {
     try {
       const [flat, dynamic, aggregated] = await useReloadHandlerStore.getState().loadLandscapeByTimestamp(epochNano);
       return { flat, dynamic, aggregated };
@@ -157,7 +157,7 @@ export async function restoreSnapshotFromToken(snapshot: SnapshotToken): Promise
   seedSnapshotTimestamps(snapshot.timestamps?.timestamps ?? []);
 
   const selectedEpoch = snapshot.serializedRoom?.landscape?.timestamp;
-  if (selectedEpoch) {
+  if (selectedEpoch !== undefined && selectedEpoch !== null) {
     useTimestampStore.getState().updateSelectedTimestamp(new Map([[CROSS_COMMIT_IDENTIFIER, [selectedEpoch]]]));
   }
 
