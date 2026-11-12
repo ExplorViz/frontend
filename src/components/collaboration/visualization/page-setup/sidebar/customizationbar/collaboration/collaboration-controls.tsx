@@ -9,6 +9,7 @@ import { isLoginSkipped } from 'explorviz-frontend/src/utils/auth-config';
 import 'explorviz-frontend/src/utils/collaboration/capabilities';
 import { setParticipantMuted, useChat } from 'explorviz-frontend/src/utils/collaboration/chat';
 import { isCollaborationServiceReachable } from 'explorviz-frontend/src/utils/collaboration/collaboration-service';
+import { setDistrictSharing, useDistrictSharing } from 'explorviz-frontend/src/utils/collaboration/districts';
 import { useRoomConnectionStore, useRoomState } from 'explorviz-frontend/src/utils/collaboration/room-connection';
 import { SpectateButton, SpectatingStatus } from './spectating-status';
 import { use, useEffect, useState } from 'react';
@@ -187,6 +188,7 @@ function JoinNotice({ onBack, onJoin }: { onBack: () => void; onJoin: () => void
 function RoomPanel() {
   const { room, leaveRoom, kick, handOverHost } = useRoomConnectionStore();
   const state = useRoomState();
+  const districtSharing = useDistrictSharing();
   if (!room) return null;
   const isHost = state?.hostId === room.sessionId;
 
@@ -261,6 +263,20 @@ function RoomPanel() {
           </li>
         ))}
       </ul>
+      <Form.Check
+        type="switch"
+        id="collaboration-district-sharing"
+        className="mb-3"
+        label="Share Districts"
+        title={
+          isHost
+            ? 'When off, everyone opens and closes Districts for themselves'
+            : 'Only the Host can change whether Districts are shared'
+        }
+        checked={districtSharing ?? true}
+        disabled={!isHost}
+        onChange={(event) => setDistrictSharing(event.target.checked)}
+      />
       <Button variant="outline-danger" size="sm" className="w-100" onClick={() => leaveRoom()}>
         Leave room
       </Button>
