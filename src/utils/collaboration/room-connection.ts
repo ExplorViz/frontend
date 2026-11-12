@@ -1,11 +1,15 @@
 import { useRoomState as useColyseusRoomState } from '@colyseus/react';
 import { Client, type Room } from '@colyseus/sdk';
+import { freshAccessToken } from 'explorviz-frontend/src/stores/auth';
 import { useToastHandlerStore } from 'explorviz-frontend/src/stores/toast-handler';
+import { isLoginSkipped } from 'explorviz-frontend/src/utils/auth-config';
 import { COLLABORATION_SERVICE_PATH } from 'explorviz-frontend/src/utils/collaboration/collaboration-service';
 import {
   CONTRACT_VERSION,
   JoinRefusal,
+  LeaveCode,
   ROOM_NAME,
+  type ClientMessages,
   type CollaborationState,
   type JoinOptions,
   type StartingState,
@@ -26,6 +30,10 @@ type RoomConnectionState = {
   joinRoom: (code: string, name: string) => Promise<void>;
   /** Leaves the Room; exploring goes on alone. */
   leaveRoom: () => Promise<void>;
+  /** Host only: removes this Participant from the Room. The service refuses it from anyone else. */
+  kick: (sessionId: string) => void;
+  /** Host only: makes this Participant the Host instead. The service refuses it from anyone else. */
+  handOverHost: (sessionId: string) => void;
 };
 
 const TOAST_HEADER = 'Collaboration';
@@ -81,15 +89,16 @@ export const useRoomConnectionStore = create<RoomConnectionState>((set, get) => 
     if (get().room || get().connecting) return;
     set({ connecting: true });
     try {
+      // The service checks the login only now, so hand it a token that is not about to expire.
+      serviceClient().auth.token = (isLoginSkipped() ? undefined : await freshAccessToken()) ?? '';
       const options: JoinOptions = { contractVersion: CONTRACT_VERSION, name };
       if (entry === 'created') options.startingState = startingState();
       const room = await connect(options);
       room.onLeave((code) => {
         if (get().room !== room) return;
         leave(room);
-        if (code !== CONSENTED_LEAVE) {
-          useToastHandlerStore.getState().showInfoToastMessage('You are no longer in the room.', TOAST_HEADER);
-        }
+        const notice = leaveNotice(code);
+        if (notice) useToastHandlerStore.getState().showInfoToastMessage(notice, TOAST_HEADER);
       });
       for (const handOver of handOvers) handOver.enter?.(room, entry);
       set({ room, connecting: false });
@@ -117,11 +126,24 @@ export const useRoomConnectionStore = create<RoomConnectionState>((set, get) => 
       leave(room);
       await room.leave();
     },
+    kick: (sessionId) => get().room?.send('kick', { sessionId } satisfies ClientMessages['kick']),
+    handOverHost: (sessionId) =>
+      get().room?.send('handOverHost', { sessionId } satisfies ClientMessages['handOverHost']),
   };
 });
 
 /** The close code of a leave the client asked for. */
 const CONSENTED_LEAVE = 4000;
+
+/**
+ * What to tell the person when the Room's connection ends with this close code.
+ * `LeaveCode.KICKED` marks a kick; such a close must never lead to reconnection.
+ */
+function leaveNotice(code: number) {
+  if (code === CONSENTED_LEAVE) return undefined;
+  if (code === LeaveCode.KICKED) return 'The Host removed you from the room.';
+  return 'You are no longer in the room.';
+}
 
 /** Room codes are capitals and digits; people may type them in lower case or with spaces. */
 export function normalizeRoomCode(code: string) {
@@ -136,6 +158,8 @@ function refusalMessage(error: unknown) {
       return 'The room is full.';
     case JoinRefusal.CONTRACT_MISMATCH:
       return 'The collaboration service was updated. Please reload the page.';
+    case JoinRefusal.LOGIN_REQUIRED:
+      return 'Please log in again to collaborate.';
     default:
       return `Could not connect to the room: ${(error as Error | undefined)?.message ?? error}`;
   }

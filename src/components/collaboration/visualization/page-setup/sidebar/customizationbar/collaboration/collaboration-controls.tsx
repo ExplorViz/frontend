@@ -1,3 +1,4 @@
+import ChatBox from 'explorviz-frontend/src/components/visualization/page-setup/sidebar/customizationbar/chat/chat-box';
 import {
   SettingsSidebarContext,
   SettingsSidebarTab,
@@ -6,6 +7,7 @@ import { useAuthStore } from 'explorviz-frontend/src/stores/auth';
 import { isLoginSkipped } from 'explorviz-frontend/src/utils/auth-config';
 // Every capability's collaboration module registers its hand-over before a Room is entered from here.
 import 'explorviz-frontend/src/utils/collaboration/capabilities';
+import { setParticipantMuted, useChat } from 'explorviz-frontend/src/utils/collaboration/chat';
 import { isCollaborationServiceReachable } from 'explorviz-frontend/src/utils/collaboration/collaboration-service';
 import { useRoomConnectionStore, useRoomState } from 'explorviz-frontend/src/utils/collaboration/room-connection';
 import { use, useEffect, useState } from 'react';
@@ -18,6 +20,7 @@ type Reachability = 'checking' | 'reachable' | 'unreachable';
 export default function CollaborationControls() {
   const [reachability, setReachability] = useState<Reachability>('checking');
   const room = useRoomConnectionStore((state) => state.room);
+  const keptChat = useChat().entries.length > 0;
 
   useEffect(() => {
     let active = true;
@@ -45,6 +48,11 @@ export default function CollaborationControls() {
             </p>
           )}
           {reachability === 'reachable' && <RoomEntryForm />}
+          {keptChat && (
+            <div className="mt-3">
+              <ChatBox />
+            </div>
+          )}
         </>
       )}
     </div>
@@ -176,9 +184,10 @@ function JoinNotice({ onBack, onJoin }: { onBack: () => void; onJoin: () => void
 }
 
 function RoomPanel() {
-  const { room, leaveRoom } = useRoomConnectionStore();
+  const { room, leaveRoom, kick, handOverHost } = useRoomConnectionStore();
   const state = useRoomState();
   if (!room) return null;
+  const isHost = state?.hostId === room.sessionId;
 
   return (
     <div>
@@ -194,15 +203,63 @@ function RoomPanel() {
               className="d-inline-block rounded-circle"
               style={{ width: '0.75rem', height: '0.75rem', backgroundColor: participant.color }}
             />
+            {sessionId === room.sessionId && (
+              <input
+                type="color"
+                aria-label="Your color"
+                title="Change your color"
+                className="form-control form-control-color p-0 border-0"
+                style={{ width: '1.25rem', height: '1.25rem' }}
+                value={participant.color}
+                onChange={(event) => room.send('setColor', { color: event.target.value })}
+              />
+            )}
             <span>{participant.name}</span>
             {sessionId === room.sessionId && <span className="small text-muted">(you)</span>}
             {sessionId === state?.hostId && <span className="badge bg-secondary">Host</span>}
+            {participant.muted && <span className="small text-muted">muted</span>}
+            {isHost && sessionId !== room.sessionId && (
+              <span className="ms-auto d-flex gap-1">
+                <Button
+                  variant="outline-secondary"
+                  size="sm"
+                  className="py-0"
+                  aria-label={`${participant.muted ? 'Unmute' : 'Mute'} ${participant.name}`}
+                  onClick={() => setParticipantMuted(sessionId, !participant.muted)}
+                >
+                  {participant.muted ? 'Unmute' : 'Mute'}
+                </Button>
+                <Button
+                  variant="outline-secondary"
+                  size="sm"
+                  className="py-0"
+                  aria-label={`Make ${participant.name} Host`}
+                  title="Make Host"
+                  onClick={() => handOverHost(sessionId)}
+                >
+                  Make Host
+                </Button>
+                <Button
+                  variant="outline-danger"
+                  size="sm"
+                  className="py-0"
+                  aria-label={`Kick ${participant.name}`}
+                  title="Kick"
+                  onClick={() => kick(sessionId)}
+                >
+                  Kick
+                </Button>
+              </span>
+            )}
           </li>
         ))}
       </ul>
       <Button variant="outline-danger" size="sm" className="w-100" onClick={() => leaveRoom()}>
         Leave room
       </Button>
+      <div className="mt-3">
+        <ChatBox />
+      </div>
     </div>
   );
 }

@@ -37,6 +37,8 @@ export default defineConfig({
         'src/utils/collaboration/districts.ts',
         'src/utils/collaboration/local-exploration.ts',
         'src/utils/city-rendering/entity-manipulation.ts',
+        'src/utils/collaboration/chat.ts',
+        'src/components/visualization/page-setup/sidebar/customizationbar/chat/chat-box.tsx',
         'src/components/collaboration/visualization/page-setup/sidebar/customizationbar/collaboration/collaboration-controls.tsx',
         'src/components/visualization/rendering/spectate-camera-controller.tsx',
       ],
