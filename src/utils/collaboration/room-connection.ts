@@ -191,8 +191,14 @@ export function useRoomStatePart<K extends keyof CollaborationState>(key: K): Co
   return useColyseusRoomState(room, (state: any) => state[key]) as CollaborationState[K] | undefined;
 }
 
-/** The joined Room's state as an immutable snapshot, or undefined while alone. */
+/**
+ * The joined Room's state as an immutable snapshot, or undefined while alone.
+ * Also undefined for the moment between joining and the Room's first full
+ * state: the SDK resolves `create`/`joinById` before it, and until then the
+ * state has no fields.
+ */
 export function useRoomState(): CollaborationState | undefined {
   const room = useRoomConnectionStore((state) => state.room);
-  return useColyseusRoomState(room) as CollaborationState | undefined;
+  const snapshot = useColyseusRoomState(room) as Partial<CollaborationState> | undefined;
+  return snapshot?.participants ? (snapshot as CollaborationState) : undefined;
 }

@@ -1,4 +1,4 @@
-import { Decoder, Encoder, schema, t } from '@colyseus/schema';
+import { Encoder, Reflection, schema, t } from '@colyseus/schema';
 import { act } from '@testing-library/react';
 import { applyDistrictActions, applyHighlightAction } from '../src/utils/collaboration/room-contract.generated';
 
@@ -190,13 +190,17 @@ const PALETTE = ['#e6194b', '#3cb44b', '#4363d8', '#f58231'];
 
 /** The client side of one connection, shaped like the SDK's `Room` as far as the frontend uses it. */
 export class FakeClientRoom {
-  private readonly decoder = new Decoder(new CollaborationState());
+  // As in the SDK: the decoder is built from the service's reflection, so until the first full
+  // state arrives, `state` has no fields at all.
+  private readonly decoder: ReturnType<typeof Reflection.decode>;
   private readonly leaveListeners: ((code: number) => void)[] = [];
   private readonly messageListeners = new Map<string, ((payload: any) => void)[]>();
   private readonly stateListeners: ((state: unknown) => void)[] = [];
   private readonly dropListeners: (() => void)[] = [];
   private readonly reconnectListeners: (() => void)[] = [];
-  readonly serializer = { decoder: this.decoder };
+  get serializer() {
+    return { decoder: this.decoder };
+  }
   /** The messages that reached the service. */
   readonly sent: { type: string; payload: unknown }[] = [];
   /** As in the SDK: how many messages sent while the connection is down are kept for after the reconnect. */
@@ -205,11 +209,15 @@ export class FakeClientRoom {
   dropped = false;
   private enqueued: { type: string; payload: unknown }[] = [];
   private missedPatches: Uint8Array[] = [];
+  /** True between joining and the first full state, a moment the SDK resolves `create`/`joinById` in. */
+  private awaitingFirstState = false;
 
   constructor(
     readonly server: FakeServerRoom,
     readonly sessionId: string
-  ) {}
+  ) {
+    this.decoder = Reflection.decode(Reflection.encode(server.encoder));
+  }
 
   get roomId() {
     return this.server.code;
@@ -220,7 +228,7 @@ export class FakeClientRoom {
   }
 
   receive(bytes: Uint8Array) {
-    if (this.dropped) {
+    if (this.dropped || this.awaitingFirstState) {
       // A copy: the encoder reuses its buffer for the next patch.
       this.missedPatches.push(bytes.slice());
       return;
@@ -262,6 +270,19 @@ export class FakeClientRoom {
     act(() => {
       this.dropped = true;
       for (const listener of [...this.dropListeners]) listener();
+    });
+  }
+
+  /** Seated, but the full state is still on its way. */
+  holdFirstState() {
+    this.awaitingFirstState = true;
+  }
+
+  /** The first full state (and every patch since) arrives. */
+  deliverFirstState() {
+    act(() => {
+      this.awaitingFirstState = false;
+      for (const patch of this.missedPatches.splice(0)) this.receive(patch);
     });
   }
 
@@ -322,7 +343,7 @@ export class FakeClientRoom {
 /** The service side of one Room. */
 export class FakeServerRoom {
   readonly state: ServerState = new CollaborationState();
-  private readonly encoder = new Encoder(this.state);
+  readonly encoder = new Encoder(this.state);
   readonly clients = new Map<string, FakeClientRoom>();
   /** Messages sent by clients and not yet handled. */
   readonly inbox: { from: string; type: string; payload: any }[] = [];
@@ -373,8 +394,9 @@ export class FakeServerRoom {
     );
   }
 
-  seat(sessionId: string, name: string) {
+  seat(sessionId: string, name: string, holdFirstState = false) {
     const client = new FakeClientRoom(this, sessionId);
+    if (holdFirstState) client.holdFirstState();
     this.clients.set(sessionId, client);
     if (this.state.participants.size === 0) this.state.hostId = sessionId;
     this.state.participants.set(
@@ -433,12 +455,24 @@ export class FakeCollaborationService {
   }[] = [];
   endpoint: string | undefined;
   private refusal: FakeServerError | undefined;
+  private holdNextFirstState = false;
   private sessions = 0;
   private codes = 0;
 
   /** The next `create` or `joinById` is refused with this error code. */
   refuseNext(code: number, message = 'refused') {
     this.refusal = new FakeServerError(code, message);
+  }
+
+  /** The next `create` or `joinById` resolves before its first full state (call `deliverFirstState`). */
+  holdFirstStateOfNextEntry() {
+    this.holdNextFirstState = true;
+  }
+
+  private takeHold() {
+    const hold = this.holdNextFirstState;
+    this.holdNextFirstState = false;
+    return hold;
   }
 
   /** A Room someone else created. */
@@ -454,7 +488,7 @@ export class FakeCollaborationService {
     this.throwRefusal();
     const room = new FakeServerRoom(`ROOM${String(++this.codes).padStart(2, '0')}`);
     this.rooms.set(room.code, room);
-    const creator = room.seat(this.nextSessionId(), options.name);
+    const creator = room.seat(this.nextSessionId(), options.name, this.takeHold());
     // As the service: the creator's highlights become theirs.
     room.update((state) => {
       for (const entityId of options.startingState?.highlights ?? []) state.highlights.set(entityId, creator.sessionId);
@@ -467,13 +501,14 @@ export class FakeCollaborationService {
     this.throwRefusal();
     const room = this.rooms.get(code);
     if (!room) throw new FakeServerError(522, `room "${code}" not found`);
-    return room.seat(this.nextSessionId(), options.name);
+    return room.seat(this.nextSessionId(), options.name, this.takeHold());
   }
 
   reset() {
     this.rooms.clear();
     this.requests.length = 0;
     this.refusal = undefined;
+    this.holdNextFirstState = false;
     this.endpoint = undefined;
     this.codes = 0;
     this.sessions = 0;
