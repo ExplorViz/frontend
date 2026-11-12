@@ -1,8 +1,11 @@
 import { useModelStore } from 'explorviz-frontend/src/stores/repos/model-repository';
 import { useVisualizationStore } from 'explorviz-frontend/src/stores/visualization-store';
 import {
+  currentRoom,
+  decodedStateCache,
   registerHandOver,
-  useRoomConnectionStore,
+  sameIds,
+  useInRoom,
   useRoomStatePart,
   type CollaborationRoom,
 } from 'explorviz-frontend/src/utils/collaboration/room-connection';
@@ -42,8 +45,6 @@ export type DistrictState = {
   closedDistrictIds: Set<string>;
   hiddenDistrictIds: Set<string>;
 };
-
-const currentRoom = () => useRoomConnectionStore.getState().room;
 
 /** The Room whose Districts are shown: the joined Room while it shares its Districts. */
 function sharingRoom() {
@@ -95,14 +96,8 @@ function fromDecodedState(districts: CollaborationRoom['state']['districts'] | u
 }
 
 /** The decoded Room state's Districts, as built Sets; dropped on every state change of the Room. */
-let decodedRoomDistricts: { room: CollaborationRoom; state: DistrictState } | undefined;
-
-function fromDecodedRoom(room: CollaborationRoom): DistrictState {
-  if (decodedRoomDistricts?.room !== room) {
-    decodedRoomDistricts = { room, state: fromDecodedState(room.state.districts) };
-  }
-  return decodedRoomDistricts.state;
-}
+const decodedRoomDistricts = decodedStateCache((room) => fromDecodedState(room.state.districts));
+const fromDecodedRoom = (room: CollaborationRoom) => decodedRoomDistricts.get(room);
 
 const ownDistricts = (): DistrictState => {
   const { closedDistrictIds, hiddenDistrictIds } = useVisualizationStore.getState();
@@ -146,7 +141,7 @@ export function getDistricts(): DistrictState {
  * of the sets, not a new object.
  */
 export function useDistricts<T>(select: (districts: DistrictState) => T): T {
-  const inRoom = useRoomConnectionStore((state) => state.room !== undefined);
+  const inRoom = useInRoom();
   const own = useVisualizationStore((state) =>
     select({ closedDistrictIds: state.closedDistrictIds, hiddenDistrictIds: state.hiddenDistrictIds })
   );
@@ -181,18 +176,17 @@ function changed(districts: DistrictState, actions: readonly DistrictAction[]): 
     closedDistrictIds: expand(closed.ids, closed.inverted, all),
     hiddenDistrictIds: expand(hidden.ids, hidden.inverted, all),
   };
-  const same = (a: Set<string>, b: Set<string>) => a.size === b.size && [...a].every((id) => b.has(id));
   if (
-    same(next.closedDistrictIds, districts.closedDistrictIds) &&
-    same(next.hiddenDistrictIds, districts.hiddenDistrictIds)
+    sameIds(next.closedDistrictIds, districts.closedDistrictIds) &&
+    sameIds(next.hiddenDistrictIds, districts.hiddenDistrictIds)
   ) {
     return undefined;
   }
   return {
-    closedDistrictIds: same(next.closedDistrictIds, districts.closedDistrictIds)
+    closedDistrictIds: sameIds(next.closedDistrictIds, districts.closedDistrictIds)
       ? districts.closedDistrictIds
       : next.closedDistrictIds,
-    hiddenDistrictIds: same(next.hiddenDistrictIds, districts.hiddenDistrictIds)
+    hiddenDistrictIds: sameIds(next.hiddenDistrictIds, districts.hiddenDistrictIds)
       ? districts.hiddenDistrictIds
       : next.hiddenDistrictIds,
   };
@@ -215,7 +209,7 @@ export function changeDistricts(actions: DistrictAction[]) {
 
 /** Whether the joined Room shares its Districts, or undefined while alone. Shown to everyone. */
 export function useDistrictSharing(): boolean | undefined {
-  const inRoom = useRoomConnectionStore((state) => state.room !== undefined);
+  const inRoom = useInRoom();
   const shared = useRoomStatePart('districts')?.shared;
   return inRoom ? shared !== false : undefined;
 }
@@ -243,12 +237,11 @@ registerHandOver({
   enter: (room) => {
     // From now on the Room's Districts are shown; the own ones have no home.
     setOwnDistricts(noDistricts());
-    decodedRoomDistricts = undefined;
+    decodedRoomDistricts.drop();
     // Unknown until the Room's state arrives. Someone joining while sharing
     // is off takes nothing from the Room: it holds no Districts to show.
     let shared = room.state.districts?.shared;
     room.onStateChange((state) => {
-      if (decodedRoomDistricts?.room === room) decodedRoomDistricts = undefined;
       const nowShared = state.districts?.shared;
       if (shared === true && nowShared === false) {
         // Switched off: everyone carries on with the Room's Districts as their own.
@@ -265,6 +258,6 @@ registerHandOver({
     if (lastState.districts?.shared !== false) {
       setOwnDistricts(fromDecodedState(lastState.districts));
     }
-    decodedRoomDistricts = undefined;
+    decodedRoomDistricts.drop();
   },
 });

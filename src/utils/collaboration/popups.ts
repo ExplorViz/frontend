@@ -4,8 +4,9 @@ import PopupData from 'explorviz-frontend/src/components/visualization/rendering
 import { usePopupHandlerStore } from 'explorviz-frontend/src/stores/popup-handler';
 import { useModelStore } from 'explorviz-frontend/src/stores/repos/model-repository';
 import {
+  currentRoom,
   registerHandOver,
-  useRoomConnectionStore,
+  useInRoom,
   useRoomStatePart,
 } from 'explorviz-frontend/src/utils/collaboration/room-connection';
 import type { ClientMessages } from 'explorviz-frontend/src/utils/collaboration/room-contract.generated';
@@ -32,8 +33,6 @@ type AddPopupArgs = Parameters<ReturnType<typeof usePopupHandlerStore.getState>[
 type SharedPopups = ReadonlyMap<string, { sharedByName: string }>;
 
 const NOT_SHARED: SharedPopups = new Map();
-
-const currentRoom = () => useRoomConnectionStore.getState().room;
 
 /** The shared popups of the joined Room, from its decoded state. */
 function roomSharedPopups(): SharedPopups {
@@ -99,7 +98,7 @@ export function usePopups(): PopupData[] {
 
 /** Whether popups can be shared now: only in a Room. */
 export function useCanSharePopups(): boolean {
-  return useRoomConnectionStore((state) => state.room !== undefined);
+  return useInRoom();
 }
 
 /**

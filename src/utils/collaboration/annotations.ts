@@ -5,7 +5,9 @@ import { useAnnotationHandlerStore } from 'explorviz-frontend/src/stores/annotat
 import { useModelStore } from 'explorviz-frontend/src/stores/repos/model-repository';
 import { useToastHandlerStore } from 'explorviz-frontend/src/stores/toast-handler';
 import {
+  currentRoom,
   registerHandOver,
+  useInRoom,
   useRoomConnectionStore,
   useRoomStatePart,
 } from 'explorviz-frontend/src/utils/collaboration/room-connection';
@@ -49,8 +51,6 @@ export type ShownAnnotations = {
 type AddAnnotationArgs = Parameters<ReturnType<typeof useAnnotationHandlerStore.getState>['addAnnotation']>[0];
 
 const TOAST_HEADER = 'Annotations';
-
-const currentRoom = () => useRoomConnectionStore.getState().room;
 
 const ownStore = () => useAnnotationHandlerStore.getState();
 
@@ -136,7 +136,7 @@ export function getAnnotations(): ShownAnnotations {
 
 /** The shown annotations, for rendering. */
 export function useAnnotations(): ShownAnnotations {
-  const inRoom = useRoomConnectionStore((state) => state.room !== undefined);
+  const inRoom = useInRoom();
   const roomAnnotations = useRoomStatePart('annotations');
   const { annotationData, minimizedAnnotations } = useAnnotationHandlerStore(
     useShallow((state) => ({

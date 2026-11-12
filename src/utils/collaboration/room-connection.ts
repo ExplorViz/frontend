@@ -182,6 +182,50 @@ function refusalMessage(error: unknown) {
   }
 }
 
+/*
+ * Helpers for the capability modules, so each of them reads the joined Room
+ * the same way.
+ */
+
+/** The joined Room, or undefined while alone; for reading outside of rendering. */
+export const currentRoom = () => useRoomConnectionStore.getState().room;
+
+/** Whether a Room is joined, for rendering. */
+export function useInRoom(): boolean {
+  return useRoomConnectionStore((state) => state.room !== undefined);
+}
+
+/**
+ * A value worked out from the joined Room's decoded state (e.g. a Set of
+ * ids), kept until the Room's state changes, so readers outside of rendering
+ * get the same object between patches.
+ */
+export function decodedStateCache<T>(compute: (room: CollaborationRoom) => T) {
+  let cached: { room: CollaborationRoom; value: T } | undefined;
+  const watched = new WeakSet<CollaborationRoom>();
+  return {
+    get(room: CollaborationRoom): T {
+      if (!watched.has(room)) {
+        watched.add(room);
+        room.onStateChange(() => {
+          if (cached?.room === room) cached = undefined;
+        });
+      }
+      if (cached?.room !== room) cached = { room, value: compute(room) };
+      return cached.value;
+    },
+    /** Forgets the value, e.g. when the Room is entered or left. */
+    drop() {
+      cached = undefined;
+    },
+  };
+}
+
+/** Whether two sets of ids hold the same ids. */
+export function sameIds(a: ReadonlySet<string>, b: ReadonlySet<string>): boolean {
+  return a.size === b.size && [...a].every((id) => b.has(id));
+}
+
 /** Whether the connection to the joined Room is down and being retried (see `reconnecting`). */
 export function useReconnecting(): boolean {
   return useRoomConnectionStore((state) => state.reconnecting);

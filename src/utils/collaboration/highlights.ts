@@ -1,9 +1,11 @@
 import { useVisualizationStore } from 'explorviz-frontend/src/stores/visualization-store';
 import {
+  currentRoom,
+  decodedStateCache,
   registerHandOver,
-  useRoomConnectionStore,
+  sameIds,
+  useInRoom,
   useRoomStatePart,
-  type CollaborationRoom,
 } from 'explorviz-frontend/src/utils/collaboration/room-connection';
 import {
   applyHighlightAction,
@@ -32,8 +34,6 @@ export type { HighlightAction };
 /** Who is the highlighter of the own highlights while alone. */
 const ME = 'me';
 
-const currentRoom = () => useRoomConnectionStore.getState().room;
-
 const ownIds = () => useVisualizationStore.getState().highlightedEntityIds;
 
 /** A set of own highlights, seen as highlighter records (all of them the person's). */
@@ -61,18 +61,12 @@ function fromRoomSnapshot(highlights: Record<string, string>, participants: Reco
 }
 
 /** The decoded Room state's highlighted entities; dropped on every state change of the Room. */
-let decodedRoomIds: { room: CollaborationRoom; ids: Set<string> } | undefined;
-function fromDecodedRoom(room: CollaborationRoom) {
-  if (decodedRoomIds?.room !== room) {
-    decodedRoomIds = { room, ids: new Set<string>(room.state.highlights?.keys() ?? []) };
-  }
-  return decodedRoomIds.ids;
-}
+const decodedRoomIds = decodedStateCache((room) => new Set<string>(room.state.highlights?.keys() ?? []));
 
 /** The highlighted entities that are shown, for reading outside of rendering. Treat the set as read-only. */
 export function getHighlightedEntityIds(): Set<string> {
   const room = currentRoom();
-  return room ? fromDecodedRoom(room) : ownIds();
+  return room ? decodedRoomIds.get(room) : ownIds();
 }
 
 const EMPTY: Record<string, string> = {};
@@ -83,7 +77,7 @@ const EMPTY: Record<string, string> = {};
  * highlight comes, goes, changes hands or its highlighter's color changes.
  */
 export function useHighlights<T>(select: (highlightedEntityIds: Set<string>) => T): T {
-  const inRoom = useRoomConnectionStore((state) => state.room !== undefined);
+  const inRoom = useInRoom();
   const own = useVisualizationStore((state) => select(state.highlightedEntityIds));
   const highlights = useRoomStatePart('highlights');
   const participants = useRoomStatePart('participants');
@@ -134,28 +128,22 @@ export function changeHighlights(action: HighlightAction) {
   }
   const next = new Set(ownIds());
   applyHighlightAction(ownOwners(next), ME, action);
-  const current = ownIds();
-  if (next.size !== current.size || [...next].some((id) => !current.has(id))) {
-    useVisualizationStore.setState({ highlightedEntityIds: next });
-  }
+  if (!sameIds(next, ownIds())) useVisualizationStore.setState({ highlightedEntityIds: next });
 }
 
 const setOwnIds = (ids: Iterable<string>) => useVisualizationStore.setState({ highlightedEntityIds: new Set(ids) });
 
 registerHandOver({
   startingState: () => ({ highlights: [...ownIds()] }),
-  enter: (room) => {
+  enter: () => {
     // From now on the Room's highlights are shown; the own ones have no home.
     // Creating, they became the creator's highlights in the Room.
     setOwnIds([]);
-    decodedRoomIds = undefined;
-    room.onStateChange(() => {
-      if (decodedRoomIds?.room === room) decodedRoomIds = undefined;
-    });
+    decodedRoomIds.drop();
   },
   leave: (lastState) => {
     // Everything that was highlighted stays highlighted, as the person's own.
     setOwnIds(lastState.highlights?.keys() ?? []);
-    decodedRoomIds = undefined;
+    decodedRoomIds.drop();
   },
 });
