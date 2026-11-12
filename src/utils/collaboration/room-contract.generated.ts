@@ -14,7 +14,7 @@ export const ROOM_NAME = "collaboration";
 export type JoinOptions = {
   /** The client's CONTRACT_VERSION. */
   contractVersion: number;
-  /** The display name, typed by the person while login is off. */
+  /** The display name, typed by the person. Ignored while login is on: the name then comes from the login. */
   name: string;
 };
 
@@ -29,13 +29,18 @@ export const JoinRefusal = {
   CONTRACT_MISMATCH: 4100,
   /** The Room already has its maximum number of Participants. */
   ROOM_FULL: 4101,
+  /** Login is on and the request carried no valid login token. */
+  LOGIN_REQUIRED: 4102,
 } as const;
 
 /**
  * Messages a client sends to the Room: message type -> payload.
  * Each entry has a handler of the same name in CollaborationRoom's `messages`.
  */
-export type ClientMessages = {};
+export type ClientMessages = {
+  /** Changes the sender's own color to a CSS hex color such as "#e6194b". Other values are ignored. */
+  setColor: { color: string };
+};
 
 /**
  * Messages the Room sends to clients: message type -> payload.

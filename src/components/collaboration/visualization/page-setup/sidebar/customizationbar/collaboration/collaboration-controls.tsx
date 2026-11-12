@@ -141,6 +141,17 @@ function RoomPanel() {
               className="d-inline-block rounded-circle"
               style={{ width: '0.75rem', height: '0.75rem', backgroundColor: participant.color }}
             />
+            {sessionId === room.sessionId && (
+              <input
+                type="color"
+                aria-label="Your color"
+                title="Change your color"
+                className="form-control form-control-color p-0 border-0"
+                style={{ width: '1.25rem', height: '1.25rem' }}
+                value={participant.color}
+                onChange={(event) => room.send('setColor', { color: event.target.value })}
+              />
+            )}
             <span>{participant.name}</span>
             {sessionId === room.sessionId && <span className="small text-muted">(you)</span>}
             {sessionId === state?.hostId && <span className="badge bg-secondary">Host</span>}

@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import { act, render, screen, within } from '@testing-library/react';
+import { act, fireEvent, render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { beforeEach, expect, it, onTestFinished, vi } from 'vitest';
 import { useAuthStore } from '../src/stores/auth';
@@ -180,6 +180,7 @@ it.each([
     JoinRefusal.CONTRACT_MISMATCH,
     'The collaboration service was updated. Please reload the page.',
   ],
+  ['a missing or invalid login', JoinRefusal.LOGIN_REQUIRED, 'Please log in again to collaborate.'],
 ])('refuses %s with a toast and stays alone', async (_case, refusal, message) => {
   const toasts = collectToasts();
   if (refusal) {
@@ -223,4 +224,48 @@ it('takes the name from the login when login is on', async () => {
 
   expect(screen.queryByRole('textbox', { name: /display name/i })).not.toBeInTheDocument();
   await vi.waitFor(() => expect(service.requests.at(-1)?.options.name).toBe('Ada Lovelace'));
+});
+
+it('sends the login token when creating and joining with login on', async () => {
+  vi.stubEnv('VITE_ENABLE_SKIP_LOGIN', 'false');
+  useAuthStore.setState({ user: { name: 'Ada Lovelace', nickname: 'ada', sub: '1' }, accessToken: 'token-1' });
+  service.openRoom('K7XQ2M');
+  serviceAnswers();
+  render(<CollaborationControls />);
+  const user = userEvent.setup();
+
+  await user.click(await screen.findByRole('button', { name: /create room/i }));
+  await screen.findByText('ROOM01');
+  await user.click(screen.getByRole('button', { name: /leave room/i }));
+  act(() => useAuthStore.setState({ accessToken: 'token-2' }));
+  await user.type(await screen.findByRole('textbox', { name: /room code/i }), 'K7XQ2M');
+  await user.click(screen.getByRole('button', { name: /join/i }));
+
+  await vi.waitFor(() => expect(service.requests.map((r) => r.token)).toEqual(['token-1', 'token-2']));
+});
+
+it('sends no login token with login off', async () => {
+  useAuthStore.setState({ accessToken: 'dev-token' });
+  await createRoomAs('Ada');
+  await screen.findByText('ROOM01');
+
+  expect(service.requests.at(-1)?.token).toBeUndefined();
+});
+
+it('lets a Participant change their own color, which everyone sees', async () => {
+  await createRoomAs('Ada');
+  await screen.findByText('ROOM01');
+  const room = service.rooms.get('ROOM01')!;
+  room.seat('session-other', 'Grace');
+  const [own] = room.clients.values();
+
+  const picker = screen.getByLabelText('Your color');
+  fireEvent.change(picker, { target: { value: '#00ff7f' } });
+
+  expect(own.sent).toEqual([{ type: 'setColor', payload: { color: '#00ff7f' } }]);
+  expect(within(participantRows()[1]).queryByLabelText('Your color')).not.toBeInTheDocument();
+
+  room.update((state) => (state.participants.get('session-other')!.color = '#123456'));
+  const swatch = participantRows()[1].querySelector('[aria-hidden]') as HTMLElement;
+  expect(swatch.style.backgroundColor).toBe('rgb(18, 52, 86)');
 });
