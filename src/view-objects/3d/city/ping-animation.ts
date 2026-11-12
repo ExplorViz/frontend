@@ -1,9 +1,14 @@
-import { useLocalUserStore } from 'explorviz-frontend/src/stores/collaboration/local-user';
 import { useHighlightingStore } from 'explorviz-frontend/src/stores/highlighting';
 import { usePingStore } from 'explorviz-frontend/src/stores/ping-store';
 import { useModelStore } from 'explorviz-frontend/src/stores/repos/model-repository';
 import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
 import { useVisualizationStore } from 'explorviz-frontend/src/stores/visualization-store';
+import {
+  onPingReceived,
+  ownPingColor,
+  sharePing,
+  type ReceivedPing,
+} from 'explorviz-frontend/src/utils/collaboration/pings';
 import PingMesh from 'explorviz-frontend/src/utils/extended-reality/view-objects/vr/ping-mesh';
 import { isAggregatedCommunication } from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/aggregated-communication';
 import { getWorldPositionOfModel } from 'explorviz-frontend/src/utils/layout-helper';
@@ -36,6 +41,7 @@ interface ActivePing {
 let globalMixer: AnimationMixer | null = null;
 let globalScene: THREE.Scene | null = null;
 let activePings: ActivePing[] = [];
+let stopShowingReceivedPings: (() => void) | null = null;
 // #endregion Global State
 
 // #region Helper Functions
@@ -99,7 +105,7 @@ function removeFromActivePings(mesh: PingMesh): void {
  * Resolves a human-readable name for a model ID
  * Returns the raw ID if no match is found.
  */
-function getEntityName(modelId: string): string {
+export function getEntityName(modelId: string): string {
   const entity = useModelStore.getState().getModel(modelId);
   if (!entity) return modelId;
 
@@ -112,17 +118,26 @@ function getEntityName(modelId: string): string {
 
 // #endregion Entity Names
 
+/** Your color for pings: your Participant color in a Room, else the highlighting color. */
+function ownColor(): THREE.ColorRepresentation {
+  return ownPingColor() ?? useHighlightingStore.getState().highlightingColor();
+}
+
+/** Shows another Participant's ping in their color, at the entity if this browser knows where it is. */
+function showReceivedPing({ entityId, position, color }: ReceivedPing): void {
+  if (entityId && getWorldPositionOfModel(entityId)) {
+    pingByModelId(entityId, false, { color });
+  } else {
+    pingPosition(new THREE.Vector3(...position), color, false);
+  }
+}
+
 // #region Public API
 /**
  * Triggers a ping animation at the position of a model by its ID
  */
 export function pingByModelId(modelId: string, sendMessage: boolean = true, options: PingByModelIdOptions = {}): void {
-  const {
-    color = useHighlightingStore.getState().highlightingColor(),
-    durationMs = 3000,
-    replay = false,
-    removeOldPings = false,
-  } = options;
+  const { color = ownColor(), durationMs = 3000, replay = false, removeOldPings = false } = options;
 
   // Always notify the ping store so the sidebar can react.
   // Store by resolved name so SVG nodes (identified by name) can match directly.
@@ -134,41 +149,25 @@ export function pingByModelId(modelId: string, sendMessage: boolean = true, opti
     return;
   }
 
+  if (sendMessage && !replay) {
+    sharePing({ entityId: modelId, position: modelWorldPosition.toArray() });
+  }
+
   pingPosition(modelWorldPosition, color, false, durationMs, {
     replay,
     removeOldPings,
   });
-
-  // Send network message
-  if (sendMessage) {
-    // TODO
-  }
 }
 
 /**
- * Replays a ping event from the chat log
+ * Shows a ping from the chat history again, in the color of whoever pinged,
+ * without sending it.
  */
-export function pingReplay(
-  userId: string,
-  modelId: string,
-  pingPos: { x: number; y: number; z: number } | null,
-  durationMs: number = 3000
-): void {
-  const isLocalUser = userId === useLocalUserStore.getState().userId;
-  let color: THREE.ColorRepresentation;
-
-  color = useHighlightingStore.getState().highlightingColor();
-
-  if (modelId) {
-    pingByModelId(modelId, false, {
-      color,
-      durationMs,
-      replay: true,
-      removeOldPings: false,
-    });
-  } else if (pingPos) {
-    const position = new THREE.Vector3(pingPos.x, pingPos.y, pingPos.z);
-    pingPosition(position, color, false, durationMs, { replay: true });
+export function replayPing(entityId: string, position: number[], color: THREE.ColorRepresentation): void {
+  if (entityId && getWorldPositionOfModel(entityId)) {
+    pingByModelId(entityId, false, { color, replay: true });
+  } else if (position.length === 3) {
+    pingPosition(new THREE.Vector3().fromArray(position), color, false, 3000, { replay: true });
   }
 }
 
@@ -177,8 +176,8 @@ export function pingReplay(
  */
 export function pingPosition(
   position: THREE.Vector3,
-  color: THREE.ColorRepresentation = useHighlightingStore.getState().highlightingColor(),
-  _sendMessage = true,
+  color: THREE.ColorRepresentation = ownColor(),
+  sendMessage = true,
   durationMs: number = 3000,
   options: PingOptions = {}
 ): void {
@@ -193,6 +192,10 @@ export function pingPosition(
   if (!(pingedObject instanceof THREE.Object3D)) {
     console.warn('Pinged object is not a valid Object3D');
     return;
+  }
+
+  if (sendMessage && !replay) {
+    sharePing({ position: position.toArray() });
   }
 
   // Clean up existing pings if requested
@@ -256,6 +259,8 @@ export function cleanupPings(): void {
 export function registerPingRuntime(mixer: AnimationMixer, scene: THREE.Scene): void {
   globalMixer = mixer;
   globalScene = scene;
+  stopShowingReceivedPings?.();
+  stopShowingReceivedPings = onPingReceived(showReceivedPing);
 }
 
 /**
@@ -263,6 +268,8 @@ export function registerPingRuntime(mixer: AnimationMixer, scene: THREE.Scene): 
  */
 export function unregisterPingRuntime(): void {
   cleanupPings();
+  stopShowingReceivedPings?.();
+  stopShowingReceivedPings = null;
   globalMixer = null;
   globalScene = null;
 }

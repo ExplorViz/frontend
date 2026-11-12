@@ -42,6 +42,7 @@ export default defineConfig({
         'src/utils/collaboration/annotations.ts',
         'src/utils/city-rendering/entity-manipulation.ts',
         'src/utils/collaboration/chat.ts',
+        'src/utils/collaboration/pings.ts',
         'src/components/visualization/page-setup/sidebar/customizationbar/chat/chat-box.tsx',
         'src/components/collaboration/visualization/page-setup/sidebar/customizationbar/collaboration/collaboration-controls.tsx',
         'src/utils/collaboration/spectating.ts',

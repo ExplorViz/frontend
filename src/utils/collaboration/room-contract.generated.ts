@@ -73,6 +73,10 @@ export const MAX_CHAT_MESSAGE_LENGTH = 1000;
 export const ChatEntryKind = {
   /** A message a Participant posted. */
   MESSAGE: "message",
+  /** Written by the service when a Participant pinged an entity or a position. */
+  PING: "ping",
+  /** Written by the service when an entity became a Participant's highlight. */
+  HIGHLIGHT: "highlight",
 } as const;
 export type ChatEntryKind = (typeof ChatEntryKind)[keyof typeof ChatEntryKind];
 
@@ -285,8 +289,13 @@ export type ClientMessages = {
   districts: DistrictAction[];
   /** Host only: switches the District sharing option (see DistrictSharing). */
   districtSharing: DistrictSharing;
-  /** One user action on the highlights (see HighlightAction). */
+  /**
+   * One user action on the highlights (see HighlightAction). An entity that
+   * becomes the sender's highlight gets a highlight chat entry.
+   */
   highlights: HighlightAction;
+  /** Pings a spot for the others (see Ping). Nothing is stored but a ping chat entry. */
+  ping: Ping;
   /** Shares the sender's popup of this entity: everyone in the Room has it open from now on. */
   sharePopup: { entityId: string };
   /** Closes the shared popup of this entity for everyone. Allowed for any Participant. */
@@ -309,6 +318,17 @@ export type ClientMessages = {
 export type ServerMessages = {
   /** The camera of the Participant `from`, forwarded only to those who spectate them. */
   camera: CameraPose & { from: string };
+  /** Another Participant's ping, to be shown in their color (`from` is their session id). */
+  ping: Required<Ping> & { from: string; color: string };
+};
+
+/**
+ * A pinged spot: a world position [x, y, z], and the entity there if the
+ * Participant pinged one ("" or left out for a bare position).
+ */
+export type Ping = {
+  entityId?: string;
+  position: [number, number, number];
 };
 
 /** A camera as world-space pose plus the column-major 4x4 projection matrix (as three.js `toArray()`). */
@@ -349,6 +369,8 @@ export type ChatEntry = {
   authorName: string;
   authorColor: string;
   text: string;
+  entityId: string;
+  position: number[];
   time: number;
 };
 

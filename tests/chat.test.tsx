@@ -1,12 +1,22 @@
 // @vitest-environment jsdom
 import { render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { beforeEach, expect, it, onTestFinished, vi } from 'vitest';
+import * as THREE from 'three';
+import { afterEach, beforeEach, describe, expect, it, onTestFinished, vi } from 'vitest';
 import CollaborationControls from '../src/components/collaboration/visualization/page-setup/sidebar/customizationbar/collaboration/collaboration-controls';
 import { useRoomConnectionStore } from '../src/utils/collaboration/room-connection';
-import { ChatRefusal } from '../src/utils/collaboration/room-contract.generated';
+import { useCameraControlsStore } from '../src/stores/camera-controls-store';
+import { useModelStore } from '../src/stores/repos/model-repository';
+import { ChatEntryKind, ChatRefusal } from '../src/utils/collaboration/room-contract.generated';
+import PingMesh from '../src/utils/extended-reality/view-objects/vr/ping-mesh';
+import { registerPingRuntime, unregisterPingRuntime } from '../src/view-objects/3d/city/ping-animation';
 import eventEmitter from '../src/utils/event-emitter';
-import { fakeCollaborationService as service, type FakeServerRoom } from './fake-collaboration-service';
+import {
+  fakeCollaborationService as service,
+  type FakeClientRoom,
+  type FakeServerRoom,
+} from './fake-collaboration-service';
+import { building, city, district } from './fixtures/landscape';
 import './setup-dom';
 
 vi.mock('@colyseus/sdk', async () => (await import('./fake-collaboration-service')).fakeColyseusSdk());
@@ -179,7 +189,7 @@ it("lets the Host delete anyone's message", async () => {
 
 it('shows entries the service wrote as events, without an author', async () => {
   const room = service.openRoom('K7XQ2M', 'Ada');
-  room.update(() => room.appendChatEntry({ kind: 'ping', authorId: '', authorName: '', text: 'Ada pinged a class' }));
+  room.update(() => room.appendChatEntry({ kind: 'notice', authorId: '', authorName: '', text: 'Ada pinged a class' }));
 
   await joinRoomAs('Grace', 'K7XQ2M');
 
@@ -244,7 +254,7 @@ it('filters the history by author and by events', async () => {
   const user = await joinRoomAs('Grace', 'K7XQ2M');
   postAsService(room, 'session-1', 'From Ada');
   postAsService(room, 'session-2', 'From Grace');
-  room.update(() => room.appendChatEntry({ kind: 'ping', authorId: '', authorName: '', text: 'A ping' }));
+  room.update(() => room.appendChatEntry({ kind: 'notice', authorId: '', authorName: '', text: 'A ping' }));
 
   await user.selectOptions(screen.getByRole('combobox', { name: /show/i }), 'Grace');
   expect(chatEntries().map((e) => e.textContent)).toEqual([expect.stringContaining('From Grace')]);
@@ -269,4 +279,88 @@ it('downloads the history as text', async () => {
   expect(click).toHaveBeenCalled();
   const text = await createObjectURL.mock.calls[0][0].text();
   expect(text).toMatch(/^\d{1,2}:\d{2} Ada: Hello$/);
+});
+
+describe('event entries', () => {
+  let scene: THREE.Scene;
+  beforeEach(() => {
+    scene = new THREE.Scene();
+    registerPingRuntime(new THREE.AnimationMixer(scene), scene);
+    useModelStore.setState(useModelStore.getInitialState(), true);
+    useModelStore
+      .getState()
+      .setAllModels({ cities: [city], districts: [district], buildings: [building], buildingCommunications: [] });
+  });
+  afterEach(() => unregisterPingRuntime());
+
+  const writeEvent = (
+    room: FakeServerRoom,
+    entry: { kind: string; entityId?: string; position?: number[]; text: string }
+  ) =>
+    room.update((state) => {
+      const ada = state.participants.get('session-1')!;
+      room.appendChatEntry({ authorId: 'session-1', authorName: ada.name, authorColor: '#3cb44b', ...entry });
+    });
+
+  it("shows who pinged or highlighted what, by the entity's name", async () => {
+    const room = service.openRoom('K7XQ2M', 'Ada');
+    writeEvent(room, {
+      kind: ChatEntryKind.PING,
+      entityId: building.id,
+      position: [1, 2, 3],
+      text: `Pinged ${building.id}`,
+    });
+    writeEvent(room, { kind: ChatEntryKind.PING, position: [0.5, 0, -4], text: 'Pinged position (0.50, 0.00, -4.00)' });
+    writeEvent(room, { kind: ChatEntryKind.HIGHLIGHT, entityId: building.id, text: `Highlighted ${building.id}` });
+    writeEvent(room, { kind: ChatEntryKind.HIGHLIGHT, entityId: 'gone', text: 'Highlighted gone' });
+
+    await joinRoomAs('Grace', 'K7XQ2M');
+
+    expect(chatEntries().map((entry) => entry.textContent)).toEqual([
+      `Ada pinged ${building.name}Replay`,
+      'Ada pinged position (0.50, 0.00, -4.00)Replay',
+      `Ada highlighted ${building.name}Look At`,
+      'Ada highlighted goneLook At',
+    ]);
+  });
+
+  it('replays a ping in the color of whoever pinged, without sending it', async () => {
+    const room = service.openRoom('K7XQ2M', 'Ada');
+    writeEvent(room, { kind: ChatEntryKind.PING, position: [4, 5, 6], text: 'Pinged position (4.00, 5.00, 6.00)' });
+    const user = await joinRoomAs('Grace', 'K7XQ2M');
+    const me = useRoomConnectionStore.getState().room as unknown as FakeClientRoom;
+
+    await user.click(within(chatEntries()[0]).getByRole('button', { name: /replay/i }));
+
+    const [container] = scene.children;
+    expect(container.position.toArray()).toEqual([4, 5, 6]);
+    expect(`#${(container.children[0] as PingMesh).material.color.getHexString()}`).toBe('#3cb44b');
+    expect(me.sent.filter((message) => message.type === 'ping')).toEqual([]);
+  });
+
+  it('looks at a highlighted entity', async () => {
+    const lookAtEntity = vi.fn();
+    useCameraControlsStore.setState({ lookAtEntity });
+    const room = service.openRoom('K7XQ2M', 'Ada');
+    writeEvent(room, { kind: ChatEntryKind.HIGHLIGHT, entityId: building.id, text: `Highlighted ${building.id}` });
+    const user = await joinRoomAs('Grace', 'K7XQ2M');
+
+    await user.click(within(chatEntries()[0]).getByRole('button', { name: /look at/i }));
+
+    expect(lookAtEntity).toHaveBeenCalledWith(building.id);
+  });
+
+  it('lists events under "Events" and not under their author', async () => {
+    const room = service.openRoom('K7XQ2M', 'Ada');
+    postAsService(room, 'session-1', 'Look here');
+    writeEvent(room, { kind: ChatEntryKind.PING, position: [4, 5, 6], text: 'Pinged position (4.00, 5.00, 6.00)' });
+    const user = await joinRoomAs('Grace', 'K7XQ2M');
+
+    await user.selectOptions(screen.getByRole('combobox', { name: /show/i }), 'Events');
+    expect(chatEntries()).toHaveLength(1);
+    expect(chatEntries()[0]).toHaveTextContent(/pinged/);
+
+    await user.selectOptions(screen.getByRole('combobox', { name: /show/i }), 'Ada');
+    expect(chatEntries().map((entry) => entry.textContent)).toEqual([expect.stringContaining('Look here')]);
+  });
 });

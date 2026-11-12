@@ -1,7 +1,10 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 
 import { DownloadIcon, TrashIcon } from '@primer/octicons-react';
+import { useCameraControlsStore } from 'explorviz-frontend/src/stores/camera-controls-store';
 import { isMessage, useChat, type ChatEntry } from 'explorviz-frontend/src/utils/collaboration/chat';
+import { ChatEntryKind } from 'explorviz-frontend/src/utils/collaboration/room-contract.generated';
+import { getEntityName, replayPing } from 'explorviz-frontend/src/view-objects/3d/city/ping-animation';
 import Button from 'react-bootstrap/Button';
 import Form from 'react-bootstrap/Form';
 
@@ -112,7 +115,10 @@ function ChatLine({ entry, own, onDelete }: { entry: ChatEntry; own: boolean; on
   if (!isMessage(entry)) {
     return (
       <li className="message-container event">
-        <span className="event-message">{entry.text}</span>
+        <span className="event-message">
+          <span style={{ color: entry.authorColor }}>{entry.authorName}</span> {eventDescription(entry)}
+        </span>
+        <EventAction entry={entry} />
       </li>
     );
   }
@@ -134,6 +140,49 @@ function ChatLine({ entry, own, onDelete }: { entry: ChatEntry; own: boolean; on
   );
 }
 
+/** What the service logged, with entity names as this browser knows them. */
+function eventDescription(entry: ChatEntry) {
+  switch (entry.kind) {
+    case ChatEntryKind.PING:
+      return entry.entityId
+        ? `pinged ${getEntityName(entry.entityId)}`
+        : `pinged position (${entry.position.map((n) => n.toFixed(2)).join(', ')})`;
+    case ChatEntryKind.HIGHLIGHT:
+      return `highlighted ${getEntityName(entry.entityId)}`;
+    default:
+      return entry.text;
+  }
+}
+
+/** Shows a logged ping again, or moves the camera to a logged highlight. */
+function EventAction({ entry }: { entry: ChatEntry }) {
+  if (entry.kind === ChatEntryKind.PING) {
+    return (
+      <Button
+        variant="outline-secondary"
+        size="sm"
+        className="ms-2"
+        onClick={() => replayPing(entry.entityId, entry.position, entry.authorColor)}
+      >
+        Replay
+      </Button>
+    );
+  }
+  if (entry.kind === ChatEntryKind.HIGHLIGHT && entry.entityId) {
+    return (
+      <Button
+        variant="outline-secondary"
+        size="sm"
+        className="ms-2"
+        onClick={() => useCameraControlsStore.getState().lookAtEntity(entry.entityId)}
+      >
+        Look At
+      </Button>
+    );
+  }
+  return null;
+}
+
 function clockTime(time: number) {
   const date = new Date(time);
   return `${date.getHours()}:${String(date.getMinutes()).padStart(2, '0')}`;
@@ -141,7 +190,10 @@ function clockTime(time: number) {
 
 function download(entries: ChatEntry[]) {
   const text = entries
-    .map((entry) => `${clockTime(entry.time)} ${isMessage(entry) ? `${entry.authorName}: ` : ''}${entry.text}`)
+    .map(
+      (entry) =>
+        `${clockTime(entry.time)} ${isMessage(entry) ? `${entry.authorName}: ${entry.text}` : `${entry.authorName} ${eventDescription(entry)}`}`
+    )
     .join('\n');
   const url = URL.createObjectURL(new Blob([text], { type: 'text/plain' }));
   const link = document.createElement('a');

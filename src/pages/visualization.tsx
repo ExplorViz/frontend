@@ -3,7 +3,6 @@ import { useEffect, useState } from 'react';
 import BrowserRendering from 'explorviz-frontend/src/components/visualization/rendering/browser-rendering';
 import PlayPauseButton from 'explorviz-frontend/src/components/visualization/rendering/play-pause-button';
 import XrRendering from 'explorviz-frontend/src/components/visualization/rendering/xr-rendering';
-import { useChatStore } from 'explorviz-frontend/src/stores/chat';
 import { useLocalUserStore } from 'explorviz-frontend/src/stores/collaboration/local-user';
 import { useCommitTreeStateStore } from 'explorviz-frontend/src/stores/commit-tree-state';
 import { useEntityFilteringStore } from 'explorviz-frontend/src/stores/entity-filtering-store';
@@ -72,7 +71,6 @@ function resetVisualizationSessionState(options?: { clearModels?: boolean }) {
   applyRuntimeVisualizationDefaults();
   useEntityFilteringStore.getState().actions.resetFilters();
   useCommitTreeStateStore.getState().resetCommitTreeFilters();
-  useChatStore.getState().clearFilter();
   usePopupHandlerStore.getState().clearPopups();
 
   if (options?.clearModels) {

@@ -38,6 +38,8 @@ const ChatEntry = schema(
     authorName: t.string(),
     authorColor: t.string(),
     text: t.string(),
+    entityId: t.string().default(''),
+    position: t.array('number'),
     time: t.number(),
   },
   'ChatEntry'
@@ -106,6 +108,24 @@ const MESSAGE_HANDLERS: Record<string, (state: ServerState, payload: any, from: 
     applyDistrictActions({ closed: asIdSet(state.districts.closed), hidden: asIdSet(state.districts.hidden) }, actions);
   },
   highlights: (state, action, from) => applyHighlightAction(state.highlights, from, action),
+  // As the service, which also passes it to the other Participants (use `deliver` for that).
+  ping: (state, { entityId = '', position }, from) => {
+    const pinger = state.participants.get(from);
+    if (!pinger) return;
+    state.chat.push(
+      new ChatEntry({
+        id: `ping-${state.chat.length + 1}`,
+        kind: 'ping',
+        authorId: from,
+        authorName: pinger.name,
+        authorColor: pinger.color,
+        text: entityId ? `Pinged ${entityId}` : 'Pinged position',
+        entityId,
+        position,
+        time: Date.now(),
+      })
+    );
+  },
   // Without the service's Host check.
   districtSharing: (state, { shared, districts }) => {
     if (shared && !state.districts.shared) {
@@ -325,7 +345,15 @@ export class FakeServerRoom {
   }
 
   /** Adds a chat entry (a message unless `kind` says otherwise); call it inside `update`. */
-  appendChatEntry(entry: { kind?: string; authorId: string; authorName: string; authorColor?: string; text: string }) {
+  appendChatEntry(entry: {
+    kind?: string;
+    authorId: string;
+    authorName: string;
+    authorColor?: string;
+    text: string;
+    entityId?: string;
+    position?: number[];
+  }) {
     this.state.chat.push(
       new ChatEntry({
         kind: 'message',
