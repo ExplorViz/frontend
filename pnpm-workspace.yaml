@@ -2,6 +2,7 @@ allowBuilds:
   '@parcel/watcher': true
   '@scarf/scarf': true
   esbuild: true
+  msgpackr-extract: false
 overrides:
   three: 0.186.1
 minimumReleaseAge: 0

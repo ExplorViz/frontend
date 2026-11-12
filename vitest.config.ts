@@ -33,6 +33,8 @@ export default defineConfig({
         'src/components/attributes-table.tsx',
         'src/components/dual-range-slider.tsx',
         'src/view-objects/3d/city/city-foundation.tsx',
+        'src/utils/collaboration/room-connection.ts',
+        'src/components/collaboration/visualization/page-setup/sidebar/customizationbar/collaboration/collaboration-controls.tsx',
         'src/components/visualization/rendering/spectate-camera-controller.tsx',
       ],
       thresholds: { lines: 80, statements: 80, functions: 80, branches: 70 },
