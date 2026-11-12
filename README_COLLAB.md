@@ -8,6 +8,8 @@ The Collaboration section of the sidebar checks whether the service is reachable
 
 - `src/utils/collaboration/room-connection.ts`: `useRoomConnectionStore` holds the joined SDK `Room` (`room`, `connecting`, `createRoom`, `joinRoom`, `leaveRoom`) and shows refusals as toasts. `useRoomState()` reads the Room's state as an immutable snapshot (via `@colyseus/react`); the state is never copied into a store.
 - `src/components/collaboration/.../collaboration/collaboration-controls.tsx`: the Collaboration section.
+- `src/utils/collaboration/spectating.ts`: spectating. `spectate(sessionId)` / `stopSpectating()` ask the service; `useSpectating()` gives whom you follow and who follows you (Room state); `latestCameraOf(sessionId)` is the last camera the service forwarded. `SpectateCameraController` (in the Canvas) applies that camera while you spectate and sends yours while somebody spectates you (at most 30 times per second, only when it changed).
+- `src/utils/collaboration/immersive-view-sharing.ts`: the immersive-view indicator. `RemoteImmersiveIndicators` (in the Canvas) shares your immersive view and marks the others' in their colors.
 - `tests/fake-collaboration-service.ts`: a stand-in for the service at the `@colyseus/sdk` boundary, with real state encoding, for tests of anything that reads or changes Room state.
 
 ## Reaching the service

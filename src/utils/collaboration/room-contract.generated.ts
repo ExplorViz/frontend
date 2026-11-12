@@ -35,12 +35,35 @@ export const JoinRefusal = {
  * Messages a client sends to the Room: message type -> payload.
  * Each entry has a handler of the same name in CollaborationRoom's `messages`.
  */
-export type ClientMessages = {};
+export type ClientMessages = {
+  /** Follow another Participant's camera (their session id), or stop with null. */
+  spectate: { target: string | null };
+  /**
+   * The sender's camera, sent only while somebody spectates them, at most
+   * CAMERA_UPDATES_PER_SECOND times per second and only when it changed.
+   */
+  camera: CameraPose;
+  /** The sender entered the immersive view of this entity, or left it with null. */
+  immersive: { entityId: string | null };
+};
 
 /**
  * Messages the Room sends to clients: message type -> payload.
  */
-export type ServerMessages = {};
+export type ServerMessages = {
+  /** The camera of the Participant `from`, forwarded only to those who spectate them. */
+  camera: CameraPose & { from: string };
+};
+
+/** A camera as world-space pose plus the column-major 4x4 projection matrix (as three.js `toArray()`). */
+export type CameraPose = {
+  position: [number, number, number];
+  quaternion: [number, number, number, number];
+  projection: number[];
+};
+
+/** How often a spectated Participant sends its camera at most. */
+export const CAMERA_UPDATES_PER_SECOND = 30;
 
 // Room state, as plain snapshot types.
 
@@ -52,4 +75,6 @@ export type CollaborationState = {
 export type Participant = {
   name: string;
   color: string;
+  spectating: string;
+  immersiveEntityId: string;
 };

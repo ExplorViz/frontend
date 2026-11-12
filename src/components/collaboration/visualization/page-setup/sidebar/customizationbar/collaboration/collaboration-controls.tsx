@@ -2,6 +2,7 @@ import { useAuthStore } from 'explorviz-frontend/src/stores/auth';
 import { isLoginSkipped } from 'explorviz-frontend/src/utils/auth-config';
 import { isCollaborationServiceReachable } from 'explorviz-frontend/src/utils/collaboration/collaboration-service';
 import { useRoomConnectionStore, useRoomState } from 'explorviz-frontend/src/utils/collaboration/room-connection';
+import { SpectateButton, SpectatingStatus } from './spectating-status';
 import { useEffect, useState } from 'react';
 import Button from 'react-bootstrap/Button';
 import Form from 'react-bootstrap/Form';
@@ -144,6 +145,8 @@ function RoomPanel() {
             <span>{participant.name}</span>
             {sessionId === room.sessionId && <span className="small text-muted">(you)</span>}
             {sessionId === state?.hostId && <span className="badge bg-secondary">Host</span>}
+            <SpectatingStatus participant={participant} participants={state?.participants ?? {}} />
+            {sessionId !== room.sessionId && <SpectateButton sessionId={sessionId} name={participant.name} />}
           </li>
         ))}
       </ul>

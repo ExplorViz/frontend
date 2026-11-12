@@ -17,7 +17,15 @@ import { act } from '@testing-library/react';
  * together; the generated `CollaborationState` type checks the snapshot side.
  */
 
-const Participant = schema({ name: t.string(), color: t.string() }, 'Participant');
+const Participant = schema(
+  {
+    name: t.string(),
+    color: t.string(),
+    spectating: t.string().default(''),
+    immersiveEntityId: t.string().default(''),
+  },
+  'Participant'
+);
 const CollaborationState = schema({ participants: t.map(Participant), hostId: t.string() }, 'CollaborationState');
 type ServerState = InstanceType<typeof CollaborationState>;
 
@@ -38,6 +46,7 @@ const PALETTE = ['#e6194b', '#3cb44b', '#4363d8', '#f58231'];
 export class FakeClientRoom {
   private readonly decoder = new Decoder(new CollaborationState());
   private readonly leaveListeners: ((code: number) => void)[] = [];
+  private readonly messageListeners = new Map<string, ((payload: any) => void)[]>();
   readonly serializer = { decoder: this.decoder };
   readonly sent: { type: string; payload: unknown }[] = [];
 
@@ -65,6 +74,22 @@ export class FakeClientRoom {
 
   send(type: string, payload?: unknown) {
     this.sent.push({ type, payload });
+  }
+
+  onMessage(type: string, listener: (payload: any) => void) {
+    const listeners = this.messageListeners.get(type) ?? [];
+    this.messageListeners.set(type, [...listeners, listener]);
+    return () => {
+      this.messageListeners.set(
+        type,
+        (this.messageListeners.get(type) ?? []).filter((l) => l !== listener)
+      );
+    };
+  }
+
+  /** The service sends this client a message. */
+  deliver(type: string, payload: unknown) {
+    for (const listener of this.messageListeners.get(type) ?? []) listener(payload);
   }
 
   async leave(consented = true) {
