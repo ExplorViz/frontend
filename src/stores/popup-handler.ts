@@ -1,13 +1,13 @@
 import { create } from 'zustand';
 
 import PopupData from 'explorviz-frontend/src/components/visualization/rendering/popups/popup-data';
+import { useLocalUserStore } from 'explorviz-frontend/src/stores/collaboration/local-user';
 import { useModelStore } from 'explorviz-frontend/src/stores/repos/model-repository';
 import { useVisualizationStore } from 'explorviz-frontend/src/stores/visualization-store';
 import { SerializedPopup } from 'explorviz-frontend/src/utils/collaboration/web-socket-messages/types/serialized-room';
 import eventEmitter from 'explorviz-frontend/src/utils/event-emitter';
 import AggregatedCommunication from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/aggregated-communication';
 import { Building, City, District } from 'explorviz-frontend/src/utils/landscape-schemes/flat-landscape';
-import { me } from 'playroomkit';
 
 type Position2D = {
   x: number;
@@ -71,7 +71,10 @@ export const usePopupHandlerStore = create<PopupHandlerState>((set, get) => ({
 
   sharePopup: (popup: PopupData) => {
     set({
-      popupData: [...get().popupData.filter((pd) => pd.entityId !== popup.entityId), { ...popup, sharedBy: me().id }],
+      popupData: [
+        ...get().popupData.filter((pd) => pd.entityId !== popup.entityId),
+        { ...popup, sharedBy: useLocalUserStore.getState().userId },
+      ],
     });
   },
 

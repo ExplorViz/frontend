@@ -1,8 +1,8 @@
 import { useCameraControlsStore } from 'explorviz-frontend/src/stores/camera-controls-store';
 import { useChatStore } from 'explorviz-frontend/src/stores/chat';
+import { useLocalUserStore } from 'explorviz-frontend/src/stores/collaboration/local-user';
 import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
 import { getWorldPositionOfModel } from 'explorviz-frontend/src/utils/layout-helper';
-import { me } from 'playroomkit';
 import * as THREE from 'three';
 import { create } from 'zustand';
 
@@ -57,7 +57,7 @@ export const useHighlightingStore = create<HighlightingState>((set, get) => ({
     const displayId = entityId.length > MAX_DISPLAY_LENGTH ? entityId.slice(0, MAX_DISPLAY_LENGTH) + ' ...' : entityId;
 
     const msg = `🔆 Highlighted: ${displayId}`;
-    useChatStore.getState().sendChatMessage(me().id, msg, true, 'highlight', [
+    useChatStore.getState().sendChatMessage(useLocalUserStore.getState().userId, msg, true, 'highlight', [
       '', // appId placeholder
       entityId,
     ]);

@@ -3,22 +3,7 @@ import { CameraControls, PerspectiveCamera, Stats } from '@react-three/drei';
 import { Canvas, useLoader, useThree } from '@react-three/fiber';
 import type { XRStore } from '@react-three/xr';
 import { createXRStore, IfInSessionMode, TeleportTarget, XR, XROrigin } from '@react-three/xr';
-import { CollaborationKickRPC } from 'explorviz-frontend/src/components/collaboration/collaboration-kick-RPC';
-import { PlayroomPlayersProvider } from 'explorviz-frontend/src/components/collaboration/playroom-players-context';
-import { CollaborationAnnotationSync } from 'explorviz-frontend/src/components/collaboration/sync/collaboration-annotation-sync';
-import CollaborationCameraSync from 'explorviz-frontend/src/components/collaboration/sync/collaboration-camera-sync';
-import CollaborationComponentSync from 'explorviz-frontend/src/components/collaboration/sync/collaboration-component-sync';
-import CollaborationHighlightingSync from 'explorviz-frontend/src/components/collaboration/sync/collaboration-highlighting-sync';
-import CollaborationLandscapeSync from 'explorviz-frontend/src/components/collaboration/sync/collaboration-landscape-sync';
-import CollaborationPingSync from 'explorviz-frontend/src/components/collaboration/sync/collaboration-ping-sync';
-import { CollaborationPopupSync } from 'explorviz-frontend/src/components/collaboration/sync/collaboration-popup-sync';
-import ImmersiveStateSync from 'explorviz-frontend/src/components/collaboration/sync/immersive-state-sync';
-import LocalHighlightSync from 'explorviz-frontend/src/components/collaboration/sync/local-highlight-sync';
-import SpectateStatusSync from 'explorviz-frontend/src/components/collaboration/sync/spectate-status-sync';
-import PlayroomWrapper from 'explorviz-frontend/src/components/collaboration/visualization/rendering/playroom-wrapper';
-import RemoteImmersiveIndicators from 'explorviz-frontend/src/components/visualization/rendering/remote-immersive-indicators';
 import SnapshotCameraRestore from 'explorviz-frontend/src/components/visualization/rendering/snapshot-camera-restore';
-import SpectateCameraController from 'explorviz-frontend/src/components/visualization/rendering/spectate-camera-controller';
 import useLandscapeDataWatcher from 'explorviz-frontend/src/hooks/landscape-data-watcher';
 import {
   CLICK_PREVENTION_DEFAULTS,
@@ -478,155 +463,138 @@ export default function CanvasWrapper({
   return (
     <>
       <HotkeyHandler />
-      <PlayroomWrapper>
-        <Canvas
-          id="three-js-canvas"
-          className={'webgl'}
-          gl={{
-            powerPreference: 'high-performance',
-            preserveDrawingBuffer: true,
-          }}
-          style={{ background: sceneBackgroundColor }}
-          onContextMenu={onCanvasContextMenu}
-          onMouseMove={(e) => {
-            if (isMagnifierActive) {
-              setMousePos({
-                x: e.clientX,
-                y: window.innerHeight - e.clientY,
-              });
-            }
-          }}
-        >
-          <PlayroomPlayersProvider>
-            <ContextMenuWorldPickRegister />
-            <ImmersiveCameraHandler controlsRef={cameraControlsRef}></ImmersiveCameraHandler>
-            {xrStore ? null : (
-              <>
-                <CameraControls
-                  ref={cameraControlsRef}
-                  dollySpeed={0.3}
-                  draggingSmoothTime={0.05}
-                  maxDistance={immersiveCameraLocked ? 0.01 : 250}
-                  maxPolarAngle={immersiveCameraLocked ? Math.PI : 0.5 * Math.PI}
-                  makeDefault
-                  minDistance={immersiveCameraLocked ? 0 : 1}
-                  mouseButtons={
-                    immersiveCameraLocked
-                      ? {
-                          left: 1, // ROTATE
-                          middle: 0,
-                          wheel: 0,
-                          right: 1, // ROTATE
-                        }
-                      : {
-                          left: getMouseMapping(leftMouseButtonAction) as any,
-                          middle: getMouseMapping(middleMouseButtonAction) as any,
-                          wheel: getMouseMapping(mouseWheelAction) as any,
-                          right: getMouseMapping(rightMouseButtonAction) as any,
-                        }
-                  }
-                  smoothTime={0.5}
-                />
-                <PerspectiveCamera
-                  position={INITIAL_CAMERA_POSITION}
-                  fov={cameraFov}
-                  near={cameraNear}
-                  far={cameraFar}
-                  makeDefault
-                />
-                {/* Insert Layer Handler here inside the Canvas */}
-                <CameraLayerHandler />
-                <SnapshotCameraRestore />
+      <Canvas
+        id="three-js-canvas"
+        className={'webgl'}
+        gl={{
+          powerPreference: 'high-performance',
+          preserveDrawingBuffer: true,
+        }}
+        style={{ background: sceneBackgroundColor }}
+        onContextMenu={onCanvasContextMenu}
+        onMouseMove={(e) => {
+          if (isMagnifierActive) {
+            setMousePos({
+              x: e.clientX,
+              y: window.innerHeight - e.clientY,
+            });
+          }
+        }}
+      >
+        <ContextMenuWorldPickRegister />
+        <ImmersiveCameraHandler controlsRef={cameraControlsRef}></ImmersiveCameraHandler>
+        {xrStore ? null : (
+          <>
+            <CameraControls
+              ref={cameraControlsRef}
+              dollySpeed={0.3}
+              draggingSmoothTime={0.05}
+              maxDistance={immersiveCameraLocked ? 0.01 : 250}
+              maxPolarAngle={immersiveCameraLocked ? Math.PI : 0.5 * Math.PI}
+              makeDefault
+              minDistance={immersiveCameraLocked ? 0 : 1}
+              mouseButtons={
+                immersiveCameraLocked
+                  ? {
+                      left: 1, // ROTATE
+                      middle: 0,
+                      wheel: 0,
+                      right: 1, // ROTATE
+                    }
+                  : {
+                      left: getMouseMapping(leftMouseButtonAction) as any,
+                      middle: getMouseMapping(middleMouseButtonAction) as any,
+                      wheel: getMouseMapping(mouseWheelAction) as any,
+                      right: getMouseMapping(rightMouseButtonAction) as any,
+                    }
+              }
+              smoothTime={0.5}
+            />
+            <PerspectiveCamera
+              position={INITIAL_CAMERA_POSITION}
+              fov={cameraFov}
+              near={cameraNear}
+              far={cameraFar}
+              makeDefault
+            />
+            {/* Insert Layer Handler here inside the Canvas */}
+            <CameraLayerHandler />
+            <SnapshotCameraRestore />
 
-                {minimapEnabled && <MinimapView mainCameraControls={cameraControlsRef} landscapeData={landscapeData} />}
-                {isMagnifierActive && (
-                  <Magnify
-                    position={mousePos}
-                    zoom={magnifierZoom}
-                    exp={magnifierExponent}
-                    radius={magnifierRadius}
-                    outlineColor={parseInt(magnifierOutlineColor.replace('#', ''), 16)}
-                    outlineThickness={magnifierOutlineThickness}
-                    antialias={magnifierAntialias}
-                  />
-                )}
-                <SpectateCameraController />
-                <CollaborationCameraSync />
-              </>
-            )}
-            <XR store={resolvedXrStore}>
-              <IfInSessionMode allow={['immersive-ar', 'immersive-vr']}>
-                <XROrigin position={position}>
-                  <ControllerMenu handedness="left" />
-                  <ControllerMenu handedness="right" />
-                </XROrigin>
-                <TeleportTarget onTeleport={setPosition}>
-                  <Suspense>
-                    <mesh name="floor" position={[0, -0.1, 0]} rotation={[-Math.PI / 2, 0, 0]}>
-                      <planeGeometry attach="geometry" args={[200, 200]} />
-                      <meshBasicMaterial attach="material" map={floorTexture} />
-                    </mesh>
-                  </Suspense>
-                </TeleportTarget>
-              </IfInSessionMode>
-              <EntityVisibilityProvider>
-                <LandscapeR3F>
-                  {useModelStore
-                    .getState()
-                    .getAllCities()
-                    .map((city) => (
-                      <CodeCity key={city.id} cityId={city.id} />
-                    ))}
-                  {isCommRendered &&
-                    layoutMap &&
-                    allAggregatedCommunications.map((communication) => (
-                      <CommunicationR3F
-                        key={communication.id}
-                        communicationModel={communication}
-                        applicationElement={useModelStore.getState().getCityForModel(communication.sourceEntity.id)}
-                        layoutMap={layoutMap}
-                      />
-                    ))}
-                </LandscapeR3F>
-              </EntityVisibilityProvider>
-              <RemoteImmersiveIndicators />
-              {enableClustering && <ClusterCentroidsR3F />}
-              {enableClustering && autoOpenCloseDistricts && <AutoDistrictOpenerR3F />}
-              <AnimatedPing />
-              <TraceReplayOverlayR3F />
-              <ambientLight />
-              <directionalLight
-                name="DirectionalLight"
-                ref={setDirectionalLight}
-                intensity={2}
-                position={[5, 10, -20]}
-                castShadow={castShadows}
+            {minimapEnabled && <MinimapView mainCameraControls={cameraControlsRef} landscapeData={landscapeData} />}
+            {isMagnifierActive && (
+              <Magnify
+                position={mousePos}
+                zoom={magnifierZoom}
+                exp={magnifierExponent}
+                radius={magnifierRadius}
+                outlineColor={parseInt(magnifierOutlineColor.replace('#', ''), 16)}
+                outlineThickness={magnifierOutlineThickness}
+                antialias={magnifierAntialias}
               />
-              {showLightHelper && directionalLight && <directionalLightHelper args={[directionalLight, 2, 0x0000ff]} />}
-              {showFpsCounter && (
-                <>
-                  <Stats showPanel={0} className="stats0" />
-                  <Stats showPanel={1} className="stats1" />
-                  <Stats showPanel={2} className="stats2" />
-                </>
-              )}
-              {showAxesHelper && <axesHelper args={[5]} />}
-            </XR>
-            <ImmersiveSphere></ImmersiveSphere>
-            <ImmersiveInterface />
-            <ImmersiveStateSync />
-            <CollaborationHighlightingSync />
-            <LocalHighlightSync />
-            <SpectateStatusSync />
-            <CollaborationLandscapeSync />
-            <CollaborationComponentSync />
-            <CollaborationPingSync />
-            <CollaborationKickRPC />
-            <CollaborationPopupSync />
-            <CollaborationAnnotationSync />
-          </PlayroomPlayersProvider>
-        </Canvas>
-      </PlayroomWrapper>
+            )}
+          </>
+        )}
+        <XR store={resolvedXrStore}>
+          <IfInSessionMode allow={['immersive-ar', 'immersive-vr']}>
+            <XROrigin position={position}>
+              <ControllerMenu handedness="left" />
+              <ControllerMenu handedness="right" />
+            </XROrigin>
+            <TeleportTarget onTeleport={setPosition}>
+              <Suspense>
+                <mesh name="floor" position={[0, -0.1, 0]} rotation={[-Math.PI / 2, 0, 0]}>
+                  <planeGeometry attach="geometry" args={[200, 200]} />
+                  <meshBasicMaterial attach="material" map={floorTexture} />
+                </mesh>
+              </Suspense>
+            </TeleportTarget>
+          </IfInSessionMode>
+          <EntityVisibilityProvider>
+            <LandscapeR3F>
+              {useModelStore
+                .getState()
+                .getAllCities()
+                .map((city) => (
+                  <CodeCity key={city.id} cityId={city.id} />
+                ))}
+              {isCommRendered &&
+                layoutMap &&
+                allAggregatedCommunications.map((communication) => (
+                  <CommunicationR3F
+                    key={communication.id}
+                    communicationModel={communication}
+                    applicationElement={useModelStore.getState().getCityForModel(communication.sourceEntity.id)}
+                    layoutMap={layoutMap}
+                  />
+                ))}
+            </LandscapeR3F>
+          </EntityVisibilityProvider>
+          {enableClustering && <ClusterCentroidsR3F />}
+          {enableClustering && autoOpenCloseDistricts && <AutoDistrictOpenerR3F />}
+          <AnimatedPing />
+          <TraceReplayOverlayR3F />
+          <ambientLight />
+          <directionalLight
+            name="DirectionalLight"
+            ref={setDirectionalLight}
+            intensity={2}
+            position={[5, 10, -20]}
+            castShadow={castShadows}
+          />
+          {showLightHelper && directionalLight && <directionalLightHelper args={[directionalLight, 2, 0x0000ff]} />}
+          {showFpsCounter && (
+            <>
+              <Stats showPanel={0} className="stats0" />
+              <Stats showPanel={1} className="stats1" />
+              <Stats showPanel={2} className="stats2" />
+            </>
+          )}
+          {showAxesHelper && <axesHelper args={[5]} />}
+        </XR>
+        <ImmersiveSphere></ImmersiveSphere>
+        <ImmersiveInterface />
+      </Canvas>
     </>
   );
 }

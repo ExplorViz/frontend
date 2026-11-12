@@ -1,4 +1,3 @@
-import { useChatStore } from 'explorviz-frontend/src/stores/chat';
 import { useLocalUserStore } from 'explorviz-frontend/src/stores/collaboration/local-user';
 import { useHighlightingStore } from 'explorviz-frontend/src/stores/highlighting';
 import { usePingStore } from 'explorviz-frontend/src/stores/ping-store';
@@ -8,7 +7,6 @@ import { useVisualizationStore } from 'explorviz-frontend/src/stores/visualizati
 import PingMesh from 'explorviz-frontend/src/utils/extended-reality/view-objects/vr/ping-mesh';
 import { isAggregatedCommunication } from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/aggregated-communication';
 import { getWorldPositionOfModel } from 'explorviz-frontend/src/utils/layout-helper';
-import { me, RPC } from 'playroomkit';
 import * as THREE from 'three';
 import { AnimationMixer } from 'three';
 
@@ -95,16 +93,7 @@ function removeFromActivePings(mesh: PingMesh): void {
 
 // #endregion Helper Functions
 
-// #region Chat Logging
-
-const MAX_DISPLAY_LENGTH = 30;
-
-/**
- * Truncates a string to MAX_DISPLAY_LENGTH characters, appending ' ...' if it was cut.
- */
-function truncate(str: string): string {
-  return str.length > MAX_DISPLAY_LENGTH ? str.slice(0, MAX_DISPLAY_LENGTH) + ' ...' : str;
-}
+// #region Entity Names
 
 /**
  * Resolves a human-readable name for a model ID
@@ -121,30 +110,7 @@ function getEntityName(modelId: string): string {
   return entity.name;
 }
 
-/**
- * Logs a ping event to the chat store so it can be replayed later.
- * @param modelId - The model ID that was pinged, or null for a position-only ping
- * @param position - The world position of the ping
- * @param durationMs - Duration of the ping in milliseconds
- */
-function _logPingToChat(modelId: string | null, position: THREE.Vector3, durationMs: number): void {
-  const posData = { x: position.x, y: position.y, z: position.z };
-  let pingMsg: string;
-  if (modelId) {
-    const entityName = truncate(getEntityName(modelId));
-    pingMsg = `📍 Pinged: ${entityName}`;
-  } else {
-    const posStr = `(${position.x.toFixed(2)}, ${position.y.toFixed(2)}, ${position.z.toFixed(2)})`;
-    pingMsg = `📍 Pinged position ${truncate(posStr)}`;
-  }
-
-  const myPlayer = me();
-  if (!myPlayer) return;
-
-  useChatStore.getState().sendChatMessage(myPlayer.id, pingMsg, true, 'ping', [modelId ?? '', posData, durationMs]);
-}
-
-// #endregion Chat Logging
+// #endregion Entity Names
 
 // #region Public API
 /**
@@ -166,11 +132,6 @@ export function pingByModelId(modelId: string, sendMessage: boolean = true, opti
   if (!modelWorldPosition) {
     console.warn(`Model position not found for ID: ${modelId}`);
     return;
-  }
-
-  // Log to chat when this is a local user action (sendMessage=true) and not a replay
-  if (sendMessage && !replay) {
-    _logPingToChat(modelId, modelWorldPosition, durationMs);
   }
 
   pingPosition(modelWorldPosition, color, false, durationMs, {
@@ -217,7 +178,7 @@ export function pingReplay(
 export function pingPosition(
   position: THREE.Vector3,
   color: THREE.ColorRepresentation = useHighlightingStore.getState().highlightingColor(),
-  sendMessage = true,
+  _sendMessage = true,
   durationMs: number = 3000,
   options: PingOptions = {}
 ): void {
@@ -232,16 +193,6 @@ export function pingPosition(
   if (!(pingedObject instanceof THREE.Object3D)) {
     console.warn('Pinged object is not a valid Object3D');
     return;
-  }
-
-  // Send ping update message if requested
-  if (sendMessage && !replay) {
-    _logPingToChat(null, position, durationMs);
-    try {
-      RPC.call('ping', { pos: position.toArray(), color: color }, RPC.Mode.OTHERS);
-    } catch (e) {
-      // Ignore the error (just catch it)
-    }
   }
 
   // Clean up existing pings if requested

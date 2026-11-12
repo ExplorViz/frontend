@@ -91,7 +91,7 @@ export const useUserSettingsStore = create<UserSettingsState>()(
       },
 
       shareVisualizationSettings: () => {
-        // ToDo in playroomkit
+        // Not shared until collaboration is available again
       },
 
       updateSettings: (settings: VisualizationSettings) => {

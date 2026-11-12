@@ -23,7 +23,6 @@ import PopupData from 'explorviz-frontend/src/components/visualization/rendering
 import { LogSearchParams } from 'explorviz-frontend/src/hooks/fetch/useLogFetch';
 import { MetricsSearchParams } from 'explorviz-frontend/src/hooks/fetch/useRuntimeMetricsFetch';
 import { SpanSearchParams } from 'explorviz-frontend/src/hooks/fetch/useSpanFetch';
-import { usePlayroomConnectionStore } from 'explorviz-frontend/src/stores/collaboration/playroom-connection-store';
 import { useLandscapeRestructureStore } from 'explorviz-frontend/src/stores/landscape-restructure';
 import { usePopupHandlerStore } from 'explorviz-frontend/src/stores/popup-handler';
 import { useModelStore } from 'explorviz-frontend/src/stores/repos/model-repository';
@@ -64,10 +63,8 @@ export default function PopupCoordinator({
   pinPopup,
   removePopup,
   updatePopup,
-  sharePopup,
   addAnnotationForPopup,
 }: PopupCoordinatorProps) {
-  const isConnected = usePlayroomConnectionStore((state) => state.isConnected);
   const restructureMode = useLandscapeRestructureStore((state) => state.restructureMode);
   const showErrorToastMessage = useToastHandlerStore((state) => state.showErrorToastMessage);
 
@@ -369,25 +366,7 @@ export default function PopupCoordinator({
                 <ShareAndroidIcon className="align-right" />
               </Button>
             </OverlayTrigger>
-          ) : (
-            isConnected &&
-            popupData.isPinned && (
-              <OverlayTrigger
-                placement="top"
-                trigger={['hover', 'focus']}
-                overlay={<Tooltip>Share popup with other users.</Tooltip>}
-              >
-                <Button
-                  variant="primary"
-                  onClick={() => {
-                    sharePopup(popupData);
-                  }}
-                >
-                  <ShareAndroidIcon className="align-middle" />
-                </Button>
-              </OverlayTrigger>
-            )
-          )}
+          ) : null}
 
           <OverlayTrigger placement="top" trigger={['hover', 'focus']} overlay={<Tooltip>Highlight</Tooltip>}>
             <Button variant="primary" onClick={highlight}>

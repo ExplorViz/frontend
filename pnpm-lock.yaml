@@ -280,9 +280,6 @@ importers:
       multer:
         specifier: ^2.4.0
         version: 2.5.0
-      playroomkit:
-        specifier: ^0.0.97
-        version: 0.0.97(react-dom@19.3.1(react@19.3.1))(react@19.3.1)
       plotly.js-dist:
         specifier: ^3.5.1
         version: 3.7.0
@@ -726,9 +723,6 @@ packages:
 
   '@dimforge/rapier3d-compat@0.12.0':
     resolution: {integrity: sha512-uekIGetywIgopfD97oDL5PfeezkFpNhwlzlaEYNOA0N6ghdsOvh/HYjSMek5Q2O1PYvRSDFcqFVJl4r4ZBwOow==}
-
-  '@discord/embedded-app-sdk@2.5.0':
-    resolution: {integrity: sha512-FNoe5PbSkoKEbqPubaBmq6tlEMOftMjR3gu55YrdrrKmBfKKM4i9P/Z+Zxl0RZdJcKviBwVcTyYMMPM/aGex/w==}
 
   '@dual-bundle/import-meta-resolve@4.2.1':
     resolution: {integrity: sha512-id+7YRUgoUX6CgV0DtuhirQWodeeA7Lf4i2x71JS/vtA5pRb/hIGWlw+G6MeXvsM+MXrz0VAydTGElX1rAfgPg==}
@@ -2020,12 +2014,6 @@ packages:
   '@types/katex@0.16.8':
     resolution: {integrity: sha512-trgaNyfU+Xh2Tc+ABIb44a5AYUpicB3uwirOioeOkNPPbmgRNtcWyDeeFRzjPZENO9Vq8gvVqfhaaXWLlevVwg==}
 
-  '@types/lodash.transform@4.6.9':
-    resolution: {integrity: sha512-1iIn+l7Vrj8hsr2iZLtxRkcV9AtjTafIyxKO9DX2EEcdOgz3Op5dhwKQFhMJgdfIRbYHBUF+SU97Y6P+zyLXNg==}
-
-  '@types/lodash@4.17.27':
-    resolution: {integrity: sha512-VenMRv/eKNrspX9v3H4dbmjsrnCOYdYBG3kxXKk3dG6X+urBGcj2Prww3xw1U5K4FV/mE4h5GbWd0szEKf+9ew==}
-
   '@types/mdast@3.0.15':
     resolution: {integrity: sha512-LnwD+mUEfxWMa1QpDraczIn6k0Ee3SMicuYSSzS6ZYl2gKS09EClnJYGd8Du6rfc5r/GZEk5o1mRb8TaTj03sQ==}
 
@@ -2439,10 +2427,6 @@ packages:
 
   bidi-js@1.1.0:
     resolution: {integrity: sha512-fX1Onk0tdVPC7obPWB5EbJ1z7NVhLq4m2xZLq2YXBkxzMXIGRpNMU88n0EPgWseKl12J7zXs7qrDxPK4sRs2fg==}
-
-  big-integer@1.6.52:
-    resolution: {integrity: sha512-QxD8cf2eVqJOOz63z6JIN9BzvVs/dlySa5HGSBH5xtR8dPteIRQnBxxKqkNTiT6jbDTF6jAfrd4oMcND9RGbQg==}
-    engines: {node: '>=0.6'}
 
   body-parser@1.20.9:
     resolution: {integrity: sha512-FISIQxV5u91Y9gvuFq3q/tA/qTqLJn3AhRcEvyozyhJTh5OBFFtv827AdHU7Rbyct4r+Ba1/99oFa1Y3yuFsdw==}
@@ -3799,9 +3783,6 @@ packages:
   lodash-es@4.18.1:
     resolution: {integrity: sha512-J8xewKD/Gk22OZbhpOVSwcs60zhd95ESDwezOFuA3/099925PdHJ7OFHNTGtajL3AlZkykD32HykiMo+BIBI8A==}
 
-  lodash.transform@4.6.0:
-    resolution: {integrity: sha512-LO37ZnhmBVx0GvOU/caQuipEh4GN82TcWv3yHlebGDgOxbxiwwzW5Pcx2AcvpIv2WmvmSMoC492yQFNhy/l/UQ==}
-
   lodash@4.18.1:
     resolution: {integrity: sha512-dMInicTPVE8d1e5otfwmmjlxkZoUpiVLwyeTdUsi/Caj/gfzzblBcCE5sRHV/AsjuCmxWrte2TNGSYuCeCq+0Q==}
 
@@ -4372,13 +4353,6 @@ packages:
   pkce-challenge@5.0.1:
     resolution: {integrity: sha512-wQ0b/W4Fr01qtpHlqSqspcj3EhBvimsdh0KlHhH8HRZnMsEa0ea2fTULOXOS9ccQr3om+GcGRk4e+isrZWV8qQ==}
     engines: {node: '>=16.20.0'}
-
-  playroomkit@0.0.97:
-    resolution: {integrity: sha512-0tIvyfGpdP6RM9Z1l44ssbtAPhiRtiVmyJF//5YFPohD2+ktOKrLscgUNrLUcJLaU1EgOIpN5LN2XAYpSkVzoQ==}
-    hasBin: true
-    peerDependencies:
-      react: '>=18 <20'
-      react-dom: '>=18 <20'
 
   plotly.js-dist@3.7.0:
     resolution: {integrity: sha512-mt3rwiYuR8/NArlFm5CEtJ6xsvmPIRDSntrn7m3RQWK//0nWch1OyEV4gwhpCqUxFtf9r4f30yQ7jNrAovecCg==}
@@ -6009,18 +5983,6 @@ snapshots:
 
   '@dimforge/rapier3d-compat@0.12.0': {}
 
-  '@discord/embedded-app-sdk@2.5.0':
-    dependencies:
-      '@types/lodash.transform': 4.6.9
-      '@types/uuid': 10.0.0
-      big-integer: 1.6.52
-      decimal.js-light: 2.5.1
-      eventemitter3: 5.0.4
-      lodash.transform: 4.6.0
-      uuid: 11.1.1
-      zod: 3.25.76
-    optional: true
-
   '@dual-bundle/import-meta-resolve@4.2.1': {}
 
   '@emnapi/core@2.0.0-beta.2':
@@ -7410,14 +7372,6 @@ snapshots:
 
   '@types/katex@0.16.8': {}
 
-  '@types/lodash.transform@4.6.9':
-    dependencies:
-      '@types/lodash': 4.17.27
-    optional: true
-
-  '@types/lodash@4.17.27':
-    optional: true
-
   '@types/mdast@3.0.15':
     dependencies:
       '@types/unist': 2.0.11
@@ -7865,9 +7819,6 @@ snapshots:
   bidi-js@1.1.0:
     dependencies:
       require-from-string: 2.0.2
-
-  big-integer@1.6.52:
-    optional: true
 
   body-parser@1.20.9:
     dependencies:
@@ -9329,9 +9280,6 @@ snapshots:
 
   lodash-es@4.18.1: {}
 
-  lodash.transform@4.6.0:
-    optional: true
-
   lodash@4.18.1: {}
 
   longest-streak@3.1.0: {}
@@ -10200,13 +10148,6 @@ snapshots:
   picomatch@4.0.7: {}
 
   pkce-challenge@5.0.1: {}
-
-  playroomkit@0.0.97(react-dom@19.3.1(react@19.3.1))(react@19.3.1):
-    dependencies:
-      react: 19.3.1
-      react-dom: 19.3.1(react@19.3.1)
-    optionalDependencies:
-      '@discord/embedded-app-sdk': 2.5.0
 
   plotly.js-dist@3.7.0: {}
 

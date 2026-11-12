@@ -17,7 +17,6 @@ import { useEvolutionDataRepositoryStore } from 'explorviz-frontend/src/stores/r
 import { useModelStore } from 'explorviz-frontend/src/stores/repos/model-repository';
 import { useTimestampRepositoryStore } from 'explorviz-frontend/src/stores/repos/timestamp-repository';
 import { useSnapshotTokenStore } from 'explorviz-frontend/src/stores/snapshot-token';
-import { useSpectateConfigurationStore } from 'explorviz-frontend/src/stores/spectate-configuration';
 import { useTimestampStore } from 'explorviz-frontend/src/stores/timestamp';
 import {
   TIMESTAMP_POLLING_START_EVENT,
@@ -145,7 +144,6 @@ export default function Visualization() {
   const renderingServiceTriggerRenderingForGivenLandscapeData = useRenderingServiceStore(
     (state) => state.triggerRenderingForGivenLandscapeData
   );
-  const spectateUserSpectateConfigurationId = useSpectateConfigurationStore((state) => state.spectateConfig?.id);
   const localUserVisualizationMode = useLocalUserStore((state) => state.visualizationMode);
   const setVisualizationMode = useLocalUserStore((state) => state.setVisualizationMode);
   const restartTimestampPollingAndVizUpdate = useTimestampRepositoryStore(
@@ -194,8 +192,7 @@ export default function Visualization() {
   const isSingleLandscapeMode =
     import.meta.env.VITE_ONLY_SHOW_TOKEN.length > 0 && import.meta.env.VITE_ONLY_SHOW_TOKEN !== 'change-token';
 
-  const shouldDisplayBottomBar =
-    !showAR && !showVR && !isSingleLandscapeMode && spectateUserSpectateConfigurationId !== 'arena-2';
+  const shouldDisplayBottomBar = !showAR && !showVR && !isSingleLandscapeMode;
 
   // # endregion
 

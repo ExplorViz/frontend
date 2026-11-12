@@ -6,7 +6,6 @@ import { ChatMessageInterface, useChatStore } from 'explorviz-frontend/src/store
 import { useLocalUserStore } from 'explorviz-frontend/src/stores/collaboration/local-user';
 import { useToastHandlerStore } from 'explorviz-frontend/src/stores/toast-handler';
 import { pingReplay } from 'explorviz-frontend/src/view-objects/3d/city/ping-animation';
-import { me, usePlayersList } from 'playroomkit';
 import Button from 'react-bootstrap/Button';
 
 interface ChatUser {
@@ -16,7 +15,6 @@ interface ChatUser {
 
 export default function ChatBox() {
   const userId = useLocalUserStore((state) => state.userId);
-  const userIsHost = useLocalUserStore((state) => state.isHost);
   const { lookAtEntity } = useCameraControlsStore();
   const chatMessages = useChatStore((state) => state.chatMessages);
   const filteredMessages = useChatStore((state) => state.filteredChatMessages);
@@ -48,9 +46,6 @@ export default function ChatBox() {
     }));
   }, [chatMessages]);
 
-  const playerCount = usePlayersList().length;
-  const canModifyChat = userIsHost || playerCount === 0;
-
   useEffect(() => {
     if (chatThreadRef.current) {
       chatThreadRef.current.scrollTop = chatThreadRef.current.scrollHeight;
@@ -73,8 +68,6 @@ export default function ChatBox() {
   };
 
   const renderChatActions = () => {
-    if (!canModifyChat) return null;
-
     return (
       <div className="d-flex gap-2">
         <Button
@@ -159,7 +152,7 @@ export default function ChatBox() {
     const msg = inputRef.current.value.trim();
     if (msg === '') return;
 
-    sendChatMessage(me().id, msg, false);
+    sendChatMessage(userId, msg, false);
     inputRef.current.value = '';
   };
 

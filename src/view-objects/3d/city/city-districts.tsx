@@ -1,8 +1,6 @@
 import { extend, ThreeElement, ThreeEvent } from '@react-three/fiber';
 import { InstancedMesh2 } from '@three.ez/instanced-mesh';
 import useClickPreventionOnDoubleClick from 'explorviz-frontend/src/hooks/useClickPreventionOnDoubleClick';
-import { usePlayroomConnectionStore } from 'explorviz-frontend/src/stores/collaboration/playroom-connection-store';
-import { useRemoteHighlightingStore } from 'explorviz-frontend/src/stores/collaboration/remote-highlighting-store';
 import { useCommitTreeStateStore } from 'explorviz-frontend/src/stores/commit-tree-state';
 import { useHeatmapStore } from 'explorviz-frontend/src/stores/heatmap/heatmap-store';
 import { useLayoutStore } from 'explorviz-frontend/src/stores/layout-store';
@@ -110,9 +108,6 @@ const CityDistricts = forwardRef<InstancedMesh2, Args>(({ districtIds, layoutMap
       entityOpacity: state.visualizationSettings.entityOpacity.value,
     }))
   );
-
-  const isCollaborationConnected = usePlayroomConnectionStore((state) => state.isConnected);
-  const remoteHighlights = useRemoteHighlightingStore((state) => state.remoteHighlights);
 
   const { heatmapActive, selectedBuildingMetric } = useHeatmapStore(
     useShallow((state) => ({
@@ -463,8 +458,6 @@ const CityDistricts = forwardRef<InstancedMesh2, Args>(({ districtIds, layoutMap
   }, [
     highlightedEntityIds,
     highlightedEntityColor,
-    isCollaborationConnected,
-    remoteHighlights,
     hoveredEntityId,
     heatmapActive,
     selectedBuildingMetric,

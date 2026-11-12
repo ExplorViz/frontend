@@ -18,7 +18,6 @@ import { LandscapeData } from 'explorviz-frontend/src/utils/landscape-schemes/la
 import { StructureLandscapeData } from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
 import { DynamicLandscapeData } from 'explorviz-frontend/src/utils/landscape-schemes/telemetry/traces';
 import { buildSnapshotToken } from 'explorviz-frontend/src/utils/snapshot/snapshot-helpers';
-import { usePlayersList } from 'playroomkit';
 import Button from 'react-bootstrap/Button';
 import Modal from 'react-bootstrap/Modal';
 import Select from 'react-select';
@@ -92,8 +91,6 @@ export default function Restructure({
   );
 
   const changeLogEntries = useChangelogStore((state) => state.changeLogEntries);
-  const userCount = usePlayersList().length;
-  const isOnline = userCount > 0;
   const authUser = useAuthStore((state) => state.user);
   const saveSnapshot = useSnapshotTokenStore((state) => state.saveSnapshot);
 

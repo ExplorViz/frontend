@@ -3,7 +3,6 @@ import React, { useEffect, useRef, useState } from 'react';
 import { LocationIcon, ShareAndroidIcon, TrashIcon } from '@primer/octicons-react';
 import AnnotationData from 'explorviz-frontend/src/components/visualization/rendering/annotations/annotation-data';
 import { useAnnotationHandlerStore } from 'explorviz-frontend/src/stores/annotation-handler';
-import { usePlayroomConnectionStore } from 'explorviz-frontend/src/stores/collaboration/playroom-connection-store';
 import { useToastHandlerStore } from 'explorviz-frontend/src/stores/toast-handler';
 import { Position2D } from 'explorviz-frontend/src/types/pointer-types';
 import { pingByModelId } from 'explorviz-frontend/src/view-objects/3d/city/ping-animation';
@@ -18,8 +17,8 @@ interface AnnotationCoordinatorProps {
 }
 
 export default function AnnotationCoordinator({ annotationData, removeAnnotation }: AnnotationCoordinatorProps) {
-  const isConnected = usePlayroomConnectionStore((state) => state.isConnected);
-  const isOnline = () => isConnected;
+  // Annotations cannot be shared until collaboration is available again.
+  const isOnline = () => false;
   const showErrorToastMessage = useToastHandlerStore((state) => state.showErrorToastMessage);
 
   const annotationHandler = useAnnotationHandlerStore(
