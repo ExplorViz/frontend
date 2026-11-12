@@ -33,7 +33,6 @@ export default function BottomBar({ timelineDataObjectHandler }: BottomBarProps)
 
   const [isCommitTreeRefreshing, setIsCommitTreeRefreshing] = useState<boolean>(false);
 
-  const [bottomBarHeight, setBottomBarHeight] = useBottomBarHeight();
   const bottomBarChartContainer = useRef<HTMLDivElement>(null);
 
   const bottomBarContext = use(BottomBarContext);
@@ -43,6 +42,7 @@ export default function BottomBar({ timelineDataObjectHandler }: BottomBarProps)
 
   const selectedChart = bottomBarContext.selectedChart;
   const setSelectedChart = bottomBarContext.setSelectedChart;
+  const [bottomBarHeight, setBottomBarHeight] = useBottomBarHeight(selectedChart === 'commit-chart');
 
   const refreshCommitTreeData = async () => {
     if (isCommitTreeRefreshing) {

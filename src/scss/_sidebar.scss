@@ -96,7 +96,7 @@
   display: flex;
   flex-direction: row !important;
   // Set from the user-resizable width, see sidebar-resize-handle.tsx
-  max-width: var(--sidebar-width, 33.333333%);
+  width: var(--sidebar-width, 33.333333vw);
   // Shared by the close tab and the resize handle that starts below it
   --sidebar-close-tab-height: 2.5rem;
   position: absolute !important;
@@ -161,6 +161,7 @@
   display: flex;
   flex-direction: column;
   min-height: 0;
+  min-width: 0;
   width: 100%;
 }
 

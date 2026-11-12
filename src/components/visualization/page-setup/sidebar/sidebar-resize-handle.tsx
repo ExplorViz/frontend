@@ -3,7 +3,6 @@ import { useLayoutEffect, useRef, useState } from 'react';
 import ResizeHandle from 'explorviz-frontend/src/components/visualization/page-setup/resize-handle';
 
 const MIN_WIDTH_IN_PERCENT = 20;
-// Both sidebars open together never cover the whole canvas
 const MAX_WIDTH_IN_PERCENT = 50;
 const DEFAULT_WIDTH_IN_PERCENT = 100 / 3;
 
@@ -12,7 +11,7 @@ function clampWidthInPercent(widthInPercent: number) {
 }
 
 function applySidebarWidth(sidebarId: string, widthInPercent: number) {
-  document.getElementById(sidebarId)?.style.setProperty('--sidebar-width', `${widthInPercent}%`);
+  document.getElementById(sidebarId)?.style.setProperty('--sidebar-width', `${widthInPercent}vw`);
 }
 
 function percentToPx(widthInPercent: number) {
