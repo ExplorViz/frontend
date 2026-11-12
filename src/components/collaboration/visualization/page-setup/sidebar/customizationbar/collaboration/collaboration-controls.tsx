@@ -4,6 +4,7 @@ import { isLoginSkipped } from 'explorviz-frontend/src/utils/auth-config';
 import { setParticipantMuted, useChat } from 'explorviz-frontend/src/utils/collaboration/chat';
 import { isCollaborationServiceReachable } from 'explorviz-frontend/src/utils/collaboration/collaboration-service';
 import { useRoomConnectionStore, useRoomState } from 'explorviz-frontend/src/utils/collaboration/room-connection';
+import { SpectateButton, SpectatingStatus } from './spectating-status';
 import { useEffect, useState } from 'react';
 import Button from 'react-bootstrap/Button';
 import Form from 'react-bootstrap/Form';
@@ -164,38 +165,44 @@ function RoomPanel() {
             <span>{participant.name}</span>
             {sessionId === room.sessionId && <span className="small text-muted">(you)</span>}
             {sessionId === state?.hostId && <span className="badge bg-secondary">Host</span>}
+            <SpectatingStatus participant={participant} participants={state?.participants ?? {}} />
             {participant.muted && <span className="small text-muted">muted</span>}
-            {isHost && sessionId !== room.sessionId && (
+            {sessionId !== room.sessionId && (
               <span className="ms-auto d-flex gap-1">
-                <Button
-                  variant="outline-secondary"
-                  size="sm"
-                  className="py-0"
-                  aria-label={`${participant.muted ? 'Unmute' : 'Mute'} ${participant.name}`}
-                  onClick={() => setParticipantMuted(sessionId, !participant.muted)}
-                >
-                  {participant.muted ? 'Unmute' : 'Mute'}
-                </Button>
-                <Button
-                  variant="outline-secondary"
-                  size="sm"
-                  className="py-0"
-                  aria-label={`Make ${participant.name} Host`}
-                  title="Make Host"
-                  onClick={() => handOverHost(sessionId)}
-                >
-                  Make Host
-                </Button>
-                <Button
-                  variant="outline-danger"
-                  size="sm"
-                  className="py-0"
-                  aria-label={`Kick ${participant.name}`}
-                  title="Kick"
-                  onClick={() => kick(sessionId)}
-                >
-                  Kick
-                </Button>
+                <SpectateButton sessionId={sessionId} name={participant.name} />
+                {isHost && (
+                  <>
+                    <Button
+                      variant="outline-secondary"
+                      size="sm"
+                      className="py-0"
+                      aria-label={`${participant.muted ? 'Unmute' : 'Mute'} ${participant.name}`}
+                      onClick={() => setParticipantMuted(sessionId, !participant.muted)}
+                    >
+                      {participant.muted ? 'Unmute' : 'Mute'}
+                    </Button>
+                    <Button
+                      variant="outline-secondary"
+                      size="sm"
+                      className="py-0"
+                      aria-label={`Make ${participant.name} Host`}
+                      title="Make Host"
+                      onClick={() => handOverHost(sessionId)}
+                    >
+                      Make Host
+                    </Button>
+                    <Button
+                      variant="outline-danger"
+                      size="sm"
+                      className="py-0"
+                      aria-label={`Kick ${participant.name}`}
+                      title="Kick"
+                      onClick={() => kick(sessionId)}
+                    >
+                      Kick
+                    </Button>
+                  </>
+                )}
               </span>
             )}
           </li>

@@ -46,6 +46,8 @@ import * as THREE from 'three';
 import { useShallow } from 'zustand/react/shallow';
 import ContextMenuWorldPickRegister from './context-menu-world-pick-register';
 import HotkeyHandler from './hotkey-handler';
+import RemoteImmersiveIndicators from './remote-immersive-indicators';
+import SpectateCameraController from './spectate-camera-controller';
 import ImmersiveCameraHandler from './immersive-view-camrea-handler';
 import MinimapView from './minimap-view';
 
@@ -533,6 +535,7 @@ export default function CanvasWrapper({
                 antialias={magnifierAntialias}
               />
             )}
+            <SpectateCameraController />
           </>
         )}
         <XR store={resolvedXrStore}>
@@ -570,6 +573,7 @@ export default function CanvasWrapper({
                 ))}
             </LandscapeR3F>
           </EntityVisibilityProvider>
+          <RemoteImmersiveIndicators />
           {enableClustering && <ClusterCentroidsR3F />}
           {enableClustering && autoOpenCloseDistricts && <AutoDistrictOpenerR3F />}
           <AnimatedPing />
