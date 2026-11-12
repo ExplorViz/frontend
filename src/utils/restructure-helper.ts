@@ -1,4 +1,4 @@
-import sha256 from 'crypto-js/sha256';
+import { sha256Hex } from 'explorviz-frontend/src/utils/helpers/sha256';
 import {
   getAllClassesInApplication,
   getAllPackagesInApplication,
@@ -183,7 +183,7 @@ export function addMethodToClass(clazz: Class, methodName: string, isCopy: boole
   const newMethod: Method = !isCopy
     ? {
         name: methodName,
-        methodHash: sha256(methodName).toString(),
+        methodHash: sha256Hex(methodName),
       }
     : {
         name: methodName,

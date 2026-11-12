@@ -29,3 +29,6 @@
 
 # JetBrains IDE
 .idea/workspace.xml
+
+# pnpm is the package manager; ignore npm lockfile
+package-lock.json

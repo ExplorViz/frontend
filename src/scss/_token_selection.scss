@@ -142,11 +142,7 @@
   &:focus-visible > td:first-child {
     box-shadow:
       inset 3px 0 0 rgba(13, 110, 253, 0.75),
-      inset 0 0 0 9999px
-        var(
-          --bs-table-bg-state,
-          var(--bs-table-bg-type, var(--bs-table-accent-bg))
-        );
+      inset 0 0 0 9999px var(--bs-table-bg-state, var(--bs-table-bg-type, var(--bs-table-accent-bg)));
   }
 }
 
