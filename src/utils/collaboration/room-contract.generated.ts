@@ -29,6 +29,8 @@ export type StartingState = {
   landscapeToken?: string;
   /** The closed and hidden Districts. */
   districts?: DistrictLists;
+  /** The ids of the highlighted entities; they become the creator's highlights. */
+  highlights?: string[];
 };
 
 /**
@@ -155,6 +157,61 @@ export function applyDistrictActions(
 }
 
 /**
+ * One user action on the highlights, sent as one "highlights" message. An
+ * entity has at most one highlighter: highlighting an entity somebody else
+ * highlighted takes it over. Removing touches only the actor's own highlights,
+ * so removing another Participant's highlight takes two clicks.
+ */
+export type HighlightAction =
+  /** The entity becomes the actor's highlight, whoever had it before. */
+  | { type: "highlight"; entityId: string }
+  /** The actor's highlight of the entity is removed; anyone else's stays. */
+  | { type: "unhighlight"; entityId: string }
+  /** A click: removes the actor's own highlight of the entity, else highlights it (taking it over). */
+  | { type: "toggle"; entityId: string }
+  /** Removes every highlight of the actor; everyone else's stay. */
+  | { type: "unhighlightAll" };
+
+/** The longest entity id the service accepts in a highlight action, so every action stays far below 4 KB. */
+export const MAX_ENTITY_ID_LENGTH = 1000;
+
+/** What `applyHighlightAction` changes: entity id -> the highlighter. */
+export type HighlightOwners = {
+  get(entityId: string): string | undefined;
+  set(entityId: string, highlighter: string): unknown;
+  delete(entityId: string): unknown;
+  forEach(callback: (highlighter: string, entityId: string) => void): void;
+};
+
+/**
+ * The meaning of a highlight action by `actor`. The same function changes the
+ * person's own highlights in the browser when alone (where every highlight is
+ * the person's) and the Room's in the service.
+ */
+export function applyHighlightAction(highlights: HighlightOwners, actor: string, action: HighlightAction): void {
+  switch (action.type) {
+    case "highlight":
+      highlights.set(action.entityId, actor);
+      break;
+    case "unhighlight":
+      if (highlights.get(action.entityId) === actor) highlights.delete(action.entityId);
+      break;
+    case "toggle":
+      if (highlights.get(action.entityId) === actor) highlights.delete(action.entityId);
+      else highlights.set(action.entityId, actor);
+      break;
+    case "unhighlightAll": {
+      const own: string[] = [];
+      highlights.forEach((highlighter, entityId) => {
+        if (highlighter === actor) own.push(entityId);
+      });
+      for (const entityId of own) highlights.delete(entityId);
+      break;
+    }
+  }
+}
+
+/**
  * Messages a client sends to the Room: message type -> payload.
  * Each entry has a handler of the same name in CollaborationRoom's `messages`.
  */
@@ -189,6 +246,8 @@ export type ClientMessages = {
   districts: DistrictAction[];
   /** Host only: switches the District sharing option (see DistrictSharing). */
   districtSharing: DistrictSharing;
+  /** One user action on the highlights (see HighlightAction). */
+  highlights: HighlightAction;
 };
 
 /**
@@ -217,6 +276,7 @@ export type CollaborationState = {
   landscapeToken: string;
   chat: ChatEntry[];
   districts: Districts;
+  highlights: Record<string, string>;
 };
 
 export type Participant = {

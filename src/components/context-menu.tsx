@@ -10,7 +10,7 @@ import { usePopupHandlerStore } from 'explorviz-frontend/src/stores/popup-handle
 import { useRenderingServiceStore } from 'explorviz-frontend/src/stores/rendering-service';
 import { useModelStore } from 'explorviz-frontend/src/stores/repos/model-repository';
 import { useToastHandlerStore } from 'explorviz-frontend/src/stores/toast-handler';
-import { useVisualizationStore } from 'explorviz-frontend/src/stores/visualization-store';
+import { isOwnHighlight } from 'explorviz-frontend/src/utils/collaboration/highlights';
 import { Position2D } from 'explorviz-frontend/src/types/pointer-types';
 import {
   cityHasClosedDistricts,
@@ -181,7 +181,7 @@ export default function ContextMenu({ children }: ContextMenuProps) {
       return backgroundMenuItems;
     }
     const cityHasClosedDistrict = cityHasClosedDistricts(cityId, closedDistrictIds);
-    const foundationIsHighlighted = useVisualizationStore.getState().highlightedEntityIds.has(city.id);
+    const foundationIsHighlighted = isOwnHighlight(city.id);
     return [
       {
         id: `city-rename-${cityId}`,
@@ -219,7 +219,7 @@ export default function ContextMenu({ children }: ContextMenuProps) {
       return backgroundMenuItems;
     }
     const isClosed = isDistrictClosed(districtId, closedDistrictIds);
-    const districtIsHighlighted = useVisualizationStore.getState().highlightedEntityIds.has(districtId);
+    const districtIsHighlighted = isOwnHighlight(districtId);
     return [
       {
         id: `district-open-close-${districtId}`,
@@ -258,7 +258,7 @@ export default function ContextMenu({ children }: ContextMenuProps) {
   };
 
   const getBuildingMenuItems = (buildingId: string) => {
-    const isBuildingHighlighted = useVisualizationStore.getState().highlightedEntityIds.has(buildingId);
+    const isBuildingHighlighted = isOwnHighlight(buildingId);
     return [
       {
         id: `building-show-info-${buildingId}`,

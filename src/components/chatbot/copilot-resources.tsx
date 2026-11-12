@@ -9,13 +9,15 @@ import { defaultVizSettings } from 'explorviz-frontend/src/utils/settings/defaul
 import { VisualizationSettings } from 'explorviz-frontend/src/utils/settings/settings-schemas';
 import { use } from 'react';
 import { useDistricts } from 'explorviz-frontend/src/utils/collaboration/districts';
+import { useHighlights } from 'explorviz-frontend/src/utils/collaboration/highlights';
 
 interface CopilotResourcesProps {
   cities?: City[];
 }
 
 export function CopilotResources({ cities }: CopilotResourcesProps) {
-  const { highlightedEntityIds, hoveredEntityId, removedDistrictIds } = useVisualizationStore();
+  const { hoveredEntityId, removedDistrictIds } = useVisualizationStore();
+  const highlightedEntityIds = useHighlights((ids) => ids);
   const closedDistrictIds = useDistricts((districts) => districts.closedDistrictIds);
 
   const { canGoBack, canGoForward } = use(EditingContext);

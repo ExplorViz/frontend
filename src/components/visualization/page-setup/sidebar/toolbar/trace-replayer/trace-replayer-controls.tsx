@@ -11,7 +11,7 @@ import {
 } from 'explorviz-frontend/src/components/visualization/page-setup/sidebar/toolbar/trace-replayer/trace-tree';
 import { useConfigurationStore } from 'explorviz-frontend/src/stores/configuration';
 import { PlayState, useTraceReplayStore } from 'explorviz-frontend/src/stores/trace-replay';
-import { useVisualizationStore } from 'explorviz-frontend/src/stores/visualization-store';
+import { removeAllHighlighting } from 'explorviz-frontend/src/utils/city-rendering/highlighting';
 import { openAllDistrictsInLandscape } from 'explorviz-frontend/src/utils/city-rendering/entity-manipulation';
 import {
   FlatLandscape,
@@ -29,12 +29,6 @@ interface TraceReplayerControlsProps {
 }
 
 export default function TraceReplayerControls({ selectedTrace, flatData }: TraceReplayerControlsProps) {
-  const visualizationStore = useVisualizationStore(
-    useShallow((state) => ({
-      removeAllHighlightedEntityIds: state.actions.removeAllHighlightedEntityIds,
-    }))
-  );
-
   const configuration = useConfigurationStore(
     useShallow((state) => ({
       isCommRendered: state.isCommRendered,
@@ -89,7 +83,7 @@ export default function TraceReplayerControls({ selectedTrace, flatData }: Trace
   const handleStop = () => {
     stop();
     configuration.setIsCommRendered(true);
-    visualizationStore.removeAllHighlightedEntityIds();
+    removeAllHighlighting();
     setTabs([]);
   };
 
@@ -210,7 +204,7 @@ export default function TraceReplayerControls({ selectedTrace, flatData }: Trace
     });
 
     setTabs(newTabs);
-  }, [cursor, localTimeline, ready, setTabs, visualizationStore]);
+  }, [cursor, localTimeline, ready, setTabs]);
 
   // Cleanup effect: stop and reset replay when component is destroyed
   useEffect(() => {
@@ -219,10 +213,10 @@ export default function TraceReplayerControls({ selectedTrace, flatData }: Trace
       stop();
       setReady(false);
       setTabs([]);
-      visualizationStore.removeAllHighlightedEntityIds();
+      removeAllHighlighting();
       configuration.setIsCommRendered(true);
     };
-  }, [stop, setReady, setTabs, visualizationStore]);
+  }, [stop, setReady, setTabs]);
 
   return (
     <div>

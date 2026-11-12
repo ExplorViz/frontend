@@ -1,36 +1,43 @@
-import { useLocalHighlightStore } from 'explorviz-frontend/src/stores/collaboration/local-highlight-store';
 import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
-import { useVisualizationStore } from 'explorviz-frontend/src/stores/visualization-store';
+import { changeHighlights, highlighterColor } from 'explorviz-frontend/src/utils/collaboration/highlights';
 import * as THREE from 'three';
+
+/*
+ * Highlighting as the rest of the frontend asks for it. Each function is one
+ * user action of the highlights module (`utils/collaboration/highlights`),
+ * which also says what is highlighted and by whom.
+ */
 
 export function getLocalHighlightingColor(): THREE.Color {
   return new THREE.Color(useUserSettingsStore.getState().visualizationSettings.highlightedEntityColor.value);
 }
 
-export function getHighlightingColorForEntity(_entityId: string): THREE.Color {
-  return getLocalHighlightingColor();
+/** In a Room, the color of the Participant who highlighted the entity; otherwise the color of the settings. */
+export function getHighlightingColorForEntity(entityId: string): THREE.Color {
+  const color = highlighterColor(entityId);
+  return color ? new THREE.Color(color) : getLocalHighlightingColor();
 }
 
-export function setHighlightingById(modelId: string, highlight: boolean, _sendMessage = true) {
-  useVisualizationStore.getState().actions.setHighlightedEntityId(modelId, highlight);
-
-  useLocalHighlightStore.getState().setHighlighted(modelId, highlight);
+export function setHighlightingById(modelId: string, highlight: boolean) {
+  changeHighlights({ type: highlight ? 'highlight' : 'unhighlight', entityId: modelId });
 }
 
-export function highlightById(modelId: string, sendMessage = true) {
-  setHighlightingById(modelId, true, sendMessage);
+/** Highlights the entity, in a Room taking it over from whoever highlighted it. */
+export function highlightById(modelId: string) {
+  setHighlightingById(modelId, true);
 }
 
-export function unhighlightById(modelId: string, sendMessage = true) {
-  setHighlightingById(modelId, false, sendMessage);
+/** Removes the own highlight of the entity; someone else's stays. */
+export function unhighlightById(modelId: string) {
+  setHighlightingById(modelId, false);
 }
 
-export function toggleHighlightById(modelId: string, sendMessage = true) {
-  const isHighlighted = useLocalHighlightStore.getState().localHighlightedIds.has(modelId);
-  setHighlightingById(modelId, !isHighlighted, sendMessage);
+/** A click: removes the own highlight of the entity, or else highlights it. */
+export function toggleHighlightById(modelId: string) {
+  changeHighlights({ type: 'toggle', entityId: modelId });
 }
 
-export function removeAllHighlighting(_sendMessage = true) {
-  useLocalHighlightStore.getState().reset();
-  useVisualizationStore.getState().actions.removeAllHighlightedEntityIds();
+/** Removes all own highlights; in a Room everyone else's stay. */
+export function removeAllHighlighting() {
+  changeHighlights({ type: 'unhighlightAll' });
 }

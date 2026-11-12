@@ -3,6 +3,8 @@ import { create } from 'zustand';
 
 interface VisualizationStoreState {
   // State for all entities
+  // The own highlighted entities. Read and change them only through `utils/collaboration/highlights`,
+  // which also knows the Room's.
   highlightedEntityIds: Set<string>;
   hoveredEntityId: string | null;
   // The own closed and hidden Districts (ids of Districts that are not in their default state).
@@ -20,9 +22,6 @@ interface VisualizationStoreState {
   actions: {
     // Actions for all entities
     setHoveredEntityId: (id: string | null) => void;
-    setHighlightedEntityId: (id: string, isHighlighted: boolean) => void;
-    setHighlightedEntityIds: (ids: string[], areHighlighted: boolean) => void;
-    removeAllHighlightedEntityIds: () => void;
     resetVisualizationState: () => void;
     filterEntityIds: (validEntityIds: Set<string>) => void;
     // Buildings
@@ -86,37 +85,6 @@ export const useVisualizationStore = create<VisualizationStoreState>((set, get) 
         return;
       }
       set({ hoveredEntityId: id });
-    },
-    setHighlightedEntityId: (id: string, isHighlighted: boolean) => {
-      set((prevState) => {
-        const alreadyHighlighted = prevState.highlightedEntityIds.has(id);
-        if (isHighlighted === alreadyHighlighted) {
-          return prevState;
-        }
-        const updatedHighlightedEntityIds = new Set(prevState.highlightedEntityIds);
-        if (isHighlighted) {
-          updatedHighlightedEntityIds.add(id);
-        } else {
-          updatedHighlightedEntityIds.delete(id);
-        }
-        return {
-          highlightedEntityIds: updatedHighlightedEntityIds,
-        };
-      });
-    },
-    setHighlightedEntityIds: (ids: string[], areHighlighted: boolean) => {
-      if (areHighlighted) {
-        set({
-          highlightedEntityIds: get().highlightedEntityIds.union(new Set(ids)),
-        });
-      } else {
-        set({
-          highlightedEntityIds: get().highlightedEntityIds.difference(new Set(ids)),
-        });
-      }
-    },
-    removeAllHighlightedEntityIds: () => {
-      set({ highlightedEntityIds: new Set() });
     },
     resetVisualizationState: () => {
       set({

@@ -38,6 +38,14 @@ vi.mock('../src/utils/city-rendering/entity-manipulation', () => ({
 vi.mock('../src/utils/city-rendering/highlighting', () => ({
   getHighlightingColorForEntity: () => new Color('#ff0000'),
 }));
+// Alone, the highlights module shows the own highlights of the visualization store.
+vi.mock('../src/utils/collaboration/highlights', async () => {
+  const { useVisualizationStore } = await import('../src/stores/visualization-store');
+  return {
+    useHighlights: (select: (ids: Set<string>) => unknown) =>
+      useVisualizationStore((state: any) => select(state.highlightedEntityIds)),
+  };
+});
 vi.mock('../src/utils/annotation-utils', () => ({
   getEntityDisplayName: (name: string) => name,
 }));

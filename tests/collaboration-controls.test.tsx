@@ -96,7 +96,8 @@ it('creates a Room and shows its code and the creator as Host', async () => {
       options: {
         contractVersion: CONTRACT_VERSION,
         name: 'Ada',
-        startingState: { districts: { closed: [], hidden: [] } },
+        // Each capability adds its part; its own tests check it.
+        startingState: expect.objectContaining({ districts: { closed: [], hidden: [] } }),
       },
     },
   ]);

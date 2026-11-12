@@ -5,6 +5,7 @@ import { useLayoutStore } from 'explorviz-frontend/src/stores/layout-store';
 import { useModelStore } from 'explorviz-frontend/src/stores/repos/model-repository';
 import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
 import { useVisualizationStore } from 'explorviz-frontend/src/stores/visualization-store';
+import { useHighlights } from 'explorviz-frontend/src/utils/collaboration/highlights';
 import { getTruncatedDisplayName } from 'explorviz-frontend/src/utils/annotation-utils';
 import {
   animateNumericProps,
@@ -24,17 +25,17 @@ import { useShallow } from 'zustand/react/shallow';
 export default function CodeBuildingLabel({ buildingId }: { buildingId: string }) {
   const building = useModelStore.getState().getBuilding(buildingId);
 
-  const { isBuildingHovered, isParentHovered, isBuildingHighlighted, isParentHighlighted } = useVisualizationStore(
+  const { isBuildingHovered, isParentHovered } = useVisualizationStore(
     useShallow((state) => ({
       isBuildingHovered: state.hoveredEntityId === buildingId,
       isParentHovered:
         state.hoveredEntityId === building?.parentDistrictId ||
         (!building?.parentDistrictId && state.hoveredEntityId === building?.parentCityId),
-      isBuildingHighlighted: state.highlightedEntityIds.has(buildingId),
-      isParentHighlighted: state.highlightedEntityIds.has(
-        building?.parentDistrictId || (!building?.parentDistrictId ? building?.parentCityId || '' : '')
-      ),
     }))
+  );
+  const isBuildingHighlighted = useHighlights((ids) => ids.has(buildingId));
+  const isParentHighlighted = useHighlights((ids) =>
+    ids.has(building?.parentDistrictId || (!building?.parentDistrictId ? building?.parentCityId || '' : ''))
   );
 
   const { showAllBuildingLabels, labelDistanceThreshold, enableClustering } = useUserSettingsStore(

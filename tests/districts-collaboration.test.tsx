@@ -4,6 +4,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { useAnnotationHandlerStore } from '../src/stores/annotation-handler';
 import { usePopupHandlerStore } from '../src/stores/popup-handler';
 import { useVisualizationStore } from '../src/stores/visualization-store';
+import { highlightById } from '../src/utils/city-rendering/highlighting';
 import '../src/utils/collaboration/capabilities';
 import { changeDistricts, getDistricts, useDistricts } from '../src/utils/collaboration/districts';
 import { useRoomConnectionStore } from '../src/utils/collaboration/room-connection';
@@ -144,14 +145,12 @@ describe('hand-overs', () => {
 
     await act(() => useRoomConnectionStore.getState().createRoom('Ada'));
 
-    expect(service.requests[0].options.startingState).toEqual({
-      districts: { closed: ['a', 'a.b'], hidden: ['a.b'] },
-    });
+    expect(service.requests[0].options.startingState.districts).toEqual({ closed: ['a', 'a.b'], hidden: ['a.b'] });
   });
 
   it('drops all local exploration state when joining', async () => {
     changeDistricts([{ type: 'close', ids: ['mine'] }]);
-    useVisualizationStore.getState().actions.setHighlightedEntityId('building', true);
+    highlightById('building');
     useAnnotationHandlerStore.setState({ annotationData: [{ annotationId: 1 } as any] });
     usePopupHandlerStore.setState({ popupData: [{ entity: { id: 'building' } } as any] });
 

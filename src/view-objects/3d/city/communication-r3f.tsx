@@ -31,6 +31,7 @@ import globalBundlingService from './global-bundling-service';
 import { getGlobalLayoutMap } from './global-layout-map';
 import { HAPSystemManager } from './hap-system-manager';
 import { useDistricts } from 'explorviz-frontend/src/utils/collaboration/districts';
+import { highlighterColor, useHighlights } from 'explorviz-frontend/src/utils/collaboration/highlights';
 
 // HAP System Manager Instance
 const hapSystemManager = HAPSystemManager.getInstance();
@@ -118,11 +119,18 @@ export default function CommunicationR3F({
   const enableEdgeBundling = !isEdgeBundlingNone;
   const enable3DHAPAlgorithm = is3DHAPAlgorithm;
 
-  const { isHighlighted, isHovered, setHoveredEntity } = useVisualizationStore(
+  // The highlighted one of this communication and its base communications, if any; its highlighter gives the color.
+  const highlightedId = useHighlights((ids) =>
+    [communicationModel.id, ...communicationModel.baseCommunications.map((comm) => comm.id)].find((id) => ids.has(id))
+  );
+  const isHighlighted = highlightedId !== undefined;
+  const highlighter = useHighlights(() => (highlightedId ? highlighterColor(highlightedId) : undefined));
+  const highlightingColor = useMemo(
+    () => (highlighter ? new THREE.Color(highlighter) : highlightedEntityColor),
+    [highlighter, highlightedEntityColor]
+  );
+  const { isHovered, setHoveredEntity } = useVisualizationStore(
     useShallow((state) => ({
-      isHighlighted:
-        state.highlightedEntityIds.has(communicationModel.id) ||
-        communicationModel.baseCommunications.some((comm) => state.highlightedEntityIds.has(comm.id)),
       isHovered: state.hoveredEntityId === communicationModel.id,
       setHoveredEntity: state.actions.setHoveredEntityId,
     }))
@@ -1768,7 +1776,7 @@ export default function CommunicationR3F({
       curveHeight={computedCurveHeight}
       defaultColor={new THREE.Color(communicationColor)}
       highlighted={isHighlighted}
-      highlightingColor={highlightedEntityColor}
+      highlightingColor={highlightingColor}
       isHovered={enableHoverEffects && isHovered}
       ref={attachMesh}
       // Edge Bundling props

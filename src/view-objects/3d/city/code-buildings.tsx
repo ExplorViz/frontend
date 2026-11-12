@@ -12,6 +12,7 @@ import { useModelStore } from 'explorviz-frontend/src/stores/repos/model-reposit
 import { useToastHandlerStore } from 'explorviz-frontend/src/stores/toast-handler';
 import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
 import { useVisualizationStore } from 'explorviz-frontend/src/stores/visualization-store';
+import { useHighlights } from 'explorviz-frontend/src/utils/collaboration/highlights';
 import { buildingTransformMatches } from 'explorviz-frontend/src/utils/city-rendering/building-transform';
 import { resolveBuildingForVisibility } from 'explorviz-frontend/src/utils/city-rendering/entity-visibility';
 import { useSharedEntityVisibilityContext } from 'explorviz-frontend/src/utils/city-rendering/entity-visibility-provider-store';
@@ -135,11 +136,11 @@ const GeometryGroup: React.FC<GeometryGroupProps> = ({ geometryType, buildingIds
   const geometry = getBuildingGeometry(geometryType);
   const lastAppliedFrameVersionRef = useRef(0);
 
-  const { hoveredEntityId, setHoveredEntity, highlightedEntityIds } = useVisualizationStore(
+  const highlightedEntityIds = useHighlights((ids) => ids);
+  const { hoveredEntityId, setHoveredEntity } = useVisualizationStore(
     useShallow((state) => ({
       hoveredEntityId: state.hoveredEntityId,
       setHoveredEntity: state.actions.setHoveredEntityId,
-      highlightedEntityIds: state.highlightedEntityIds,
     }))
   );
 

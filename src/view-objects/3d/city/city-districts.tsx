@@ -9,6 +9,7 @@ import { useModelStore } from 'explorviz-frontend/src/stores/repos/model-reposit
 import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
 import { useVisibilityServiceStore } from 'explorviz-frontend/src/stores/visibility-service';
 import { useVisualizationStore } from 'explorviz-frontend/src/stores/visualization-store';
+import { useHighlights } from 'explorviz-frontend/src/utils/collaboration/highlights';
 import { isDistrictOpen } from 'explorviz-frontend/src/utils/city-rendering/district-close-state';
 import * as EntityManipulation from 'explorviz-frontend/src/utils/city-rendering/entity-manipulation';
 import { isDistrictVisible } from 'explorviz-frontend/src/utils/city-rendering/entity-visibility';
@@ -63,9 +64,9 @@ const CityDistricts = forwardRef<InstancedMesh2, Args>(({ districtIds, layoutMap
   }, []);
 
   const closedDistrictIds = useDistricts((districts) => districts.closedDistrictIds);
-  const { highlightedEntityIds, hoveredEntityId, setHoveredEntity } = useVisualizationStore(
+  const highlightedEntityIds = useHighlights((ids) => ids);
+  const { hoveredEntityId, setHoveredEntity } = useVisualizationStore(
     useShallow((state) => ({
-      highlightedEntityIds: state.highlightedEntityIds,
       hoveredEntityId: state.hoveredEntityId,
       setHoveredEntity: state.actions.setHoveredEntityId,
     }))

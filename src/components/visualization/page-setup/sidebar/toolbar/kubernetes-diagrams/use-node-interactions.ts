@@ -1,8 +1,8 @@
 import { useCameraControlsStore } from 'explorviz-frontend/src/stores/camera-controls-store';
 import { usePingStore } from 'explorviz-frontend/src/stores/ping-store';
 import { useModelStore } from 'explorviz-frontend/src/stores/repos/model-repository';
-import { useVisualizationStore } from 'explorviz-frontend/src/stores/visualization-store';
-import { removeAllHighlighting } from 'explorviz-frontend/src/utils/city-rendering/highlighting';
+import { removeAllHighlighting, toggleHighlightById } from 'explorviz-frontend/src/utils/city-rendering/highlighting';
+import { useHighlights } from 'explorviz-frontend/src/utils/collaboration/highlights';
 import { pingByModelId } from 'explorviz-frontend/src/view-objects/3d/city/ping-animation';
 import { useCallback, useMemo, useState } from 'react';
 
@@ -13,16 +13,15 @@ const PING_DURATION_MS = 3000;
  *
  * Highlighting merges two sources:
  * - localHighlightedNodeNames: nodes highlighted directly in the diagram sidebar
- * - highlightedEntityIds from the visualization store: nodes highlighted on the 3D canvas
+ * - the highlighted entities (utils/collaboration/highlights): nodes highlighted on the 3D canvas
  *
- * A click on a node that has a matching canvas city toggles the shared store highlight.
+ * A click on a node that has a matching canvas city toggles the highlight of that city.
  * A click on a node with no canvas match toggles the local (sidebar-only) highlight.
  */
 export function useNodeInteractions() {
   const getAllCities = useModelStore((state) => state.getAllCities);
   const lookAtEntity = useCameraControlsStore((state) => state.lookAtEntity);
-  const highlightedEntityIds = useVisualizationStore((state) => state.highlightedEntityIds);
-  const setHighlightedEntityId = useVisualizationStore((state) => state.actions.setHighlightedEntityId);
+  const highlightedEntityIds = useHighlights((ids) => ids);
   const activePingNodeNames = usePingStore((state) => state.activePingNodeNames);
 
   const [localHighlightedNodeNames, setLocalHighlightedNodeNames] = useState<Set<string>>(() => new Set());
@@ -41,7 +40,7 @@ export function useNodeInteractions() {
     (nodeName: string) => {
       const matchingCity = getAllCities().find((city) => city.name === nodeName);
       if (matchingCity) {
-        setHighlightedEntityId(matchingCity.id, !highlightedEntityIds.has(matchingCity.id));
+        toggleHighlightById(matchingCity.id);
       } else {
         setLocalHighlightedNodeNames((prev) => {
           const next = new Set(prev);
@@ -50,7 +49,7 @@ export function useNodeInteractions() {
         });
       }
     },
-    [getAllCities, highlightedEntityIds, setHighlightedEntityId]
+    [getAllCities]
   );
 
   const handleNodePing = useCallback(

@@ -1,6 +1,6 @@
 import { Decoder, Encoder, schema, t } from '@colyseus/schema';
 import { act } from '@testing-library/react';
-import { applyDistrictActions } from '../src/utils/collaboration/room-contract.generated';
+import { applyDistrictActions, applyHighlightAction } from '../src/utils/collaboration/room-contract.generated';
 
 /*
  * A stand-in for the collaboration service, at the boundary of `@colyseus/sdk`.
@@ -53,6 +53,7 @@ const CollaborationState = schema(
     landscapeToken: t.string().default(''),
     chat: t.array(ChatEntry),
     districts: Districts,
+    highlights: t.map('string'),
   },
   'CollaborationState'
 );
@@ -73,11 +74,13 @@ const MESSAGE_HANDLERS: Record<string, (state: ServerState, payload: any, from: 
     state.landscapeToken = landscapeToken;
     state.districts.closed.clear();
     state.districts.hidden.clear();
+    state.highlights.clear();
   },
   districts: (state, actions) => {
     if (!state.districts.shared) return;
     applyDistrictActions({ closed: asIdSet(state.districts.closed), hidden: asIdSet(state.districts.hidden) }, actions);
   },
+  highlights: (state, action, from) => applyHighlightAction(state.highlights, from, action),
   // Without the service's Host check.
   districtSharing: (state, { shared, districts }) => {
     if (shared && !state.districts.shared) {
@@ -281,9 +284,11 @@ export class FakeServerRoom {
     return client;
   }
 
+  /** The Participant leaves for good; as in the service, their highlights go. */
   remove(sessionId: string) {
     this.clients.delete(sessionId);
     this.state.participants.delete(sessionId);
+    applyHighlightAction(this.state.highlights, sessionId, { type: 'unhighlightAll' });
     this.broadcast();
   }
 
@@ -347,7 +352,12 @@ export class FakeCollaborationService {
     this.throwRefusal();
     const room = new FakeServerRoom(`ROOM${String(++this.codes).padStart(2, '0')}`);
     this.rooms.set(room.code, room);
-    return room.seat(this.nextSessionId(), options.name);
+    const creator = room.seat(this.nextSessionId(), options.name);
+    // As the service: the creator's highlights become theirs.
+    room.update((state) => {
+      for (const entityId of options.startingState?.highlights ?? []) state.highlights.set(entityId, creator.sessionId);
+    });
+    return creator;
   }
 
   async joinById(code: string, options: any, token?: string) {
