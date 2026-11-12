@@ -10,6 +10,8 @@ A short network drop does not end the Room. The service holds the seat for 60 se
 
 Shared so far: closed and hidden Districts. Joining always asks first, because it drops the person's own exploration (Districts, highlights, annotations, open popups); the notice offers to go back, to take a Snapshot first, or to drop it and join. Creating a Room hands the creator's Districts to the Room. After leaving, the person carries on with what they saw in the Room.
 
+The Host can switch District sharing off ("Share Districts" in the Room panel; on by default, shown to everyone). While it is off, everyone opens and closes Districts for themselves inside the Room: switching off hands the Room's Districts to everyone as their own, so no view changes; switching on makes the Host's own Districts the Room's and everyone's view jumps to them. Someone joining while it is off starts with all Districts open.
+
 ## Code
 
 - `src/utils/collaboration/room-connection.ts`: `useRoomConnectionStore` holds the joined SDK `Room` (`room`, `connecting`, `reconnecting`, `createRoom`, `joinRoom`, `leaveRoom`) and shows refusals as toasts. `useRoomState()` reads the Room's state as an immutable snapshot (via `@colyseus/react`); the state is never copied into a store.

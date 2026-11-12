@@ -105,6 +105,15 @@ export type DistrictAction =
 /** The closed and hidden Districts as plain lists of District ids. */
 export type DistrictLists = { closed: string[]; hidden: string[] };
 
+/**
+ * The Host's switch of the District sharing option. Switching it off changes
+ * nobody's view: everyone takes the Room's Districts as their own. Switching
+ * it on makes the Host's own Districts the Room's, so it carries them.
+ */
+export type DistrictSharing =
+  | { shared: false }
+  | { shared: true; districts: DistrictLists };
+
 /** What `applyDistrictActions` changes: a set of District ids. */
 export type DistrictIdSet = {
   add(id: string): unknown;
@@ -171,6 +180,8 @@ export type ClientMessages = {
   immersive: { entityId: string | null };
   /** One user action on the Districts (see DistrictAction). */
   districts: DistrictAction[];
+  /** Host only: switches the District sharing option (see DistrictSharing). */
+  districtSharing: DistrictSharing;
 };
 
 /**
@@ -219,6 +230,7 @@ export type ChatEntry = {
 };
 
 export type Districts = {
+  shared: boolean;
   closed: Record<string, boolean>;
   hidden: Record<string, boolean>;
 };

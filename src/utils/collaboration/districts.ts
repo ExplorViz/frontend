@@ -8,6 +8,7 @@ import {
 import {
   applyDistrictActions,
   type DistrictAction,
+  type DistrictLists,
   type Districts as RoomDistricts,
 } from 'explorviz-frontend/src/utils/collaboration/room-contract.generated';
 
@@ -21,6 +22,11 @@ import {
  * Room's state, read directly from the service and changed only by asking
  * the service. Nothing is mirrored between the two; they hand over only when
  * a Room is created, joined or left (see the hand-over at the end).
+ *
+ * While the Host has switched District sharing off, the Districts are the own
+ * state even in a Room. Switching it off hands the Room's Districts over to
+ * everyone as their own; switching it on hands the Host's own Districts over
+ * to the Room (see `setDistrictSharing`).
  */
 
 export type { DistrictAction };
@@ -32,6 +38,12 @@ export type DistrictState = {
 };
 
 const currentRoom = () => useRoomConnectionStore.getState().room;
+
+/** The Room whose Districts are shown: the joined Room while it shares its Districts. */
+function sharingRoom() {
+  const room = currentRoom();
+  return room && room.state.districts?.shared !== false ? room : undefined;
+}
 
 // The Room's state, as Sets. One per snapshot of the Room's map, so a reader
 // sees the same Set until the Room's Districts change.
@@ -75,9 +87,14 @@ const ownDistricts = (): DistrictState => {
   return { closedDistrictIds, hiddenDistrictIds };
 };
 
+const ownDistrictLists = (): DistrictLists => {
+  const { closedDistrictIds, hiddenDistrictIds } = ownDistricts();
+  return { closed: [...closedDistrictIds], hidden: [...hiddenDistrictIds] };
+};
+
 /** The shown Districts, for reading outside of rendering. */
 export function getDistricts(): DistrictState {
-  const room = currentRoom();
+  const room = sharingRoom();
   return room ? fromDecodedRoom(room) : ownDistricts();
 }
 
@@ -91,7 +108,7 @@ export function useDistricts<T>(select: (districts: DistrictState) => T): T {
     select({ closedDistrictIds: state.closedDistrictIds, hiddenDistrictIds: state.hiddenDistrictIds })
   );
   const roomDistricts = useRoomStatePart('districts');
-  return inRoom ? select(fromRoomSnapshot(roomDistricts)) : own;
+  return inRoom && roomDistricts?.shared !== false ? select(fromRoomSnapshot(roomDistricts)) : own;
 }
 
 /** Both sets of the shown Districts, for rendering. */
@@ -131,7 +148,7 @@ function changed(districts: DistrictState, actions: readonly DistrictAction[]): 
  * message, and the view follows once the service has applied it.
  */
 export function changeDistricts(actions: DistrictAction[]) {
-  const room = currentRoom();
+  const room = sharingRoom();
   if (room) {
     if (changed(fromDecodedRoom(room), actions)) room.send('districts', actions);
     return;
@@ -140,24 +157,58 @@ export function changeDistricts(actions: DistrictAction[]) {
   if (next) useVisualizationStore.setState(next);
 }
 
+/** Whether the joined Room shares its Districts, or undefined while alone. Shown to everyone. */
+export function useDistrictSharing(): boolean | undefined {
+  const inRoom = useRoomConnectionStore((state) => state.room !== undefined);
+  const shared = useRoomStatePart('districts')?.shared;
+  return inRoom ? shared !== false : undefined;
+}
+
+/**
+ * The Host switched District sharing on or off; the service refuses anyone
+ * else. Switching on carries the Host's own Districts, which become the
+ * Room's. Either way the view changes only once the service has handled it.
+ */
+export function setDistrictSharing(shared: boolean) {
+  const room = currentRoom();
+  if (!room) return;
+  if (!shared) {
+    room.send('districtSharing', { shared: false });
+    return;
+  }
+  room.send('districtSharing', { shared: true, districts: ownDistrictLists() });
+}
+
 const setOwnDistricts = (closed: Iterable<string>, hidden: Iterable<string>) =>
   useVisualizationStore.setState({ closedDistrictIds: new Set(closed), hiddenDistrictIds: new Set(hidden) });
 
 registerHandOver({
-  startingState: () => {
-    const { closedDistrictIds, hiddenDistrictIds } = ownDistricts();
-    return { districts: { closed: [...closedDistrictIds], hidden: [...hiddenDistrictIds] } };
-  },
+  startingState: () => ({ districts: ownDistrictLists() }),
   enter: (room) => {
     // From now on the Room's Districts are shown; the own ones have no home.
     setOwnDistricts([], []);
     decodedRoomDistricts = undefined;
-    room.onStateChange(() => {
+    // Unknown until the Room's state arrives. Someone joining while sharing
+    // is off takes nothing from the Room: it holds no Districts to show.
+    let shared = room.state.districts?.shared;
+    room.onStateChange((state) => {
       if (decodedRoomDistricts?.room === room) decodedRoomDistricts = undefined;
+      const nowShared = state.districts?.shared;
+      if (shared === true && nowShared === false) {
+        // Switched off: everyone carries on with the Room's Districts as their own.
+        setOwnDistricts(state.districts.closed.keys(), state.districts.hidden.keys());
+      } else if (shared === false && nowShared === true) {
+        // Switched on: the Room's Districts are shown again; the own ones have no home.
+        setOwnDistricts([], []);
+      }
+      shared = nowShared;
     });
   },
   leave: (lastState) => {
-    setOwnDistricts(lastState.districts?.closed?.keys() ?? [], lastState.districts?.hidden?.keys() ?? []);
+    // While sharing is off, the own Districts are what was shown.
+    if (lastState.districts?.shared !== false) {
+      setOwnDistricts(lastState.districts?.closed?.keys() ?? [], lastState.districts?.hidden?.keys() ?? []);
+    }
     decodedRoomDistricts = undefined;
   },
 });
