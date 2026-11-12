@@ -111,10 +111,10 @@ export type ChatRefusal = (typeof ChatRefusal)[keyof typeof ChatRefusal];
  * becomes one list of these, sent as one "districts" message and applied as a
  * whole, so two Participants acting at once never interleave.
  *
- * Which Districts a click concerns (children, nested ones, a whole city) is
- * worked out by the frontend, which knows the Landscape; the service does not.
- * "Close all" is a close of every District, a hide of the nested ones and a
- * show of the top-level ones.
+ * Which Districts a click concerns (children, nested ones, a city) is worked
+ * out by the frontend, which knows the Landscape; the service does not. So
+ * "close all" names only the top-level Districts, and the closed and hidden
+ * sets can be inverted (see DistrictIdSet), keeping every message small.
  */
 export type DistrictAction =
   | { type: "open"; ids: string[] }
@@ -122,10 +122,21 @@ export type DistrictAction =
   | { type: "show"; ids: string[] }
   | { type: "hide"; ids: string[] }
   /** Opens and shows every District. */
-  | { type: "openAll" };
+  | { type: "openAll" }
+  /** Closes every District and hides every one but these top-level Districts, which are shown. */
+  | { type: "closeAll"; topLevelIds: string[] };
 
-/** The closed and hidden Districts as plain lists of District ids. */
-export type DistrictLists = { closed: string[]; hidden: string[] };
+/**
+ * The closed and hidden Districts as plain lists of District ids. An inverted
+ * list names the exceptions: with `closedInverted`, every District of the
+ * Landscape is closed except those in `closed` (likewise for hidden).
+ */
+export type DistrictLists = {
+  closed: string[];
+  hidden: string[];
+  closedInverted?: boolean;
+  hiddenInverted?: boolean;
+};
 
 /**
  * The Host's switch of the District sharing option. Switching it off changes
@@ -136,11 +147,32 @@ export type DistrictSharing =
   | { shared: false }
   | { shared: true; districts: DistrictLists };
 
-/** What `applyDistrictActions` changes: a set of District ids. */
+/**
+ * What `applyDistrictActions` changes: a set of District ids. While
+ * `inverted`, it holds every District of the Landscape except the ids in it.
+ */
 export type DistrictIdSet = {
   add(id: string): unknown;
   delete(id: string): unknown;
   clear(): void;
+  inverted: boolean;
+};
+
+const include = (set: DistrictIdSet, ids: readonly string[]) => {
+  for (const id of ids) {
+    if (set.inverted) set.delete(id);
+    else set.add(id);
+  }
+};
+const exclude = (set: DistrictIdSet, ids: readonly string[]) => {
+  for (const id of ids) {
+    if (set.inverted) set.add(id);
+    else set.delete(id);
+  }
+};
+const fill = (set: DistrictIdSet, all: boolean) => {
+  set.clear();
+  set.inverted = all;
 };
 
 /**
@@ -155,23 +187,39 @@ export function applyDistrictActions(
   for (const action of actions) {
     switch (action.type) {
       case "open":
-        for (const id of action.ids) districts.closed.delete(id);
+        exclude(districts.closed, action.ids);
         break;
       case "close":
-        for (const id of action.ids) districts.closed.add(id);
+        include(districts.closed, action.ids);
         break;
       case "show":
-        for (const id of action.ids) districts.hidden.delete(id);
+        exclude(districts.hidden, action.ids);
         break;
       case "hide":
-        for (const id of action.ids) districts.hidden.add(id);
+        include(districts.hidden, action.ids);
         break;
       case "openAll":
-        districts.closed.clear();
-        districts.hidden.clear();
+        fill(districts.closed, false);
+        fill(districts.hidden, false);
+        break;
+      case "closeAll":
+        fill(districts.closed, true);
+        fill(districts.hidden, true);
+        exclude(districts.hidden, action.topLevelIds);
         break;
     }
   }
+}
+
+/** Replaces the Districts with these lists. */
+export function replaceDistricts(
+  districts: { closed: DistrictIdSet; hidden: DistrictIdSet },
+  lists: DistrictLists,
+): void {
+  fill(districts.closed, lists.closedInverted === true);
+  fill(districts.hidden, lists.hiddenInverted === true);
+  for (const id of lists.closed) districts.closed.add(id);
+  for (const id of lists.hidden) districts.hidden.add(id);
 }
 
 /**
@@ -188,7 +236,43 @@ export type HighlightAction =
   /** A click: removes the actor's own highlight of the entity, else highlights it (taking it over). */
   | { type: "toggle"; entityId: string }
   /** Removes every highlight of the actor; everyone else's stay. */
-  | { type: "unhighlightAll" };
+  | { type: "unhighlightAll" }
+  /**
+   * Many entities become the actor's highlights at once (each taken over).
+   * With `replaceOwn`, the actor's other highlights are removed first. A long
+   * list is sent in chunks (see highlightChunks); every chunk after the first
+   * is `continued`, so the whole action gets one highlight chat entry.
+   */
+  | { type: "highlightMany"; entityIds: string[]; replaceOwn?: boolean; continued?: boolean }
+  /** The actor's highlights of these entities are removed; anyone else's stay. */
+  | { type: "unhighlightMany"; entityIds: string[] };
+
+/** The most UTF-8 bytes of entity ids in one highlight message, so each stays far below 4 KB. */
+const MAX_CHUNK_BYTES = 3000;
+
+/**
+ * A list of entity ids split into the chunks of one bulk highlight action,
+ * each small enough for one message. An id is never split.
+ */
+export function highlightChunks(entityIds: readonly string[]): string[][] {
+  const encoder = new TextEncoder();
+  const chunks: string[][] = [];
+  let chunk: string[] = [];
+  let bytes = 0;
+  for (const entityId of entityIds) {
+    // The id plus quotes and separator.
+    const size = encoder.encode(entityId).length + 3;
+    if (chunk.length > 0 && bytes + size > MAX_CHUNK_BYTES) {
+      chunks.push(chunk);
+      chunk = [];
+      bytes = 0;
+    }
+    chunk.push(entityId);
+    bytes += size;
+  }
+  if (chunk.length > 0) chunks.push(chunk);
+  return chunks;
+}
 
 /** What `applyHighlightAction` changes: entity id -> the highlighter. */
 export type HighlightOwners = {
@@ -215,15 +299,27 @@ export function applyHighlightAction(highlights: HighlightOwners, actor: string,
       if (highlights.get(action.entityId) === actor) highlights.delete(action.entityId);
       else highlights.set(action.entityId, actor);
       break;
-    case "unhighlightAll": {
-      const own: string[] = [];
-      highlights.forEach((highlighter, entityId) => {
-        if (highlighter === actor) own.push(entityId);
-      });
-      for (const entityId of own) highlights.delete(entityId);
+    case "unhighlightAll":
+      removeOwn(highlights, actor);
       break;
-    }
+    case "highlightMany":
+      if (action.replaceOwn) removeOwn(highlights, actor);
+      for (const entityId of action.entityIds) highlights.set(entityId, actor);
+      break;
+    case "unhighlightMany":
+      for (const entityId of action.entityIds) {
+        if (highlights.get(entityId) === actor) highlights.delete(entityId);
+      }
+      break;
   }
+}
+
+function removeOwn(highlights: HighlightOwners, actor: string) {
+  const own: string[] = [];
+  highlights.forEach((highlighter, entityId) => {
+    if (highlighter === actor) own.push(entityId);
+  });
+  for (const entityId of own) highlights.delete(entityId);
 }
 
 /** The longest annotation title, in characters. */
@@ -262,6 +358,35 @@ export const AnnotationRefusal = {
   INVALID: "invalid",
 } as const;
 export type AnnotationRefusal = (typeof AnnotationRefusal)[keyof typeof AnnotationRefusal];
+
+type Clearable = { clear(): void };
+
+/** The parts of the Room state that name entities of its Landscape. */
+export type LandscapeBoundState = {
+  districts: { closed: Clearable; hidden: Clearable; closedInverted: boolean; hiddenInverted: boolean };
+  highlights: Clearable;
+  popups: Clearable;
+  annotations: Clearable;
+};
+
+/**
+ * Everything in the Room that is tied to its Landscape, cleared on a
+ * Landscape switch: every District open and shown, no highlights, shared
+ * popups or annotations. The rest of the Room (Participants, Host, chat
+ * history, mutes, the District sharing option) stays.
+ *
+ * A capability whose Room state names entities of the Landscape adds its
+ * line here.
+ */
+export function clearLandscapeState(state: LandscapeBoundState): void {
+  state.districts.closed.clear();
+  state.districts.hidden.clear();
+  state.districts.closedInverted = false;
+  state.districts.hiddenInverted = false;
+  state.highlights.clear();
+  state.popups.clear();
+  state.annotations.clear();
+}
 
 /**
  * Messages a client sends to the Room: message type -> payload.
@@ -380,6 +505,7 @@ export type ChatEntry = {
   authorColor: string;
   text: string;
   entityId: string;
+  entityCount: number;
   position: number[];
   time: number;
 };
@@ -388,6 +514,8 @@ export type Districts = {
   shared: boolean;
   closed: Record<string, boolean>;
   hidden: Record<string, boolean>;
+  closedInverted: boolean;
+  hiddenInverted: boolean;
 };
 
 export type SharedPopup = {

@@ -138,20 +138,13 @@ export function closeAllDistrictsInCity(city: City, _sendMessage = true) {
   ]);
 }
 
+/** Closes every District and hides the nested ones; one small action whatever the Landscape's size. */
 export function closeAllDistrictsInLandscape(_sendMessage = true) {
-  const allDistricts = useModelStore.getState().getAllDistricts();
-  const allCities = useModelStore.getState().getAllCities();
-
-  const topLevelDistrictIds = allCities.flatMap((city) => city.districtIds);
-
-  const allDistrictIds = allDistricts.map((district) => district.id);
-
-  const districtIdsToHide = Array.from(new Set(allDistrictIds).difference(new Set(topLevelDistrictIds)));
-  changeDistricts([
-    { type: 'close', ids: allDistrictIds },
-    { type: 'hide', ids: districtIdsToHide },
-    { type: 'show', ids: topLevelDistrictIds },
-  ]);
+  const topLevelIds = useModelStore
+    .getState()
+    .getAllCities()
+    .flatMap((city) => city.districtIds);
+  changeDistricts([{ type: 'closeAll', topLevelIds }]);
 }
 
 /**

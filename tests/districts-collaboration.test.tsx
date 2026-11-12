@@ -2,12 +2,14 @@
 import { act, renderHook } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { useAnnotationHandlerStore } from '../src/stores/annotation-handler';
+import { useModelStore } from '../src/stores/repos/model-repository';
 import { usePopupHandlerStore } from '../src/stores/popup-handler';
 import { useVisualizationStore } from '../src/stores/visualization-store';
 import { highlightById } from '../src/utils/city-rendering/highlighting';
 import '../src/utils/collaboration/capabilities';
 import { changeDistricts, getDistricts, useDistricts } from '../src/utils/collaboration/districts';
 import { useRoomConnectionStore } from '../src/utils/collaboration/room-connection';
+import type { District } from '../src/utils/landscape-schemes/flat-landscape';
 import { fakeCollaborationService as service } from './fake-collaboration-service';
 import './setup-dom';
 
@@ -19,6 +21,7 @@ beforeEach(() => {
   useVisualizationStore.setState(useVisualizationStore.getInitialState(), true);
   usePopupHandlerStore.setState(usePopupHandlerStore.getInitialState(), true);
   useAnnotationHandlerStore.setState(useAnnotationHandlerStore.getInitialState(), true);
+  useModelStore.setState({ districts: {} });
 });
 
 const shown = () => {
@@ -146,6 +149,21 @@ describe('hand-overs', () => {
     await act(() => useRoomConnectionStore.getState().createRoom('Ada'));
 
     expect(service.requests[0].options.startingState.districts).toEqual({ closed: ['a', 'a.b'], hidden: ['a.b'] });
+  });
+
+  it("hands a large Landscape's closed Districts to the Room as their exceptions", async () => {
+    const ids = Array.from({ length: 600 }, (_, i) => `package${i}`);
+    useModelStore.setState({ districts: Object.fromEntries(ids.map((id) => [id, { id } as District])) });
+    changeDistricts([{ type: 'closeAll', topLevelIds: ['package0'] }]);
+
+    await act(() => useRoomConnectionStore.getState().createRoom('Ada'));
+
+    expect(service.requests[0].options.startingState.districts).toEqual({
+      closed: [],
+      hidden: ['package0'],
+      closedInverted: true,
+      hiddenInverted: true,
+    });
   });
 
   it('drops all local exploration state when joining', async () => {

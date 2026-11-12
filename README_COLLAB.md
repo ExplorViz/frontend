@@ -25,7 +25,7 @@ The terms used here are defined in `GLOSSARY.md`: Room, room code, Participant, 
 
 **Landscape.** A Room is on one Landscape. When the Host opens another Landscape, the Room switches and everyone loads it; anyone else who opens another Landscape is told that only the Host can switch it and is taken back. A switch clears everything tied to the old Landscape (Districts, highlights, annotations, shared popups); Participants, chat and District sharing stay.
 
-**Districts.** Opening, closing, hiding and showing Districts acts on the Room. The Host can switch District sharing off ("Share Districts", on by default, shown to everyone). Switching off hands the Room's Districts to everyone as their own, so no view changes, and from then on everyone opens and closes Districts for themselves. Switching on makes the Host's own Districts the Room's. Someone who joins while sharing is off starts with all Districts open.
+**Districts.** Opening, closing, hiding and showing Districts acts on the Room. The Host can switch District sharing off ("Share Districts", on by default, shown to everyone). Switching off hands the Room's Districts to everyone as their own, so no view changes, and from then on everyone opens and closes Districts for themselves. Switching on makes the Host's own Districts the Room's. Someone who joins while sharing is off starts with all Districts open. "Close all" is one small action that names only the top-level Districts: the Room then keeps its sets as every District but the exceptions, and `districts.ts` expands them against the Landscape.
 
 **Highlights** are shown in the color of the Participant who made them. An entity has one highlighter at a time: highlighting someone else's highlight takes it over, clicking your own removes it, and "Clear Highlighting" removes only your own. A Participant's highlights go when they leave the Room.
 
@@ -69,7 +69,7 @@ Each capability has one module that hides which home its state has; the rest of 
 - **The user did this**: one function per user action (e.g. `changeDistricts(actions)`). Alone it changes the own state. In a Room it sends one message and changes nothing locally. Nothing is sent for an action that would not change the Room's state.
 - **Hand-overs**: `registerHandOver({ startingState, enter, leave })` at the module's top level. `startingState()` adds the module's part to the create options, `enter(room, 'created' | 'joined')` drops the own state, and `leave(lastState)` makes the Room's last state the own state. Import the module from `capabilities.ts`.
 
-Message types without a handler in the service get the sender disconnected, so every message the frontend sends needs a handler there.
+Message types without a handler in the service get the sender disconnected, so every message the frontend sends needs a handler there. The service accepts messages of at most 64 KB and closes the connection of a larger one; keep every message far smaller (a list that can grow with the Landscape needs a compact form or chunks, as "close all" and bulk highlights have).
 
 ## Tests
 

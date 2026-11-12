@@ -1,3 +1,4 @@
+import { useModelStore } from 'explorviz-frontend/src/stores/repos/model-repository';
 import { useVisualizationStore } from 'explorviz-frontend/src/stores/visualization-store';
 import {
   registerHandOver,
@@ -8,6 +9,7 @@ import {
 import {
   applyDistrictActions,
   type DistrictAction,
+  type DistrictIdSet,
   type DistrictLists,
   type Districts as RoomDistricts,
 } from 'explorviz-frontend/src/utils/collaboration/room-contract.generated';
@@ -27,6 +29,10 @@ import {
  * state even in a Room. Switching it off hands the Room's Districts over to
  * everyone as their own; switching it on hands the Host's own Districts over
  * to the Room (see `setDistrictSharing`).
+ *
+ * After "close all" the Room keeps a set as every District but a few
+ * exceptions (inverted), so no message names every District. This module
+ * expands such a set against the Landscape's Districts; nobody else sees it.
  */
 
 export type { DistrictAction };
@@ -45,23 +51,46 @@ function sharingRoom() {
   return room && room.state.districts?.shared !== false ? room : undefined;
 }
 
-// The Room's state, as Sets. One per snapshot of the Room's map, so a reader
-// sees the same Set until the Room's Districts change.
-const setsBySnapshot = new WeakMap<Record<string, boolean>, Set<string>>();
-function asSet(ids: Record<string, boolean>) {
-  let set = setsBySnapshot.get(ids);
-  if (!set) {
-    set = new Set(Object.keys(ids));
-    setsBySnapshot.set(ids, set);
+type DistrictRecord = Record<string, unknown>;
+const landscapeDistricts = () => useModelStore.getState().districts as DistrictRecord;
+
+/** One set of the Room's Districts as ids, an inverted one expanded against the Landscape's Districts. */
+function expand(ids: Iterable<string>, inverted: boolean | undefined, all: DistrictRecord): Set<string> {
+  if (!inverted) return new Set(ids);
+  const except = new Set(ids);
+  return new Set(Object.keys(all).filter((id) => !except.has(id)));
+}
+
+// The Room's state, as Sets. One per snapshot of the Room's map (and per
+// Landscape for an inverted one), so a reader sees the same Set until the
+// Room's Districts change.
+const setsBySnapshot = new WeakMap<
+  Record<string, boolean>,
+  { inverted: boolean; all: DistrictRecord; set: Set<string> }
+>();
+function asSet(ids: Record<string, boolean>, inverted: boolean, all: DistrictRecord) {
+  let cached = setsBySnapshot.get(ids);
+  if (!cached || cached.inverted !== inverted || (inverted && cached.all !== all)) {
+    cached = { inverted, all, set: expand(Object.keys(ids), inverted, all) };
+    setsBySnapshot.set(ids, cached);
   }
-  return set;
+  return cached.set;
 }
 
 const EMPTY: Record<string, boolean> = {};
-function fromRoomSnapshot(districts: RoomDistricts | undefined): DistrictState {
+function fromRoomSnapshot(districts: RoomDistricts | undefined, all: DistrictRecord): DistrictState {
   return {
-    closedDistrictIds: asSet(districts?.closed ?? EMPTY),
-    hiddenDistrictIds: asSet(districts?.hidden ?? EMPTY),
+    closedDistrictIds: asSet(districts?.closed ?? EMPTY, !!districts?.closedInverted, all),
+    hiddenDistrictIds: asSet(districts?.hidden ?? EMPTY, !!districts?.hiddenInverted, all),
+  };
+}
+
+/** The Districts of a decoded Room state (maps are MapSchema), expanded. */
+function fromDecodedState(districts: CollaborationRoom['state']['districts'] | undefined): DistrictState {
+  const all = landscapeDistricts();
+  return {
+    closedDistrictIds: expand(districts?.closed?.keys() ?? [], districts?.closedInverted, all),
+    hiddenDistrictIds: expand(districts?.hidden?.keys() ?? [], districts?.hiddenInverted, all),
   };
 }
 
@@ -70,14 +99,7 @@ let decodedRoomDistricts: { room: CollaborationRoom; state: DistrictState } | un
 
 function fromDecodedRoom(room: CollaborationRoom): DistrictState {
   if (decodedRoomDistricts?.room !== room) {
-    const districts = room.state.districts;
-    decodedRoomDistricts = {
-      room,
-      state: {
-        closedDistrictIds: new Set<string>(districts?.closed?.keys() ?? []),
-        hiddenDistrictIds: new Set<string>(districts?.hidden?.keys() ?? []),
-      },
-    };
+    decodedRoomDistricts = { room, state: fromDecodedState(room.state.districts) };
   }
   return decodedRoomDistricts.state;
 }
@@ -87,9 +109,30 @@ const ownDistricts = (): DistrictState => {
   return { closedDistrictIds, hiddenDistrictIds };
 };
 
+/** From how many ids on a set may go as its exceptions instead (well below the 64 KB message limit). */
+const INVERT_FROM = 500;
+
+/**
+ * The own Districts as lists for the Room. A large set holding most of the
+ * Landscape's Districts goes as its exceptions (inverted), so the message
+ * stays small after "close all".
+ */
 const ownDistrictLists = (): DistrictLists => {
   const { closedDistrictIds, hiddenDistrictIds } = ownDistricts();
-  return { closed: [...closedDistrictIds], hidden: [...hiddenDistrictIds] };
+  const landscape = landscapeDistricts();
+  const all = Object.keys(landscape);
+  const compact = (set: Set<string>) => {
+    const inverted = set.size >= INVERT_FROM && set.size * 2 > all.length && [...set].every((id) => id in landscape);
+    return { ids: inverted ? all.filter((id) => !set.has(id)) : [...set], inverted };
+  };
+  const closed = compact(closedDistrictIds);
+  const hidden = compact(hiddenDistrictIds);
+  return {
+    closed: closed.ids,
+    hidden: hidden.ids,
+    ...(closed.inverted ? { closedInverted: true } : {}),
+    ...(hidden.inverted ? { hiddenInverted: true } : {}),
+  };
 };
 
 /** The shown Districts, for reading outside of rendering. */
@@ -108,7 +151,8 @@ export function useDistricts<T>(select: (districts: DistrictState) => T): T {
     select({ closedDistrictIds: state.closedDistrictIds, hiddenDistrictIds: state.hiddenDistrictIds })
   );
   const roomDistricts = useRoomStatePart('districts');
-  return inRoom && roomDistricts?.shared !== false ? select(fromRoomSnapshot(roomDistricts)) : own;
+  const all = useModelStore((state) => state.districts) as DistrictRecord;
+  return inRoom && roomDistricts?.shared !== false ? select(fromRoomSnapshot(roomDistricts, all)) : own;
 }
 
 /** Both sets of the shown Districts, for rendering. */
@@ -118,13 +162,25 @@ export function useDistrictState(): DistrictState {
   return { closedDistrictIds, hiddenDistrictIds };
 }
 
+/** A Set of District ids for the contract's rule, which may invert it ("close all"). */
+const asIdSet = (ids: Set<string>): DistrictIdSet & { ids: Set<string> } => ({
+  ids,
+  add: (id) => ids.add(id),
+  delete: (id) => ids.delete(id),
+  clear: () => ids.clear(),
+  inverted: false,
+});
+
 /** The result of the actions on these Districts, or undefined if they change nothing. */
 function changed(districts: DistrictState, actions: readonly DistrictAction[]): DistrictState | undefined {
+  const closed = asIdSet(new Set(districts.closedDistrictIds));
+  const hidden = asIdSet(new Set(districts.hiddenDistrictIds));
+  applyDistrictActions({ closed, hidden }, actions);
+  const all = landscapeDistricts();
   const next = {
-    closedDistrictIds: new Set(districts.closedDistrictIds),
-    hiddenDistrictIds: new Set(districts.hiddenDistrictIds),
+    closedDistrictIds: expand(closed.ids, closed.inverted, all),
+    hiddenDistrictIds: expand(hidden.ids, hidden.inverted, all),
   };
-  applyDistrictActions({ closed: next.closedDistrictIds, hidden: next.hiddenDistrictIds }, actions);
   const same = (a: Set<string>, b: Set<string>) => a.size === b.size && [...a].every((id) => b.has(id));
   if (
     same(next.closedDistrictIds, districts.closedDistrictIds) &&
@@ -179,14 +235,14 @@ export function setDistrictSharing(shared: boolean) {
   room.send('districtSharing', { shared: true, districts: ownDistrictLists() });
 }
 
-const setOwnDistricts = (closed: Iterable<string>, hidden: Iterable<string>) =>
-  useVisualizationStore.setState({ closedDistrictIds: new Set(closed), hiddenDistrictIds: new Set(hidden) });
+const setOwnDistricts = (districts: DistrictState) => useVisualizationStore.setState(districts);
+const noDistricts = (): DistrictState => ({ closedDistrictIds: new Set(), hiddenDistrictIds: new Set() });
 
 registerHandOver({
   startingState: () => ({ districts: ownDistrictLists() }),
   enter: (room) => {
     // From now on the Room's Districts are shown; the own ones have no home.
-    setOwnDistricts([], []);
+    setOwnDistricts(noDistricts());
     decodedRoomDistricts = undefined;
     // Unknown until the Room's state arrives. Someone joining while sharing
     // is off takes nothing from the Room: it holds no Districts to show.
@@ -196,10 +252,10 @@ registerHandOver({
       const nowShared = state.districts?.shared;
       if (shared === true && nowShared === false) {
         // Switched off: everyone carries on with the Room's Districts as their own.
-        setOwnDistricts(state.districts.closed.keys(), state.districts.hidden.keys());
+        setOwnDistricts(fromDecodedState(state.districts));
       } else if (shared === false && nowShared === true) {
         // Switched on: the Room's Districts are shown again; the own ones have no home.
-        setOwnDistricts([], []);
+        setOwnDistricts(noDistricts());
       }
       shared = nowShared;
     });
@@ -207,7 +263,7 @@ registerHandOver({
   leave: (lastState) => {
     // While sharing is off, the own Districts are what was shown.
     if (lastState.districts?.shared !== false) {
-      setOwnDistricts(lastState.districts?.closed?.keys() ?? [], lastState.districts?.hidden?.keys() ?? []);
+      setOwnDistricts(fromDecodedState(lastState.districts));
     }
     decodedRoomDistricts = undefined;
   },

@@ -1,6 +1,11 @@
 import { Encoder, Reflection, schema, t } from '@colyseus/schema';
 import { act } from '@testing-library/react';
-import { applyDistrictActions, applyHighlightAction } from '../src/utils/collaboration/room-contract.generated';
+import {
+  applyDistrictActions,
+  applyHighlightAction,
+  clearLandscapeState,
+  replaceDistricts,
+} from '../src/utils/collaboration/room-contract.generated';
 
 /*
  * A stand-in for the collaboration service, at the boundary of `@colyseus/sdk`.
@@ -45,7 +50,13 @@ const ChatEntry = schema(
   'ChatEntry'
 );
 const Districts = schema(
-  { shared: t.boolean().default(true), closed: t.map('boolean'), hidden: t.map('boolean') },
+  {
+    shared: t.boolean().default(true),
+    closed: t.map('boolean'),
+    hidden: t.map('boolean'),
+    closedInverted: t.boolean().default(false),
+    hiddenInverted: t.boolean().default(false),
+  },
   'Districts'
 );
 const SharedPopup = schema({ sharedById: t.string(), sharedByName: t.string() }, 'SharedPopup');
@@ -75,24 +86,34 @@ const CollaborationState = schema(
 );
 type ServerState = InstanceType<typeof CollaborationState>;
 
-/** A MapSchema from id to `true`, seen as a set of ids (as the service does). */
-const asIdSet = (map: { set(id: string, value: true): unknown; delete(id: string): unknown; clear(): void }) => ({
-  add: (id: string) => map.set(id, true),
-  delete: (id: string) => map.delete(id),
-  clear: () => map.clear(),
+/** One of the Room's District maps (id to `true`) with its inversion flag, seen as a set of ids (as the service does). */
+function asIdSet(districts: ServerState['districts'], which: 'closed' | 'hidden') {
+  const map = districts[which];
+  const flag = which === 'closed' ? 'closedInverted' : 'hiddenInverted';
+  return {
+    add: (id: string) => map.set(id, true),
+    delete: (id: string) => map.delete(id),
+    clear: () => map.clear(),
+    get inverted() {
+      return districts[flag];
+    },
+    set inverted(value: boolean) {
+      districts[flag] = value;
+    },
+  };
+}
+const asIdSets = (districts: ServerState['districts']) => ({
+  closed: asIdSet(districts, 'closed'),
+  hidden: asIdSet(districts, 'hidden'),
 });
 
 /** How the service handles each client message (from the sender's session id); extend together with `ClientMessages`. */
 const MESSAGE_HANDLERS: Record<string, (state: ServerState, payload: any, from: string) => void> = {
-  // As the service: Host only; clears the Districts, highlights and shared popups of the old Landscape.
+  // As the service: Host only; clears everything tied to the old Landscape.
   switchLandscape: (state, { landscapeToken }, from) => {
     if (from !== state.hostId || !landscapeToken || landscapeToken === state.landscapeToken) return;
     state.landscapeToken = landscapeToken;
-    state.districts.closed.clear();
-    state.districts.hidden.clear();
-    state.highlights.clear();
-    state.popups.clear();
-    state.annotations.clear();
+    clearLandscapeState(state);
   },
   // As the service: the first to share a popup is recorded; anyone closes it.
   sharePopup: (state, { entityId }, from) => {
@@ -105,7 +126,7 @@ const MESSAGE_HANDLERS: Record<string, (state: ServerState, payload: any, from: 
   },
   districts: (state, actions) => {
     if (!state.districts.shared) return;
-    applyDistrictActions({ closed: asIdSet(state.districts.closed), hidden: asIdSet(state.districts.hidden) }, actions);
+    applyDistrictActions(asIdSets(state.districts), actions);
   },
   highlights: (state, action, from) => applyHighlightAction(state.highlights, from, action),
   // As the service, which also passes it to the other Participants (use `deliver` for that).
@@ -128,14 +149,7 @@ const MESSAGE_HANDLERS: Record<string, (state: ServerState, payload: any, from: 
   },
   // Without the service's Host check.
   districtSharing: (state, { shared, districts }) => {
-    if (shared && !state.districts.shared) {
-      const sets = { closed: asIdSet(state.districts.closed), hidden: asIdSet(state.districts.hidden) };
-      applyDistrictActions(sets, [
-        { type: 'openAll' },
-        { type: 'close', ids: districts.closed },
-        { type: 'hide', ids: districts.hidden },
-      ]);
-    }
+    if (shared && !state.districts.shared) replaceDistricts(asIdSets(state.districts), districts);
     state.districts.shared = shared;
   },
   // As the service, without its payload checks.

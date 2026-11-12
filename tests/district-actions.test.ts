@@ -114,6 +114,32 @@ describe('in a Room', () => {
     });
   });
 
+  it('sends close all as one action naming only the top-level Districts', async () => {
+    const { room, client } = await joinRoom();
+
+    closeAllDistrictsInLandscape();
+
+    expect(client.sent).toEqual([
+      { type: 'districts', payload: [{ type: 'closeAll', topLevelIds: ['checkout', 'catalog'] }] },
+    ]);
+    room.handleMessages();
+    expect(shown()).toEqual({ closed: ['catalog', 'checkout', 'payment'], hidden: ['payment'] });
+
+    openDistrict('checkout');
+    room.handleMessages();
+    expect(shown()).toEqual({ closed: ['catalog', 'payment'], hidden: [] });
+  });
+
+  it('keeps what was shown after close all as the own Districts when leaving', async () => {
+    const { room } = await joinRoom();
+    closeAllDistrictsInLandscape();
+    room.handleMessages();
+
+    await act(() => useRoomConnectionStore.getState().leaveRoom());
+
+    expect(shown()).toEqual({ closed: ['catalog', 'checkout', 'payment'], hidden: ['payment'] });
+  });
+
   it('sends open all as one action without a list of Districts', async () => {
     const { room, client } = await joinRoom();
     closeAllDistrictsInLandscape();
