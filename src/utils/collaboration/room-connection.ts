@@ -182,6 +182,11 @@ function refusalMessage(error: unknown) {
   }
 }
 
+/** Whether the connection to the joined Room is down and being retried (see `reconnecting`). */
+export function useReconnecting(): boolean {
+  return useRoomConnectionStore((state) => state.reconnecting);
+}
+
 /**
  * One top-level part of the joined Room's state as an immutable snapshot, or
  * undefined while alone. Re-renders only when that part changed.

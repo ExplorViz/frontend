@@ -32,11 +32,13 @@ export function sendCamera(pose: CameraPose) {
 export type SpectatingView = {
   /** The session id of the Participant you follow, or undefined. */
   target: string | undefined;
+  /** The name of the Participant you follow, or undefined. */
+  targetName: string | undefined;
   /** The session ids of the Participants who follow you. */
   spectators: string[];
 };
 
-const ALONE: SpectatingView = { target: undefined, spectators: [] };
+const ALONE: SpectatingView = { target: undefined, targetName: undefined, spectators: [] };
 
 /** Whom you spectate and who spectates you; nobody while exploring alone. */
 export function useSpectating(): SpectatingView {
@@ -44,8 +46,10 @@ export function useSpectating(): SpectatingView {
   const state = useRoomState();
   if (!room || !state) return ALONE;
   const participants = Object.entries(state.participants);
+  const target = state.participants[room.sessionId]?.spectating || undefined;
   return {
-    target: state.participants[room.sessionId]?.spectating || undefined,
+    target,
+    targetName: target ? state.participants[target]?.name : undefined,
     spectators: participants.filter(([, p]) => p.spectating === room.sessionId).map(([id]) => id),
   };
 }
