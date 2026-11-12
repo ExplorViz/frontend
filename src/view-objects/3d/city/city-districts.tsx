@@ -4,7 +4,7 @@ import useClickPreventionOnDoubleClick from 'explorviz-frontend/src/hooks/useCli
 import { useCommitTreeStateStore } from 'explorviz-frontend/src/stores/commit-tree-state';
 import { useHeatmapStore } from 'explorviz-frontend/src/stores/heatmap/heatmap-store';
 import { useLayoutStore } from 'explorviz-frontend/src/stores/layout-store';
-import { usePopupHandlerStore } from 'explorviz-frontend/src/stores/popup-handler';
+import { addPopup } from 'explorviz-frontend/src/utils/collaboration/popups';
 import { useModelStore } from 'explorviz-frontend/src/stores/repos/model-repository';
 import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
 import { useVisibilityServiceStore } from 'explorviz-frontend/src/stores/visibility-service';
@@ -127,12 +127,6 @@ const CityDistricts = forwardRef<InstancedMesh2, Args>(({ districtIds, layoutMap
   const currentSelectedRepo = useCommitTreeStateStore((state) => state._currentSelectedRepositoryName);
 
   const isDiffMode = (_selectedCommits.get(currentSelectedRepo)?.length || 0) === 2;
-
-  const { addPopup } = usePopupHandlerStore(
-    useShallow((state) => ({
-      addPopup: state.addPopup,
-    }))
-  );
 
   const sceneLayers = useVisualizationStore((state) => state.sceneLayers);
 

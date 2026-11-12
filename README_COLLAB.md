@@ -12,6 +12,8 @@ Shared so far: closed and hidden Districts. Joining always asks first, because i
 
 The Host can switch District sharing off ("Share Districts" in the Room panel; on by default, shown to everyone). While it is off, everyone opens and closes Districts for themselves inside the Room: switching off hands the Room's Districts to everyone as their own, so no view changes; switching on makes the Host's own Districts the Room's and everyone's view jumps to them. Someone joining while it is off starts with all Districts open.
 
+A popup stays the person's own until they share it with the share button (shown only in a Room; sharing also pins it). A shared popup is Room state: everyone in the Room has it open, and it shows who shared it. Where it sits and what it has loaded stay with each person. Anyone can close a shared popup, which closes it for everyone; closing an unshared one closes it only for oneself. Creating a Room keeps the creator's popups their own, joining drops them, and after leaving the shared popups stay open as one's own. A Landscape switch clears the shared popups.
+
 A Room is on one Landscape, the creator's. Only the Host can switch it: when the Host opens another Landscape, the service switches the Room's and everyone loads it; whoever else opens another Landscape is taken back to the Room's. Joining a Room on another Landscape loads the Room's. A switch clears everything in the Room tied to the old Landscape (for now the closed and hidden Districts); the Participants, the chat and the District sharing option stay.
 
 ## Code
@@ -23,6 +25,7 @@ A Room is on one Landscape, the creator's. Only the Host can switch it: when the
 - `src/utils/collaboration/immersive-view-sharing.ts`: the immersive-view indicator. `RemoteImmersiveIndicators` (in the Canvas) shares your immersive view and marks the others' in their colors.
 - `src/utils/collaboration/districts.ts`: the collaboration module for Districts (see below).
 - `src/utils/collaboration/landscape.ts`: the Room's Landscape. The Landscape token store still says which Landscape the page loads; in a Room this module makes it follow the Room's `landscapeToken` and turns the Host's opening of another Landscape into a `switchLandscape` request. `pages/visualization.tsx` reloads when the token changes from one Landscape to another while it is open.
+- `src/utils/collaboration/popups.ts`: the popups module. `usePopups()` / `getPopups()` give the shown popups (the own ones plus the Room's shared ones, each with this person's layout); `addPopup`, `removePopup`, `updatePopup`, `pinPopup` and `sharePopup` are the user's actions. The popup store holds only the own popups and the layout of shared ones.
 - `src/utils/collaboration/capabilities.ts`: loads every capability's module so its hand-over is registered; `local-exploration.ts` drops the capabilities that have no module yet on joining.
 - `tests/fake-collaboration-service.ts`: a stand-in for the service at the `@colyseus/sdk` boundary, with real state encoding, for tests of anything that reads or changes Room state.
 

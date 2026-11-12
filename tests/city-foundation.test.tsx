@@ -28,10 +28,7 @@ vi.mock('../src/stores/visualization-store', async () => {
   }));
   return { useVisualizationStore: store };
 });
-vi.mock('../src/stores/popup-handler', async () => {
-  const { create } = await import('zustand');
-  return { usePopupHandlerStore: create(() => ({ addPopup: vi.fn() })) };
-});
+vi.mock('../src/utils/collaboration/popups', () => ({ addPopup: vi.fn() }));
 vi.mock('../src/utils/city-rendering/entity-manipulation', () => ({
   closeAllDistrictsInCity: vi.fn(),
 }));
@@ -45,10 +42,10 @@ vi.mock('../src/utils/context-menu-bridge', () => ({
   emitContextMenuFromWorld: vi.fn(),
 }));
 
-import { usePopupHandlerStore } from '../src/stores/popup-handler';
 import { useUserSettingsStore } from '../src/stores/user-settings';
 import { useVisualizationStore } from '../src/stores/visualization-store';
 import { closeAllDistrictsInCity } from '../src/utils/city-rendering/entity-manipulation';
+import { addPopup } from '../src/utils/collaboration/popups';
 import { emitContextMenuFromWorld } from '../src/utils/context-menu-bridge';
 
 let renderer: Awaited<ReturnType<typeof create>> | undefined;
@@ -172,7 +169,7 @@ describe('city foundation scene', () => {
     });
     await vi.advanceTimersByTimeAsync(250);
     await click;
-    expect(usePopupHandlerStore.getState().addPopup).toHaveBeenCalledWith({
+    expect(addPopup).toHaveBeenCalledWith({
       entityId: city.id,
       entity: city,
       position: { x: 20, y: 30 },

@@ -189,6 +189,10 @@ export type ClientMessages = {
   districts: DistrictAction[];
   /** Host only: switches the District sharing option (see DistrictSharing). */
   districtSharing: DistrictSharing;
+  /** Shares the sender's popup of this entity: everyone in the Room has it open from now on. */
+  sharePopup: { entityId: string };
+  /** Closes the shared popup of this entity for everyone. Allowed for any Participant. */
+  closePopup: { entityId: string };
 };
 
 /**
@@ -217,6 +221,7 @@ export type CollaborationState = {
   landscapeToken: string;
   chat: ChatEntry[];
   districts: Districts;
+  popups: Record<string, SharedPopup>;
 };
 
 export type Participant = {
@@ -241,4 +246,9 @@ export type Districts = {
   shared: boolean;
   closed: Record<string, boolean>;
   hidden: Record<string, boolean>;
+};
+
+export type SharedPopup = {
+  sharedById: string;
+  sharedByName: string;
 };

@@ -46,6 +46,7 @@ const Districts = schema(
   { shared: t.boolean().default(true), closed: t.map('boolean'), hidden: t.map('boolean') },
   'Districts'
 );
+const SharedPopup = schema({ sharedById: t.string(), sharedByName: t.string() }, 'SharedPopup');
 const CollaborationState = schema(
   {
     participants: t.map(Participant),
@@ -53,6 +54,7 @@ const CollaborationState = schema(
     landscapeToken: t.string().default(''),
     chat: t.array(ChatEntry),
     districts: Districts,
+    popups: t.map(SharedPopup),
   },
   'CollaborationState'
 );
@@ -67,12 +69,22 @@ const asIdSet = (map: { set(id: string, value: true): unknown; delete(id: string
 
 /** How the service handles each client message (from the sender's session id); extend together with `ClientMessages`. */
 const MESSAGE_HANDLERS: Record<string, (state: ServerState, payload: any, from: string) => void> = {
-  // As the service: Host only; clears the Districts of the old Landscape.
+  // As the service: Host only; clears the Districts and shared popups of the old Landscape.
   switchLandscape: (state, { landscapeToken }, from) => {
     if (from !== state.hostId || !landscapeToken || landscapeToken === state.landscapeToken) return;
     state.landscapeToken = landscapeToken;
     state.districts.closed.clear();
     state.districts.hidden.clear();
+    state.popups.clear();
+  },
+  // As the service: the first to share a popup is recorded; anyone closes it.
+  sharePopup: (state, { entityId }, from) => {
+    const sharer = state.participants.get(from);
+    if (!sharer || state.popups.has(entityId)) return;
+    state.popups.set(entityId, new SharedPopup({ sharedById: from, sharedByName: sharer.name }));
+  },
+  closePopup: (state, { entityId }) => {
+    state.popups.delete(entityId);
   },
   districts: (state, actions) => {
     if (!state.districts.shared) return;
