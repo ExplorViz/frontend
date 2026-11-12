@@ -8,3 +8,4 @@ import 'explorviz-frontend/src/utils/collaboration/districts';
 import 'explorviz-frontend/src/utils/collaboration/highlights';
 import 'explorviz-frontend/src/utils/collaboration/landscape';
 import 'explorviz-frontend/src/utils/collaboration/local-exploration';
+import 'explorviz-frontend/src/utils/collaboration/popups';

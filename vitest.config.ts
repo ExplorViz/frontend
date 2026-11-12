@@ -38,6 +38,7 @@ export default defineConfig({
         'src/utils/collaboration/highlights.ts',
         'src/utils/city-rendering/highlighting.ts',
         'src/utils/collaboration/landscape.ts',
+        'src/utils/collaboration/popups.ts',
         'src/utils/collaboration/local-exploration.ts',
         'src/utils/city-rendering/entity-manipulation.ts',
         'src/utils/collaboration/chat.ts',

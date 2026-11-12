@@ -1,6 +1,6 @@
 import { ThreeElements, ThreeEvent, useThree } from '@react-three/fiber';
 import useClickPreventionOnDoubleClick from 'explorviz-frontend/src/hooks/useClickPreventionOnDoubleClick';
-import { usePopupHandlerStore } from 'explorviz-frontend/src/stores/popup-handler';
+import { addPopup } from 'explorviz-frontend/src/utils/collaboration/popups';
 import { useModelStore } from 'explorviz-frontend/src/stores/repos/model-repository';
 import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
 import { useVisibilityServiceStore } from 'explorviz-frontend/src/stores/visibility-service';
@@ -167,12 +167,6 @@ export default function CommunicationR3F({
     meshRef.current = mesh;
     setMeshInstance(mesh);
   }, []);
-
-  const { addPopup } = usePopupHandlerStore(
-    useShallow((state) => ({
-      addPopup: state.addPopup,
-    }))
-  );
 
   const handleOnPointerOver = (event: any) => {
     event.stopPropagation();

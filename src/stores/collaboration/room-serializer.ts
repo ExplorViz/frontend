@@ -1,7 +1,8 @@
+import { getPopups } from 'explorviz-frontend/src/utils/collaboration/popups';
 import { useAnnotationHandlerStore } from 'explorviz-frontend/src/stores/annotation-handler';
 import { useLocalUserStore } from 'explorviz-frontend/src/stores/collaboration/local-user';
 import { useLandscapeTokenStore } from 'explorviz-frontend/src/stores/landscape-token';
-import { usePopupHandlerStore } from 'explorviz-frontend/src/stores/popup-handler';
+
 import { useTimestampStore } from 'explorviz-frontend/src/stores/timestamp';
 import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
 import {
@@ -70,9 +71,8 @@ export const useRoomSerializerStore = create<RoomSerializerState>((set, get) => 
    */
   // private
   _serializeOpenPopups: (snapshot: boolean): SerializedPopup[] => {
-    return usePopupHandlerStore
-      .getState()
-      .popupData.filter((popup) => {
+    return getPopups()
+      .filter((popup) => {
         if (snapshot) {
           return true;
         }

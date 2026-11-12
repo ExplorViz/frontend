@@ -1,7 +1,7 @@
 import { Text } from '@react-three/drei';
 import { ThreeEvent } from '@react-three/fiber';
 import useClickPreventionOnDoubleClick from 'explorviz-frontend/src/hooks/useClickPreventionOnDoubleClick';
-import { usePopupHandlerStore } from 'explorviz-frontend/src/stores/popup-handler';
+import { addPopup } from 'explorviz-frontend/src/utils/collaboration/popups';
 import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
 import { useVisualizationStore } from 'explorviz-frontend/src/stores/visualization-store';
 import { useHighlights } from 'explorviz-frontend/src/utils/collaboration/highlights';
@@ -58,12 +58,6 @@ export default function CityFoundation({ city, layout }: { city: City; layout: B
     useShallow((state) => ({
       isHovered: state.hoveredEntityId === city.id,
       setHoveredEntityId: state.actions.setHoveredEntityId,
-    }))
-  );
-
-  const { addPopup } = usePopupHandlerStore(
-    useShallow((state) => ({
-      addPopup: state.addPopup,
     }))
   );
 

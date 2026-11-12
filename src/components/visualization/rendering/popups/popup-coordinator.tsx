@@ -24,7 +24,7 @@ import { LogSearchParams } from 'explorviz-frontend/src/hooks/fetch/useLogFetch'
 import { MetricsSearchParams } from 'explorviz-frontend/src/hooks/fetch/useRuntimeMetricsFetch';
 import { SpanSearchParams } from 'explorviz-frontend/src/hooks/fetch/useSpanFetch';
 import { useLandscapeRestructureStore } from 'explorviz-frontend/src/stores/landscape-restructure';
-import { usePopupHandlerStore } from 'explorviz-frontend/src/stores/popup-handler';
+import { getPopup, useCanSharePopups } from 'explorviz-frontend/src/utils/collaboration/popups';
 import { useModelStore } from 'explorviz-frontend/src/stores/repos/model-repository';
 import { useToastHandlerStore } from 'explorviz-frontend/src/stores/toast-handler';
 import { useVisualizationStore } from 'explorviz-frontend/src/stores/visualization-store';
@@ -63,8 +63,10 @@ export default function PopupCoordinator({
   pinPopup,
   removePopup,
   updatePopup,
+  sharePopup,
   addAnnotationForPopup,
 }: PopupCoordinatorProps) {
+  const canShare = useCanSharePopups();
   const restructureMode = useLandscapeRestructureStore((state) => state.restructureMode);
   const showErrorToastMessage = useToastHandlerStore((state) => state.showErrorToastMessage);
 
@@ -112,7 +114,7 @@ export default function PopupCoordinator({
 
   const persistPopupPosition = () => {
     const { x, y } = currentPopupPosition.current;
-    const latest = usePopupHandlerStore.getState().popupData.find((pd) => pd.entityId === popupData.entityId);
+    const latest = getPopup(popupData.entityId);
 
     if (latest && latest.wasMoved && latest.mouseX === x && latest.mouseY === y) {
       return;
@@ -361,12 +363,30 @@ export default function PopupCoordinator({
           </OverlayTrigger>
 
           {popupData.sharedBy ? (
-            <OverlayTrigger placement="top" trigger={['hover', 'focus']} overlay={<Tooltip>Popup is shared</Tooltip>}>
-              <Button variant="outline-secondary" disabled>
-                <ShareAndroidIcon className="align-right" />
-              </Button>
+            <OverlayTrigger
+              placement="top"
+              trigger={['hover', 'focus']}
+              overlay={<Tooltip>Shared by {popupData.sharedBy}</Tooltip>}
+            >
+              <span className="d-inline-block">
+                <Button variant="outline-secondary" disabled aria-label={`Shared by ${popupData.sharedBy}`}>
+                  <ShareAndroidIcon className="align-right" />
+                </Button>
+              </span>
             </OverlayTrigger>
-          ) : null}
+          ) : (
+            canShare && (
+              <OverlayTrigger
+                placement="top"
+                trigger={['hover', 'focus']}
+                overlay={<Tooltip>Share popup with the room</Tooltip>}
+              >
+                <Button variant="primary" aria-label="Share popup with the room" onClick={() => sharePopup(popupData)}>
+                  <ShareAndroidIcon className="align-middle" />
+                </Button>
+              </OverlayTrigger>
+            )
+          )}
 
           <OverlayTrigger placement="top" trigger={['hover', 'focus']} overlay={<Tooltip>Highlight</Tooltip>}>
             <Button variant="primary" onClick={highlight}>

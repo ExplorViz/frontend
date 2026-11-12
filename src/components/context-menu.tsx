@@ -6,7 +6,7 @@ import { useAnnotationHandlerStore } from 'explorviz-frontend/src/stores/annotat
 import { useCameraControlsStore } from 'explorviz-frontend/src/stores/camera-controls-store';
 import { useLocalUserStore } from 'explorviz-frontend/src/stores/collaboration/local-user';
 import { useConfigurationStore } from 'explorviz-frontend/src/stores/configuration';
-import { usePopupHandlerStore } from 'explorviz-frontend/src/stores/popup-handler';
+import { addPopup } from 'explorviz-frontend/src/utils/collaboration/popups';
 import { useRenderingServiceStore } from 'explorviz-frontend/src/stores/rendering-service';
 import { useModelStore } from 'explorviz-frontend/src/stores/repos/model-repository';
 import { useToastHandlerStore } from 'explorviz-frontend/src/stores/toast-handler';
@@ -264,7 +264,7 @@ export default function ContextMenu({ children }: ContextMenuProps) {
         id: `building-show-info-${buildingId}`,
         title: 'Show Info',
         action: () => {
-          usePopupHandlerStore.getState().addPopup({ entityId: buildingId });
+          addPopup({ entityId: buildingId });
         },
       },
       {
