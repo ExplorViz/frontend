@@ -41,7 +41,7 @@ The terms used here are defined in `GLOSSARY.md`: Room, room code, Participant, 
 
 **Immersive view.** Others see a marker in your color on the entity you view immersively, and the Participants list says who is in immersive view.
 
-**Snapshots** work alongside Rooms but are never loaded into one. Saving a Snapshot in a Room saves what the person sees. "Take a Snapshot first" in the join notice saves the current exploration and then joins (nobody joins if saving fails). Opening a Snapshot in a Room asks to leave the Room first. To share a Snapshot, open it alone and create a Room: the Room starts from it.
+**Snapshots** work alongside Rooms but are never loaded into one. Saving a Snapshot in a Room saves what the person sees. "Take a Snapshot first" in the join notice saves the current exploration and then joins (nobody joins if saving fails). Opening a Snapshot in a Room asks to leave the Room first. To share a Snapshot, open it alone and create a Room: the Room starts from it. Entering a Room (created or joined) closes an open Snapshot, and the view loads the Landscape's live data, so everyone in a Room is on the live Landscape.
 
 **Reconnecting.** A short network drop does not end the Room. The service holds the seat for 60 seconds (`RECONNECTION_SECONDS`) and the SDK reconnects with the same identity. Meanwhile the section and a navbar icon say "Reconnecting…", the last seen state stays on screen, and shared actions are ignored rather than sent later. If reconnecting fails, the hold expires or the service restarts, it counts as leaving and the person is told the connection to the Room was lost. A kicked Participant is not reconnected.
 

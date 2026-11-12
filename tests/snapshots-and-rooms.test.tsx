@@ -9,6 +9,7 @@ import { useRoomSerializerStore } from '../src/stores/collaboration/room-seriali
 import { useLandscapeTokenStore } from '../src/stores/landscape-token';
 import { usePopupHandlerStore } from '../src/stores/popup-handler';
 import { useModelStore } from '../src/stores/repos/model-repository';
+import { useSnapshotTokenStore } from '../src/stores/snapshot-token';
 import { useVisualizationStore } from '../src/stores/visualization-store';
 import { closeDistrictsByList } from '../src/utils/city-rendering/entity-manipulation';
 import { highlightById } from '../src/utils/city-rendering/highlighting';
@@ -17,7 +18,7 @@ import { applySerializedRoomState } from '../src/utils/snapshot/snapshot-helpers
 import '../src/utils/collaboration/capabilities';
 import { addPopup } from '../src/utils/collaboration/popups';
 import { useRoomConnectionStore } from '../src/utils/collaboration/room-connection';
-import { leaveRoomToOpenSnapshot } from '../src/utils/collaboration/snapshots';
+import { leaveRoomToOpenSnapshot, onSnapshotClosedForRoom } from '../src/utils/collaboration/snapshots';
 import { fakeCollaborationService as service, type FakeServerRoom } from './fake-collaboration-service';
 import { building, city, district } from './fixtures/landscape';
 import './setup-dom';
@@ -30,6 +31,7 @@ beforeEach(() => {
   useVisualizationStore.setState(useVisualizationStore.getInitialState(), true);
   usePopupHandlerStore.setState(usePopupHandlerStore.getInitialState(), true);
   useAnnotationHandlerStore.setState(useAnnotationHandlerStore.getInitialState(), true);
+  useSnapshotTokenStore.setState({ snapshotSelected: false, snapshotToken: null });
   useAuthStore.setState({ user: { name: 'Grace Hopper', nickname: 'grace', sub: 'grace-1' } as any });
   useLandscapeTokenStore.setState({ token: null, retrieveTokens: async () => [] } as any);
   useModelStore.getState().setAllModels({
@@ -231,5 +233,44 @@ describe('opening a Snapshot', () => {
     await joinRoom();
 
     expect(useRoomSerializerStore.getState().serializedRoom).toBeUndefined();
+  });
+});
+
+describe('a Snapshot open when entering a Room', () => {
+  const openSnapshot = () => useSnapshotTokenStore.setState({ snapshotSelected: true, snapshotToken: SNAPSHOT });
+
+  it('is closed on joining, and the view is asked to load the live Landscape', async () => {
+    openSnapshot();
+    const liveDataNeeded = vi.fn();
+    const stop = onSnapshotClosedForRoom(liveDataNeeded);
+
+    await joinRoom();
+    stop();
+
+    expect(useSnapshotTokenStore.getState().snapshotSelected).toBe(false);
+    expect(useSnapshotTokenStore.getState().snapshotToken).toBeNull();
+    expect(liveDataNeeded).toHaveBeenCalledOnce();
+  });
+
+  it('is closed on creating too: the Room starts from it, then everyone is on the live Landscape', async () => {
+    openSnapshot();
+    const liveDataNeeded = vi.fn();
+    const stop = onSnapshotClosedForRoom(liveDataNeeded);
+
+    await act(() => useRoomConnectionStore.getState().createRoom('Grace'));
+    stop();
+
+    expect(useSnapshotTokenStore.getState().snapshotSelected).toBe(false);
+    expect(liveDataNeeded).toHaveBeenCalledOnce();
+  });
+
+  it('asks for nothing when no Snapshot was open', async () => {
+    const liveDataNeeded = vi.fn();
+    const stop = onSnapshotClosedForRoom(liveDataNeeded);
+
+    await joinRoom();
+    stop();
+
+    expect(liveDataNeeded).not.toHaveBeenCalled();
   });
 });

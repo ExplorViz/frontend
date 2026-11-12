@@ -33,7 +33,7 @@ import {
 } from 'explorviz-frontend/src/utils/code-analysis-reload';
 import eventEmitter from 'explorviz-frontend/src/utils/event-emitter';
 import { DynamicLandscapeData } from 'explorviz-frontend/src/utils/landscape-schemes/telemetry/traces';
-import { leaveRoomToOpenSnapshot } from 'explorviz-frontend/src/utils/collaboration/snapshots';
+import { leaveRoomToOpenSnapshot, onSnapshotClosedForRoom } from 'explorviz-frontend/src/utils/collaboration/snapshots';
 import { restoreSnapshotFromToken } from 'explorviz-frontend/src/utils/snapshot/snapshot-helpers';
 import TimelineDataObjectHandler from 'explorviz-frontend/src/utils/timeline/timeline-data-object-handler';
 import globalBundlingService from 'explorviz-frontend/src/view-objects/3d/city/global-bundling-service';
@@ -268,6 +268,17 @@ export default function Visualization() {
         const before = previous.token?.value;
         if (!next || !before || next === before || useSnapshotTokenStore.getState().snapshotSelected) return;
         setSearchParams({ landscapeToken: next }, { replace: true });
+        setLandscapeSwitches((switches) => switches + 1);
+      }),
+    [setSearchParams]
+  );
+
+  // Entering a Room closed the open Snapshot: load the Landscape's live data, as after a switch.
+  useEffect(
+    () =>
+      onSnapshotClosedForRoom(() => {
+        const landscapeToken = useLandscapeTokenStore.getState().token?.value;
+        if (landscapeToken) setSearchParams({ landscapeToken }, { replace: true });
         setLandscapeSwitches((switches) => switches + 1);
       }),
     [setSearchParams]
