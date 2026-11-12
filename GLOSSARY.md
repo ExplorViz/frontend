@@ -21,12 +21,28 @@ Anything that sends analysis data to a Landscape, identified by the Landscape To
 _Avoid_: Collector, Exporter (as synonyms; they only pass data on)
 
 **Snapshot**:
-A saved state of a Landscape exploration (the selected data, camera position and collaboration room) that can be reopened and shared.
+A saved state of a Landscape exploration (the selected data, camera position and exploration state, such as closed Districts, highlights and annotations) that can be reopened and shared.
 _Avoid_: Snapshot Token
 
 **Git Host Token**:
 A user's credential for an external Git host, stored in ExplorViz.
 _Avoid_: API Token, User API Token
+
+### Collaboration
+
+**Room**:
+A shared exploration of one Landscape that people join with a room code.
+_Avoid_: Lobby, Session
+
+**Participant**:
+A person in a Room.
+_Avoid_: Player, User (a user who is not in a Room is not a Participant)
+
+**Host**:
+The Participant who may switch the Room's Landscape and District sharing, mute and kick other Participants, and hand the Host right over.
+
+**Spectating**:
+Following another Participant's camera.
 
 ### Time
 
