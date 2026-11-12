@@ -24,6 +24,12 @@ type RoomConnectionState = {
   room: CollaborationRoom | undefined;
   /** True while a create or join is under way. */
   connecting: boolean;
+  /**
+   * True while the connection to the joined Room is down and the SDK tries to
+   * get it back. The Room's last seen state stays on screen; shared actions
+   * are dropped, not sent later.
+   */
+  reconnecting: boolean;
   /** Creates a Room and joins it as Host. Refusals are shown as a toast. */
   createRoom: (name: string) => Promise<void>;
   /** Joins the Room with this code. Refusals are shown as a toast. */
@@ -94,6 +100,14 @@ export const useRoomConnectionStore = create<RoomConnectionState>((set, get) => 
       const options: JoinOptions = { contractVersion: CONTRACT_VERSION, name };
       if (entry === 'created') options.startingState = startingState();
       const room = await connect(options);
+      // Shared actions taken while reconnecting are ignored rather than sent once the connection is back.
+      room.reconnection.maxEnqueuedMessages = 0;
+      room.onDrop(() => {
+        if (get().room === room) set({ reconnecting: true });
+      });
+      room.onReconnect(() => {
+        if (get().room === room) set({ reconnecting: false });
+      });
       room.onLeave((code) => {
         if (get().room !== room) return;
         leave(room);
@@ -111,12 +125,13 @@ export const useRoomConnectionStore = create<RoomConnectionState>((set, get) => 
   /** The own state takes over before the Room stops being shown, so the view does not jump. */
   function leave(room: CollaborationRoom) {
     for (const handOver of handOvers) handOver.leave?.(room.state);
-    set({ room: undefined });
+    set({ room: undefined, reconnecting: false });
   }
 
   return {
     room: undefined,
     connecting: false,
+    reconnecting: false,
     createRoom: (name) => enter('created', (options) => serviceClient().create(ROOM_NAME, options), name),
     joinRoom: (code, name) =>
       enter('joined', (options) => serviceClient().joinById(normalizeRoomCode(code), options), name),
@@ -137,12 +152,14 @@ const CONSENTED_LEAVE = 4000;
 
 /**
  * What to tell the person when the Room's connection ends with this close code.
- * `LeaveCode.KICKED` marks a kick; such a close must never lead to reconnection.
+ * `LeaveCode.KICKED` marks a kick, which the SDK never retries. Any other code
+ * means the connection was lost for good: reconnecting failed, the held seat
+ * expired, or the service shut down or restarted.
  */
 function leaveNotice(code: number) {
   if (code === CONSENTED_LEAVE) return undefined;
   if (code === LeaveCode.KICKED) return 'The Host removed you from the room.';
-  return 'You are no longer in the room.';
+  return 'The connection to the room was lost. You carry on alone from what you last saw.';
 }
 
 /** Room codes are capitals and digits; people may type them in lower case or with spaces. */

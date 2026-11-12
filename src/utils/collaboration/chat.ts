@@ -56,8 +56,9 @@ useRoomConnectionStore.subscribe(({ room }, { room: previous }) => {
 const TOAST_HEADER = 'Chat';
 
 async function request<T extends keyof ClientMessages>(type: T, payload: ClientMessages[T]) {
-  const room = useRoomConnectionStore.getState().room;
-  if (!room) return;
+  const { room, reconnecting } = useRoomConnectionStore.getState();
+  // While reconnecting, shared actions are ignored.
+  if (!room || reconnecting) return;
   try {
     await room.request(type, payload);
   } catch (error) {

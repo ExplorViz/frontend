@@ -231,7 +231,9 @@ it('returns to the entry form with a notice when the service ends the connection
   act(() => connection.closed(4001));
 
   expect(await screen.findByRole('button', { name: /create room/i })).toBeInTheDocument();
-  expect(toasts).toEqual([{ type: 'info', message: 'You are no longer in the room.' }]);
+  expect(toasts).toEqual([
+    { type: 'info', message: 'The connection to the room was lost. You carry on alone from what you last saw.' },
+  ]);
 });
 
 it.each([

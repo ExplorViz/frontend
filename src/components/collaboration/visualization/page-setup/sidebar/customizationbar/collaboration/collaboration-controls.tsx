@@ -185,13 +185,18 @@ function JoinNotice({ onBack, onJoin }: { onBack: () => void; onJoin: () => void
 }
 
 function RoomPanel() {
-  const { room, leaveRoom, kick, handOverHost } = useRoomConnectionStore();
+  const { room, reconnecting, leaveRoom, kick, handOverHost } = useRoomConnectionStore();
   const state = useRoomState();
   if (!room) return null;
   const isHost = state?.hostId === room.sessionId;
 
   return (
     <div>
+      {reconnecting && (
+        <div role="status" aria-label="Reconnecting" className="alert alert-warning small mb-3 p-2">
+          Reconnecting… The room is shown as you last saw it; your changes are not shared until the connection is back.
+        </div>
+      )}
       <p className="small mb-1">Room code</p>
       <p className="h5 mb-3 font-monospace" aria-label="Room code">
         {room.roomId}

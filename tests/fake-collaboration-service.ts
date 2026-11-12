@@ -87,8 +87,17 @@ export class FakeClientRoom {
   private readonly leaveListeners: ((code: number) => void)[] = [];
   private readonly messageListeners = new Map<string, ((payload: any) => void)[]>();
   private readonly stateListeners: ((state: unknown) => void)[] = [];
+  private readonly dropListeners: (() => void)[] = [];
+  private readonly reconnectListeners: (() => void)[] = [];
   readonly serializer = { decoder: this.decoder };
+  /** The messages that reached the service. */
   readonly sent: { type: string; payload: unknown }[] = [];
+  /** As in the SDK: how many messages sent while the connection is down are kept for after the reconnect. */
+  readonly reconnection = { maxEnqueuedMessages: 10 };
+  /** True while the connection is down and the SDK retries. */
+  dropped = false;
+  private enqueued: { type: string; payload: unknown }[] = [];
+  private missedPatches: Uint8Array[] = [];
 
   constructor(
     readonly server: FakeServerRoom,
@@ -104,6 +113,11 @@ export class FakeClientRoom {
   }
 
   receive(bytes: Uint8Array) {
+    if (this.dropped) {
+      // A copy: the encoder reuses its buffer for the next patch.
+      this.missedPatches.push(bytes.slice());
+      return;
+    }
     this.decoder.decode(bytes);
     for (const listener of [...this.stateListeners]) listener(this.state);
   }
@@ -117,9 +131,41 @@ export class FakeClientRoom {
     return () => this.leaveListeners.splice(this.leaveListeners.indexOf(listener), 1);
   }
 
+  onDrop(listener: () => void) {
+    this.dropListeners.push(listener);
+  }
+
+  onReconnect(listener: () => void) {
+    this.reconnectListeners.push(listener);
+  }
+
   send(type: string, payload?: unknown) {
+    if (this.dropped) {
+      // Like the SDK: kept for after the reconnect, oldest dropped beyond the limit.
+      this.enqueued.push({ type, payload });
+      if (this.enqueued.length > this.reconnection.maxEnqueuedMessages) this.enqueued.shift();
+      return;
+    }
     this.sent.push({ type, payload });
     this.server.inbox.push({ from: this.sessionId, type, payload });
+  }
+
+  /** The network drops the connection; the SDK starts retrying (close code 1006). */
+  drop() {
+    act(() => {
+      this.dropped = true;
+      for (const listener of [...this.dropListeners]) listener();
+    });
+  }
+
+  /** A retry succeeds: the client catches up on the Room's state and sends what it kept. */
+  reconnect() {
+    act(() => {
+      this.dropped = false;
+      for (const patch of this.missedPatches.splice(0)) this.receive(patch);
+      for (const { type, payload } of this.enqueued.splice(0)) this.send(type, payload);
+      for (const listener of [...this.reconnectListeners]) listener();
+    });
   }
 
   onMessage(type: string, listener: (payload: any) => void) {
@@ -140,6 +186,7 @@ export class FakeClientRoom {
 
   /** Recorded in `sent` like `send`; answered by the handler the test gave `FakeServerRoom.answer`. */
   async request(type: string, payload?: unknown) {
+    if (this.dropped) throw new Error('The fake does not model requests while the connection is down.');
     this.sent.push({ type, payload });
     const reason = this.server.handle(this.sessionId, type, payload);
     if (reason !== undefined) throw Object.assign(new Error('request rejected'), { name: 'rejected', reason });
