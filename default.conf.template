@@ -139,6 +139,27 @@ server {
 
   # END Chatbot
 
+  # BEGIN collaboration-service
+
+  # Prometheus scrapes /metrics inside the container network; keep it off the
+  # public host (case-insensitive, as the service's routes are).
+  location ~* ^/collaboration/metrics(?:/|$) {
+    return 404;
+  }
+
+  # Colyseus serves its matchmaking and WebSocket routes at the root, so strip
+  # the prefix. The service pings every few seconds, which keeps an idle room
+  # connection open; the long timeouts are a margin for slow links.
+  location /collaboration/ {
+    set $upstream_collaboration ${COLLAB_SERV_URL};
+    rewrite ^/collaboration/(.*)$ /$1 break;
+    proxy_pass $upstream_collaboration;
+    proxy_read_timeout 1h;
+    proxy_send_timeout 1h;
+  }
+
+  # END collaboration-service
+
   # BEGIN Keycloak
 
   location ~ ^/(?:realms|resources)(?:/|$) {
