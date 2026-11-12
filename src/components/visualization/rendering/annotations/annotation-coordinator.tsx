@@ -1,9 +1,10 @@
 import React, { useEffect, useRef, useState } from 'react';
 
-import { LocationIcon, ShareAndroidIcon, TrashIcon } from '@primer/octicons-react';
+import { LocationIcon, TrashIcon } from '@primer/octicons-react';
 import AnnotationData from 'explorviz-frontend/src/components/visualization/rendering/annotations/annotation-data';
 import { useAnnotationHandlerStore } from 'explorviz-frontend/src/stores/annotation-handler';
 import { useToastHandlerStore } from 'explorviz-frontend/src/stores/toast-handler';
+import { saveAnnotation } from 'explorviz-frontend/src/utils/collaboration/annotations';
 import { Position2D } from 'explorviz-frontend/src/types/pointer-types';
 import { pingByModelId } from 'explorviz-frontend/src/view-objects/3d/city/ping-animation';
 import Button from 'react-bootstrap/Button';
@@ -17,16 +18,12 @@ interface AnnotationCoordinatorProps {
 }
 
 export default function AnnotationCoordinator({ annotationData, removeAnnotation }: AnnotationCoordinatorProps) {
-  // Annotations cannot be shared until collaboration is available again.
-  const isOnline = () => false;
   const showErrorToastMessage = useToastHandlerStore((state) => state.showErrorToastMessage);
 
   const annotationHandler = useAnnotationHandlerStore(
     useShallow((state) => ({
       removeUnmovedAnnotations: state.removeUnmovedAnnotations,
-      updateAnnotation: state.updateAnnotation,
       editAnnotation: state.editAnnotation,
-      shareAnnotation: state.shareAnnotation,
       annotationData: state.annotationData,
       setAnnotationData: state.setAnnotationData,
       minimizedAnnotations: state.minimizedAnnotations,
@@ -36,6 +33,13 @@ export default function AnnotationCoordinator({ annotationData, removeAnnotation
 
   const [annotationTitle, setAnnotationTitle] = useState<string>(annotationData.annotationTitle);
   const [annotationText, setAnnotationText] = useState<string>(annotationData.annotationText);
+
+  // Outside edit mode, show what was saved last, also by someone else in a Room.
+  useEffect(() => {
+    if (annotationData.inEdit) return;
+    setAnnotationTitle(annotationData.annotationTitle);
+    setAnnotationText(annotationData.annotationText);
+  }, [annotationData.inEdit, annotationData.annotationTitle, annotationData.annotationText]);
 
   const element = useRef<HTMLDivElement | null>(null);
   const lastMousePosition = useRef<Position2D>({ x: 0, y: 0 });
@@ -289,42 +293,6 @@ export default function AnnotationCoordinator({ annotationData, removeAnnotation
                     </Button>
                   </OverlayTrigger>
 
-                  {!isOnline() ? (
-                    <OverlayTrigger
-                      placement="top"
-                      trigger={['hover', 'focus']}
-                      overlay={<Tooltip>This is not an online session.</Tooltip>}
-                    >
-                      <Button className="annotation-share-button" variant="outline-secondary" disabled>
-                        <ShareAndroidIcon size="small" className="align-right" />
-                      </Button>
-                    </OverlayTrigger>
-                  ) : annotationData.shared ? (
-                    <OverlayTrigger
-                      placement="top"
-                      trigger={['hover', 'focus']}
-                      overlay={<Tooltip>Annotation is shared</Tooltip>}
-                    >
-                      <Button className="annotation-share-button" variant="outline-secondary" disabled>
-                        <ShareAndroidIcon size="small" className="align-right" />
-                      </Button>
-                    </OverlayTrigger>
-                  ) : (
-                    <OverlayTrigger
-                      placement="top"
-                      trigger={['hover', 'focus']}
-                      overlay={<Tooltip>Share annotation with other users.</Tooltip>}
-                    >
-                      <Button
-                        className="annotation-share-button"
-                        variant="primary"
-                        onClick={() => annotationHandler.shareAnnotation(annotationData)}
-                      >
-                        <ShareAndroidIcon size="small" className="align-right" />
-                      </Button>
-                    </OverlayTrigger>
-                  )}
-
                   <OverlayTrigger
                     placement="top"
                     trigger={['hover', 'focus']}
@@ -371,7 +339,7 @@ export default function AnnotationCoordinator({ annotationData, removeAnnotation
                             className="annotation-update-button"
                             variant="outline-secondary"
                             onClick={() =>
-                              annotationHandler.updateAnnotation({
+                              saveAnnotation({
                                 ...annotationData,
                                 annotationText: annotationText,
                                 annotationTitle: annotationTitle,
@@ -452,42 +420,6 @@ export default function AnnotationCoordinator({ annotationData, removeAnnotation
                 <label className="mr-2 annotation-title-label-minimized">{annotationTitle}</label>
               )}
 
-              {!isOnline() ? (
-                <OverlayTrigger
-                  placement="top"
-                  trigger={['hover', 'focus']}
-                  overlay={<Tooltip>This is not an online session.</Tooltip>}
-                >
-                  <Button className="annotation-share-button" variant="outline-secondary" disabled>
-                    <ShareAndroidIcon size="small" className="align-right" />
-                  </Button>
-                </OverlayTrigger>
-              ) : annotationData.shared ? (
-                <OverlayTrigger
-                  placement="top"
-                  trigger={['hover', 'focus']}
-                  overlay={<Tooltip>Annotation is shared</Tooltip>}
-                >
-                  <Button className="annotation-share-button" variant="outline-secondary" disabled>
-                    <ShareAndroidIcon size="small" className="align-right" />
-                  </Button>
-                </OverlayTrigger>
-              ) : (
-                <OverlayTrigger
-                  placement="top"
-                  trigger={['hover', 'focus']}
-                  overlay={<Tooltip>Share annotation with other users.</Tooltip>}
-                >
-                  <Button
-                    className="annotation-share-button"
-                    variant="primary"
-                    onClick={() => annotationHandler.shareAnnotation(annotationData)}
-                  >
-                    <ShareAndroidIcon size="small" className="align-right" />
-                  </Button>
-                </OverlayTrigger>
-              )}
-
               <OverlayTrigger
                 placement="top"
                 trigger={['hover', 'focus']}
@@ -526,7 +458,7 @@ export default function AnnotationCoordinator({ annotationData, removeAnnotation
                     <Button
                       title="Update"
                       onClick={() =>
-                        annotationHandler.updateAnnotation({
+                        saveAnnotation({
                           ...annotationData,
                           annotationText: annotationText,
                           annotationTitle: annotationTitle,

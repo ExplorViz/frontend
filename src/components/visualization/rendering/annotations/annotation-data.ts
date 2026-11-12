@@ -22,7 +22,8 @@ export interface AnnotationDataArgs {
 }
 
 export default class AnnotationData {
-  static incrementer: number = 0;
+  /** The next id; starts at 1, since the collaboration service takes only positive ids. */
+  static incrementer: number = 1;
 
   annotationId: number;
 

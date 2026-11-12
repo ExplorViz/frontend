@@ -1,5 +1,5 @@
+import { getAnnotations } from 'explorviz-frontend/src/utils/collaboration/annotations';
 import { getPopups } from 'explorviz-frontend/src/utils/collaboration/popups';
-import { useAnnotationHandlerStore } from 'explorviz-frontend/src/stores/annotation-handler';
 import { useLocalUserStore } from 'explorviz-frontend/src/stores/collaboration/local-user';
 import { useLandscapeTokenStore } from 'explorviz-frontend/src/stores/landscape-token';
 
@@ -91,7 +91,7 @@ export const useRoomSerializerStore = create<RoomSerializerState>((set, get) => 
 
   // private
   _serializeOpenAnnotations: (snapshot: boolean): SerializedAnnotation[] => {
-    const { annotationData, minimizedAnnotations } = useAnnotationHandlerStore.getState();
+    const { annotationData, minimizedAnnotations } = getAnnotations();
 
     const annotationsToSerialize = snapshot
       ? [...annotationData, ...minimizedAnnotations]
