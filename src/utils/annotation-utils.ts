@@ -1,4 +1,4 @@
-import { useAnnotationHandlerStore } from 'explorviz-frontend/src/stores/annotation-handler';
+import { getAnnotations } from 'explorviz-frontend/src/utils/collaboration/annotations';
 
 /**
  * Checks if an entity is annotated
@@ -6,8 +6,7 @@ import { useAnnotationHandlerStore } from 'explorviz-frontend/src/stores/annotat
  * @returns true if the entity has an annotation, false otherwise
  */
 export function isEntityAnnotated(entityId: string): boolean {
-  const annotationData = useAnnotationHandlerStore.getState().annotationData;
-  const minimizedAnnotations = useAnnotationHandlerStore.getState().minimizedAnnotations;
+  const { annotationData, minimizedAnnotations } = getAnnotations();
 
   // Check if entity has an annotation in active annotations
   const hasActiveAnnotation = annotationData.some((annotation) => annotation.entityId === entityId);

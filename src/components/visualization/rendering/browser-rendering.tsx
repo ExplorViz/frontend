@@ -32,6 +32,10 @@ import {
 import CanvasWrapper from 'explorviz-frontend/src/components/visualization/rendering/canvas-wrapper';
 import { useIdeWebsocketStore } from 'explorviz-frontend/src/ide/ide-websocket';
 import { useAnnotationHandlerStore } from 'explorviz-frontend/src/stores/annotation-handler';
+import {
+  removeAnnotation as removeShownAnnotation,
+  useAnnotations,
+} from 'explorviz-frontend/src/utils/collaboration/annotations';
 import { useConfigurationStore } from 'explorviz-frontend/src/stores/configuration';
 import { useLandscapeTokenStore } from 'explorviz-frontend/src/stores/landscape-token';
 import { usePopupHandlerStore } from 'explorviz-frontend/src/stores/popup-handler';
@@ -85,17 +89,9 @@ export default function BrowserRendering({ userApiTokens, visualizationPaused }:
     }))
   );
 
-  const annotationHandlerState = useAnnotationHandlerStore(
-    useShallow((state) => ({
-      annotationData: state.annotationData,
-      minimizedAnnotations: state.minimizedAnnotations,
-    }))
-  );
+  const annotationHandlerState = useAnnotations();
   const annotationHandlerActions = useAnnotationHandlerStore(
     useShallow((state) => ({
-      addAnnotation: state.addAnnotation,
-      removeAnnotation: state.removeAnnotation,
-      clearAnnotations: state.clearAnnotations,
       cleanup: state.cleanup,
     }))
   );
@@ -105,7 +101,7 @@ export default function BrowserRendering({ userApiTokens, visualizationPaused }:
   // MARK: Event handlers
 
   const removeAnnotation = (annotationId: number) => {
-    annotationHandlerActions.removeAnnotation(annotationId);
+    removeShownAnnotation(annotationId);
   };
 
   const setGamepadSupport = (enabled: boolean) => {

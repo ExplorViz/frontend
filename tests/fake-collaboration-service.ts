@@ -47,6 +47,17 @@ const Districts = schema(
   'Districts'
 );
 const SharedPopup = schema({ sharedById: t.string(), sharedByName: t.string() }, 'SharedPopup');
+const Annotation = schema(
+  {
+    id: t.number(),
+    entityId: t.string().default(''),
+    title: t.string().default(''),
+    text: t.string().default(''),
+    creatorName: t.string(),
+    lastEditorName: t.string(),
+  },
+  'Annotation'
+);
 const CollaborationState = schema(
   {
     participants: t.map(Participant),
@@ -56,6 +67,7 @@ const CollaborationState = schema(
     districts: Districts,
     highlights: t.map('string'),
     popups: t.map(SharedPopup),
+    annotations: t.map(Annotation),
   },
   'CollaborationState'
 );
@@ -78,6 +90,7 @@ const MESSAGE_HANDLERS: Record<string, (state: ServerState, payload: any, from: 
     state.districts.hidden.clear();
     state.highlights.clear();
     state.popups.clear();
+    state.annotations.clear();
   },
   // As the service: the first to share a popup is recorded; anyone closes it.
   sharePopup: (state, { entityId }, from) => {
@@ -104,6 +117,35 @@ const MESSAGE_HANDLERS: Record<string, (state: ServerState, payload: any, from: 
       ]);
     }
     state.districts.shared = shared;
+  },
+  // As the service, without its payload checks.
+  annotationEdit: (state, { id, title, text }, from) => {
+    const annotation = state.annotations.get(String(id));
+    if (!annotation) return;
+    Object.assign(annotation, { title, text, lastEditorName: state.participants.get(from)?.name ?? 'Unknown' });
+  },
+  annotationRemove: (state, { id }) => {
+    state.annotations.delete(String(id));
+  },
+};
+
+/**
+ * How the service answers requests that change the Room's state at once
+ * (from the sender's session id), unless a test answers the type itself with
+ * `FakeServerRoom.answer`. The return value is the response.
+ */
+const REQUEST_HANDLERS: Record<string, (state: ServerState, payload: any, from: string) => unknown> = {
+  // As the service, without its payload checks: one annotation per entity, ids never reused.
+  annotationAdd: (state, { entityId, title, text }, from) => {
+    const existing = entityId ? [...state.annotations.values()].find((a) => a.entityId === entityId) : undefined;
+    if (existing) return { id: existing.id };
+    const id = Math.max(0, ...[...state.annotations.values()].map((a) => a.id)) + 1;
+    const name = state.participants.get(from)?.name ?? 'Unknown';
+    state.annotations.set(
+      String(id),
+      new Annotation({ id, entityId: entityId ?? '', title, text, creatorName: name, lastEditorName: name })
+    );
+    return { id };
   },
 };
 
@@ -229,10 +271,18 @@ export class FakeClientRoom {
     for (const listener of this.messageListeners.get(type) ?? []) listener(payload);
   }
 
-  /** Recorded in `sent` like `send`; answered by the handler the test gave `FakeServerRoom.answer`. */
+  /**
+   * Recorded in `sent` like `send`; answered by the handler the test gave
+   * `FakeServerRoom.answer`, else by the fake's own request handler.
+   */
   async request(type: string, payload?: unknown) {
     if (this.dropped) throw new Error('The fake does not model requests while the connection is down.');
     this.sent.push({ type, payload });
+    if (!this.server.answers(type) && REQUEST_HANDLERS[type]) {
+      let response: unknown;
+      this.server.update((state) => (response = REQUEST_HANDLERS[type](state, payload, this.sessionId)));
+      return response;
+    }
     const reason = this.server.handle(this.sessionId, type, payload);
     if (reason !== undefined) throw Object.assign(new Error('request rejected'), { name: 'rejected', reason });
   }
@@ -266,6 +316,10 @@ export class FakeServerRoom {
     this.handlers.set(type, handler);
   }
 
+  answers(type: string) {
+    return this.handlers.has(type);
+  }
+
   handle(sessionId: string, type: string, payload: unknown) {
     return this.handlers.get(type)?.(sessionId, payload) ?? undefined;
   }
@@ -280,6 +334,14 @@ export class FakeServerRoom {
         id: `entry-${++this.chatEntries}`,
         time: Date.now(),
       })
+    );
+  }
+
+  /** Adds an annotation as if a Participant had made it; call it inside `update`. */
+  putAnnotation(annotation: { id: number; entityId: string; title?: string; text?: string; creatorName: string }) {
+    this.state.annotations.set(
+      String(annotation.id),
+      new Annotation({ title: '', text: '', lastEditorName: annotation.creatorName, ...annotation })
     );
   }
 

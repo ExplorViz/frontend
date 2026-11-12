@@ -20,7 +20,6 @@ interface AnnotationHandlerState {
   editAnnotation: (annotationData: AnnotationData) => void;
   updateAnnotation: (annotationData: AnnotationData) => void;
   removeAnnotation: (annotationId: number, stillMinimized?: boolean) => void;
-  shareAnnotation: (annotation: AnnotationData) => void;
   addAnnotation: ({
     annotationId,
     entityId,
@@ -116,19 +115,6 @@ export const useAnnotationHandlerStore = create<AnnotationHandlerState>((set, ge
   removeAnnotation: (annotationId: number) => {
     set({
       annotationData: get().annotationData.filter((an) => an.annotationId !== annotationId),
-    });
-  },
-
-  shareAnnotation: (annotation: AnnotationData) => {
-    set({
-      annotationData: [
-        ...get().annotationData.filter((an) => an.annotationId !== annotation.annotationId),
-        {
-          ...annotation,
-          sharedBy: useAuthStore.getState().user?.sub || 'Unknown',
-          shared: true,
-        },
-      ],
     });
   },
 
