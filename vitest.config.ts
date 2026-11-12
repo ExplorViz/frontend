@@ -40,6 +40,8 @@ export default defineConfig({
         'src/utils/collaboration/landscape.ts',
         'src/utils/collaboration/popups.ts',
         'src/utils/collaboration/annotations.ts',
+        'src/utils/collaboration/snapshots.ts',
+        'src/components/collaboration/leave-room-for-snapshot-notice.tsx',
         'src/utils/city-rendering/entity-manipulation.ts',
         'src/utils/collaboration/chat.ts',
         'src/utils/collaboration/pings.ts',

@@ -74,7 +74,8 @@ interface SnapshotTokenState {
   latestSnapshotToken: SnapshotToken | null;
   retrieveTokens: () => Promise<SnapshotInfo>;
   retrieveToken: (owner: string, createdAt: number, isShared: boolean) => Promise<SnapshotToken | null>;
-  saveSnapshot: (content: SnapshotToken, name?: string) => Promise<void>;
+  /** Resolves to whether the Snapshot was saved; failures are shown as a toast. */
+  saveSnapshot: (content: SnapshotToken, name?: string) => Promise<boolean>;
   subsribe: (owner: string, createdAt: number, subscriber: string) => Promise<void>;
   exportFile: (exportData: SnapshotToken) => Promise<void>;
   shareSnapshot: (snapshot: TinySnapshot, expDate: number) => Promise<void>;
@@ -177,6 +178,7 @@ export const useSnapshotTokenStore = create<SnapshotTokenState>((set, get) => ({
     const snapshotToken: SnapshotToken = name !== undefined ? { ...content, name: name } : content;
 
     const url = `${userService}/snapshot/create`;
+    let saved = false;
     await fetch(url, {
       method: 'POST',
       body: JSON.stringify(snapshotToken, getCircularReplacer()),
@@ -184,6 +186,7 @@ export const useSnapshotTokenStore = create<SnapshotTokenState>((set, get) => ({
     })
       .then(async (response: Response) => {
         if (response.ok) {
+          saved = true;
           useToastHandlerStore.getState().showSuccessToastMessage('Successfully saved snapshot.');
         } else if (response.status === 422) {
           useToastHandlerStore
@@ -200,6 +203,7 @@ export const useSnapshotTokenStore = create<SnapshotTokenState>((set, get) => ({
       .catch(async () => {
         useToastHandlerStore.getState().showErrorToastMessage('Snapshot server could not be reached.');
       });
+    return saved;
   },
 
   subsribe: async (owner: string, createdAt: number, subscriber: string) => {

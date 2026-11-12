@@ -3,14 +3,12 @@ import { act, fireEvent, render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { beforeEach, expect, it, onTestFinished, vi } from 'vitest';
 import { useAuthStore } from '../src/stores/auth';
+import { useLandscapeTokenStore } from '../src/stores/landscape-token';
+import { useSnapshotTokenStore } from '../src/stores/snapshot-token';
 import CollaborationControls from '../src/components/collaboration/visualization/page-setup/sidebar/customizationbar/collaboration/collaboration-controls';
 import { useRoomConnectionStore } from '../src/utils/collaboration/room-connection';
 import { CONTRACT_VERSION, JoinRefusal } from '../src/utils/collaboration/room-contract.generated';
 import eventEmitter from '../src/utils/event-emitter';
-import {
-  SettingsSidebarContext,
-  SettingsSidebarTab,
-} from '../src/components/visualization/page-setup/sidebar/customizationbar/settings-sidebar-context';
 import { fakeCollaborationService as service } from './fake-collaboration-service';
 import './setup-dom';
 
@@ -170,24 +168,58 @@ it('goes back from the join notice without joining and keeps the typed code', as
   expect(service.requests).toEqual([]);
 });
 
-it('opens the Snapshot section from the join notice instead of joining', async () => {
-  service.openRoom('K7XQ2M', 'Ada');
-  const openSettingsSidebarTab = vi.fn();
+/** Fills in the form and clicks Join, so the join notice shows. */
+async function askToJoin(code: string) {
   const user = userEvent.setup();
   serviceAnswers();
-  render(
-    <SettingsSidebarContext value={{ showSidebar: true, selectedTab: null, openSettingsSidebarTab }}>
-      <CollaborationControls />
-    </SettingsSidebarContext>
-  );
+  render(<CollaborationControls />);
   await user.type(await screen.findByRole('textbox', { name: /display name/i }), 'Grace');
-  await user.type(screen.getByRole('textbox', { name: /room code/i }), 'K7XQ2M');
+  await user.type(screen.getByRole('textbox', { name: /room code/i }), code);
   await user.click(screen.getByRole('button', { name: /join/i }));
+  return user;
+}
+
+function stubSnapshotSaving(saved: boolean) {
+  useAuthStore.setState({ user: { name: 'Grace', nickname: 'grace', sub: 'grace-1' } as any });
+  useLandscapeTokenStore.setState({ token: { value: 'landscape-a', alias: 'A' } as any });
+  const saveSnapshot = vi.fn(async () => saved);
+  useSnapshotTokenStore.setState({ saveSnapshot });
+  onTestFinished(() => {
+    useSnapshotTokenStore.setState(useSnapshotTokenStore.getInitialState(), true);
+    useLandscapeTokenStore.setState({ token: null });
+  });
+  return saveSnapshot;
+}
+
+it('saves a normal Snapshot from the join notice, then joins', async () => {
+  service.openRoom('K7XQ2M', 'Ada');
+  const saveSnapshot = stubSnapshotSaving(true);
+  const user = await askToJoin('K7XQ2M');
 
   await user.click(screen.getByRole('button', { name: /snapshot first/i }));
 
-  expect(openSettingsSidebarTab).toHaveBeenCalledWith(SettingsSidebarTab.Snapshot);
+  expect(await screen.findByText('K7XQ2M')).toBeInTheDocument();
+  expect(saveSnapshot).toHaveBeenCalledTimes(1);
+  const [snapshot] = saveSnapshot.mock.calls[0] as unknown as [any];
+  expect(snapshot).toMatchObject({
+    owner: 'grace-1',
+    landscapeToken: { value: 'landscape-a' },
+    isShared: false,
+    name: expect.stringContaining('K7XQ2M'),
+  });
+  expect(snapshot.serializedRoom).toHaveProperty('closedComponentIds');
+  expect(service.requests).toEqual([expect.objectContaining({ code: 'K7XQ2M' })]);
+});
+
+it('does not join when the Snapshot could not be saved', async () => {
+  service.openRoom('K7XQ2M', 'Ada');
+  stubSnapshotSaving(false);
+  const user = await askToJoin('K7XQ2M');
+
+  await user.click(screen.getByRole('button', { name: /snapshot first/i }));
+
   expect(service.requests).toEqual([]);
+  expect(useRoomConnectionStore.getState().room).toBeUndefined();
 });
 
 it('follows the Participants as they come and go', async () => {

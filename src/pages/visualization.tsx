@@ -33,6 +33,7 @@ import {
 } from 'explorviz-frontend/src/utils/code-analysis-reload';
 import eventEmitter from 'explorviz-frontend/src/utils/event-emitter';
 import { DynamicLandscapeData } from 'explorviz-frontend/src/utils/landscape-schemes/telemetry/traces';
+import { leaveRoomToOpenSnapshot } from 'explorviz-frontend/src/utils/collaboration/snapshots';
 import { restoreSnapshotFromToken } from 'explorviz-frontend/src/utils/snapshot/snapshot-helpers';
 import TimelineDataObjectHandler from 'explorviz-frontend/src/utils/timeline/timeline-data-object-handler';
 import globalBundlingService from 'explorviz-frontend/src/view-objects/3d/city/global-bundling-service';
@@ -302,6 +303,13 @@ export default function Visualization() {
         landscapeSwitches === 0 && (snapshotSelected || (snapshotOwner !== null && snapshotCreatedAt !== null));
 
       if (shouldRestoreSnapshot) {
+        // A Snapshot is opened alone, never in a Room.
+        if (!(await leaveRoomToOpenSnapshot())) {
+          useSnapshotTokenStore.setState({ snapshotToken: null, snapshotSelected: false });
+          navigate('/landscapes');
+          return;
+        }
+
         let loadedSnapshot = useSnapshotTokenStore.getState().snapshotToken;
 
         if (!loadedSnapshot && snapshotOwner && snapshotCreatedAt) {

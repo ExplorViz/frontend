@@ -9,3 +9,4 @@ import 'explorviz-frontend/src/utils/collaboration/districts';
 import 'explorviz-frontend/src/utils/collaboration/highlights';
 import 'explorviz-frontend/src/utils/collaboration/landscape';
 import 'explorviz-frontend/src/utils/collaboration/popups';
+import 'explorviz-frontend/src/utils/collaboration/snapshots';

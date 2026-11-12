@@ -1,8 +1,4 @@
 import ChatBox from 'explorviz-frontend/src/components/visualization/page-setup/sidebar/customizationbar/chat/chat-box';
-import {
-  SettingsSidebarContext,
-  SettingsSidebarTab,
-} from 'explorviz-frontend/src/components/visualization/page-setup/sidebar/customizationbar/settings-sidebar-context';
 import { useAuthStore } from 'explorviz-frontend/src/stores/auth';
 import { isLoginSkipped } from 'explorviz-frontend/src/utils/auth-config';
 // Every capability's collaboration module registers its hand-over before a Room is entered from here.
@@ -10,9 +6,14 @@ import 'explorviz-frontend/src/utils/collaboration/capabilities';
 import { setParticipantMuted, useChat } from 'explorviz-frontend/src/utils/collaboration/chat';
 import { isCollaborationServiceReachable } from 'explorviz-frontend/src/utils/collaboration/collaboration-service';
 import { setDistrictSharing, useDistrictSharing } from 'explorviz-frontend/src/utils/collaboration/districts';
-import { useRoomConnectionStore, useRoomState } from 'explorviz-frontend/src/utils/collaboration/room-connection';
+import {
+  normalizeRoomCode,
+  useRoomConnectionStore,
+  useRoomState,
+} from 'explorviz-frontend/src/utils/collaboration/room-connection';
+import { saveSnapshotOfView } from 'explorviz-frontend/src/utils/snapshot/snapshot-helpers';
 import { SpectateButton, SpectatingStatus } from './spectating-status';
-import { use, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import Button from 'react-bootstrap/Button';
 import Form from 'react-bootstrap/Form';
 
@@ -142,6 +143,7 @@ function RoomEntryForm() {
       </Form.Group>
       {askingToJoin && (
         <JoinNotice
+          code={roomCode}
           onBack={() => setAskingToJoin(false)}
           onJoin={() => {
             setAskingToJoin(false);
@@ -154,8 +156,18 @@ function RoomEntryForm() {
 }
 
 /** Joining drops all local exploration state, so it is never done without asking. */
-function JoinNotice({ onBack, onJoin }: { onBack: () => void; onJoin: () => void }) {
-  const { openSettingsSidebarTab } = use(SettingsSidebarContext);
+function JoinNotice({ code, onBack, onJoin }: { code: string; onBack: () => void; onJoin: () => void }) {
+  const [saving, setSaving] = useState(false);
+
+  // A normal Snapshot of the exploration as it is now; the join goes ahead only once it is saved.
+  const saveSnapshotAndJoin = async () => {
+    setSaving(true);
+    const saved = await saveSnapshotOfView(
+      `Before joining room ${normalizeRoomCode(code)}, ${new Date().toLocaleString()}`
+    );
+    setSaving(false);
+    if (saved) onJoin();
+  };
 
   return (
     <div role="alert" className="alert alert-warning small mt-3 mb-0 p-2">
@@ -167,15 +179,8 @@ function JoinNotice({ onBack, onJoin }: { onBack: () => void; onJoin: () => void
         <Button size="sm" variant="outline-secondary" onClick={onBack}>
           Go back
         </Button>
-        <Button
-          size="sm"
-          variant="outline-primary"
-          onClick={() => {
-            onBack();
-            openSettingsSidebarTab(SettingsSidebarTab.Snapshot);
-          }}
-        >
-          Take a Snapshot first
+        <Button size="sm" variant="outline-primary" disabled={saving} onClick={saveSnapshotAndJoin}>
+          {saving ? 'Saving the Snapshot…' : 'Take a Snapshot first'}
         </Button>
         <Button size="sm" variant="warning" onClick={onJoin}>
           Drop my exploration and join
