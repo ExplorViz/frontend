@@ -36,6 +36,7 @@ export default defineConfig({
         'src/utils/collaboration/room-connection.ts',
         'src/utils/collaboration/districts.ts',
         'src/utils/collaboration/landscape.ts',
+        'src/utils/collaboration/annotations.ts',
         'src/utils/collaboration/local-exploration.ts',
         'src/utils/city-rendering/entity-manipulation.ts',
         'src/utils/collaboration/chat.ts',

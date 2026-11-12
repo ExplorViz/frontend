@@ -1,4 +1,4 @@
-import { useAnnotationHandlerStore } from 'explorviz-frontend/src/stores/annotation-handler';
+import { addAnnotation } from 'explorviz-frontend/src/utils/collaboration/annotations';
 import { useAuthStore } from 'explorviz-frontend/src/stores/auth';
 import { usePopupHandlerStore } from 'explorviz-frontend/src/stores/popup-handler';
 import { LandscapeData } from 'explorviz-frontend/src/utils/landscape-schemes/landscape-data';
@@ -26,18 +26,12 @@ export default function Popups({ landscapeData }: Args) {
     }))
   );
 
-  const annotationHandlerActions = useAnnotationHandlerStore(
-    useShallow((state) => ({
-      addAnnotation: state.addAnnotation,
-    }))
-  );
-
   const removePopup = (entityId: string) => {
     popupHandlerActions.removePopup(entityId);
   };
 
   const addAnnotationForPopup = (popup: PopupData) => {
-    annotationHandlerActions.addAnnotation({
+    addAnnotation({
       annotationId: undefined,
       entityId: popup.entityId,
       entity: popup.entity,

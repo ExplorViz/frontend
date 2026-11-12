@@ -29,6 +29,8 @@ export type StartingState = {
   landscapeToken?: string;
   /** The closed and hidden Districts. */
   districts?: DistrictLists;
+  /** All annotations, open or minimized. */
+  annotations?: StartingAnnotation[];
 };
 
 /**
@@ -154,6 +156,43 @@ export function applyDistrictActions(
   }
 }
 
+/** The longest annotation title, in characters. */
+export const MAX_ANNOTATION_TITLE_LENGTH = 200;
+
+/** The longest annotation text, in characters. */
+export const MAX_ANNOTATION_TEXT_LENGTH = 10_000;
+
+/**
+ * What a person writes in an annotation. `entityId` names the annotated
+ * entity of the Landscape; an annotation without one is free.
+ */
+export type AnnotationContent = {
+  entityId?: string;
+  title: string;
+  text: string;
+};
+
+/** One annotation of the creator, handed over to a new Room as it is. */
+export type StartingAnnotation = AnnotationContent & {
+  /** A positive whole number, unique among the creator's annotations. */
+  id: number;
+  creatorName: string;
+  lastEditorName: string;
+};
+
+/** The service's answer to an "annotationAdd" request: the annotation's id. */
+export type AnnotationAdded = { id: number };
+
+/**
+ * Reasons with which the service rejects an "annotationAdd" request. The SDK
+ * rejects `room.request(...)` with an error whose `reason` is one of these.
+ */
+export const AnnotationRefusal = {
+  /** The payload is malformed, or the title or text is too long. */
+  INVALID: "invalid",
+} as const;
+export type AnnotationRefusal = (typeof AnnotationRefusal)[keyof typeof AnnotationRefusal];
+
 /**
  * Messages a client sends to the Room: message type -> payload.
  * Each entry has a handler of the same name in CollaborationRoom's `messages`.
@@ -189,6 +228,16 @@ export type ClientMessages = {
   districts: DistrictAction[];
   /** Host only: switches the District sharing option (see DistrictSharing). */
   districtSharing: DistrictSharing;
+  /**
+   * A request: makes a new annotation, by the sender. Answered with its
+   * AnnotationAdded id; for an entity that already has one, with the id of
+   * that one, and nothing changes. Rejected with an AnnotationRefusal.
+   */
+  annotationAdd: AnnotationContent;
+  /** Saves an annotation's title and text, with the sender as last editor. Sent on save, not per keystroke. */
+  annotationEdit: { id: number; title: string; text: string };
+  /** Removes an annotation for everyone. */
+  annotationRemove: { id: number };
 };
 
 /**
@@ -217,6 +266,7 @@ export type CollaborationState = {
   landscapeToken: string;
   chat: ChatEntry[];
   districts: Districts;
+  annotations: Record<string, Annotation>;
 };
 
 export type Participant = {
@@ -241,4 +291,13 @@ export type Districts = {
   shared: boolean;
   closed: Record<string, boolean>;
   hidden: Record<string, boolean>;
+};
+
+export type Annotation = {
+  id: number;
+  entityId: string;
+  title: string;
+  text: string;
+  creatorName: string;
+  lastEditorName: string;
 };

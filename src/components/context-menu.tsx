@@ -2,7 +2,7 @@ import React, { ReactNode, useCallback, useEffect, useMemo, useState } from 'rea
 import { Button, Form, Modal } from 'react-bootstrap';
 
 import useLongPress, { type LongPressPosition } from 'explorviz-frontend/src/hooks/useLongPress';
-import { useAnnotationHandlerStore } from 'explorviz-frontend/src/stores/annotation-handler';
+import { getAnnotations } from 'explorviz-frontend/src/utils/collaboration/annotations';
 import { useCameraControlsStore } from 'explorviz-frontend/src/stores/camera-controls-store';
 import { useLocalUserStore } from 'explorviz-frontend/src/stores/collaboration/local-user';
 import { useConfigurationStore } from 'explorviz-frontend/src/stores/configuration';
@@ -108,8 +108,8 @@ export default function ContextMenu({ children }: ContextMenuProps) {
   }, [renameCityId, renameCityName]);
 
   const pingAnnotations = useCallback(() => {
-    const annotationHandlerStore = useAnnotationHandlerStore.getState();
-    const allAnnotations = [...annotationHandlerStore.annotationData, ...annotationHandlerStore.minimizedAnnotations];
+    const { annotationData, minimizedAnnotations } = getAnnotations();
+    const allAnnotations = [...annotationData, ...minimizedAnnotations];
 
     const annotatedEntityIds = new Set<string>();
     allAnnotations.forEach((annotation) => {
