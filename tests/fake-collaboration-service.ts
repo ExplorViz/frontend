@@ -47,7 +47,13 @@ const Districts = schema(
   'Districts'
 );
 const CollaborationState = schema(
-  { participants: t.map(Participant), hostId: t.string(), chat: t.array(ChatEntry), districts: Districts },
+  {
+    participants: t.map(Participant),
+    hostId: t.string(),
+    landscapeToken: t.string().default(''),
+    chat: t.array(ChatEntry),
+    districts: Districts,
+  },
   'CollaborationState'
 );
 type ServerState = InstanceType<typeof CollaborationState>;
@@ -59,13 +65,20 @@ const asIdSet = (map: { set(id: string, value: true): unknown; delete(id: string
   clear: () => map.clear(),
 });
 
-/** How the service handles each client message; extend together with `ClientMessages`. */
-const MESSAGE_HANDLERS: Record<string, (state: ServerState, payload: any) => void> = {
+/** How the service handles each client message (from the sender's session id); extend together with `ClientMessages`. */
+const MESSAGE_HANDLERS: Record<string, (state: ServerState, payload: any, from: string) => void> = {
+  // As the service: Host only; clears the Districts of the old Landscape.
+  switchLandscape: (state, { landscapeToken }, from) => {
+    if (from !== state.hostId || !landscapeToken || landscapeToken === state.landscapeToken) return;
+    state.landscapeToken = landscapeToken;
+    state.districts.closed.clear();
+    state.districts.hidden.clear();
+  },
   districts: (state, actions) => {
     if (!state.districts.shared) return;
     applyDistrictActions({ closed: asIdSet(state.districts.closed), hidden: asIdSet(state.districts.hidden) }, actions);
   },
-  // Without the service's Host check: the fake does not know the sender.
+  // Without the service's Host check.
   districtSharing: (state, { shared, districts }) => {
     if (shared && !state.districts.shared) {
       const sets = { closed: asIdSet(state.districts.closed), hidden: asIdSet(state.districts.hidden) };
@@ -285,10 +298,10 @@ export class FakeServerRoom {
   /** The service handles every message sent so far, in order, and sends the resulting patch. */
   handleMessages() {
     this.update((state) => {
-      for (const { type, payload } of this.inbox.splice(0)) {
+      for (const { from, type, payload } of this.inbox.splice(0)) {
         const handle = MESSAGE_HANDLERS[type];
         if (!handle) throw new Error(`The fake service has no handler for "${type}" messages.`);
-        handle(state, payload);
+        handle(state, payload, from);
       }
     });
   }

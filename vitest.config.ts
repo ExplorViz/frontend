@@ -35,6 +35,7 @@ export default defineConfig({
         'src/view-objects/3d/city/city-foundation.tsx',
         'src/utils/collaboration/room-connection.ts',
         'src/utils/collaboration/districts.ts',
+        'src/utils/collaboration/landscape.ts',
         'src/utils/collaboration/local-exploration.ts',
         'src/utils/city-rendering/entity-manipulation.ts',
         'src/utils/collaboration/chat.ts',
