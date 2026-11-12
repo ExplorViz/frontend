@@ -91,7 +91,7 @@ export const useUserSettingsStore = create<UserSettingsState>()(
       },
 
       shareVisualizationSettings: () => {
-        // Not shared until collaboration is available again
+        // Settings are each person's own; a Room does not share them.
       },
 
       updateSettings: (settings: VisualizationSettings) => {
