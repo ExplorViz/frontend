@@ -9,8 +9,8 @@ import { buildSnapshotToken } from 'explorviz-frontend/src/utils/snapshot/snapsh
 import Button from 'react-bootstrap/Button';
 
 interface SnapshotProps {
-  landscapeData: LandscapeData;
-  landscapeToken: LandscapeToken;
+  landscapeData: LandscapeData | null;
+  landscapeToken: LandscapeToken | null;
   annotationData: AnnotationData[];
   minimizedAnnotations: AnnotationData[];
 }
@@ -20,19 +20,19 @@ export default function Snapshot({ landscapeData, landscapeToken }: SnapshotProp
   const saveSnapshotToStore = useSnapshotTokenStore((state) => state.saveSnapshot);
   const exportFile = useSnapshotTokenStore((state) => state.exportFile);
 
-  const [saveSnaphotBtnDisabled, setSaveSnaphotBtnDisabled] = useState<boolean>(true);
+  const [saveSnapshotBtnDisabled, setSaveSnapshotBtnDisabled] = useState<boolean>(true);
   const [snapshotName, setSnapshotName] = useState<string>('');
 
   const reset = () => {
     setSnapshotName('');
-    setSaveSnaphotBtnDisabled(true);
+    setSaveSnapshotBtnDisabled(true);
   };
 
   const updateName = (event: React.InputEvent<HTMLInputElement>) => {
     const target: HTMLInputElement = event.currentTarget;
     const newSnapshotName = target.value;
     setSnapshotName(newSnapshotName);
-    setSaveSnaphotBtnDisabled(newSnapshotName === '');
+    setSaveSnapshotBtnDisabled(newSnapshotName === '');
   };
 
   const saveSnapshot = async () => {
@@ -43,6 +43,10 @@ export default function Snapshot({ landscapeData, landscapeToken }: SnapshotProp
       landscapeData,
     });
 
+    if (content === null) {
+      console.error('Cannot build snapshot token');
+      return;
+    }
     await saveSnapshotToStore(content);
     reset();
   };
@@ -54,6 +58,11 @@ export default function Snapshot({ landscapeData, landscapeToken }: SnapshotProp
       landscapeToken,
       landscapeData,
     });
+
+    if (content === null) {
+      console.error('Cannot build snapshot token');
+      return;
+    }
     exportFile(content);
     reset();
   };
@@ -70,7 +79,7 @@ export default function Snapshot({ landscapeData, landscapeToken }: SnapshotProp
           title="Save Snapshot"
           variant="outline-secondary"
           onClick={saveSnapshot}
-          disabled={saveSnaphotBtnDisabled}
+          disabled={saveSnapshotBtnDisabled}
         >
           Create Snapshot
         </Button>
@@ -78,7 +87,7 @@ export default function Snapshot({ landscapeData, landscapeToken }: SnapshotProp
           title="Export Snapshot"
           variant="outline-secondary"
           onClick={exportSnapshot}
-          disabled={saveSnaphotBtnDisabled}
+          disabled={saveSnapshotBtnDisabled}
         >
           Export Snapshot
         </Button>

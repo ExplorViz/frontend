@@ -90,13 +90,11 @@ export default function Visualization() {
   const [searchParams] = useSearchParams();
 
   // #region States
-  const [commit1, setCommit1] = useState<string | undefined | null>(undefined);
-  const [commit2, setCommit2] = useState<string | undefined | null>(undefined);
   const [userApiTokens, setUserApiTokens] = useState<ApiToken[]>([]);
   const [visualizationPaused, setVisualizationPaused] = useState<boolean>(false);
   const [timelineDataObjectHandler] = useState<TimelineDataObjectHandler>(() => new TimelineDataObjectHandler());
 
-  const [selectedChartOverride, setSelectedChart] = useState<BottomBarChartView>();
+  const [selectedChartOverride, setSelectedChartOverride] = useState<BottomBarChartView>();
   const [bottomBarState, setBottomBarState] = useState<Omit<BottomBarState, 'selectedChart'>>({
     isExpanded: true,
     runtimeMetricsState: {
@@ -108,7 +106,7 @@ export default function Visualization() {
   const bottomBarActions: BottomBarActions = {
     setIsExpanded: (isExpanded) => setBottomBarState((state) => ({ ...state, isExpanded: isExpanded })),
 
-    setSelectedChart,
+    setSelectedChart: setSelectedChartOverride,
 
     setSelectedMetric: (metric, entity) =>
       setBottomBarState((state) => ({
@@ -342,8 +340,6 @@ export default function Visualization() {
         selectedCommitsForCurrentSelectedRepo && selectedCommitsForCurrentSelectedRepo.length > 1
           ? selectedCommitsForCurrentSelectedRepo[1].commitId
           : undefined;
-      setCommit1(initialCommit1);
-      setCommit2(initialCommit2);
 
       // check what kind of rendering we should start
       if (initialCommit1 && initialCommit1.length > 0) {

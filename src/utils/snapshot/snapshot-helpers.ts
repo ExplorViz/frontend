@@ -38,11 +38,12 @@ export function buildSnapshotStructureData(landscapeData: LandscapeData | null):
 export function buildSnapshotToken(params: {
   name: string;
   owner: string;
-  landscapeToken: LandscapeToken;
+  landscapeToken: LandscapeToken | null;
   landscapeData: LandscapeData | null;
   isShared?: boolean;
   deleteAt?: number;
-}): SnapshotToken {
+}): SnapshotToken | null {
+  if (params.landscapeToken === null) return null;
   const createdAt = Date.now();
   const serializedRoom = useRoomSerializerStore.getState().serializeRoom(true);
   const timestamps = useTimestampRepositoryStore.getState().getTimestampsForCommitId(CROSS_COMMIT_IDENTIFIER, true);

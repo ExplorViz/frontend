@@ -131,5 +131,5 @@
     "zod": "^4.6.7",
     "zustand": "^5.0.15"
   },
-  "packageManager": "pnpm@12.14.0"
+  "packageManager": "pnpm@12.18.0"
 }

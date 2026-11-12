@@ -3,7 +3,7 @@
 You will need the following things properly installed on your computer.
 
 - [Git](https://git-scm.com/)
-- [Node.js 20](https://nodejs.org/) (as required per package.json)
+- [Node.js 24](https://nodejs.org/) (the version used in CI)
 - [pnpm](https://pnpm.io/installation)
 - [Docker](https://www.docker.com) for (mocked) backend
 
@@ -11,6 +11,7 @@ You will need the following things properly installed on your computer.
 
 - `git clone <repository-url>` this repository
 - `cd frontend`
+- If you use nvm, run `nvm install` and `nvm use` to select Node.js 24.
 - `pnpm install` to install all required Node.js dependencies
 
 ## Running / Development

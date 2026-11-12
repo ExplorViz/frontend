@@ -102,8 +102,6 @@ export default function BrowserRendering({ userApiTokens, visualizationPaused }:
     }))
   );
 
-  const restartAndSetSocket = useIdeWebsocketStore((state) => state.restartAndSetSocket);
-
   const closeConnection = useIdeWebsocketStore((state) => state.closeConnection);
 
   // MARK: Event handlers
@@ -467,7 +465,7 @@ export default function BrowserRendering({ userApiTokens, visualizationPaused }:
                             value: SettingsSidebarTab.Restructure,
                             content: (
                               <Restructure
-                                landscapeData={landscapeData!}
+                                landscapeData={landscapeData}
                                 restructureLandscape={() => {}}
                                 visualizationPaused={visualizationPaused}
                                 toggleVisualizationUpdating={toggleVisualizationUpdating}
@@ -482,7 +480,7 @@ export default function BrowserRendering({ userApiTokens, visualizationPaused }:
                             value: SettingsSidebarTab.Snapshot,
                             content: (
                               <Snapshot
-                                landscapeData={landscapeData!}
+                                landscapeData={landscapeData}
                                 annotationData={annotationHandlerState.annotationData}
                                 minimizedAnnotations={annotationHandlerState.minimizedAnnotations}
                                 landscapeToken={landscapeToken}

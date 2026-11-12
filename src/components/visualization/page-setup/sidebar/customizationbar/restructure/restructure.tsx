@@ -37,10 +37,10 @@ type Issue = {
 type GitlabProject = { id: string; name: string };
 
 interface RestructureProps {
-  landscapeData: LandscapeData;
+  landscapeData: LandscapeData | null;
   restructureLandscape: (structureData: StructureLandscapeData, dynamicData: DynamicLandscapeData) => void;
   visualizationPaused: boolean;
-  landscapeToken: LandscapeToken;
+  landscapeToken: LandscapeToken | null;
   annotationData: AnnotationData[];
   minimizedAnnotations: AnnotationData[];
   userApiTokens: ApiToken[];
