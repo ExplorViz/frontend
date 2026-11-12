@@ -41,6 +41,13 @@ _Avoid_: Player, User (a user who is not in a Room is not a Participant)
 **Host**:
 The Participant who may switch the Room's Landscape and District sharing, mute and kick other Participants, and hand the Host right over.
 
+**Room code**:
+The six-character code that identifies a Room while it exists; people join a Room by entering it.
+_Avoid_: Room ID, Lobby code
+
+**District sharing**:
+The Host's switch that decides whether opening and closing Districts acts on the Room (on, the default) or on each Participant's own view (off).
+
 **Spectating**:
 Following another Participant's camera.
 

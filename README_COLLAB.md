@@ -1,63 +1,97 @@
-# Collaboration Functionality
+# Collaboration
 
-Collaboration is being rebuilt on the self-hosted, Colyseus-based collaboration service (repository `collaboration-service`). The previous implementation, which used the hosted Playroomkit service, has been removed.
+People explore a Landscape together in a **Room**. A Room lives in the self-hosted collaboration service (repository `collaboration-service`, built on Colyseus). The browser talks only to that service, under `/collaboration/` on the frontend's own host; no third-party service is involved.
 
-The Collaboration section of the sidebar checks whether the service is reachable. If it is, a person can create a Room, which gets a six-character room code from the service, or join one with its code; inside, the section shows the code and the Participants with their colors, marks the Host, and offers to leave. The Host can kick another Participant (who is told so and may rejoin with the code) or hand the Host right to them; when the Host leaves, the right passes to whoever has been in the Room longest. With login off, the person types a display name, which the browser remembers. With login on, the name comes from the login and the access token (refreshed first if it is about to expire) is sent when creating or joining; the service checks it only then. Each Participant can change their own color with the color picker next to their name. If the service is not reachable, the section says that collaboration is currently disabled. Exploring alone works either way.
+The terms used here are defined in `GLOSSARY.md`: Room, room code, Participant, Host, District sharing, Spectating.
 
-Inside a Room the section also shows the chat. Its history is Room state, so people who join late see the earlier entries (the service keeps the last 200). The Host can mute and unmute a Participant; the service refuses a muted Participant's messages and the frontend says so. A message can be deleted for everyone by its author or the Host. After leaving, the history stays visible as the person's own copy until they clear it; joining a Room drops it.
+## Design
 
-A ping in a Room goes to the other Participants, who see it in the pinger's color; it is a message and is not stored. The service writes a chat event for every ping and for every entity that becomes someone's highlight (also for muted Participants); clients never send these entries. A ping event can be replayed and a highlight event offers "Look At".
+**Shared state has one home** (`docs/adr/0003-shared-state-has-one-home.md`). Each piece of exploration state is either the person's own state in the browser or the Room's state in the service, never both. In a Room, a user action is a message to the service; the view changes when the service's state patch arrives. The service checks every action (who may do it, whether the payload is valid). Nothing is mirrored between local stores and the Room.
 
-A short network drop does not end the Room. The service holds the seat for 60 seconds and the SDK reconnects on its own with the same identity, then shows the Room's current state. Meanwhile the section (and an icon in the navbar) says "Reconnecting…", the last seen state stays on screen, and shared actions are ignored: `useRoomConnectionStore.reconnecting` is true and the SDK keeps no messages for later (`room.reconnection.maxEnqueuedMessages = 0`). Requests (chat) are skipped while reconnecting. If reconnecting fails, the seat expires or the service restarts, it is treated like leaving: the person carries on alone from the last state they saw and is told the room connection was lost. A kicked Participant is not reconnected.
+**Hand-overs** are the only moments when state changes home:
 
-Shared so far: closed and hidden Districts, highlights and popups. Joining always asks first, because it drops the person's own exploration (Districts, highlights, annotations, open popups); the notice offers to go back, to take a Snapshot first, or to drop it and join. Creating a Room hands the creator's Districts and highlights to the Room. After leaving, the person carries on with what they saw in the Room.
+- Creating a Room hands the creator's exploration to the Room (Landscape, closed and hidden Districts, highlights, annotations). Their popups stay their own until they share them.
+- Joining drops the joiner's exploration, so the join notice always asks first: go back, take a Snapshot first, or drop the exploration and join.
+- Leaving, for any reason (button, kick, lost connection), makes the Room's last state the person's own; they carry on alone from what they last saw.
+- Switching District sharing off or on (see below).
 
-Highlights are shared, each in the color of the Participant who made it. An entity has at most one highlighter: highlighting an entity someone else highlighted takes it over, clicking your own highlight removes it, and "Clear Highlighting" removes only your own. A Participant's highlights disappear when they leave the Room; after leaving, every highlighted entity you saw stays highlighted as your own.
+**The Room contract** (state schema, message types, join options and refusal codes, contract version) lives in `collaboration-service/src/contract/`. The frontend uses the generated copy `src/utils/collaboration/room-contract.generated.ts` (see "Room contract" below). Rules that the browser needs too, such as how District and highlight actions apply, are contract functions that run in both places.
 
-The Host can switch District sharing off ("Share Districts" in the Room panel; on by default, shown to everyone). While it is off, everyone opens and closes Districts for themselves inside the Room: switching off hands the Room's Districts to everyone as their own, so no view changes; switching on makes the Host's own Districts the Room's and everyone's view jumps to them. Someone joining while it is off starts with all Districts open.
+## What a Room offers
 
-A popup stays the person's own until they share it with the share button (shown only in a Room; sharing also pins it). A shared popup is Room state: everyone in the Room has it open, and it shows who shared it. Where it sits and what it has loaded stay with each person. Anyone can close a shared popup, which closes it for everyone; closing an unshared one closes it only for oneself. Creating a Room keeps the creator's popups their own, joining drops them, and after leaving the shared popups stay open as one's own. A Landscape switch clears the shared popups.
+**Entering.** The Collaboration section of the settings sidebar checks that the service is reachable (`/collaboration/__healthcheck`); if not, it says collaboration is disabled, and exploring alone works as before. A person creates a Room, which gets a six-character room code, or joins one with its code. With login off they type a display name, which the browser remembers; with login on the name comes from the login, and the service checks the access token when creating or joining. Each Participant has a color, which they can change with the color picker next to their name. A Room holds at most 16 Participants (service setting `MAX_PARTICIPANTS`).
 
-Snapshots work alongside Rooms but are never loaded into one. Saving a Snapshot in a Room saves what the person sees (the Room's exploration, in the usual Snapshot format). "Take a Snapshot first" in the join notice saves a normal personal Snapshot of the current exploration and then joins; if saving fails, nobody joins. Opening a Snapshot in a Room first asks to leave the Room; staying means the Snapshot is not opened. To share a Snapshot, open it alone and then create a Room: the Room starts from it, like from any own exploration.
+**Host rights.** The creator is the Host. The Host can switch the Room's Landscape and District sharing, mute and unmute, kick (the kicked Participant is told so and may rejoin with the code), and hand the Host right to another Participant. When the Host leaves for good, the right passes to whoever has been in the Room longest.
 
-A Room is on one Landscape, the creator's. Only the Host can switch it: when the Host opens another Landscape, the service switches the Room's and everyone loads it; whoever else opens another Landscape is taken back to the Room's. Joining a Room on another Landscape loads the Room's. A switch clears everything in the Room tied to the old Landscape (for now the closed and hidden Districts, the highlights and the shared popups); the Participants, the chat and the District sharing option stay.
+**Landscape.** A Room is on one Landscape. When the Host opens another Landscape, the Room switches and everyone loads it; anyone else who opens another Landscape is told that only the Host can switch it and is taken back. A switch clears everything tied to the old Landscape (Districts, highlights, annotations, shared popups); Participants, chat and District sharing stay.
+
+**Districts.** Opening, closing, hiding and showing Districts acts on the Room. The Host can switch District sharing off ("Share Districts", on by default, shown to everyone). Switching off hands the Room's Districts to everyone as their own, so no view changes, and from then on everyone opens and closes Districts for themselves. Switching on makes the Host's own Districts the Room's. Someone who joins while sharing is off starts with all Districts open.
+
+**Highlights** are shown in the color of the Participant who made them. An entity has one highlighter at a time: highlighting someone else's highlight takes it over, clicking your own removes it, and "Clear Highlighting" removes only your own. A Participant's highlights go when they leave the Room.
+
+**Annotations** are all shared. Anyone may add, edit or remove one; each records its creator and last editor. Where an annotation is shown (position, minimized, edit mode) stays with each person.
+
+**Popups** stay one's own until shared with the share button (shown only in a Room; sharing also pins it). A shared popup is open for everyone and shows who shared it; each person keeps their own position and loaded details. Anyone can close a shared popup, which closes it for everyone.
+
+**Chat.** The history is Room state, so latecomers see earlier entries (the service keeps the last 200). The Host can mute a Participant; the service refuses a muted Participant's messages. The author or the Host can delete a message. After leaving, the history stays as the person's own copy until cleared.
+
+**Pings and events.** A ping goes to the other Participants, who see it in the pinger's color; pings are not stored. The service writes a chat event for every ping and for every new highlight. A ping event can be replayed, a highlight event offers "Look At".
+
+**Spectating.** A Participant can follow another's camera. The followed person's browser sends its camera only while somebody spectates it (at most 30 times a second, only when it changed). The Participants list shows who spectates whom.
+
+**Immersive view.** Others see a marker in your color on the entity you view immersively, and the Participants list says who is in immersive view.
+
+**Snapshots** work alongside Rooms but are never loaded into one. Saving a Snapshot in a Room saves what the person sees. "Take a Snapshot first" in the join notice saves the current exploration and then joins (nobody joins if saving fails). Opening a Snapshot in a Room asks to leave the Room first. To share a Snapshot, open it alone and create a Room: the Room starts from it.
+
+**Reconnecting.** A short network drop does not end the Room. The service holds the seat for 60 seconds (`RECONNECTION_SECONDS`) and the SDK reconnects with the same identity. Meanwhile the section and a navbar icon say "Reconnecting…", the last seen state stays on screen, and shared actions are ignored rather than sent later. If reconnecting fails, the hold expires or the service restarts, it counts as leaving and the person is told the connection to the Room was lost. A kicked Participant is not reconnected.
+
+**Not shared** (each person's own): camera (except while spectating), annotation and popup positions, the selected Timestamp and Commits, heatmap, visualization settings, VR avatars and controllers.
 
 ## Code
 
-- `src/utils/collaboration/room-connection.ts`: `useRoomConnectionStore` holds the joined SDK `Room` (`room`, `connecting`, `reconnecting`, `createRoom`, `joinRoom`, `leaveRoom`) and shows refusals as toasts. `useRoomState()` reads the Room's state as an immutable snapshot (via `@colyseus/react`); the state is never copied into a store.
-- `src/components/collaboration/.../collaboration/collaboration-controls.tsx`: the Collaboration section.
-- `src/utils/collaboration/chat.ts`: the chat module. `useChat()` gives the history (the Room's, or the own copy after leaving) and the actions; `setParticipantMuted` is the Host's mute. The UI is `components/visualization/page-setup/sidebar/customizationbar/chat/chat-box.tsx`.
-- `src/utils/collaboration/pings.ts`: pings. `sharePing` sends your ping to the Room; `onPingReceived` gives the other Participants' pings, which `view-objects/3d/city/ping-animation.ts` shows (and sends from `pingByModelId` / `pingPosition` unless `sendMessage` is false).
-- `src/utils/collaboration/spectating.ts`: spectating. `spectate(sessionId)` / `stopSpectating()` ask the service; `useSpectating()` gives whom you follow and who follows you (Room state); `latestCameraOf(sessionId)` is the last camera the service forwarded. `SpectateCameraController` (in the Canvas) applies that camera while you spectate and sends yours while somebody spectates you (at most 30 times per second, only when it changed).
-- `src/utils/collaboration/immersive-view-sharing.ts`: the immersive-view indicator. `RemoteImmersiveIndicators` (in the Canvas) shares your immersive view and marks the others' in their colors.
-- `src/utils/collaboration/districts.ts`: the collaboration module for Districts (see below).
-- `src/utils/collaboration/highlights.ts`: the collaboration module for highlights (who highlighted which entity, in which color). `utils/city-rendering/highlighting.ts` keeps its function names and turns each into one highlight action.
-- `src/utils/collaboration/landscape.ts`: the Room's Landscape. The Landscape token store still says which Landscape the page loads; in a Room this module makes it follow the Room's `landscapeToken` and turns the Host's opening of another Landscape into a `switchLandscape` request. `pages/visualization.tsx` reloads when the token changes from one Landscape to another while it is open.
-- `src/utils/collaboration/popups.ts`: the popups module. `usePopups()` / `getPopups()` give the shown popups (the own ones plus the Room's shared ones, each with this person's layout); `addPopup`, `removePopup`, `updatePopup`, `pinPopup` and `sharePopup` are the user's actions. The popup store holds only the own popups and the layout of shared ones.
-- `src/utils/collaboration/annotations.ts`: the annotations. What was written (entity, title, text, creator, last editor) is the own state alone and the Room's in a Room, where every annotation is shared and anyone may add, save or remove it; where each annotation is shown (position, minimized, hidden, edit mode) stays each person's own, in the annotation handler store. `useAnnotations()` / `getAnnotations()` give what is shown; `addAnnotation`, `saveAnnotation` and `removeAnnotation` are the user's actions.
-- `src/utils/collaboration/snapshots.ts`: Snapshots and Rooms. `leaveRoomToOpenSnapshot()` is called before a Snapshot is opened; in a Room it asks (`components/collaboration/leave-room-for-snapshot-notice.tsx`, mounted in `pages/application.tsx`) and leaves. `applySerializedRoomState` does nothing in a Room, and a Snapshot still waiting for its Landscape data is dropped on entering one.
-- `src/utils/collaboration/capabilities.ts`: loads every capability's module so its hand-over is registered.
-- `tests/fake-collaboration-service.ts`: a stand-in for the service at the `@colyseus/sdk` boundary, with real state encoding, for tests of anything that reads or changes Room state.
+All paths are relative to `src/`.
 
-## One collaboration module per capability
+- `utils/collaboration/room-connection.ts`: `useRoomConnectionStore` holds the joined SDK `Room` (`room`, `connecting`, `reconnecting`, `createRoom`, `joinRoom`, `leaveRoom`, `kick`, `handOverHost`) and shows refusals and leave notices as toasts. `useRoomState()` and `useRoomStatePart(key)` read the Room's state as immutable snapshots (via `@colyseus/react`); both are undefined while alone and until the Room's first state has arrived. `registerHandOver` is where capability modules plug in.
+- `utils/collaboration/collaboration-service.ts`: the `/collaboration` path and the reachability check.
+- `utils/collaboration/capabilities.ts`: imports every capability module, so all hand-overs are registered before anyone can create or join.
+- Capability modules in `utils/collaboration/`: `districts.ts`, `highlights.ts`, `annotations.ts`, `popups.ts`, `landscape.ts`, `chat.ts`, `pings.ts`, `spectating.ts`, `immersive-view-sharing.ts`, `snapshots.ts`. Existing entry points keep their names and call these modules, for example `utils/city-rendering/entity-manipulation.ts` (Districts), `utils/city-rendering/highlighting.ts` (highlights) and `view-objects/3d/city/ping-animation.ts` (pings).
+- `components/collaboration/visualization/page-setup/sidebar/customizationbar/collaboration/collaboration-controls.tsx`: the Collaboration section (entry form, join notice, Room panel); `spectating-status.tsx` next to it.
+- `components/visualization/page-setup/sidebar/customizationbar/chat/chat-box.tsx`: the chat.
+- `components/visualization/rendering/spectate-camera-controller.tsx` and `remote-immersive-indicators.tsx`: mounted in the Canvas (`canvas-wrapper.tsx`).
+- `components/collaboration/leave-room-for-snapshot-notice.tsx`: the question before opening a Snapshot in a Room (mounted in `pages/application.tsx`).
+- `components/page-setup/status-icons.tsx`: the navbar's reconnecting and spectating icons.
 
-Every piece of exploration state has one home: the person's own state in the browser, or the Room's state on the service. Nothing is mirrored (`docs/adr/0003-shared-state-has-one-home.md`). Each capability has one module under `src/utils/collaboration/` that hides which home is used; the rest of the frontend neither imports Colyseus nor asks whether a Room is joined. A module offers:
+### One collaboration module per capability
 
-- **What to show**: a hook for rendering (e.g. `useDistricts(select)`) and a getter for code outside rendering (e.g. `getDistricts()`). Alone they read the own state (a zustand store only the module touches); in a Room they read the Room's state directly (`useRoomStatePart(key)` / `room.state`).
-- **The user did this**: one function taking one user action (e.g. `changeDistricts(actions)`). Alone it changes the own state. In a Room it sends one message and changes nothing locally; the view follows the service's patch.
-- **Hand-overs**: `registerHandOver({ startingState, enter, leave })` from `room-connection.ts`. `startingState()` adds the module's part of the creator's state to the create options; `enter(room, 'created' | 'joined')` drops the own state; `leave(lastState)` makes the Room's last state the own state before the Room stops being shown. Register it at the module's top level and import the module from `capabilities.ts`.
+Each capability has one module that hides which home its state has; the rest of the frontend neither imports Colyseus nor asks whether a Room is joined. A module offers:
 
-The rules of a capability's actions live in the contract when the browser needs them too (`applyDistrictActions` runs alone in the browser and in the Room in the service).
+- **What to show**: a hook for rendering (e.g. `useDistricts(select)`) and a getter for code outside rendering (e.g. `getDistricts()`). Alone they read the own state (a store only the module writes); in a Room they read the Room's state.
+- **The user did this**: one function per user action (e.g. `changeDistricts(actions)`). Alone it changes the own state. In a Room it sends one message and changes nothing locally. Nothing is sent for an action that would not change the Room's state.
+- **Hand-overs**: `registerHandOver({ startingState, enter, leave })` at the module's top level. `startingState()` adds the module's part to the create options, `enter(room, 'created' | 'joined')` drops the own state, and `leave(lastState)` makes the Room's last state the own state. Import the module from `capabilities.ts`.
 
-## Reaching the service
+Message types without a handler in the service get the sender disconnected, so every message the frontend sends needs a handler there.
 
-The browser reaches the service under `/collaboration/` on the frontend's own host, and the prefix is stripped before the request reaches the service. In development the Vite dev server does this (`vite.config.js`) and forwards to `http://localhost:2567`, or to `COLLAB_SERV_URL` / `VITE_COLLAB_SERV_URL` if set. Start the service with `npm start` in `collaboration-service`.
+## Tests
 
-In the Docker image, nginx (`default.conf.template`) does the same. It forwards `/collaboration/` to `COLLAB_SERV_URL` (default `http://collaboration-service:2567`), including WebSocket upgrades, with a one-hour read timeout. The service's `/metrics` endpoint is not forwarded; Prometheus scrapes it inside the container network. The `deployment` repository runs the service next to the frontend.
+`tests/fake-collaboration-service.ts` stands in for the service at the `@colyseus/sdk` boundary, with real state encoding and decoding (through the service's reflection, as the SDK does). Install it with
+
+```ts
+vi.mock('@colyseus/sdk', async () => (await import('./fake-collaboration-service')).fakeColyseusSdk());
+```
+
+and reset `fakeCollaborationService` before each test. Its state schema mirrors the service's `src/contract/state.ts`; change both together. The rules of a Room (who may do what, limits) are tested in the service. The collaboration tests are the `tests/*collaboration*`, `chat`, `host-rights`, `reconnecting`, `spectat*`, `immersive-indicators`, `snapshots-and-rooms` and `room-state-before-first-state` files.
+
+## Running it
+
+**Development.** Start the service with `KEYCLOAK_AUTH_ENABLED=false npm start` in `collaboration-service` (port 2567). The Vite dev server forwards `/collaboration/` to `http://localhost:2567` (or to `COLLAB_SERV_URL` / `VITE_COLLAB_SERV_URL`), including WebSockets, and strips the prefix.
+
+**Docker.** nginx in the frontend image (`default.conf.template`) forwards `/collaboration/` to `COLLAB_SERV_URL` (default `http://collaboration-service:2567`), with WebSocket upgrades and a one-hour read timeout. It does not forward `/collaboration/metrics`; Prometheus scrapes the service's `/metrics` inside the container network. The `deployment` repository runs the service (`explorviz/collaboration-service`) next to the frontend and passes it the Keycloak settings.
+
+**Login.** With `KEYCLOAK_AUTH_ENABLED=true`, the service checks access tokens against `KEYCLOAK_JWKS_URL` and requires the issuer `KEYCLOAK_ISSUER`. The issuer is the Keycloak address the browser uses (in the compose setup `http://localhost:5657/realms/explorviz`).
 
 ## Room contract
 
-The room contract (state definition, message types and contract version) lives in `collaboration-service` under `src/contract/`. The frontend uses a generated copy, `src/utils/collaboration/room-contract.generated.ts`, which is committed here. Do not edit it by hand. After a contract change, regenerate it from a `collaboration-service` checkout next to this one and commit the result:
+Do not edit `src/utils/collaboration/room-contract.generated.ts` by hand. After a contract change, regenerate it from a `collaboration-service` checkout next to this one and commit the result:
 
 ```
 cd ../collaboration-service
