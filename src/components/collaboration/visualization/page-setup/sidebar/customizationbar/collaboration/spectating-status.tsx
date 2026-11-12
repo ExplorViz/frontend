@@ -28,7 +28,7 @@ export function SpectateButton({ sessionId, name }: { sessionId: string; name: s
   return (
     <Button
       size="sm"
-      className="ms-auto py-0"
+      className="py-0"
       variant={following ? 'danger' : 'outline-success'}
       title={label}
       aria-label={label}

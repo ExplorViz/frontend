@@ -14,7 +14,7 @@ export const ROOM_NAME = "collaboration";
 export type JoinOptions = {
   /** The client's CONTRACT_VERSION. */
   contractVersion: number;
-  /** The display name, typed by the person while login is off. */
+  /** The display name, typed by the person. Ignored while login is on: the name then comes from the login. */
   name: string;
 };
 
@@ -29,13 +29,67 @@ export const JoinRefusal = {
   CONTRACT_MISMATCH: 4100,
   /** The Room already has its maximum number of Participants. */
   ROOM_FULL: 4101,
+  /** Login is on and the request carried no valid login token. */
+  LOGIN_REQUIRED: 4102,
 } as const;
+
+/**
+ * Close codes with which the service removes a Participant from a Room.
+ * The SDK passes the code to `room.onLeave`. A removed Participant must not
+ * be offered reconnection.
+ */
+export const LeaveCode = {
+  /** The Host kicked the Participant. They may rejoin with the room code. */
+  KICKED: 4011,
+} as const;
+
+/** A Room keeps this many chat entries; the oldest are dropped beyond that. */
+export const CHAT_HISTORY_LIMIT = 200;
+
+/** The longest chat message, in characters, after trimming. */
+export const MAX_CHAT_MESSAGE_LENGTH = 1000;
+
+/**
+ * What a chat entry is. Participants post messages; the service writes
+ * entries of other kinds itself (e.g. ping and highlight events).
+ */
+export const ChatEntryKind = {
+  /** A message a Participant posted. */
+  MESSAGE: "message",
+} as const;
+export type ChatEntryKind = (typeof ChatEntryKind)[keyof typeof ChatEntryKind];
+
+/**
+ * Reasons with which the service rejects a chat request. The SDK rejects
+ * `room.request(...)` with an error whose `reason` is one of these.
+ */
+export const ChatRefusal = {
+  /** The sender is muted by the Host. */
+  MUTED: "muted",
+  /** Only the Host (or, for deletion, the author) may do this. */
+  NOT_ALLOWED: "not_allowed",
+  /** The payload is malformed, empty, too long, or names nothing known. */
+  INVALID: "invalid",
+} as const;
+export type ChatRefusal = (typeof ChatRefusal)[keyof typeof ChatRefusal];
 
 /**
  * Messages a client sends to the Room: message type -> payload.
  * Each entry has a handler of the same name in CollaborationRoom's `messages`.
  */
 export type ClientMessages = {
+  /** Host only: removes the Participant with this session id from the Room. */
+  kick: { sessionId: string };
+  /** Host only: makes the Participant with this session id the Host instead. */
+  handOverHost: { sessionId: string };
+  /** Changes the sender's own color to a CSS hex color such as "#e6194b". Other values are ignored. */
+  setColor: { color: string };
+  /** Post a chat message. Rejected with a ChatRefusal (e.g. "muted"). */
+  chatSend: { text: string };
+  /** Delete a chat entry for everyone. Allowed for its author and the Host. */
+  chatDelete: { entryId: string };
+  /** Mute or unmute a Participant (by session id). Host only. */
+  chatMute: { participantId: string; muted: boolean };
   /** Follow another Participant's camera (their session id), or stop with null. */
   spectate: { target: string | null };
   /**
@@ -70,11 +124,23 @@ export const CAMERA_UPDATES_PER_SECOND = 30;
 export type CollaborationState = {
   participants: Record<string, Participant>;
   hostId: string;
+  chat: ChatEntry[];
 };
 
 export type Participant = {
   name: string;
   color: string;
+  muted: boolean;
   spectating: string;
   immersiveEntityId: string;
+};
+
+export type ChatEntry = {
+  id: string;
+  kind: string;
+  authorId: string;
+  authorName: string;
+  authorColor: string;
+  text: string;
+  time: number;
 };
