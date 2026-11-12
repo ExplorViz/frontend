@@ -48,6 +48,27 @@ export function getLogServiceUrl(): string {
 const landscapeService = getLandscapeServiceUrl();
 const traceService = getTraceServiceUrl();
 
+export async function requestLandscapeHasData(landscapeToken: string, signal: AbortSignal): Promise<boolean> {
+  const response = await fetch(
+    `${landscapeService}/v3/landscapes/${encodeURIComponent(landscapeToken)}/structure/has-data`,
+    {
+      headers: {
+        Authorization: `Bearer ${useAuthStore.getState().accessToken}`,
+      },
+      cache: 'no-store',
+      signal,
+    }
+  );
+  if (!response.ok) {
+    throw new Error(await getResponseErrorMessage(response));
+  }
+  const hasData: unknown = await response.json();
+  if (typeof hasData !== 'boolean') {
+    throw new Error('Invalid landscape data availability response');
+  }
+  return hasData;
+}
+
 // Helper functions to convert between nanoseconds and milliseconds
 // The backend now uses nanoseconds, but frontend Date objects use milliseconds
 const NANOSECONDS_PER_MILLISECOND = 1_000_000n;

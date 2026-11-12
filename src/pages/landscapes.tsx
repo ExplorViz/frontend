@@ -7,8 +7,9 @@ import { useAuthStore } from 'explorviz-frontend/src/stores/auth';
 import { LandscapeToken, useLandscapeTokenStore } from 'explorviz-frontend/src/stores/landscape-token';
 import { SnapshotInfo, TinySnapshot, useSnapshotTokenStore } from 'explorviz-frontend/src/stores/snapshot-token';
 import { useToastHandlerStore } from 'explorviz-frontend/src/stores/toast-handler';
-import React, { useEffect, useState } from 'react';
-import { Tab, Tabs } from 'react-bootstrap';
+import { requestLandscapeHasData } from 'explorviz-frontend/src/utils/landscape-http-request-util';
+import React, { useEffect, useRef, useState } from 'react';
+import { Button, Modal, Tab, Tabs } from 'react-bootstrap';
 import { createSearchParams, useNavigate } from 'react-router-dom';
 import { RepoAnalysisModal } from '../components/repo-analysis-modal';
 
@@ -21,6 +22,8 @@ export default function Landscapes() {
   const [tokenCreationModalIsOpen, setTokenCreationModalIsOpen] = useState<boolean>(false);
   const [repoAnalysisModalIsOpen, setRepoAnalysisModalIsOpen] = useState<boolean>(false);
   const [selectedAnalysisToken, setSelectedAnalysisToken] = useState<LandscapeToken | undefined>(undefined);
+  const [emptyLandscape, setEmptyLandscape] = useState<LandscapeToken | null>(null);
+  const availabilityCheck = useRef<AbortController | null>(null);
 
   const [activeKey, setActiveKey] = useState<string>('landscapes');
 
@@ -33,6 +36,8 @@ export default function Landscapes() {
   const user = useAuthStore((state) => state.user);
   const accessToken = useAuthStore((state) => state.accessToken);
   const navigate = useNavigate();
+
+  useEffect(() => () => availabilityCheck.current?.abort(), []);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -63,6 +68,7 @@ export default function Landscapes() {
   };
 
   const openRepoAnalysisModal = (token?: LandscapeToken) => {
+    availabilityCheck.current?.abort();
     setSelectedAnalysisToken(token);
     setRepoAnalysisModalIsOpen(true);
   };
@@ -72,7 +78,7 @@ export default function Landscapes() {
     setSelectedAnalysisToken(undefined);
   };
 
-  const selectToken = (token: LandscapeToken) => {
+  const openLandscape = (token: LandscapeToken) => {
     setLandscapeToken(token);
     useSnapshotTokenStore.setState({ latestSnapshotToken: null });
     navigate({
@@ -81,7 +87,32 @@ export default function Landscapes() {
     });
   };
 
+  const selectToken = async (token: LandscapeToken) => {
+    availabilityCheck.current?.abort();
+    const check = new AbortController();
+    availabilityCheck.current = check;
+
+    try {
+      const hasData = await requestLandscapeHasData(token.value, check.signal);
+      if (check.signal.aborted) return;
+
+      if (hasData) {
+        openLandscape(token);
+      } else {
+        setEmptyLandscape(token);
+      }
+    } catch {
+      if (check.signal.aborted) return;
+
+      useToastHandlerStore.getState().showErrorToastMessage('Could not check whether the landscape has data.');
+      openLandscape(token);
+    } finally {
+      if (availabilityCheck.current === check) availabilityCheck.current = null;
+    }
+  };
+
   const selectPersonalSnapshot = async (token: TinySnapshot) => {
+    availabilityCheck.current?.abort();
     setSnapshotToken(null);
     useSnapshotTokenStore.setState({ snapshotSelected: true });
     setLandscapeToken(null);
@@ -97,6 +128,7 @@ export default function Landscapes() {
   };
 
   const selectSharedSnapshot = (token: TinySnapshot) => {
+    availabilityCheck.current?.abort();
     useSnapshotTokenStore.setState({ snapshotSelected: true });
     setLandscapeToken(null);
     navigate({
@@ -224,7 +256,10 @@ export default function Landscapes() {
               style={{ maxHeight: '80vh', overflowY: 'auto' }}
             >
               <TokenSelection
-                openTokenCreationModal={() => setTokenCreationModalIsOpen(true)}
+                openTokenCreationModal={() => {
+                  availabilityCheck.current?.abort();
+                  setTokenCreationModalIsOpen(true);
+                }}
                 openRepoAnalysisModal={openRepoAnalysisModal}
                 selectToken={selectToken}
                 tokens={data.landscapeTokens}
@@ -245,6 +280,33 @@ export default function Landscapes() {
       </div>
 
       <div>
+        <Modal show={emptyLandscape !== null} onHide={() => setEmptyLandscape(null)} centered>
+          <Modal.Header closeButton>
+            <Modal.Title>No landscape data available</Modal.Title>
+          </Modal.Header>
+          <Modal.Footer>
+            <Button
+              variant="secondary"
+              onClick={() => {
+                if (!emptyLandscape) return;
+                setEmptyLandscape(null);
+                openLandscape(emptyLandscape);
+              }}
+            >
+              Wait for trace data
+            </Button>
+            <Button
+              onClick={() => {
+                if (!emptyLandscape) return;
+                setEmptyLandscape(null);
+                openRepoAnalysisModal(emptyLandscape);
+              }}
+            >
+              Analyze a Git repository
+            </Button>
+          </Modal.Footer>
+        </Modal>
+
         <TokenCreationModal
           show={tokenCreationModalIsOpen}
           handleClose={() => setTokenCreationModalIsOpen(false)}

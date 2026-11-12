@@ -291,7 +291,14 @@ export default function TokenSelection({
                 <ul className="token-selection-icons">
                   <li>
                     <OverlayTrigger placement="bottom" overlay={<Tooltip>Go to Landscape</Tooltip>}>
-                      <button className="button-svg-with-hover" type="button" onClick={() => selectToken(token)}>
+                      <button
+                        className="button-svg-with-hover"
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          selectToken(token);
+                        }}
+                      >
                         <EyeIcon size="small" className="align-middle" />
                       </button>
                     </OverlayTrigger>
