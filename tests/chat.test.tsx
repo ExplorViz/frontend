@@ -130,8 +130,8 @@ it('shows a muted Participant that they are muted and keeps them from typing', a
 it('lets the Host mute and unmute another Participant', async () => {
   const user = await createRoomAs('Ada');
   const room = service.rooms.get('ROOM01')!;
-  room.answer('chatMute', (_sessionId, { participantId, muted }) =>
-    room.update((state) => (state.participants.get(participantId)!.muted = muted))
+  room.answer('chatMute', (_sessionId, { sessionId, muted }) =>
+    room.update((state) => (state.participants.get(sessionId)!.muted = muted))
   );
   room.seat('session-grace', 'Grace');
   room.update(() => {});
@@ -142,8 +142,8 @@ it('lets the Host mute and unmute another Participant', async () => {
 
   const host = [...room.clients.values()][0];
   expect(host.sent).toEqual([
-    { type: 'chatMute', payload: { participantId: 'session-grace', muted: true } },
-    { type: 'chatMute', payload: { participantId: 'session-grace', muted: false } },
+    { type: 'chatMute', payload: { sessionId: 'session-grace', muted: true } },
+    { type: 'chatMute', payload: { sessionId: 'session-grace', muted: false } },
   ]);
   expect(await screen.findByRole('button', { name: 'Mute Grace' })).toBeInTheDocument();
 });

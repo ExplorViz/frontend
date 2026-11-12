@@ -105,6 +105,6 @@ export function useChat(): Chat {
 }
 
 /** Mutes or unmutes a Participant of the Room (Host only; the service checks). */
-export function setParticipantMuted(participantId: string, muted: boolean) {
-  return request('chatMute', { participantId, muted });
+export function setParticipantMuted(sessionId: string, muted: boolean) {
+  return request('chatMute', { sessionId, muted });
 }

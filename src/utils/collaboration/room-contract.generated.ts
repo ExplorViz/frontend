@@ -60,6 +60,18 @@ export const LeaveCode = {
   KICKED: 4011,
 } as const;
 
+/**
+ * The longest entity id (of a District, building, communication, ...) the
+ * service accepts in any message. Longer than any id the frontend makes, and
+ * short enough that every message naming one entity stays far below 4 KB.
+ */
+export const MAX_ENTITY_ID_LENGTH = 1000;
+
+/** Whether a message's value is an entity id the service accepts: a non-empty string of at most MAX_ENTITY_ID_LENGTH characters. */
+export function isEntityId(value: unknown): value is string {
+  return typeof value === "string" && value !== "" && value.length <= MAX_ENTITY_ID_LENGTH;
+}
+
 /** A Room keeps this many chat entries; the oldest are dropped beyond that. */
 export const CHAT_HISTORY_LIMIT = 200;
 
@@ -178,9 +190,6 @@ export type HighlightAction =
   /** Removes every highlight of the actor; everyone else's stay. */
   | { type: "unhighlightAll" };
 
-/** The longest entity id the service accepts in a highlight action, so every action stays far below 4 KB. */
-export const MAX_ENTITY_ID_LENGTH = 1000;
-
 /** What `applyHighlightAction` changes: entity id -> the highlighter. */
 export type HighlightOwners = {
   get(entityId: string): string | undefined;
@@ -257,6 +266,7 @@ export type AnnotationRefusal = (typeof AnnotationRefusal)[keyof typeof Annotati
 /**
  * Messages a client sends to the Room: message type -> payload.
  * Each entry has a handler of the same name in CollaborationRoom's `messages`.
+ * A Participant is always named by their session id, in a field `sessionId`.
  */
 export type ClientMessages = {
   /** Host only: removes the Participant with this session id from the Room. */
@@ -269,8 +279,8 @@ export type ClientMessages = {
   chatSend: { text: string };
   /** Delete a chat entry for everyone. Allowed for its author and the Host. */
   chatDelete: { entryId: string };
-  /** Mute or unmute a Participant (by session id). Host only. */
-  chatMute: { participantId: string; muted: boolean };
+  /** Host only: mutes or unmutes the Participant with this session id. */
+  chatMute: { sessionId: string; muted: boolean };
   /** Follow another Participant's camera (their session id), or stop with null. */
   spectate: { target: string | null };
   /**
