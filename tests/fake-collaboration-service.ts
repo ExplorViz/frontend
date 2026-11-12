@@ -44,6 +44,7 @@ const ChatEntry = schema(
     authorColor: t.string(),
     text: t.string(),
     entityId: t.string().default(''),
+    entityCount: t.number().default(0),
     position: t.array('number'),
     time: t.number(),
   },
@@ -387,6 +388,7 @@ export class FakeServerRoom {
     authorColor?: string;
     text: string;
     entityId?: string;
+    entityCount?: number;
     position?: number[];
   }) {
     this.state.chat.push(

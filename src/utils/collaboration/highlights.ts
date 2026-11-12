@@ -7,6 +7,7 @@ import {
 } from 'explorviz-frontend/src/utils/collaboration/room-connection';
 import {
   applyHighlightAction,
+  highlightChunks,
   type HighlightAction,
   type HighlightOwners,
   type Participant,
@@ -107,9 +108,17 @@ export function highlighterColor(entityId: string): string | undefined {
   return sessionId ? room!.state.participants.get(sessionId)?.color : undefined;
 }
 
+/** The messages of one action: a bulk highlight is split into chunks far below 4 KB, all but the first `continued`. */
+function messages(action: HighlightAction): HighlightAction[] {
+  if (action.type !== 'highlightMany') return [action];
+  return highlightChunks(action.entityIds).map((entityIds, i) =>
+    i === 0 ? { ...action, entityIds } : { type: 'highlightMany', entityIds, continued: true }
+  );
+}
+
 /**
  * The user did this. Alone it changes the own highlights at once; in a Room
- * it is sent to the service as one message, and the view follows once the
+ * it is sent to the service as one message (a long bulk highlight in chunks), and the view follows once the
  * service has applied it. Nothing is sent for an action that would not
  * change the Room's highlights.
  */
@@ -120,7 +129,7 @@ export function changeHighlights(action: HighlightAction) {
     const next = new Map<string, string>(highlights?.entries() ?? []);
     applyHighlightAction(next, room.sessionId, action);
     const same = next.size === (highlights?.size ?? 0) && [...next].every(([id, by]) => highlights.get(id) === by);
-    if (!same) room.send('highlights', action);
+    if (!same) for (const message of messages(action)) room.send('highlights', message);
     return;
   }
   const next = new Set(ownIds());

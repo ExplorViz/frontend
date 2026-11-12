@@ -2,7 +2,7 @@ import { DeviceCameraVideoIcon, LocationIcon, PaintbrushIcon } from '@primer/oct
 import { useLiveBuildings } from 'explorviz-frontend/src/components/visualization/rendering/popups/city-popups/use-live-flat-entity';
 import { useCameraControlsStore } from 'explorviz-frontend/src/stores/camera-controls-store';
 import { getFileExtensionGroupsFromBuildings } from 'explorviz-frontend/src/stores/entity-filtering-store';
-import { highlightById, unhighlightById } from 'explorviz-frontend/src/utils/city-rendering/highlighting';
+import { setHighlightingByIds } from 'explorviz-frontend/src/utils/city-rendering/highlighting';
 import { isOwnHighlight, useHighlights } from 'explorviz-frontend/src/utils/collaboration/highlights';
 import { pingByModelId } from 'explorviz-frontend/src/view-objects/3d/city/ping-animation';
 import { useMemo } from 'react';
@@ -22,13 +22,7 @@ function areAllBuildingsHighlighted(buildingIds: readonly string[]): boolean {
 function toggleHighlightBuildings(buildingIds: readonly string[]) {
   const allHighlighted = areAllBuildingsHighlighted(buildingIds);
 
-  buildingIds.forEach((buildingId) => {
-    if (allHighlighted) {
-      unhighlightById(buildingId);
-    } else {
-      highlightById(buildingId);
-    }
-  });
+  setHighlightingByIds([...buildingIds], !allHighlighted);
 }
 
 function pingBuildings(buildingIds: readonly string[]) {

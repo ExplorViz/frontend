@@ -9,7 +9,7 @@ import { useLandscapeTokenStore } from 'explorviz-frontend/src/stores/landscape-
 import { useRenderingServiceStore } from 'explorviz-frontend/src/stores/rendering-service';
 import { useModelStore } from 'explorviz-frontend/src/stores/repos/model-repository';
 import { useToastHandlerStore } from 'explorviz-frontend/src/stores/toast-handler';
-import { highlightById, removeAllHighlighting } from 'explorviz-frontend/src/utils/city-rendering/highlighting';
+import { highlightOnly } from 'explorviz-frontend/src/utils/city-rendering/highlighting';
 import { CROSS_COMMIT_IDENTIFIER } from 'explorviz-frontend/src/utils/evolution-schemes/evolution-data';
 import { CommSummary } from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/communication';
 import { Span, TraceOverview } from 'explorviz-frontend/src/utils/landscape-schemes/telemetry/traces';
@@ -92,23 +92,20 @@ export default function TraceDetails({ traceOverview, onBackClick }: TraceDetail
       }
 
       lookAtEntity(entityId, 1);
-      removeAllHighlighting();
-      highlightById(entityId);
 
-      if (!parent) {
-        return;
-      }
+      const parentEntityid = !parent
+        ? undefined
+        : parent.telemetryKey
+          ? telemetryKeyToEntityId.get(parent.telemetryKey)
+          : Object.values(cities).find((c) => c.name === parent.serviceName)?.id;
 
-      const parentEntityid = parent.telemetryKey
-        ? telemetryKeyToEntityId.get(parent.telemetryKey)
-        : Object.values(cities).find((c) => c.name === parent.serviceName)?.id;
-
-      const comm = Object.values(aggregatedCommunications).find(
-        (c) => c.sourceEntity.id === parentEntityid && c.targetEntity.id === entityId
-      );
-      if (comm) {
-        highlightById(comm.id);
-      }
+      const comm = parent
+        ? Object.values(aggregatedCommunications).find(
+            (c) => c.sourceEntity.id === parentEntityid && c.targetEntity.id === entityId
+          )
+        : undefined;
+      // One action: the span's entity (and the call to it) become the only own highlights.
+      highlightOnly(comm ? [entityId, comm.id] : [entityId]);
     },
     [cities, telemetryKeyToEntityId, aggregatedCommunications, lookAtEntity]
   );

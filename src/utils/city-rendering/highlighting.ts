@@ -22,6 +22,18 @@ export function setHighlightingById(modelId: string, highlight: boolean) {
   changeHighlights({ type: highlight ? 'highlight' : 'unhighlight', entityId: modelId });
 }
 
+/** Highlights (taking over) or removes the own highlights of many entities, as one user action. */
+export function setHighlightingByIds(modelIds: string[], highlight: boolean) {
+  if (modelIds.length === 0) return;
+  changeHighlights({ type: highlight ? 'highlightMany' : 'unhighlightMany', entityIds: modelIds });
+}
+
+/** Makes these entities the only own highlights, as one user action; in a Room everyone else's stay. */
+export function highlightOnly(modelIds: string[]) {
+  if (modelIds.length === 0) removeAllHighlighting();
+  else changeHighlights({ type: 'highlightMany', entityIds: modelIds, replaceOwn: true });
+}
+
 /** Highlights the entity, in a Room taking it over from whoever highlighted it. */
 export function highlightById(modelId: string) {
   setHighlightingById(modelId, true);

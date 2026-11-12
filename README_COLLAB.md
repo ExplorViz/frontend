@@ -27,7 +27,7 @@ The terms used here are defined in `GLOSSARY.md`: Room, room code, Participant, 
 
 **Districts.** Opening, closing, hiding and showing Districts acts on the Room. The Host can switch District sharing off ("Share Districts", on by default, shown to everyone). Switching off hands the Room's Districts to everyone as their own, so no view changes, and from then on everyone opens and closes Districts for themselves. Switching on makes the Host's own Districts the Room's. Someone who joins while sharing is off starts with all Districts open. "Close all" is one small action that names only the top-level Districts: the Room then keeps its sets as every District but the exceptions, and `districts.ts` expands them against the Landscape.
 
-**Highlights** are shown in the color of the Participant who made them. An entity has one highlighter at a time: highlighting someone else's highlight takes it over, clicking your own removes it, and "Clear Highlighting" removes only your own. A Participant's highlights go when they leave the Room.
+**Highlights** are shown in the color of the Participant who made them. An entity has one highlighter at a time: highlighting someone else's highlight takes it over, clicking your own removes it, and "Clear Highlighting" removes only your own. A Participant's highlights go when they leave the Room. Highlighting many entities at once (Copilot, trace player, entity search, a city's files) is one action, `highlightMany`; a long list goes in chunks far below 4 KB, all but the first marked `continued`.
 
 **Annotations** are all shared. Anyone may add, edit or remove one; each records its creator and last editor. Where an annotation is shown (position, minimized, edit mode) stays with each person.
 
@@ -35,7 +35,7 @@ The terms used here are defined in `GLOSSARY.md`: Room, room code, Participant, 
 
 **Chat.** The history is Room state, so latecomers see earlier entries (the service keeps the last 200). The Host can mute a Participant; the service refuses a muted Participant's messages. The author or the Host can delete a message. After leaving, the history stays as the person's own copy until cleared.
 
-**Pings and events.** A ping goes to the other Participants, who see it in the pinger's color; pings are not stored. The service writes a chat event for every ping and for every new highlight. A ping event can be replayed, a highlight event offers "Look At".
+**Pings and events.** A ping goes to the other Participants, who see it in the pinger's color; pings are not stored. The service writes a chat event for every ping and for every highlight action that made entities someone's (one for a bulk highlight: "highlighted X and 4 more"). A ping event can be replayed, a highlight event offers "Look At".
 
 **Spectating.** A Participant can follow another's camera. The followed person's browser sends its camera only while somebody spectates it (at most 30 times a second, only when it changed). The Participants list shows who spectates whom.
 

@@ -3,7 +3,7 @@ import { useEffect, useImperativeHandle, useMemo, useRef, useState } from 'react
 
 import { FOCUS_ENTITY_SEARCH_EVENT } from 'explorviz-frontend/src/components/visualization/page-setup/sidebar/toolbar/toolbar-context';
 import { useCameraControlsStore } from 'explorviz-frontend/src/stores/camera-controls-store';
-import { highlightById } from 'explorviz-frontend/src/utils/city-rendering/highlighting';
+import { setHighlightingByIds } from 'explorviz-frontend/src/utils/city-rendering/highlighting';
 import getPossibleEntityNames from 'explorviz-frontend/src/utils/search-logic';
 import { pingByModelId } from 'explorviz-frontend/src/view-objects/3d/city/ping-animation';
 import Button from 'react-bootstrap/Button';
@@ -66,9 +66,10 @@ const EntitySearch = function EntitySearch({ ref, ..._ }) {
   };
 
   const highlightAllSelectedEntities = () => {
-    selected.forEach((selectedEntity) => {
-      highlightById(selectedEntity.modelId);
-    });
+    setHighlightingByIds(
+      selected.map((selectedEntity) => selectedEntity.modelId),
+      true
+    );
   };
 
   const pingAllSelectedEntities = () => {

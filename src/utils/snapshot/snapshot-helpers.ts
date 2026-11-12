@@ -19,7 +19,7 @@ import { useTimestampPollingStore } from 'explorviz-frontend/src/stores/timestam
 import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
 import { useVisualizationStore } from 'explorviz-frontend/src/stores/visualization-store';
 import { closeDistrictsByList } from 'explorviz-frontend/src/utils/city-rendering/entity-manipulation';
-import { highlightById, removeAllHighlighting } from 'explorviz-frontend/src/utils/city-rendering/highlighting';
+import { highlightOnly } from 'explorviz-frontend/src/utils/city-rendering/highlighting';
 import { canApplySnapshot } from 'explorviz-frontend/src/utils/collaboration/snapshots';
 import { SerializedRoom } from 'explorviz-frontend/src/utils/collaboration/web-socket-messages/types/serialized-room';
 import { CROSS_COMMIT_IDENTIFIER } from 'explorviz-frontend/src/utils/evolution-schemes/evolution-data';
@@ -100,11 +100,7 @@ export function applySerializedRoomState(serializedRoom: SerializedRoom): void {
     closeDistrictsByList(serializedRoom.closedComponentIds, false, false);
   }
 
-  removeAllHighlighting();
-
-  for (const highlight of serializedRoom.highlightedEntities ?? []) {
-    highlightById(highlight.entityId);
-  }
+  highlightOnly((serializedRoom.highlightedEntities ?? []).map((highlight) => highlight.entityId));
 
   if (serializedRoom.popups?.length) {
     usePopupHandlerStore.getState().onRestorePopups(serializedRoom.popups);

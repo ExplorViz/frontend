@@ -6,7 +6,9 @@ import { useVisualizationStore } from '../src/stores/visualization-store';
 import {
   getHighlightingColorForEntity,
   highlightById,
+  highlightOnly,
   removeAllHighlighting,
+  setHighlightingByIds,
   toggleHighlightById,
   unhighlightById,
 } from '../src/utils/city-rendering/highlighting';
@@ -60,6 +62,17 @@ describe('alone', () => {
 
     removeAllHighlighting();
     expect(shown()).toEqual([]);
+  });
+
+  it('highlights and unhighlights many entities, or only these', () => {
+    setHighlightingByIds(['a', 'b', 'c'], true);
+    expect(shown()).toEqual(['a', 'b', 'c']);
+
+    setHighlightingByIds(['a', 'b'], false);
+    expect(shown()).toEqual(['c']);
+
+    highlightOnly(['x', 'y']);
+    expect(shown()).toEqual(['x', 'y']);
   });
 
   it('renders the own highlights', () => {
@@ -124,6 +137,38 @@ describe('in a Room', () => {
     const [message] = sentHighlights(room);
     expect(message.payload).toEqual({ type: 'highlight', entityId: 'org.example.shop.checkout.PaymentService' });
     expect(new TextEncoder().encode(JSON.stringify(message)).length).toBeLessThan(512);
+  });
+
+  it('sends a bulk highlight as one action, in chunks far below 4 KB', async () => {
+    const room = await joinRoom();
+    const ids = Array.from({ length: 300 }, (_, i) => `org.example.shop.package${i}.SomeService${i}`);
+
+    setHighlightingByIds(ids, true);
+
+    const messages = sentHighlights(room);
+    expect(messages.length).toBeGreaterThan(1);
+    expect(messages.map((message) => (message.payload as any).continued ?? false)).toEqual(
+      messages.map((_, i) => i > 0)
+    );
+    expect(messages.flatMap((message) => (message.payload as any).entityIds)).toEqual(ids);
+    for (const message of messages) {
+      expect(new TextEncoder().encode(JSON.stringify(message)).length).toBeLessThan(4096);
+    }
+    room.handleMessages();
+    expect(shown()).toEqual([...ids].sort());
+  });
+
+  it('replaces the own highlights with one action', async () => {
+    const room = await joinRoom();
+    room.update(roomHighlights({ a: GRACE, b: ADA }));
+
+    highlightOnly(['c', 'd']);
+
+    expect(sentHighlights(room).map((message) => message.payload)).toEqual([
+      { type: 'highlightMany', entityIds: ['c', 'd'], replaceOwn: true },
+    ]);
+    room.handleMessages();
+    expect(shown()).toEqual(['b', 'c', 'd']);
   });
 
   it("takes over someone else's highlight, in the own color", async () => {

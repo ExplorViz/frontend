@@ -295,7 +295,7 @@ describe('event entries', () => {
 
   const writeEvent = (
     room: FakeServerRoom,
-    entry: { kind: string; entityId?: string; position?: number[]; text: string }
+    entry: { kind: string; entityId?: string; entityCount?: number; position?: number[]; text: string }
   ) =>
     room.update((state) => {
       const ada = state.participants.get('session-1')!;
@@ -313,6 +313,7 @@ describe('event entries', () => {
     writeEvent(room, { kind: ChatEntryKind.PING, position: [0.5, 0, -4], text: 'Pinged position (0.50, 0.00, -4.00)' });
     writeEvent(room, { kind: ChatEntryKind.HIGHLIGHT, entityId: building.id, text: `Highlighted ${building.id}` });
     writeEvent(room, { kind: ChatEntryKind.HIGHLIGHT, entityId: 'gone', text: 'Highlighted gone' });
+    writeEvent(room, { kind: ChatEntryKind.HIGHLIGHT, entityId: building.id, entityCount: 3, text: 'Highlighted 3' });
 
     await joinRoomAs('Grace', 'K7XQ2M');
 
@@ -321,6 +322,7 @@ describe('event entries', () => {
       'Ada pinged position (0.50, 0.00, -4.00)Replay',
       `Ada highlighted ${building.name}Look At`,
       'Ada highlighted goneLook At',
+      `Ada highlighted ${building.name} and 2 moreLook At`,
     ]);
   });
 

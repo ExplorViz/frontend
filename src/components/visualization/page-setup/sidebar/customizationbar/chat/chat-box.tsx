@@ -148,7 +148,7 @@ function eventDescription(entry: ChatEntry) {
         ? `pinged ${getEntityName(entry.entityId)}`
         : `pinged position (${entry.position.map((n) => n.toFixed(2)).join(', ')})`;
     case ChatEntryKind.HIGHLIGHT:
-      return `highlighted ${getEntityName(entry.entityId)}`;
+      return `highlighted ${getEntityName(entry.entityId)}${entry.entityCount > 1 ? ` and ${entry.entityCount - 1} more` : ''}`;
     default:
       return entry.text;
   }
