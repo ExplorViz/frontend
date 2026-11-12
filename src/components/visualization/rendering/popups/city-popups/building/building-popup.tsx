@@ -108,7 +108,7 @@ function FileTabContent({ detailedData, uuid }: { detailedData: FileDetailedDto 
   const flattenedClasses = flattenClasses(detailedData.classes ?? []);
 
   return (
-    <div className="mt-3 d-flex flex-column gap-3" style={{ maxHeight: '300px', overflowY: 'auto' }}>
+    <div className="mt-3 d-flex flex-column gap-3">
       <section>
         <h6 className="mb-2">Imports</h6>
         <Accordion id={`building-imports-accordion-${uuid}`} className="evolution-accordion">
@@ -277,7 +277,7 @@ export default function BuildingPopup({ popupData }: BuildingPopupProps) {
       <div className="popover-body p-2">
         <Tabs defaultActiveKey="general" id={`building-popup-tabs-${uuid}`} className="nav-tabs justify-content-center">
           <Tab eventKey="general" title="General">
-            <div className="mt-3" style={{ maxHeight: '300px', overflowY: 'auto' }}>
+            <div className="mt-3">
               <table className="table table-sm mb-0">
                 <tbody>
                   <tr>
@@ -335,7 +335,7 @@ export default function BuildingPopup({ popupData }: BuildingPopupProps) {
           </Tab>
           {building.type === 'code' && (
             <Tab eventKey="history" title="History">
-              <div className="mt-3" style={{ maxHeight: '300px', overflowY: 'auto' }}>
+              <div className="mt-3">
                 <BuildingFileHistoryTab history={history} historySpansSeveralPaths={historySpansSeveralPaths} />
               </div>
             </Tab>

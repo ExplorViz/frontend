@@ -326,31 +326,31 @@ export default function BrowserRendering({ userApiTokens, visualizationPaused }:
       >
         <ToolbarContext value={{ ...toolbarState, ...toolbarActions }}>
           <SettingsSidebarContext value={{ ...settingsSidebarState, ...settingsSidebarActions }}>
-            <div className="row h-100">
-              <div className="d-flex flex-column h-100 col-12">
+            <div className="d-flex h-100">
+              <div className="d-flex flex-column h-100 w-100">
                 <div id="rendering" ref={outerDiv}>
                   {!showToolsSidebar && (
-                    <div className="sidebar-tools-button foreground mt-6">
+                    <div className="sidebar-tools-button foreground below-navbar">
                       <Button
                         id="toolsOpener"
                         variant="outline-secondary"
                         title="Tools"
                         onClick={() => setShowToolsSidebar(true)}
                       >
-                        <ToolsIcon size="small" className="align-middle" />
+                        <ToolsIcon size="small" />
                       </Button>
                     </div>
                   )}
 
                   {!showSettingsSidebar && (
-                    <div className="sidebar-open-button foreground mt-6">
+                    <div className="sidebar-open-button foreground below-navbar">
                       <Button
                         id="undoAction"
                         variant="outline-secondary"
                         title="Settings"
                         onClick={() => setShowSettingsSidebar(true)}
                       >
-                        <GearIcon size="small" className="align-middle" />
+                        <GearIcon size="small" />
                       </Button>
                     </div>
                   )}
@@ -434,7 +434,7 @@ export default function BrowserRendering({ userApiTokens, visualizationPaused }:
 
               {showSettingsSidebar && (
                 <div className="sidebar right" id="settingsSidebar">
-                  <div className="mt-6 d-flex flex-row w-100" style={{ zIndex: 90 }}>
+                  <div className="sidebar-layout d-flex flex-row w-100" style={{ zIndex: 90 }}>
                     <SettingsSidebar closeSettingsSidebar={() => setShowSettingsSidebar(false)}>
                       <ComponentTabs
                         activeTab={selectedSettingsSidebarTab}

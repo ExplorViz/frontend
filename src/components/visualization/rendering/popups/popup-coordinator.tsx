@@ -47,6 +47,9 @@ import OverlayTrigger from 'react-bootstrap/OverlayTrigger';
 import Tooltip from 'react-bootstrap/Tooltip';
 import { ToolbarContext } from '../../page-setup/sidebar/toolbar/toolbar-context';
 
+// Height of the navbar (--ev-navbar-height), so popups never slide behind it
+const POPUP_MIN_TOP_POSITION = 64;
+
 interface PopupCoordinatorProps {
   readonly popupData: PopupData;
   addAnnotationForPopup(popup: PopupData): void;
@@ -165,8 +168,8 @@ export default function PopupCoordinator({
       newPositionX = containerWidth - width;
     }
 
-    if (newPositionY < 0) {
-      newPositionY = 0;
+    if (newPositionY < POPUP_MIN_TOP_POSITION) {
+      newPositionY = POPUP_MIN_TOP_POSITION;
     } else if (containerHeight && newPositionY > containerHeight - height) {
       newPositionY = containerHeight - height;
     }
@@ -226,6 +229,7 @@ export default function PopupCoordinator({
     const popoverWidth = popoverDiv.clientWidth;
 
     const containerWidth = containerDiv.clientWidth;
+    const containerHeight = containerDiv.clientHeight;
 
     if (popoverHeight === undefined || popoverWidth === undefined || containerWidth === undefined) {
       return;
@@ -256,6 +260,16 @@ export default function PopupCoordinator({
     if (popupLeftPosition < 0) {
       popupLeftPosition = 0;
     }
+
+    // Prevent popup positioning below(outside) of rendering canvas =>
+    // position at bottom edge of canvas
+    const popupMarginFromEdge = 5;
+    if (popupTopPosition + popoverHeight > containerHeight) {
+      popupTopPosition = containerHeight - popoverHeight - popupMarginFromEdge;
+    }
+
+    // Prevent popup positioning behind the navbar
+    popupTopPosition = Math.max(popupTopPosition, POPUP_MIN_TOP_POSITION);
 
     // Set popup position
     popoverDiv.style.top = `${popupTopPosition}px`;

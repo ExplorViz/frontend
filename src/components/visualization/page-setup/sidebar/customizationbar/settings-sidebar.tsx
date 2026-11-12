@@ -1,7 +1,7 @@
-import { XIcon } from '@primer/octicons-react';
+import { ChevronRightIcon } from '@primer/octicons-react';
 import UndoRestructure from 'explorviz-frontend/src/components/visualization/page-setup/sidebar/customizationbar/restructure/undo-restructure';
 import { ReactNode } from 'react';
-import SidebarResizer from '../sidebar-resizer';
+import SidebarResizeHandle from '../sidebar-resize-handle';
 
 interface SettingsSidebarProps {
   closeSettingsSidebar: () => void;
@@ -14,21 +14,21 @@ export default function SettingsSidebar({ closeSettingsSidebar, children }: Sett
       <div id="sidebarButtonContainer">
         <button
           type="button"
-          className="btn btn-light btn-outline-dark sidebar-button"
-          title="Close Sidebar"
-          aria-label="Close"
+          className="sidebar-close-tab"
+          title="Close settings sidebar"
+          aria-label="Close settings sidebar"
           onClick={closeSettingsSidebar}
         >
-          <XIcon size="small" className="align-middle" />
+          <ChevronRightIcon size="small" />
         </button>
-        <SidebarResizer
-          buttonName="sidebarDragButton"
-          containerName="sidebarButtonContainer"
-          sidebarName="settingsSidebar"
-        />
         <UndoRestructure />
       </div>
-      <div className="sidebar-card-container pr-3 pl-3 pb-3">{children}</div>
+      <div className="sidebar-card-container">
+        <div className="sidebar-content">
+          {children}
+          <SidebarResizeHandle sidebarId="settingsSidebar" side="right" ariaLabel="Resize settings sidebar" />
+        </div>
+      </div>
     </>
   );
 }

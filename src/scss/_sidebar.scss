@@ -95,8 +95,10 @@
 .sidebar {
   display: flex;
   flex-direction: row !important;
-  flex: 0 0 33.333333%;
-  max-width: 33.333333%;
+  // Set from the user-resizable width, see sidebar-resize-handle.tsx
+  max-width: var(--sidebar-width, 33.333333%);
+  // Shared by the close tab and the resize handle that starts below it
+  --sidebar-close-tab-height: 2.5rem;
   position: absolute !important;
   height: 100%;
   right: 0;
@@ -109,20 +111,79 @@
   right: auto;
 }
 
+// Docked flush against the navbar and the window edge
+.sidebar-layout {
+  margin-top: var(--ev-navbar-height);
+}
+
+// Only the inner bottom corner is free, all other edges touch navbar or window
+.sidebar.left .sidebar-card {
+  border-top: 0;
+  border-left: 0;
+  border-radius: 0 0 var(--bs-card-border-radius) 0;
+}
+
+.sidebar.right .sidebar-card {
+  border-top: 0;
+  border-right: 0;
+  border-radius: 0 0 0 var(--bs-card-border-radius);
+}
+
+.sidebar-content {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+// Spans the cards rather than the full sidebar height, so it neither covers
+// the canvas below short cards nor scrolls away with long ones
+.sidebar-resize-handle {
+  position: absolute;
+  // The close tab owns the top of the inner edge, resizing the rest of it
+  top: var(--sidebar-close-tab-height);
+  bottom: 0;
+  width: 6px;
+  pointer-events: all;
+  // Above the sidebar card, which is positioned
+  z-index: 1;
+}
+
+.sidebar.left .sidebar-resize-handle {
+  right: 0;
+}
+
+.sidebar.right .sidebar-resize-handle {
+  left: 0;
+}
+
 .sidebar-card-container {
-  overflow: auto;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
   width: 100%;
 }
 
 .sidebar-card {
-  background-color: rgba(rgb(255, 255, 255), 0.95) !important;
+  // Opaque, so the close tab overlapping its border at a fractional pixel
+  // position does not stack two translucent layers into a visible stripe
+  background-color: var(--bs-body-bg, #fff) !important;
   pointer-events: all;
+  min-height: 0;
+
+  // Only the tab content scrolls, so a scrollbar never narrows and rewraps
+  // the tab menu, which also stays reachable while scrolling
+  > .card-body {
+    overflow-y: auto;
+    min-height: 0;
+  }
 }
 
 .sidebar-open-button {
   position: absolute;
   height: fit-content;
-  left: calc(100vw - 60px);
+  // Mirrors .sidebar-tools-button
+  right: 15px;
 }
 
 .sidebar-tools-button {
@@ -131,11 +192,36 @@
   left: 15px;
 }
 
+// Floating controls sit directly on the 3D canvas, so they need an opaque
+// background to stay readable over any city colors
+.sidebar-tools-button > .btn,
+.sidebar-open-button > .btn,
 .sidebar-button {
-  pointer-events: all;
-  opacity: 0.5;
+  --bs-btn-bg: var(--bs-body-bg, #fff);
+  box-shadow: var(--ev-shadow-floating);
 }
 
+// Square icon buttons with the icon centered; align-middle on an inline svg
+// sits below the middle
+.sidebar-tools-button > .btn,
+.sidebar-open-button > .btn {
+  // Regular Bootstrap button height
+  --sidebar-open-button-size: calc(
+    var(--bs-btn-line-height) * var(--bs-btn-font-size) + 2 * var(--bs-btn-padding-y) + 2 * var(--bs-btn-border-width)
+  );
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--sidebar-open-button-size);
+  height: var(--sidebar-open-button-size);
+  padding: 0;
+}
+
+.sidebar-button {
+  pointer-events: all;
+}
+
+// Hugs the card's inner edge, holding the close tab and the undo button
 #sidebarButtonContainer,
 #toolsSidebarButtonContainer {
   display: flex;
@@ -144,11 +230,49 @@
 }
 
 #sidebarButtonContainer {
-  margin-right: 1rem;
+  align-items: flex-end;
 }
 
-#toolsSidebarButtonContainer {
-  margin-left: 1rem;
+// Attached to the card like the bottom bar toggle is to the bar: same
+// background and border, open towards the card and covering its border line
+.sidebar-close-tab {
+  position: relative;
+  // Above the card border it covers
+  z-index: 2;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  // Height of one tab menu row, so it reads as the menu row continuing
+  height: var(--sidebar-close-tab-height);
+  padding: 0;
+  pointer-events: all;
+  color: var(--bs-secondary-color, #6c757d);
+  background-color: var(--bs-body-bg, #fff);
+  border: var(--bs-border-width) solid var(--bs-border-color-translucent);
+  border-top: 0;
+  transition: color var(--ev-transition-fast);
+
+  &:hover {
+    color: var(--bs-body-color, #212529);
+  }
+
+  &:focus-visible {
+    outline: var(--ev-focus-outline);
+    outline-offset: -2px;
+  }
+}
+
+.sidebar.left .sidebar-close-tab {
+  margin-left: calc(-1 * var(--bs-border-width));
+  border-left: 0;
+  border-radius: 0 0 var(--bs-border-radius) 0;
+}
+
+.sidebar.right .sidebar-close-tab {
+  margin-right: calc(-1 * var(--bs-border-width));
+  border-right: 0;
+  border-radius: 0 0 0 var(--bs-border-radius);
 }
 
 .building-config {

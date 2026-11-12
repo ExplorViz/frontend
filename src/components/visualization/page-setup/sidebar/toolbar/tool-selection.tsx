@@ -1,35 +1,34 @@
 import { ReactNode } from 'react';
 
-import { XIcon } from '@primer/octicons-react';
-import SidebarResizer from 'explorviz-frontend/src/components/visualization/page-setup/sidebar/sidebar-resizer';
+import { ChevronLeftIcon } from '@primer/octicons-react';
+import SidebarResizeHandle from 'explorviz-frontend/src/components/visualization/page-setup/sidebar/sidebar-resize-handle';
 
 interface ToolSelection {
   show: boolean;
-  children: ReactNode;
   closeToolSelection: () => void;
+  children: ReactNode;
 }
 
-export default function ToolSelection({ show, children, closeToolSelection }: ToolSelection) {
+export default function ToolSelection({ show, closeToolSelection, children }: ToolSelection) {
   return (
     <div className={show ? 'sidebar left' : 'd-none'} id="toolselection">
-      <div className="mt-6 d-flex flex-row w-100" style={{ zIndex: 90 }}>
-        <div className="sidebar-card-container pr-3 pl-3 pb-3">{children}</div>
+      <div className="sidebar-layout d-flex flex-row w-100" style={{ zIndex: 90 }}>
+        <div className="sidebar-card-container">
+          <div className="sidebar-content">
+            {children}
+            <SidebarResizeHandle sidebarId="toolselection" side="left" ariaLabel="Resize tools sidebar" />
+          </div>
+        </div>
         <div id="toolsSidebarButtonContainer" className="foreground">
           <button
             type="button"
-            className="btn btn-light btn-outline-dark sidebar-button"
-            title="Close Sidebar"
-            aria-label="Close"
+            className="sidebar-close-tab"
+            title="Close tools sidebar"
+            aria-label="Close tools sidebar"
             onClick={closeToolSelection}
           >
-            <XIcon size="small" verticalAlign="middle" className="align-middle" />
+            <ChevronLeftIcon size="small" />
           </button>
-          <SidebarResizer
-            buttonName="toolSidebarDragButton"
-            containerName="toolsSidebarButtonContainer"
-            sidebarName="toolselection"
-            expandToRight={true}
-          />
         </div>
       </div>
     </div>

@@ -18,7 +18,7 @@ export default function ComponentTabs<T>({ tabs, activeTab, onChange }: Componen
   };
 
   return (
-    <>
+    <div className="card sidebar-card">
       <div className="explorviz-visualization-navbar">
         <ul className="nav justify-content-center">
           {tabs.map((tab) => (
@@ -31,10 +31,8 @@ export default function ComponentTabs<T>({ tabs, activeTab, onChange }: Componen
           ))}
         </ul>
       </div>
-      <div className="card sidebar-card mt-3">
-        <div className="card-body d-flex flex-column">{selectedTab && selectedTab.content}</div>
-      </div>
-    </>
+      {selectedTab && <div className="card-body d-flex flex-column">{selectedTab.content}</div>}
+    </div>
   );
 }
 
@@ -48,7 +46,9 @@ export function ComponentTab<T>({ value, selected, onClick }: ComponentTabProps<
   return (
     <li className="nav-item">
       <div className="nav-link-with-cursor" title={'Show/Hide ' + String(value)} onClick={() => onClick(value)}>
-        <div className={selected ? 'fw-bold' : 'fw-normal'}>{String(value)}</div>
+        <div className={selected ? 'fw-bold' : 'fw-normal'} data-label={String(value)}>
+          {String(value)}
+        </div>
       </div>
     </li>
   );

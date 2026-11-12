@@ -1,11 +1,13 @@
 import { ChevronUpIcon, SyncIcon } from '@primer/octicons-react';
+import useBottomBarHeight from 'explorviz-frontend/src/hooks/useBottomBarHeight';
 import { useCommitTreeStateStore } from 'explorviz-frontend/src/stores/commit-tree-state';
 import { useEvolutionDataRepositoryStore } from 'explorviz-frontend/src/stores/repos/evolution-data-repository';
 import { useToastHandlerStore } from 'explorviz-frontend/src/stores/toast-handler';
 import TimelineDataObjectHandler from 'explorviz-frontend/src/utils/timeline/timeline-data-object-handler';
-import { use, useState } from 'react';
+import { use, useRef, useState, type CSSProperties } from 'react';
 import { Button } from 'react-bootstrap';
 import BottomBarChartDropdown from './bottom-bar-chart-dropdown';
+import BottomBarResizeHandle from './bottom-bar-resize-handle';
 import { BottomBarContext } from './bottom-bar-context';
 import CommitTreeRepositorySelection from './evolution/commit-tree-repository-selection';
 import EvolutionRenderingButtons from './evolution/evolution-rendering-buttons';
@@ -30,6 +32,9 @@ export default function BottomBar({ timelineDataObjectHandler }: BottomBarProps)
   const showErrorToastMessage = useToastHandlerStore((state) => state.showErrorToastMessage);
 
   const [isCommitTreeRefreshing, setIsCommitTreeRefreshing] = useState<boolean>(false);
+
+  const [bottomBarHeight, setBottomBarHeight] = useBottomBarHeight();
+  const bottomBarChartContainer = useRef<HTMLDivElement>(null);
 
   const bottomBarContext = use(BottomBarContext);
 
@@ -70,16 +75,22 @@ export default function BottomBar({ timelineDataObjectHandler }: BottomBarProps)
         className="bottom-bar-toggle-btn"
         title={isExpanded ? 'Hide Bottom Bar' : 'Show Bottom Bar'}
       >
-        {!isExpanded && <span className="pr-1">Bottom Bar</span>}
-        <ChevronUpIcon
-          size="small"
-          className={isExpanded ? 'align-middle hide-bottom-bar-icon-down' : 'align-middle'}
-        />
+        {!isExpanded && <span>Bottom Bar</span>}
+        <ChevronUpIcon size="small" className={isExpanded ? 'hide-bottom-bar-icon-down' : ''} />
       </Button>
 
-      {/* ! Runtime / Code Charts */}
+      {isExpanded && (
+        <BottomBarResizeHandle
+          height={bottomBarHeight}
+          onResize={setBottomBarHeight}
+          barRef={bottomBarChartContainer}
+        />
+      )}
+
       <div
         id="bottom-bar-chart-container"
+        ref={bottomBarChartContainer}
+        style={{ '--bottom-bar-height': `${bottomBarHeight}px` } as CSSProperties}
         className={`bottom-bar-chart
                 ${(selectedChart === 'commit-chart' || selectedChart === 'social-metrics') && isExpanded ? 'bottom-bar-chart-commitTree' : ''}
                 ${!isExpanded ? 'bottom-bar-chart-hide' : ''}`}

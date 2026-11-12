@@ -14,6 +14,21 @@
   user-select: none;
 }
 
+// Invisible bold copy of the label reserves its bold width, so selecting a
+// tab does not widen it and shift or rewrap its neighbors
+.nav-link-with-cursor > [data-label] {
+  text-align: center;
+
+  &::after {
+    content: attr(data-label);
+    display: block;
+    height: 0;
+    overflow: hidden;
+    visibility: hidden;
+    font-weight: bold;
+  }
+}
+
 .nav-item-with-def-cursor {
   flex: 1 1 auto;
   text-align: center;
@@ -24,14 +39,16 @@
   color: var(--bs-danger, #dc3545);
 }
 
+// Tab menu at the top of the sidebar card, see component-tabs.tsx
 .explorviz-visualization-navbar {
-  position: relative;
-  z-index: 750;
   align-self: center;
-  background-color: var(--bs-body-bg, #f8f9fa);
   width: 100%;
-  border-radius: 0.25rem;
   pointer-events: all;
+
+  // Divider to the tab content, if a tab is open
+  &:not(:last-child) {
+    border-bottom: var(--bs-card-border-width) solid var(--bs-card-border-color);
+  }
 }
 
 .explorviz-visualization-navbar > ul {
@@ -41,11 +58,6 @@
   flex-direction: row;
   user-select: none; /* supported by Chrome and Opera */
   -webkit-user-select: none; /* Safari */
-}
-
-.explorviz-visualization-navbar > ul > li {
-  margin-top: 0.25rem !important;
-  margin-bottom: 0.25rem !important;
 }
 
 .explorviz-visualization-navbar > ul.nav > li.nav-item {
