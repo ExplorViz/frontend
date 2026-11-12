@@ -123,9 +123,10 @@ function RoomEntryForm() {
 }
 
 function RoomPanel() {
-  const { room, leaveRoom } = useRoomConnectionStore();
+  const { room, leaveRoom, kick, handOverHost } = useRoomConnectionStore();
   const state = useRoomState();
   if (!room) return null;
+  const isHost = state?.hostId === room.sessionId;
 
   return (
     <div>
@@ -144,6 +145,30 @@ function RoomPanel() {
             <span>{participant.name}</span>
             {sessionId === room.sessionId && <span className="small text-muted">(you)</span>}
             {sessionId === state?.hostId && <span className="badge bg-secondary">Host</span>}
+            {isHost && sessionId !== room.sessionId && (
+              <span className="ms-auto d-flex gap-1">
+                <Button
+                  variant="outline-secondary"
+                  size="sm"
+                  className="py-0"
+                  aria-label={`Make ${participant.name} Host`}
+                  title="Make Host"
+                  onClick={() => handOverHost(sessionId)}
+                >
+                  Make Host
+                </Button>
+                <Button
+                  variant="outline-danger"
+                  size="sm"
+                  className="py-0"
+                  aria-label={`Kick ${participant.name}`}
+                  title="Kick"
+                  onClick={() => kick(sessionId)}
+                >
+                  Kick
+                </Button>
+              </span>
+            )}
           </li>
         ))}
       </ul>

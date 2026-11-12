@@ -32,10 +32,25 @@ export const JoinRefusal = {
 } as const;
 
 /**
+ * Close codes with which the service removes a Participant from a Room.
+ * The SDK passes the code to `room.onLeave`. A removed Participant must not
+ * be offered reconnection.
+ */
+export const LeaveCode = {
+  /** The Host kicked the Participant. They may rejoin with the room code. */
+  KICKED: 4011,
+} as const;
+
+/**
  * Messages a client sends to the Room: message type -> payload.
  * Each entry has a handler of the same name in CollaborationRoom's `messages`.
  */
-export type ClientMessages = {};
+export type ClientMessages = {
+  /** Host only: removes the Participant with this session id from the Room. */
+  kick: { sessionId: string };
+  /** Host only: makes the Participant with this session id the Host instead. */
+  handOverHost: { sessionId: string };
+};
 
 /**
  * Messages the Room sends to clients: message type -> payload.

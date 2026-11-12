@@ -2,7 +2,7 @@
 
 Collaboration is being rebuilt on the self-hosted, Colyseus-based collaboration service (repository `collaboration-service`). The previous implementation, which used the hosted Playroomkit service, has been removed.
 
-The Collaboration section of the sidebar checks whether the service is reachable. If it is, a person can create a Room, which gets a six-character room code from the service, or join one with its code; inside, the section shows the code and the Participants with their colors, marks the Host, and offers to leave. With login off, the person types a display name, which the browser remembers. If the service is not reachable, the section says that collaboration is currently disabled. Exploring alone works either way. No exploration state is shared yet.
+The Collaboration section of the sidebar checks whether the service is reachable. If it is, a person can create a Room, which gets a six-character room code from the service, or join one with its code; inside, the section shows the code and the Participants with their colors, marks the Host, and offers to leave. The Host can kick another Participant (who is told so and may rejoin with the code) or hand the Host right to them; when the Host leaves, the right passes to whoever has been in the Room longest. With login off, the person types a display name, which the browser remembers. If the service is not reachable, the section says that collaboration is currently disabled. Exploring alone works either way. No exploration state is shared yet.
 
 ## Code
 

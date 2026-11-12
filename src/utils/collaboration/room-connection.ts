@@ -5,7 +5,9 @@ import { COLLABORATION_SERVICE_PATH } from 'explorviz-frontend/src/utils/collabo
 import {
   CONTRACT_VERSION,
   JoinRefusal,
+  LeaveCode,
   ROOM_NAME,
+  type ClientMessages,
   type CollaborationState,
   type JoinOptions,
 } from 'explorviz-frontend/src/utils/collaboration/room-contract.generated';
@@ -25,6 +27,10 @@ type RoomConnectionState = {
   joinRoom: (code: string, name: string) => Promise<void>;
   /** Leaves the Room; exploring goes on alone. */
   leaveRoom: () => Promise<void>;
+  /** Host only: removes this Participant from the Room. The service refuses it from anyone else. */
+  kick: (sessionId: string) => void;
+  /** Host only: makes this Participant the Host instead. The service refuses it from anyone else. */
+  handOverHost: (sessionId: string) => void;
 };
 
 const TOAST_HEADER = 'Collaboration';
@@ -45,9 +51,8 @@ export const useRoomConnectionStore = create<RoomConnectionState>((set, get) => 
       room.onLeave((code) => {
         if (get().room !== room) return;
         set({ room: undefined });
-        if (code !== CONSENTED_LEAVE) {
-          useToastHandlerStore.getState().showInfoToastMessage('You are no longer in the room.', TOAST_HEADER);
-        }
+        const notice = leaveNotice(code);
+        if (notice) useToastHandlerStore.getState().showInfoToastMessage(notice, TOAST_HEADER);
       });
       set({ room, connecting: false });
     } catch (error) {
@@ -67,11 +72,24 @@ export const useRoomConnectionStore = create<RoomConnectionState>((set, get) => 
       set({ room: undefined });
       await room.leave();
     },
+    kick: (sessionId) => get().room?.send('kick', { sessionId } satisfies ClientMessages['kick']),
+    handOverHost: (sessionId) =>
+      get().room?.send('handOverHost', { sessionId } satisfies ClientMessages['handOverHost']),
   };
 });
 
 /** The close code of a leave the client asked for. */
 const CONSENTED_LEAVE = 4000;
+
+/**
+ * What to tell the person when the Room's connection ends with this close code.
+ * `LeaveCode.KICKED` marks a kick; such a close must never lead to reconnection.
+ */
+function leaveNotice(code: number) {
+  if (code === CONSENTED_LEAVE) return undefined;
+  if (code === LeaveCode.KICKED) return 'The Host removed you from the room.';
+  return 'You are no longer in the room.';
+}
 
 /** Room codes are capitals and digits; people may type them in lower case or with spaces. */
 export function normalizeRoomCode(code: string) {
