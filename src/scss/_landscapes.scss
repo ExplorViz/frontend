@@ -12,7 +12,8 @@
   display: flex !important;
   flex-direction: column !important;
   overflow: hidden !important;
-  margin-top: 3rem !important;
+  // The navbar is absolutely positioned on top of the page
+  margin-top: 5rem !important;
   margin-bottom: 3rem !important;
   font-size: large;
 }
@@ -58,7 +59,7 @@
   border-radius: 0.5rem;
 }
 
-@media (max-width: 768px) {
+@media (max-width: 767.98px) {
   #tabnav {
     .nav {
       .nav-link {
@@ -68,18 +69,9 @@
       }
     }
   }
-
-  .tab-content {
-    padding: 1rem;
-    margin-top: 1rem;
-  }
 }
 
-@media (min-width: 800px) {
-  #landscape-container {
-    margin-top: 1rem !important;
-  }
-
+@media (min-width: 768px) {
   #tabnav {
     .nav {
       .nav-link {

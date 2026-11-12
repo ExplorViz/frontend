@@ -3,13 +3,16 @@ import {
   CodeIcon,
   DesktopDownloadIcon,
   EyeIcon,
+  InfoIcon,
+  KebabHorizontalIcon,
   PencilIcon,
   PlusIcon,
+  ShareAndroidIcon,
   TrashIcon,
   XIcon,
 } from '@primer/octicons-react';
-import AdditionalTokenInfo from 'explorviz-frontend/src/components/additional-token-info';
-import ShareLandscape from 'explorviz-frontend/src/components/share-landscape';
+import AdditionalTokenInfo, { TokenDetails } from 'explorviz-frontend/src/components/additional-token-info';
+import ShareLandscape, { ManageAccess } from 'explorviz-frontend/src/components/share-landscape';
 import { useAuthStore } from 'explorviz-frontend/src/stores/auth';
 import { LandscapeToken, useLandscapeTokenStore } from 'explorviz-frontend/src/stores/landscape-token';
 import { useToastHandlerStore } from 'explorviz-frontend/src/stores/toast-handler';
@@ -20,7 +23,8 @@ import {
 } from 'explorviz-frontend/src/utils/evolution-schemes/evolution-data';
 import JSZip from 'jszip';
 import React, { useEffect, useRef, useState } from 'react';
-import { Button, OverlayTrigger, Tooltip } from 'react-bootstrap';
+import { createPortal } from 'react-dom';
+import { Button, Dropdown, Modal, OverlayTrigger, Tooltip } from 'react-bootstrap';
 interface TokenSelectionArgs {
   tokens: LandscapeToken[];
   openTokenCreationModal(): void;
@@ -42,6 +46,10 @@ export default function TokenSelection({
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
   const [editingTokenValue, setEditingTokenValue] = useState<string | null>(null);
   const [editAliasValue, setEditAliasValue] = useState<string>('');
+  // Small screens show details and access management in modals, since the
+  // popovers anchored to the row icons are not available there
+  const [detailsToken, setDetailsToken] = useState<LandscapeToken | null>(null);
+  const [manageAccessToken, setManageAccessToken] = useState<LandscapeToken | null>(null);
   const editAliasInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -218,14 +226,12 @@ export default function TokenSelection({
     }
   };
 
-  const startEditing = (token: LandscapeToken, event: React.MouseEvent) => {
-    event.stopPropagation();
+  const startEditing = (token: LandscapeToken) => {
     setEditingTokenValue(token.value);
     setEditAliasValue(token.alias);
   };
 
-  const cancelEditing = (event: React.MouseEvent) => {
-    event.stopPropagation();
+  const cancelEditing = () => {
     setEditingTokenValue(null);
     setEditAliasValue('');
   };
@@ -243,157 +249,227 @@ export default function TokenSelection({
   };
 
   return (
-    <table id="token-selection-table" className="table table-striped explorviz-table">
-      <thead>
-        <tr className="token-header-row">
-          <th style={{ cursor: 'ns-resize' }} scope="col" onClick={() => sortBy('alias')}>
-            Alias
-          </th>
-          <th style={{ cursor: 'ns-resize' }} scope="col" onClick={() => sortBy('created')}>
-            Created
-          </th>
-          <th scope="col"></th>
-        </tr>
-      </thead>
-      <tbody>
-        {sortedTokens.length > 0 ? (
-          sortedTokens.map((token) => (
-            <tr key={token.alias} className="token-selection-row" onClick={() => selectToken(token)}>
-              <td data-label="Alias">
-                {editingTokenValue === token.value ? (
-                  <div className="d-flex gap-1 align-items-center">
-                    <input
-                      ref={editAliasInputRef}
-                      type="text"
-                      className="form-control form-control-sm"
-                      value={editAliasValue}
-                      onChange={(e) => setEditAliasValue(e.target.value)}
-                      onClick={(e) => e.stopPropagation()}
-                      onKeyDown={(e) => {
-                        if (e.key === 'Enter') {
-                          void saveAlias(token, e);
-                        }
-                      }}
-                    />
-                    <button className="button-svg-with-hover" type="button" onClick={(e) => saveAlias(token, e)}>
-                      <CheckIcon size="small" className="align-middle" />
-                    </button>
-                    <button className="button-svg-with-hover" type="button" onClick={(e) => cancelEditing(e)}>
-                      <XIcon size="small" className="align-middle" />
-                    </button>
-                  </div>
-                ) : (
-                  token.alias
-                )}
-              </td>
-              <td className="token-timestamp-cell">{new Date(token.created).toLocaleString()}</td>
-              <td className="token-button-cell">
-                <ul className="token-selection-icons">
-                  <li>
-                    <OverlayTrigger placement="bottom" overlay={<Tooltip>Go to Landscape</Tooltip>}>
-                      <button
-                        className="button-svg-with-hover"
-                        type="button"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          selectToken(token);
+    <>
+      <table id="token-selection-table" className="table table-striped explorviz-table">
+        <thead>
+          <tr className="token-header-row d-none d-md-table-row">
+            <th style={{ cursor: 'ns-resize' }} scope="col" onClick={() => sortBy('alias')}>
+              Alias
+            </th>
+            <th style={{ cursor: 'ns-resize' }} scope="col" onClick={() => sortBy('created')}>
+              Created
+            </th>
+            <th scope="col" colSpan={2}></th>
+          </tr>
+        </thead>
+        <tbody>
+          {sortedTokens.length > 0 ? (
+            sortedTokens.map((token) => (
+              <tr
+                key={token.value}
+                className="token-selection-row"
+                tabIndex={0}
+                onClick={(e) => {
+                  // Buttons, inputs and popovers handle their own clicks.
+                  // Popovers are portalled, so their DOM is outside the row.
+                  const target = e.target as Element;
+                  if (!e.currentTarget.contains(target) || target.closest('button, input')) {
+                    return;
+                  }
+                  selectToken(token);
+                }}
+                onKeyDown={(e) => {
+                  // Ignore keys from nested buttons and the alias input
+                  if (e.target !== e.currentTarget) return;
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    selectToken(token);
+                  }
+                }}
+              >
+                <td>
+                  {editingTokenValue === token.value ? (
+                    <div className="d-flex gap-1 align-items-center">
+                      <input
+                        ref={editAliasInputRef}
+                        type="text"
+                        className="form-control form-control-sm"
+                        value={editAliasValue}
+                        onChange={(e) => setEditAliasValue(e.target.value)}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter') {
+                            void saveAlias(token, e);
+                          }
                         }}
-                      >
-                        <EyeIcon size="small" className="align-middle" />
+                      />
+                      <button className="button-svg-with-hover" type="button" onClick={(e) => saveAlias(token, e)}>
+                        <CheckIcon size="small" className="align-middle" />
                       </button>
-                    </OverlayTrigger>
-                  </li>
-                  <li>
-                    <OverlayTrigger placement="bottom" overlay={<Tooltip>Trigger Analysis for Landscape</Tooltip>}>
-                      <button
-                        className="button-svg-with-hover"
-                        type="button"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          openRepoAnalysisModal(token);
-                        }}
-                      >
-                        <CodeIcon size="small" className="align-middle" />
+                      <button className="button-svg-with-hover" type="button" onClick={cancelEditing}>
+                        <XIcon size="small" className="align-middle" />
                       </button>
-                    </OverlayTrigger>
-                  </li>
-                  <li>
-                    <AdditionalTokenInfo token={token} />
-                  </li>
-                  {user?.sub === token.ownerId && (
+                    </div>
+                  ) : (
                     <>
-                      <li>
-                        <OverlayTrigger placement="bottom" overlay={<Tooltip>Edit token alias</Tooltip>}>
-                          <button
-                            className="button-svg-with-hover"
-                            type="button"
-                            onClick={(e) => startEditing(token, e)}
-                          >
-                            <PencilIcon size="small" className="align-middle" />
-                          </button>
-                        </OverlayTrigger>
-                      </li>
-                      <li>
-                        <OverlayTrigger placement="bottom" overlay={<Tooltip>Delete Landscape Data</Tooltip>}>
-                          <button
-                            className="button-svg-with-hover"
-                            type="button"
-                            aria-label={`Delete landscape ${token.alias}`}
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              confirmDeleteToken(token);
-                            }}
-                          >
-                            <TrashIcon size="small" className="align-middle" />
-                          </button>
-                        </OverlayTrigger>
-                      </li>
+                      {token.alias}
+                      <div className="token-mobile-timestamp d-md-none">{new Date(token.created).toLocaleString()}</div>
                     </>
                   )}
-                  <li>
-                    <OverlayTrigger
-                      placement="bottom"
-                      overlay={<Tooltip>Download JSON files for Demo Supplier</Tooltip>}
-                    >
-                      <button
-                        className="button-svg-with-hover"
-                        type="button"
-                        onClick={(e) => downloadDemoSupplierFiles(token, e)}
+                </td>
+                <td className="token-timestamp-cell d-none d-md-table-cell">
+                  {new Date(token.created).toLocaleString()}
+                </td>
+                <td className="token-button-cell d-none d-md-table-cell">
+                  <ul className="token-selection-icons">
+                    <li>
+                      <OverlayTrigger placement="bottom" overlay={<Tooltip>Go to Landscape</Tooltip>}>
+                        <button
+                          className="button-svg-with-hover"
+                          type="button"
+                          aria-label={`Go to landscape ${token.alias}`}
+                          onClick={() => selectToken(token)}
+                        >
+                          <EyeIcon size="small" className="align-middle" />
+                        </button>
+                      </OverlayTrigger>
+                    </li>
+                    <li>
+                      <OverlayTrigger placement="bottom" overlay={<Tooltip>Trigger Analysis for Landscape</Tooltip>}>
+                        <button
+                          className="button-svg-with-hover"
+                          type="button"
+                          onClick={() => openRepoAnalysisModal(token)}
+                        >
+                          <CodeIcon size="small" className="align-middle" />
+                        </button>
+                      </OverlayTrigger>
+                    </li>
+                    <li>
+                      <AdditionalTokenInfo token={token} />
+                    </li>
+                    {user?.sub === token.ownerId && (
+                      <>
+                        <li>
+                          <OverlayTrigger placement="bottom" overlay={<Tooltip>Edit token alias</Tooltip>}>
+                            <button className="button-svg-with-hover" type="button" onClick={() => startEditing(token)}>
+                              <PencilIcon size="small" className="align-middle" />
+                            </button>
+                          </OverlayTrigger>
+                        </li>
+                        <li>
+                          <OverlayTrigger placement="bottom" overlay={<Tooltip>Delete Landscape Data</Tooltip>}>
+                            <button
+                              className="button-svg-with-hover"
+                              type="button"
+                              aria-label={`Delete landscape ${token.alias}`}
+                              onClick={() => confirmDeleteToken(token)}
+                            >
+                              <TrashIcon size="small" className="align-middle" />
+                            </button>
+                          </OverlayTrigger>
+                        </li>
+                      </>
+                    )}
+                    <li>
+                      <OverlayTrigger
+                        placement="bottom"
+                        overlay={<Tooltip>Download JSON files for Demo Supplier</Tooltip>}
                       >
-                        <DesktopDownloadIcon size="small" className="align-middle" />
-                      </button>
-                    </OverlayTrigger>
-                  </li>
-                  <li>
-                    <ShareLandscape token={token} reload={reload} />
-                  </li>
-                </ul>
+                        <button
+                          className="button-svg-with-hover"
+                          type="button"
+                          onClick={(e) => downloadDemoSupplierFiles(token, e)}
+                        >
+                          <DesktopDownloadIcon size="small" className="align-middle" />
+                        </button>
+                      </OverlayTrigger>
+                    </li>
+                    <li>
+                      <ShareLandscape token={token} reload={reload} />
+                    </li>
+                  </ul>
+                </td>
+                <td className="token-actions-cell d-md-none">
+                  <Dropdown align="end">
+                    <Dropdown.Toggle
+                      as="button"
+                      type="button"
+                      className="button-svg-with-hover token-actions-toggle"
+                      aria-label="Token actions"
+                    >
+                      <KebabHorizontalIcon size="small" />
+                    </Dropdown.Toggle>
+                    {/* Portalled so the table's scroll container neither clips
+                        nor flips the menu */}
+                    {createPortal(
+                      <Dropdown.Menu>
+                        <Dropdown.Item as="button" onClick={() => openRepoAnalysisModal(token)}>
+                          <CodeIcon size="small" className="me-2" />
+                          Trigger analysis
+                        </Dropdown.Item>
+                        <Dropdown.Item as="button" onClick={() => setDetailsToken(token)}>
+                          <InfoIcon size="small" className="me-2" />
+                          Show token details
+                        </Dropdown.Item>
+                        {user?.sub === token.ownerId && (
+                          <>
+                            <Dropdown.Item as="button" onClick={() => startEditing(token)}>
+                              <PencilIcon size="small" className="me-2" />
+                              Edit alias
+                            </Dropdown.Item>
+                            <Dropdown.Item as="button" onClick={() => confirmDeleteToken(token)}>
+                              <TrashIcon size="small" className="me-2" />
+                              Delete Landscape Data
+                            </Dropdown.Item>
+                          </>
+                        )}
+                        <Dropdown.Item as="button" onClick={() => setManageAccessToken(token)}>
+                          <ShareAndroidIcon size="small" className="me-2" />
+                          Manage access
+                        </Dropdown.Item>
+                      </Dropdown.Menu>,
+                      document.body
+                    )}
+                  </Dropdown>
+                </td>
+              </tr>
+            ))
+          ) : (
+            <tr>
+              <td colSpan={4} className="text-center">
+                There are no tokens linked to your account at the moment.
               </td>
             </tr>
-          ))
-        ) : (
+          )}
+        </tbody>
+        <tfoot>
           <tr>
-            <td colSpan={3} className="text-center">
-              There are no tokens linked to your account at the moment.
+            <td colSpan={4} className="p-1">
+              <div className="d-flex flex-row justify-content-center gap-2">
+                <Button
+                  variant="primary"
+                  className="align-self-center pt-2 px-3 primary"
+                  onClick={openTokenCreationModal}
+                >
+                  <PlusIcon size="small" />
+                </Button>
+              </div>
             </td>
           </tr>
-        )}
-      </tbody>
-      <tfoot>
-        <tr>
-          <td colSpan={3} className="p-1">
-            <div className="d-flex flex-row justify-content-center gap-2">
-              <Button
-                variant="primary"
-                className="align-self-center pt-2 px-3 primary"
-                onClick={openTokenCreationModal}
-              >
-                <PlusIcon size="small" />
-              </Button>
-            </div>
-          </td>
-        </tr>
-      </tfoot>
-    </table>
+        </tfoot>
+      </table>
+      <Modal show={detailsToken !== null} onHide={() => setDetailsToken(null)}>
+        <Modal.Header closeButton>
+          <Modal.Title>{detailsToken?.alias}</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>{detailsToken && <TokenDetails token={detailsToken} />}</Modal.Body>
+      </Modal>
+      <Modal show={manageAccessToken !== null} onHide={() => setManageAccessToken(null)}>
+        <Modal.Header closeButton>
+          <Modal.Title>Manage Access</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>{manageAccessToken && <ManageAccess token={manageAccessToken} reload={reload} />}</Modal.Body>
+      </Modal>
+    </>
   );
 }

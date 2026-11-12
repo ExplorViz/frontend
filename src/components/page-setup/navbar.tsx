@@ -1,12 +1,4 @@
-import {
-  GitBranchIcon,
-  IdBadgeIcon,
-  KeyIcon,
-  PersonIcon,
-  SignOutIcon,
-  UndoIcon,
-  VscodeIcon,
-} from '@primer/octicons-react';
+import { GitBranchIcon, IdBadgeIcon, PersonIcon, SignOutIcon, UndoIcon, VscodeIcon } from '@primer/octicons-react';
 import StatusIcons from 'explorviz-frontend/src/components/page-setup/status-icons';
 import { useIdeWebsocketStore } from 'explorviz-frontend/src/ide/ide-websocket';
 import { useAuthStore } from 'explorviz-frontend/src/stores/auth';
@@ -67,20 +59,24 @@ export default function Navbar() {
         <div className="navbar-left">
           <img
             className="pointer-events-all navbar-logo"
-            src="images/explorviz-30px.png"
+            src="images/explorviz-90px.png"
             alt="ExplorViz"
             draggable="false"
             onClick={goToLandscapeSelection}
           />
         </div>
-        <div className="navbar-center d-none d-md-block">
+        <div className="navbar-center">
           {!isSingleLandscapeMode() && landscapeToken && (
             <>
-              <div className="navbar-token-link pointer-events-all">
-                <span className="d-flex-center" role="button" onClick={goToLandscapeSelection}>
+              <div className="navbar-token-row">
+                <button
+                  type="button"
+                  className="navbar-change-token navbar-token-title mw-100 pointer-events-all"
+                  onClick={goToLandscapeSelection}
+                >
                   <UndoIcon size="small" />
                   &nbsp;{landscapeToken.alias}
-                </span>
+                </button>
               </div>
               <div className="navbar-rendering-mode">{_analysisMode}</div>
             </>
@@ -103,12 +99,6 @@ export default function Navbar() {
                 </div>
               </Dropdown.Header>
               <Dropdown.Divider />
-              {landscapeToken && (
-                <Dropdown.Item onClick={goToLandscapeSelection}>
-                  <KeyIcon size="small" className="me-2" />
-                  {landscapeToken.alias}
-                </Dropdown.Item>
-              )}
               <Dropdown.Item onClick={goToSettings}>
                 <GitBranchIcon size="small" className="me-2" />
                 Git API Token
