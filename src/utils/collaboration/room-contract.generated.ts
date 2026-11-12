@@ -10,6 +10,27 @@ export const CONTRACT_VERSION = 1;
 /** The name under which the Room type is registered. */
 export const ROOM_NAME = "collaboration";
 
+/** The options a client passes when creating or joining a Room. */
+export type JoinOptions = {
+  /** The client's CONTRACT_VERSION. */
+  contractVersion: number;
+  /** The display name, typed by the person while login is off. */
+  name: string;
+};
+
+/**
+ * Error codes with which the service refuses to create or join a Room.
+ * The SDK rejects `create` / `joinById` with an error carrying the code.
+ */
+export const JoinRefusal = {
+  /** No live Room has this code (Colyseus' own code). */
+  UNKNOWN_ROOM: 522,
+  /** The client was built against another CONTRACT_VERSION. */
+  CONTRACT_MISMATCH: 4100,
+  /** The Room already has its maximum number of Participants. */
+  ROOM_FULL: 4101,
+} as const;
+
 /**
  * Messages a client sends to the Room: message type -> payload.
  * Each entry has a handler of the same name in CollaborationRoom's `messages`.
@@ -24,4 +45,11 @@ export type ServerMessages = {};
 // Room state, as plain snapshot types.
 
 export type CollaborationState = {
+  participants: Record<string, Participant>;
+  hostId: string;
+};
+
+export type Participant = {
+  name: string;
+  color: string;
 };

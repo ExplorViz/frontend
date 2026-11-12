@@ -66,6 +66,9 @@
     "yuidocjs": "0.10.2"
   },
   "dependencies": {
+    "@colyseus/react": "^0.18.4",
+    "@colyseus/schema": "^5.0.48",
+    "@colyseus/sdk": "^0.18.10",
     "@copilotkit/react-core": "^1.79.1",
     "@copilotkit/react-ui": "^1.79.1",
     "@malte-hansen/magnify-r3f": "^2.0.2",
