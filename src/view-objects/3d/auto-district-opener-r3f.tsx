@@ -2,11 +2,11 @@ import { useClusterStore } from 'explorviz-frontend/src/stores/cluster-store';
 import { useLayoutStore } from 'explorviz-frontend/src/stores/layout-store';
 import { useModelStore } from 'explorviz-frontend/src/stores/repos/model-repository';
 import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
-import { useVisualizationStore } from 'explorviz-frontend/src/stores/visualization-store';
 import { isDistrictClosed, isDistrictOpen } from 'explorviz-frontend/src/utils/city-rendering/district-close-state';
 import { closeDistrict, openDistrict } from 'explorviz-frontend/src/utils/city-rendering/entity-manipulation';
 import { useEffect } from 'react';
 import { useShallow } from 'zustand/react/shallow';
+import { useDistricts } from 'explorviz-frontend/src/utils/collaboration/districts';
 
 /**
  * Returns the nesting depth (level) of a district (0 for top-level districts).
@@ -49,7 +49,7 @@ export default function AutoDistrictOpenerR3F() {
     }))
   );
 
-  const closedDistrictIds = useVisualizationStore((state) => state.closedDistrictIds);
+  const closedDistrictIds = useDistricts((districts) => districts.closedDistrictIds);
 
   const { centroidDistances, getCentroidDistance } = useClusterStore(
     useShallow((state) => ({

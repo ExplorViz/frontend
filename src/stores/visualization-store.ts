@@ -5,7 +5,8 @@ interface VisualizationStoreState {
   // State for all entities
   highlightedEntityIds: Set<string>;
   hoveredEntityId: string | null;
-  // State for districts (store ids of districts that have no default state)
+  // The own closed and hidden Districts (ids of Districts that are not in their default state).
+  // Read and change them only through `utils/collaboration/districts`, which also knows the Room's.
   closedDistrictIds: Set<string>;
   hiddenDistrictIds: Set<string>; // Usually districts inside closed districts
   // State for buildings
@@ -24,12 +25,6 @@ interface VisualizationStoreState {
     removeAllHighlightedEntityIds: () => void;
     resetVisualizationState: () => void;
     filterEntityIds: (validEntityIds: Set<string>) => void;
-    // Districts
-    openDistricts: (ids: string[]) => void;
-    closeDistricts: (ids: string[]) => void;
-    showDistricts: (ids: string[]) => void;
-    hideDistricts: (ids: string[]) => void;
-    resetDistrictState: () => void;
     // Buildings
     setFilterHiddenBuildingIds: (ids: string[]) => void;
     resetBuildingStates: () => void;
@@ -143,34 +138,6 @@ export const useVisualizationStore = create<VisualizationStoreState>((set, get) 
         hiddenDistrictIds: new Set([...prevState.hiddenDistrictIds].filter((id) => validEntityIds.has(id))),
         hiddenBuildingIds: new Set([...prevState.hiddenBuildingIds].filter((id) => validEntityIds.has(id))),
       }));
-    },
-    // Districts
-    openDistricts: (ids: string[]) => {
-      set({
-        closedDistrictIds: get().closedDistrictIds.difference(new Set(ids)),
-      });
-    },
-    closeDistricts: (ids: string[]) => {
-      set({
-        closedDistrictIds: get().closedDistrictIds.union(new Set(ids)),
-      });
-    },
-    showDistricts: (ids: string[]) => {
-      const newSet = get().hiddenDistrictIds.difference(new Set(ids));
-      set({
-        hiddenDistrictIds: newSet,
-      });
-    },
-    hideDistricts: (ids: string[]) => {
-      set({
-        hiddenDistrictIds: get().hiddenDistrictIds.union(new Set(ids)),
-      });
-    },
-    resetDistrictState: () => {
-      set({
-        closedDistrictIds: new Set(),
-        hiddenDistrictIds: new Set(),
-      });
     },
     // Buildings
     setFilterHiddenBuildingIds: (ids: string[]) => {

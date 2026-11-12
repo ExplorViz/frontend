@@ -12,6 +12,7 @@ import gsap from 'gsap';
 import { useEffect, useState } from 'react';
 import * as THREE from 'three';
 import { useShallow } from 'zustand/react/shallow';
+import { useDistricts } from 'explorviz-frontend/src/utils/collaboration/districts';
 
 function computeDistrictLabelPosition(
   placement: string,
@@ -56,7 +57,7 @@ export default function CityDistrictLabel({ district, layout }: { district: Dist
     }))
   );
 
-  const isOpen = useVisualizationStore((state) => isDistrictOpen(district.id, state.closedDistrictIds));
+  const isOpen = useDistricts((districts) => isDistrictOpen(district.id, districts.closedDistrictIds));
 
   const fontSize = isOpen
     ? getOpenDistrictLabelFontSize(districtLabelMargin)

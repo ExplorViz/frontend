@@ -11,6 +11,7 @@ import { TypeOfAnalysis } from 'explorviz-frontend/src/utils/landscape-schemes/s
 import { normalizeLanguage } from 'explorviz-frontend/src/utils/language-utils';
 import { useMemo } from 'react';
 import { useShallow } from 'zustand/react/shallow';
+import { getDistricts, useDistrictState } from 'explorviz-frontend/src/utils/collaboration/districts';
 
 export type EntityVisibilityContext = {
   closedDistrictIds: Set<string>;
@@ -80,9 +81,8 @@ function buildEntityVisibilityContext(
 }
 
 export function getEntityVisibilityContext(): EntityVisibilityContext {
-  const visualizationState = useVisualizationStore.getState();
   return buildEntityVisibilityContext(
-    visualizationState,
+    { ...useVisualizationStore.getState(), ...getDistricts() },
     useVisibilityServiceStore.getState()._evolutionModeRenderingConfiguration,
     computeIsDiffMode()
   );
@@ -334,17 +334,9 @@ export function filterVisibleBuildingIds(
 }
 
 export function useEntityVisibilityContext(): EntityVisibilityContext {
-  const {
-    closedDistrictIds,
-    hiddenDistrictIds,
-    removedDistrictIds,
-    hiddenBuildingIds,
-    hiddenModelTypes,
-    hiddenLanguages,
-  } = useVisualizationStore(
+  const { closedDistrictIds, hiddenDistrictIds } = useDistrictState();
+  const { removedDistrictIds, hiddenBuildingIds, hiddenModelTypes, hiddenLanguages } = useVisualizationStore(
     useShallow((state) => ({
-      closedDistrictIds: state.closedDistrictIds,
-      hiddenDistrictIds: state.hiddenDistrictIds,
       removedDistrictIds: state.removedDistrictIds,
       hiddenBuildingIds: state.hiddenBuildingIds,
       hiddenModelTypes: state.hiddenModelTypes,

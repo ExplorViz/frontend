@@ -8,13 +8,15 @@ import { City } from 'explorviz-frontend/src/utils/landscape-schemes/flat-landsc
 import { defaultVizSettings } from 'explorviz-frontend/src/utils/settings/default-settings';
 import { VisualizationSettings } from 'explorviz-frontend/src/utils/settings/settings-schemas';
 import { use } from 'react';
+import { useDistricts } from 'explorviz-frontend/src/utils/collaboration/districts';
 
 interface CopilotResourcesProps {
   cities?: City[];
 }
 
 export function CopilotResources({ cities }: CopilotResourcesProps) {
-  const { closedDistrictIds, highlightedEntityIds, hoveredEntityId, removedDistrictIds } = useVisualizationStore();
+  const { highlightedEntityIds, hoveredEntityId, removedDistrictIds } = useVisualizationStore();
+  const closedDistrictIds = useDistricts((districts) => districts.closedDistrictIds);
 
   const { canGoBack, canGoForward } = use(EditingContext);
   const visualizationSettings = useUserSettingsStore((state) => state.visualizationSettings);

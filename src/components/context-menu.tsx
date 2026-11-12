@@ -26,6 +26,7 @@ import { subscribeContextMenuFromWorld } from 'explorviz-frontend/src/utils/cont
 import { type ContextMenuHitEntity, contextMenuPickAt } from 'explorviz-frontend/src/utils/context-menu-world-pick';
 import { requestRenameCity } from 'explorviz-frontend/src/utils/landscape-http-request-util';
 import { pingByModelId } from 'explorviz-frontend/src/view-objects/3d/city/ping-animation';
+import { useDistricts } from 'explorviz-frontend/src/utils/collaboration/districts';
 
 export type ContextMenuItem = {
   id: string;
@@ -47,7 +48,7 @@ export default function ContextMenu({ children }: ContextMenuProps) {
   const [renameCityName, setRenameCityName] = useState('');
   const [isRenaming, setIsRenaming] = useState(false);
 
-  const closedDistrictIds = useVisualizationStore((state) => state.closedDistrictIds);
+  const closedDistrictIds = useDistricts((districts) => districts.closedDistrictIds);
   const isCommRendered = useConfigurationStore((state) => state.isCommRendered);
 
   const hide = useCallback(() => {

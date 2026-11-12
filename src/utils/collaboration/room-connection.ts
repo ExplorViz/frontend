@@ -8,6 +8,7 @@ import {
   ROOM_NAME,
   type CollaborationState,
   type JoinOptions,
+  type StartingState,
 } from 'explorviz-frontend/src/utils/collaboration/room-contract.generated';
 import { create } from 'zustand';
 
@@ -29,6 +30,45 @@ type RoomConnectionState = {
 
 const TOAST_HEADER = 'Collaboration';
 
+/** How a Room was entered. */
+export type Entry = 'created' | 'joined';
+
+/**
+ * What a capability's collaboration module does at the moments its state
+ * changes home (create, join, leave). Each module registers one with
+ * `registerHandOver`; the room connection calls them, the rest of the
+ * frontend knows nothing of it.
+ */
+export type HandOver = {
+  /** Creating: the module's part of the creator's own state, which becomes the Room's. */
+  startingState?: () => StartingState;
+  /**
+   * The Room was entered and its state is about to be shown: drop the own
+   * state (on joining, all local exploration state is dropped).
+   */
+  enter?: (room: CollaborationRoom, entry: Entry) => void;
+  /**
+   * The Room is about to be left, for whatever reason: the Room's last state
+   * (decoded, so maps are MapSchema) becomes the own state, so the person
+   * carries on with what they saw.
+   */
+  leave?: (lastState: CollaborationRoom['state']) => void;
+};
+
+const handOvers = new Set<HandOver>();
+
+/** Adds a capability's hand-over. Returns a function that removes it again. */
+export function registerHandOver(handOver: HandOver) {
+  handOvers.add(handOver);
+  return () => {
+    handOvers.delete(handOver);
+  };
+}
+
+function startingState(): StartingState {
+  return Object.assign({}, ...Array.from(handOvers, (handOver) => handOver.startingState?.() ?? {}));
+}
+
 let client: Client | undefined;
 const serviceClient = () => (client ??= new Client(`${window.location.origin}${COLLABORATION_SERVICE_PATH}`));
 
@@ -37,18 +77,21 @@ const serviceClient = () => (client ??= new Client(`${window.location.origin}${C
  * state is read with `useRoomState`; it is never copied into a store.
  */
 export const useRoomConnectionStore = create<RoomConnectionState>((set, get) => {
-  async function enter(connect: (options: JoinOptions) => Promise<CollaborationRoom>, name: string) {
+  async function enter(entry: Entry, connect: (options: JoinOptions) => Promise<CollaborationRoom>, name: string) {
     if (get().room || get().connecting) return;
     set({ connecting: true });
     try {
-      const room = await connect({ contractVersion: CONTRACT_VERSION, name });
+      const options: JoinOptions = { contractVersion: CONTRACT_VERSION, name };
+      if (entry === 'created') options.startingState = startingState();
+      const room = await connect(options);
       room.onLeave((code) => {
         if (get().room !== room) return;
-        set({ room: undefined });
+        leave(room);
         if (code !== CONSENTED_LEAVE) {
           useToastHandlerStore.getState().showInfoToastMessage('You are no longer in the room.', TOAST_HEADER);
         }
       });
+      for (const handOver of handOvers) handOver.enter?.(room, entry);
       set({ room, connecting: false });
     } catch (error) {
       set({ connecting: false });
@@ -56,15 +99,22 @@ export const useRoomConnectionStore = create<RoomConnectionState>((set, get) => 
     }
   }
 
+  /** The own state takes over before the Room stops being shown, so the view does not jump. */
+  function leave(room: CollaborationRoom) {
+    for (const handOver of handOvers) handOver.leave?.(room.state);
+    set({ room: undefined });
+  }
+
   return {
     room: undefined,
     connecting: false,
-    createRoom: (name) => enter((options) => serviceClient().create(ROOM_NAME, options), name),
-    joinRoom: (code, name) => enter((options) => serviceClient().joinById(normalizeRoomCode(code), options), name),
+    createRoom: (name) => enter('created', (options) => serviceClient().create(ROOM_NAME, options), name),
+    joinRoom: (code, name) =>
+      enter('joined', (options) => serviceClient().joinById(normalizeRoomCode(code), options), name),
     leaveRoom: async () => {
       const { room } = get();
       if (!room) return;
-      set({ room: undefined });
+      leave(room);
       await room.leave();
     },
   };
@@ -89,6 +139,15 @@ function refusalMessage(error: unknown) {
     default:
       return `Could not connect to the room: ${(error as Error | undefined)?.message ?? error}`;
   }
+}
+
+/**
+ * One top-level part of the joined Room's state as an immutable snapshot, or
+ * undefined while alone. Re-renders only when that part changed.
+ */
+export function useRoomStatePart<K extends keyof CollaborationState>(key: K): CollaborationState[K] | undefined {
+  const room = useRoomConnectionStore((state) => state.room);
+  return useColyseusRoomState(room, (state: any) => state[key]) as CollaborationState[K] | undefined;
 }
 
 /** The joined Room's state as an immutable snapshot, or undefined while alone. */

@@ -12,6 +12,7 @@ import {
   SerializedRoom,
 } from 'explorviz-frontend/src/utils/collaboration/web-socket-messages/types/serialized-room';
 import { create } from 'zustand';
+import { getDistricts } from 'explorviz-frontend/src/utils/collaboration/districts';
 
 interface RoomSerializerState {
   serializedRoom?: SerializedRoom;
@@ -32,7 +33,7 @@ export const useRoomSerializerStore = create<RoomSerializerState>((set, get) => 
   serializeRoom: (snapshot: boolean = false): SerializedRoom => {
     const serializedRoom: SerializedRoom = {
       landscape: get()._serializeLandscape(),
-      closedComponentIds: Array.from(useVisualizationStore.getState().closedDistrictIds),
+      closedComponentIds: Array.from(getDistricts().closedDistrictIds),
       highlightedEntities: Array.from(useVisualizationStore.getState().highlightedEntityIds).map((entityId) => {
         return {
           userId: useLocalUserStore.getState().userId,

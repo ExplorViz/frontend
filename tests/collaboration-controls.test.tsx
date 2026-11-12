@@ -7,6 +7,10 @@ import CollaborationControls from '../src/components/collaboration/visualization
 import { useRoomConnectionStore } from '../src/utils/collaboration/room-connection';
 import { CONTRACT_VERSION, JoinRefusal } from '../src/utils/collaboration/room-contract.generated';
 import eventEmitter from '../src/utils/event-emitter';
+import {
+  SettingsSidebarContext,
+  SettingsSidebarTab,
+} from '../src/components/visualization/page-setup/sidebar/customizationbar/settings-sidebar-context';
 import { fakeCollaborationService as service } from './fake-collaboration-service';
 import './setup-dom';
 
@@ -86,17 +90,31 @@ it('creates a Room and shows its code and the creator as Host', async () => {
   expect(ada).toHaveTextContent(/host/i);
   expect(service.endpoint).toBe(`${location.origin}/collaboration`);
   expect(service.requests).toEqual([
-    { method: 'create', roomName: 'collaboration', options: { contractVersion: CONTRACT_VERSION, name: 'Ada' } },
+    {
+      method: 'create',
+      roomName: 'collaboration',
+      options: {
+        contractVersion: CONTRACT_VERSION,
+        name: 'Ada',
+        startingState: { districts: { closed: [], hidden: [] } },
+      },
+    },
   ]);
 });
 
-async function joinRoomAs(name: string, code: string) {
+async function askToJoinAs(name: string, code: string) {
   const user = userEvent.setup();
   serviceAnswers();
   render(<CollaborationControls />);
   await user.type(await screen.findByRole('textbox', { name: /display name/i }), name);
   await user.type(screen.getByRole('textbox', { name: /room code/i }), code);
   await user.click(screen.getByRole('button', { name: /join/i }));
+  return user;
+}
+
+async function joinRoomAs(name: string, code: string) {
+  const user = await askToJoinAs(name, code);
+  await user.click(screen.getByRole('button', { name: /drop .* and join/i }));
   return user;
 }
 
@@ -125,6 +143,50 @@ it('joins a Room by its code, typed in any case', async () => {
   expect(ada).toHaveTextContent(/Ada.*Host/);
   expect(grace).toHaveTextContent(/Grace.*you/);
   expect(grace).not.toHaveTextContent(/host/i);
+});
+
+it('warns before joining that the own exploration will be replaced', async () => {
+  service.openRoom('K7XQ2M', 'Ada');
+
+  await askToJoinAs('Grace', 'K7XQ2M');
+
+  const notice = screen.getByRole('alert');
+  expect(notice).toHaveTextContent(/replace/i);
+  expect(within(notice).getByRole('button', { name: /go back/i })).toBeInTheDocument();
+  expect(within(notice).getByRole('button', { name: /snapshot first/i })).toBeInTheDocument();
+  expect(within(notice).getByRole('button', { name: /drop .* and join/i })).toBeInTheDocument();
+  expect(service.requests).toEqual([]);
+});
+
+it('goes back from the join notice without joining and keeps the typed code', async () => {
+  service.openRoom('K7XQ2M', 'Ada');
+  const user = await askToJoinAs('Grace', 'K7XQ2M');
+
+  await user.click(screen.getByRole('button', { name: /go back/i }));
+
+  expect(screen.queryByRole('alert')).not.toBeInTheDocument();
+  expect(screen.getByRole('textbox', { name: /room code/i })).toHaveValue('K7XQ2M');
+  expect(service.requests).toEqual([]);
+});
+
+it('opens the Snapshot section from the join notice instead of joining', async () => {
+  service.openRoom('K7XQ2M', 'Ada');
+  const openSettingsSidebarTab = vi.fn();
+  const user = userEvent.setup();
+  serviceAnswers();
+  render(
+    <SettingsSidebarContext value={{ showSidebar: true, selectedTab: null, openSettingsSidebarTab }}>
+      <CollaborationControls />
+    </SettingsSidebarContext>
+  );
+  await user.type(await screen.findByRole('textbox', { name: /display name/i }), 'Grace');
+  await user.type(screen.getByRole('textbox', { name: /room code/i }), 'K7XQ2M');
+  await user.click(screen.getByRole('button', { name: /join/i }));
+
+  await user.click(screen.getByRole('button', { name: /snapshot first/i }));
+
+  expect(openSettingsSidebarTab).toHaveBeenCalledWith(SettingsSidebarTab.Snapshot);
+  expect(service.requests).toEqual([]);
 });
 
 it('follows the Participants as they come and go', async () => {
