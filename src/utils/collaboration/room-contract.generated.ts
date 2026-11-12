@@ -25,6 +25,8 @@ export type JoinOptions = {
 
 /** The creator's own exploration, handed over to a new Room. */
 export type StartingState = {
+  /** The value of the Landscape token being explored. */
+  landscapeToken?: string;
   /** The closed and hidden Districts. */
   districts?: DistrictLists;
 };
@@ -169,6 +171,11 @@ export type ClientMessages = {
   camera: CameraPose;
   /** The sender entered the immersive view of this entity, or left it with null. */
   immersive: { entityId: string | null };
+  /**
+   * Host only: the Room explores this Landscape (a Landscape token value)
+   * from now on. Clears everything tied to the old Landscape.
+   */
+  switchLandscape: { landscapeToken: string };
   /** One user action on the Districts (see DistrictAction). */
   districts: DistrictAction[];
 };
@@ -196,6 +203,7 @@ export const CAMERA_UPDATES_PER_SECOND = 30;
 export type CollaborationState = {
   participants: Record<string, Participant>;
   hostId: string;
+  landscapeToken: string;
   chat: ChatEntry[];
   districts: Districts;
 };

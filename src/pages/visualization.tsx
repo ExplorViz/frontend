@@ -86,7 +86,7 @@ function resetVisualizationSessionState(options?: { clearModels?: boolean }) {
 export default function Visualization() {
   const navigate = useNavigate();
 
-  const [searchParams] = useSearchParams();
+  const [searchParams, setSearchParams] = useSearchParams();
 
   // #region States
   const [userApiTokens, setUserApiTokens] = useState<ApiToken[]>([]);
@@ -128,6 +128,8 @@ export default function Visualization() {
   };
 
   const [countdown, setCountdown] = useState<number>(10);
+  // Counts switches from one Landscape to another while the page is open (in a Room, the Host's switch).
+  const [landscapeSwitches, setLandscapeSwitches] = useState(0);
 
   // # endregion
 
@@ -258,6 +260,20 @@ export default function Visualization() {
     };
   }, [renderingServiceToggleVisualizationUpdating, renderingServiceTriggerRenderingForGivenLandscapeData]);
 
+  // Another Landscape was opened while this one is shown (in a Room, the Host switched it): load it as if
+  // the page was opened anew. Restoring a Snapshot sets the token of its own Landscape; that is no switch.
+  useEffect(
+    () =>
+      useLandscapeTokenStore.subscribe((state, previous) => {
+        const next = state.token?.value;
+        const before = previous.token?.value;
+        if (!next || !before || next === before || useSnapshotTokenStore.getState().snapshotSelected) return;
+        setSearchParams({ landscapeToken: next }, { replace: true });
+        setLandscapeSwitches((switches) => switches + 1);
+      }),
+    [setSearchParams]
+  );
+
   useEffect(() => {
     const initRenderingAndSetupListeners = async () => {
       resetVisualizationSessionState({ clearModels: true });
@@ -283,7 +299,9 @@ export default function Visualization() {
       const snapshotOwner = searchParams.get('owner');
       const snapshotCreatedAt = searchParams.get('createdAt');
       const isSharedSnapshot = searchParams.get('sharedSnapshot') === 'true';
-      const shouldRestoreSnapshot = snapshotSelected || (snapshotOwner !== null && snapshotCreatedAt !== null);
+      // After a Landscape switch the new Landscape is loaded, not the Snapshot of the old one.
+      const shouldRestoreSnapshot =
+        landscapeSwitches === 0 && (snapshotSelected || (snapshotOwner !== null && snapshotCreatedAt !== null));
 
       if (shouldRestoreSnapshot) {
         let loadedSnapshot = useSnapshotTokenStore.getState().snapshotToken;
@@ -367,7 +385,7 @@ export default function Visualization() {
 
       setVisualizationMode('browser');
     };
-  }, []);
+  }, [landscapeSwitches]);
 
   // Countdown timer for loading screen - syncs with actual fetch intervals
   useEffect(() => {

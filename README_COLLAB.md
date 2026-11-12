@@ -8,6 +8,8 @@ Inside a Room the section also shows the chat. Its history is Room state, so peo
 
 Shared so far: closed and hidden Districts. Joining always asks first, because it drops the person's own exploration (Districts, highlights, annotations, open popups); the notice offers to go back, to take a Snapshot first, or to drop it and join. Creating a Room hands the creator's Districts to the Room. After leaving, the person carries on with what they saw in the Room.
 
+A Room is on one Landscape, the creator's. Only the Host can switch it: when the Host opens another Landscape, the service switches the Room's and everyone loads it; whoever else opens another Landscape is taken back to the Room's. Joining a Room on another Landscape loads the Room's. A switch clears everything in the Room tied to the old Landscape (for now the closed and hidden Districts); the Participants, the chat and the District sharing option stay.
+
 ## Code
 
 - `src/utils/collaboration/room-connection.ts`: `useRoomConnectionStore` holds the joined SDK `Room` (`room`, `connecting`, `createRoom`, `joinRoom`, `leaveRoom`) and shows refusals as toasts. `useRoomState()` reads the Room's state as an immutable snapshot (via `@colyseus/react`); the state is never copied into a store.
@@ -16,6 +18,7 @@ Shared so far: closed and hidden Districts. Joining always asks first, because i
 - `src/utils/collaboration/spectating.ts`: spectating. `spectate(sessionId)` / `stopSpectating()` ask the service; `useSpectating()` gives whom you follow and who follows you (Room state); `latestCameraOf(sessionId)` is the last camera the service forwarded. `SpectateCameraController` (in the Canvas) applies that camera while you spectate and sends yours while somebody spectates you (at most 30 times per second, only when it changed).
 - `src/utils/collaboration/immersive-view-sharing.ts`: the immersive-view indicator. `RemoteImmersiveIndicators` (in the Canvas) shares your immersive view and marks the others' in their colors.
 - `src/utils/collaboration/districts.ts`: the collaboration module for Districts (see below).
+- `src/utils/collaboration/landscape.ts`: the Room's Landscape. The Landscape token store still says which Landscape the page loads; in a Room this module makes it follow the Room's `landscapeToken` and turns the Host's opening of another Landscape into a `switchLandscape` request. `pages/visualization.tsx` reloads when the token changes from one Landscape to another while it is open.
 - `src/utils/collaboration/capabilities.ts`: loads every capability's module so its hand-over is registered; `local-exploration.ts` drops the capabilities that have no module yet on joining.
 - `tests/fake-collaboration-service.ts`: a stand-in for the service at the `@colyseus/sdk` boundary, with real state encoding, for tests of anything that reads or changes Room state.
 

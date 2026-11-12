@@ -5,4 +5,5 @@
  */
 import 'explorviz-frontend/src/utils/collaboration/chat';
 import 'explorviz-frontend/src/utils/collaboration/districts';
+import 'explorviz-frontend/src/utils/collaboration/landscape';
 import 'explorviz-frontend/src/utils/collaboration/local-exploration';
