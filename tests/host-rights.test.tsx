@@ -45,6 +45,7 @@ async function joinRoomAs(name: string, code: string) {
   await user.type(await screen.findByRole('textbox', { name: /display name/i }), name);
   await user.type(screen.getByRole('textbox', { name: /room code/i }), code);
   await user.click(screen.getByRole('button', { name: /join/i }));
+  await user.click(screen.getByRole('button', { name: /drop .* and join/i }));
   await screen.findByText(code);
   return user;
 }
@@ -116,5 +117,6 @@ it('tells a kicked Participant so and lets them rejoin with the code', async () 
   expect(toasts).toEqual([{ type: 'info', message: 'The Host removed you from the room.' }]);
   await user.type(screen.getByRole('textbox', { name: /room code/i }), 'K7XQ2M');
   await user.click(screen.getByRole('button', { name: /join/i }));
+  await user.click(screen.getByRole('button', { name: /drop .* and join/i }));
   expect(await screen.findByText('K7XQ2M')).toBeInTheDocument();
 });

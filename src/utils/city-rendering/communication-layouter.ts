@@ -1,12 +1,12 @@
 import { useLayoutStore } from 'explorviz-frontend/src/stores/layout-store';
 import { useModelStore } from 'explorviz-frontend/src/stores/repos/model-repository';
 import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
-import { useVisualizationStore } from 'explorviz-frontend/src/stores/visualization-store';
 import { isDistrictClosed } from 'explorviz-frontend/src/utils/city-rendering/district-close-state';
 import AggregatedCommunication from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/aggregated-communication';
 import { isBuilding, isCity, isDistrict } from 'explorviz-frontend/src/utils/landscape-schemes/flat-landscape';
 import BoxLayout from 'explorviz-frontend/src/utils/layout/box-layout';
 import CommunicationLayout from 'explorviz-frontend/src/utils/layout/communication-layout';
+import { getDistricts } from 'explorviz-frontend/src/utils/collaboration/districts';
 
 export function calculateLineThickness(communication: AggregatedCommunication, commLineThickness: number) {
   const normalizedRequestCount = clamp(communication.metrics.normalizedRequestCount, 0.25, 2.0);
@@ -48,7 +48,7 @@ export function findFirstEntityWithOpenedParent(entityId: string) {
   }
 
   const parentDistrict = useModelStore.getState().getDistrict(parentId);
-  if (parentDistrict && isDistrictClosed(parentId, useVisualizationStore.getState().closedDistrictIds)) {
+  if (parentDistrict && isDistrictClosed(parentId, getDistricts().closedDistrictIds)) {
     // Parent is closed, inspect parent entity
     return findFirstEntityWithOpenedParent(parentId);
   } else {

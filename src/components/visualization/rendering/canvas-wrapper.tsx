@@ -50,6 +50,7 @@ import RemoteImmersiveIndicators from './remote-immersive-indicators';
 import SpectateCameraController from './spectate-camera-controller';
 import ImmersiveCameraHandler from './immersive-view-camrea-handler';
 import MinimapView from './minimap-view';
+import { useDistricts } from 'explorviz-frontend/src/utils/collaboration/districts';
 
 /**
  * Helper component to configure the main camera's layers.
@@ -191,12 +192,8 @@ export default function CanvasWrapper({
     }))
   );
 
-  const { removedDistrictIds, closedDistrictIds } = useVisualizationStore(
-    useShallow((state) => ({
-      removedDistrictIds: state.removedDistrictIds,
-      closedDistrictIds: state.closedDistrictIds,
-    }))
-  );
+  const removedDistrictIds = useVisualizationStore((state) => state.removedDistrictIds);
+  const closedDistrictIds = useDistricts((districts) => districts.closedDistrictIds);
 
   const allApplications = useMemo(() => {
     return useModelStore

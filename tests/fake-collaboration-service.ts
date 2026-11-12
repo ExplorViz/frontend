@@ -1,5 +1,6 @@
 import { Decoder, Encoder, schema, t } from '@colyseus/schema';
 import { act } from '@testing-library/react';
+import { applyDistrictActions } from '../src/utils/collaboration/room-contract.generated';
 
 /*
  * A stand-in for the collaboration service, at the boundary of `@colyseus/sdk`.
@@ -12,6 +13,8 @@ import { act } from '@testing-library/react';
  * The rules of a Room (codes, colors, Host, limits) belong to the service and
  * are tested there; this fake only seats people and lets a test change the
  * Room's state and see the client side follow, as the real SDK would.
+ * Messages a client sends wait in the Room until the test calls
+ * `handleMessages()`; the handlers there use the contract's own functions.
  *
  * The state schema mirrors the service's `src/contract/state.ts`. Extend both
  * together; the generated `CollaborationState` type checks the snapshot side.
@@ -39,11 +42,25 @@ const ChatEntry = schema(
   },
   'ChatEntry'
 );
+const Districts = schema({ closed: t.map('boolean'), hidden: t.map('boolean') }, 'Districts');
 const CollaborationState = schema(
-  { participants: t.map(Participant), hostId: t.string(), chat: t.array(ChatEntry) },
+  { participants: t.map(Participant), hostId: t.string(), chat: t.array(ChatEntry), districts: Districts },
   'CollaborationState'
 );
 type ServerState = InstanceType<typeof CollaborationState>;
+
+/** A MapSchema from id to `true`, seen as a set of ids (as the service does). */
+const asIdSet = (map: { set(id: string, value: true): unknown; delete(id: string): unknown; clear(): void }) => ({
+  add: (id: string) => map.set(id, true),
+  delete: (id: string) => map.delete(id),
+  clear: () => map.clear(),
+});
+
+/** How the service handles each client message; extend together with `ClientMessages`. */
+const MESSAGE_HANDLERS: Record<string, (state: ServerState, payload: any) => void> = {
+  districts: (state, actions) =>
+    applyDistrictActions({ closed: asIdSet(state.districts.closed), hidden: asIdSet(state.districts.hidden) }, actions),
+};
 
 /**
  * How the fake Room answers a `request`: return a refusal reason to reject
@@ -69,6 +86,7 @@ export class FakeClientRoom {
   private readonly decoder = new Decoder(new CollaborationState());
   private readonly leaveListeners: ((code: number) => void)[] = [];
   private readonly messageListeners = new Map<string, ((payload: any) => void)[]>();
+  private readonly stateListeners: ((state: unknown) => void)[] = [];
   readonly serializer = { decoder: this.decoder };
   readonly sent: { type: string; payload: unknown }[] = [];
 
@@ -87,6 +105,11 @@ export class FakeClientRoom {
 
   receive(bytes: Uint8Array) {
     this.decoder.decode(bytes);
+    for (const listener of [...this.stateListeners]) listener(this.state);
+  }
+
+  onStateChange(listener: (state: unknown) => void) {
+    this.stateListeners.push(listener);
   }
 
   onLeave(listener: (code: number) => void) {
@@ -96,6 +119,7 @@ export class FakeClientRoom {
 
   send(type: string, payload?: unknown) {
     this.sent.push({ type, payload });
+    this.server.inbox.push({ from: this.sessionId, type, payload });
   }
 
   onMessage(type: string, listener: (payload: any) => void) {
@@ -138,6 +162,8 @@ export class FakeServerRoom {
   readonly state: ServerState = new CollaborationState();
   private readonly encoder = new Encoder(this.state);
   readonly clients = new Map<string, FakeClientRoom>();
+  /** Messages sent by clients and not yet handled. */
+  readonly inbox: { from: string; type: string; payload: any }[] = [];
   private readonly handlers = new Map<string, FakeRequestHandler>();
   private chatEntries = 0;
 
@@ -189,6 +215,17 @@ export class FakeServerRoom {
     act(() => {
       change(this.state);
       this.broadcast();
+    });
+  }
+
+  /** The service handles every message sent so far, in order, and sends the resulting patch. */
+  handleMessages() {
+    this.update((state) => {
+      for (const { type, payload } of this.inbox.splice(0)) {
+        const handle = MESSAGE_HANDLERS[type];
+        if (!handle) throw new Error(`The fake service has no handler for "${type}" messages.`);
+        handle(state, payload);
+      }
     });
   }
 

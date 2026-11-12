@@ -16,6 +16,17 @@ export type JoinOptions = {
   contractVersion: number;
   /** The display name, typed by the person. Ignored while login is on: the name then comes from the login. */
   name: string;
+  /**
+   * Only when creating: the creator's own exploration, which becomes the
+   * Room's. Each capability adds its part.
+   */
+  startingState?: StartingState;
+};
+
+/** The creator's own exploration, handed over to a new Room. */
+export type StartingState = {
+  /** The closed and hidden Districts. */
+  districts?: DistrictLists;
 };
 
 /**
@@ -74,6 +85,65 @@ export const ChatRefusal = {
 export type ChatRefusal = (typeof ChatRefusal)[keyof typeof ChatRefusal];
 
 /**
+ * One change to the closed and hidden Districts. A user action (a click)
+ * becomes one list of these, sent as one "districts" message and applied as a
+ * whole, so two Participants acting at once never interleave.
+ *
+ * Which Districts a click concerns (children, nested ones, a whole city) is
+ * worked out by the frontend, which knows the Landscape; the service does not.
+ * "Close all" is a close of every District, a hide of the nested ones and a
+ * show of the top-level ones.
+ */
+export type DistrictAction =
+  | { type: "open"; ids: string[] }
+  | { type: "close"; ids: string[] }
+  | { type: "show"; ids: string[] }
+  | { type: "hide"; ids: string[] }
+  /** Opens and shows every District. */
+  | { type: "openAll" };
+
+/** The closed and hidden Districts as plain lists of District ids. */
+export type DistrictLists = { closed: string[]; hidden: string[] };
+
+/** What `applyDistrictActions` changes: a set of District ids. */
+export type DistrictIdSet = {
+  add(id: string): unknown;
+  delete(id: string): unknown;
+  clear(): void;
+};
+
+/**
+ * The meaning of the District actions. The same function changes the
+ * person's own Districts in the browser when alone and the Room's in the
+ * service.
+ */
+export function applyDistrictActions(
+  districts: { closed: DistrictIdSet; hidden: DistrictIdSet },
+  actions: readonly DistrictAction[],
+): void {
+  for (const action of actions) {
+    switch (action.type) {
+      case "open":
+        for (const id of action.ids) districts.closed.delete(id);
+        break;
+      case "close":
+        for (const id of action.ids) districts.closed.add(id);
+        break;
+      case "show":
+        for (const id of action.ids) districts.hidden.delete(id);
+        break;
+      case "hide":
+        for (const id of action.ids) districts.hidden.add(id);
+        break;
+      case "openAll":
+        districts.closed.clear();
+        districts.hidden.clear();
+        break;
+    }
+  }
+}
+
+/**
  * Messages a client sends to the Room: message type -> payload.
  * Each entry has a handler of the same name in CollaborationRoom's `messages`.
  */
@@ -99,6 +169,8 @@ export type ClientMessages = {
   camera: CameraPose;
   /** The sender entered the immersive view of this entity, or left it with null. */
   immersive: { entityId: string | null };
+  /** One user action on the Districts (see DistrictAction). */
+  districts: DistrictAction[];
 };
 
 /**
@@ -125,6 +197,7 @@ export type CollaborationState = {
   participants: Record<string, Participant>;
   hostId: string;
   chat: ChatEntry[];
+  districts: Districts;
 };
 
 export type Participant = {
@@ -143,4 +216,9 @@ export type ChatEntry = {
   authorColor: string;
   text: string;
   time: number;
+};
+
+export type Districts = {
+  closed: Record<string, boolean>;
+  hidden: Record<string, boolean>;
 };

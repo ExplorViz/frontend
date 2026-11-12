@@ -23,6 +23,7 @@ import gsap from 'gsap';
 import { forwardRef, useCallback, useEffect, useMemo, useRef } from 'react';
 import { BoxGeometry, Color, Matrix4, MeshLambertMaterial, Quaternion, Vector3 } from 'three';
 import { useShallow } from 'zustand/react/shallow';
+import { useDistricts } from 'explorviz-frontend/src/utils/collaboration/districts';
 
 // add InstancedMesh2 to the jsx catalog i.e use it as a jsx component
 extend({ InstancedMesh2 });
@@ -61,9 +62,9 @@ const CityDistricts = forwardRef<InstancedMesh2, Args>(({ districtIds, layoutMap
     return () => killAllTweens(tweens);
   }, []);
 
-  const { closedDistrictIds, highlightedEntityIds, hoveredEntityId, setHoveredEntity } = useVisualizationStore(
+  const closedDistrictIds = useDistricts((districts) => districts.closedDistrictIds);
+  const { highlightedEntityIds, hoveredEntityId, setHoveredEntity } = useVisualizationStore(
     useShallow((state) => ({
-      closedDistrictIds: state.closedDistrictIds,
       highlightedEntityIds: state.highlightedEntityIds,
       hoveredEntityId: state.hoveredEntityId,
       setHoveredEntity: state.actions.setHoveredEntityId,

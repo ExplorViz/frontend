@@ -1,11 +1,17 @@
 import ChatBox from 'explorviz-frontend/src/components/visualization/page-setup/sidebar/customizationbar/chat/chat-box';
+import {
+  SettingsSidebarContext,
+  SettingsSidebarTab,
+} from 'explorviz-frontend/src/components/visualization/page-setup/sidebar/customizationbar/settings-sidebar-context';
 import { useAuthStore } from 'explorviz-frontend/src/stores/auth';
 import { isLoginSkipped } from 'explorviz-frontend/src/utils/auth-config';
+// Every capability's collaboration module registers its hand-over before a Room is entered from here.
+import 'explorviz-frontend/src/utils/collaboration/capabilities';
 import { setParticipantMuted, useChat } from 'explorviz-frontend/src/utils/collaboration/chat';
 import { isCollaborationServiceReachable } from 'explorviz-frontend/src/utils/collaboration/collaboration-service';
 import { useRoomConnectionStore, useRoomState } from 'explorviz-frontend/src/utils/collaboration/room-connection';
 import { SpectateButton, SpectatingStatus } from './spectating-status';
-import { useEffect, useState } from 'react';
+import { use, useEffect, useState } from 'react';
 import Button from 'react-bootstrap/Button';
 import Form from 'react-bootstrap/Form';
 
@@ -79,6 +85,7 @@ function RoomEntryForm() {
   const typesName = isLoginSkipped();
   const [displayName, setDisplayName] = useState(readDisplayName);
   const [roomCode, setRoomCode] = useState('');
+  const [askingToJoin, setAskingToJoin] = useState(false);
 
   const name = typesName ? displayName.trim() : (loginName ?? '');
   const canEnter = !connecting && name !== '';
@@ -92,7 +99,7 @@ function RoomEntryForm() {
     <Form
       onSubmit={(event) => {
         event.preventDefault();
-        if (canEnter && roomCode.trim()) enter((name) => joinRoom(roomCode, name));
+        if (canEnter && roomCode.trim()) setAskingToJoin(true);
       }}
     >
       {typesName && (
@@ -123,11 +130,57 @@ function RoomEntryForm() {
           value={roomCode}
           onChange={(event) => setRoomCode(event.target.value)}
         />
-        <Button type="submit" size="sm" variant="outline-primary" disabled={!canEnter || !roomCode.trim()}>
+        <Button
+          type="submit"
+          size="sm"
+          variant="outline-primary"
+          disabled={!canEnter || !roomCode.trim() || askingToJoin}
+        >
           Join
         </Button>
       </Form.Group>
+      {askingToJoin && (
+        <JoinNotice
+          onBack={() => setAskingToJoin(false)}
+          onJoin={() => {
+            setAskingToJoin(false);
+            enter((name) => joinRoom(roomCode, name));
+          }}
+        />
+      )}
     </Form>
+  );
+}
+
+/** Joining drops all local exploration state, so it is never done without asking. */
+function JoinNotice({ onBack, onJoin }: { onBack: () => void; onJoin: () => void }) {
+  const { openSettingsSidebarTab } = use(SettingsSidebarContext);
+
+  return (
+    <div role="alert" className="alert alert-warning small mt-3 mb-0 p-2">
+      <p className="mb-2">
+        Joining replaces your exploration with the room&apos;s: your closed Districts, highlights, annotations and open
+        popups are dropped.
+      </p>
+      <div className="d-flex flex-column gap-1">
+        <Button size="sm" variant="outline-secondary" onClick={onBack}>
+          Go back
+        </Button>
+        <Button
+          size="sm"
+          variant="outline-primary"
+          onClick={() => {
+            onBack();
+            openSettingsSidebarTab(SettingsSidebarTab.Snapshot);
+          }}
+        >
+          Take a Snapshot first
+        </Button>
+        <Button size="sm" variant="warning" onClick={onJoin}>
+          Drop my exploration and join
+        </Button>
+      </div>
+    </div>
   );
 }
 

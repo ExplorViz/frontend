@@ -28,6 +28,7 @@ async function joinRoomAs(name: string, code: string) {
   await user.type(await screen.findByRole('textbox', { name: /display name/i }), name);
   await user.type(screen.getByRole('textbox', { name: /room code/i }), code);
   await user.click(screen.getByRole('button', { name: /^join$/i }));
+  await user.click(screen.getByRole('button', { name: /drop .* and join/i }));
   await screen.findByText(code);
   return user;
 }
@@ -232,6 +233,7 @@ it('drops the kept history when joining another Room', async () => {
   await user.clear(screen.getByRole('textbox', { name: /room code/i }));
   await user.type(screen.getByRole('textbox', { name: /room code/i }), 'P3RT9W');
   await user.click(screen.getByRole('button', { name: /^join$/i }));
+  await user.click(screen.getByRole('button', { name: /drop .* and join/i }));
   await screen.findByText('P3RT9W');
 
   expect(chatEntries()).toHaveLength(0);

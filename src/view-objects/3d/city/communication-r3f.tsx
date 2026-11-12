@@ -30,6 +30,7 @@ import { HierarchicalAttractionSystem } from './edge-bundling-utils';
 import globalBundlingService from './global-bundling-service';
 import { getGlobalLayoutMap } from './global-layout-map';
 import { HAPSystemManager } from './hap-system-manager';
+import { useDistricts } from 'explorviz-frontend/src/utils/collaboration/districts';
 
 // HAP System Manager Instance
 const hapSystemManager = HAPSystemManager.getInstance();
@@ -117,16 +118,16 @@ export default function CommunicationR3F({
   const enableEdgeBundling = !isEdgeBundlingNone;
   const enable3DHAPAlgorithm = is3DHAPAlgorithm;
 
-  const { isHighlighted, isHovered, setHoveredEntity, closedComponentIds } = useVisualizationStore(
+  const { isHighlighted, isHovered, setHoveredEntity } = useVisualizationStore(
     useShallow((state) => ({
       isHighlighted:
         state.highlightedEntityIds.has(communicationModel.id) ||
         communicationModel.baseCommunications.some((comm) => state.highlightedEntityIds.has(comm.id)),
       isHovered: state.hoveredEntityId === communicationModel.id,
       setHoveredEntity: state.actions.setHoveredEntityId,
-      closedComponentIds: state.closedDistrictIds,
     }))
   );
+  const closedComponentIds = useDistricts((districts) => districts.closedDistrictIds);
 
   const sceneLayers = useVisualizationStore((state) => state.sceneLayers);
 
