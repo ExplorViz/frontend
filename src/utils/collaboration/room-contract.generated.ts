@@ -14,7 +14,7 @@ export const ROOM_NAME = "collaboration";
 export type JoinOptions = {
   /** The client's CONTRACT_VERSION. */
   contractVersion: number;
-  /** The display name, typed by the person while login is off. */
+  /** The display name, typed by the person. Ignored while login is on: the name then comes from the login. */
   name: string;
 };
 
@@ -29,6 +29,18 @@ export const JoinRefusal = {
   CONTRACT_MISMATCH: 4100,
   /** The Room already has its maximum number of Participants. */
   ROOM_FULL: 4101,
+  /** Login is on and the request carried no valid login token. */
+  LOGIN_REQUIRED: 4102,
+} as const;
+
+/**
+ * Close codes with which the service removes a Participant from a Room.
+ * The SDK passes the code to `room.onLeave`. A removed Participant must not
+ * be offered reconnection.
+ */
+export const LeaveCode = {
+  /** The Host kicked the Participant. They may rejoin with the room code. */
+  KICKED: 4011,
 } as const;
 
 /** A Room keeps this many chat entries; the oldest are dropped beyond that. */
@@ -66,6 +78,12 @@ export type ChatRefusal = (typeof ChatRefusal)[keyof typeof ChatRefusal];
  * Each entry has a handler of the same name in CollaborationRoom's `messages`.
  */
 export type ClientMessages = {
+  /** Host only: removes the Participant with this session id from the Room. */
+  kick: { sessionId: string };
+  /** Host only: makes the Participant with this session id the Host instead. */
+  handOverHost: { sessionId: string };
+  /** Changes the sender's own color to a CSS hex color such as "#e6194b". Other values are ignored. */
+  setColor: { color: string };
   /** Post a chat message. Rejected with a ChatRefusal (e.g. "muted"). */
   chatSend: { text: string };
   /** Delete a chat entry for everyone. Allowed for its author and the Host. */

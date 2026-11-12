@@ -176,7 +176,14 @@ export class FakeServerRoom {
 export class FakeCollaborationService {
   readonly rooms = new Map<string, FakeServerRoom>();
   /** Every `create` and `joinById` call, in order. */
-  readonly requests: { method: 'create' | 'joinById'; roomName?: string; code?: string; options: any }[] = [];
+  readonly requests: {
+    method: 'create' | 'joinById';
+    roomName?: string;
+    code?: string;
+    options: any;
+    /** The login token the client carried (`client.auth.token`). */
+    token?: string;
+  }[] = [];
   endpoint: string | undefined;
   private refusal: FakeServerError | undefined;
   private sessions = 0;
@@ -195,16 +202,16 @@ export class FakeCollaborationService {
     return room;
   }
 
-  async create(roomName: string, options: any) {
-    this.requests.push({ method: 'create', roomName, options });
+  async create(roomName: string, options: any, token?: string) {
+    this.requests.push({ method: 'create', roomName, options, token });
     this.throwRefusal();
     const room = new FakeServerRoom(`ROOM${String(++this.codes).padStart(2, '0')}`);
     this.rooms.set(room.code, room);
     return room.seat(this.nextSessionId(), options.name);
   }
 
-  async joinById(code: string, options: any) {
-    this.requests.push({ method: 'joinById', code, options });
+  async joinById(code: string, options: any, token?: string) {
+    this.requests.push({ method: 'joinById', code, options, token });
     this.throwRefusal();
     const room = this.rooms.get(code);
     if (!room) throw new FakeServerError(522, `room "${code}" not found`);
@@ -237,14 +244,19 @@ export const fakeCollaborationService = new FakeCollaborationService();
 export function fakeColyseusSdk() {
   const service = fakeCollaborationService;
   class Client {
+    readonly auth: { token: string | undefined } = { token: undefined };
+    /** Like the SDK, an empty token is not sent. */
+    private sentToken() {
+      return this.auth.token || undefined;
+    }
     constructor(endpoint: string) {
       service.endpoint = endpoint;
     }
     create(roomName: string, options: any) {
-      return service.create(roomName, options);
+      return service.create(roomName, options, this.sentToken());
     }
     joinById(code: string, options: any) {
-      return service.joinById(code, options);
+      return service.joinById(code, options, this.sentToken());
     }
   }
   return { Client };

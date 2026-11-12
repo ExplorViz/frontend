@@ -18,4 +18,5 @@ ENV CODE_ANALYZER_URL=http://code-analyzer:8078 \
   USER_SERV_URL=http://user-service:8080 \
   VSCODE_SERV_URL=http://vs-code-backend:3000 \
   COPILOT_SERV_URL=http://chatbot-service:4300 \
+  COLLAB_SERV_URL=http://collaboration-service:2567 \
   KEYCLOAK_URL=http://keycloak:8080

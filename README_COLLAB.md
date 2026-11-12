@@ -2,7 +2,7 @@
 
 Collaboration is being rebuilt on the self-hosted, Colyseus-based collaboration service (repository `collaboration-service`). The previous implementation, which used the hosted Playroomkit service, has been removed.
 
-The Collaboration section of the sidebar checks whether the service is reachable. If it is, a person can create a Room, which gets a six-character room code from the service, or join one with its code; inside, the section shows the code and the Participants with their colors, marks the Host, and offers to leave. With login off, the person types a display name, which the browser remembers. If the service is not reachable, the section says that collaboration is currently disabled. Exploring alone works either way.
+The Collaboration section of the sidebar checks whether the service is reachable. If it is, a person can create a Room, which gets a six-character room code from the service, or join one with its code; inside, the section shows the code and the Participants with their colors, marks the Host, and offers to leave. The Host can kick another Participant (who is told so and may rejoin with the code) or hand the Host right to them; when the Host leaves, the right passes to whoever has been in the Room longest. With login off, the person types a display name, which the browser remembers. With login on, the name comes from the login and the access token (refreshed first if it is about to expire) is sent when creating or joining; the service checks it only then. Each Participant can change their own color with the color picker next to their name. If the service is not reachable, the section says that collaboration is currently disabled. Exploring alone works either way.
 
 Inside a Room the section also shows the chat. Its history is Room state, so people who join late see the earlier entries (the service keeps the last 200). The Host can mute and unmute a Participant; the service refuses a muted Participant's messages and the frontend says so. A message can be deleted for everyone by its author or the Host. After leaving, the history stays visible as the person's own copy until they clear it; joining a Room drops it.
 
@@ -16,6 +16,8 @@ Inside a Room the section also shows the chat. Its history is Room state, so peo
 ## Reaching the service
 
 The browser reaches the service under `/collaboration/` on the frontend's own host, and the prefix is stripped before the request reaches the service. In development the Vite dev server does this (`vite.config.js`) and forwards to `http://localhost:2567`, or to `COLLAB_SERV_URL` / `VITE_COLLAB_SERV_URL` if set. Start the service with `npm start` in `collaboration-service`.
+
+In the Docker image, nginx (`default.conf.template`) does the same. It forwards `/collaboration/` to `COLLAB_SERV_URL` (default `http://collaboration-service:2567`), including WebSocket upgrades, with a one-hour read timeout. The service's `/metrics` endpoint is not forwarded; Prometheus scrapes it inside the container network. The `deployment` repository runs the service next to the frontend.
 
 ## Room contract
 
