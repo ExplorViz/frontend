@@ -7,6 +7,7 @@ import { LandscapeToken, useLandscapeTokenStore } from 'explorviz-frontend/src/s
 import { SnapshotInfo, TinySnapshot, useSnapshotTokenStore } from 'explorviz-frontend/src/stores/snapshot-token';
 import { useToastHandlerStore } from 'explorviz-frontend/src/stores/toast-handler';
 import { requestLandscapeHasData } from 'explorviz-frontend/src/utils/landscape-http-request-util';
+import { leaveRoomToOpenSnapshot } from 'explorviz-frontend/src/utils/collaboration/snapshots';
 import { getResponseErrorMessage } from 'explorviz-frontend/src/utils/response-error';
 import { useEffect, useRef, useState } from 'react';
 import { Button, Modal, Tab, Tabs } from 'react-bootstrap';
@@ -114,6 +115,7 @@ export default function Landscapes() {
 
   const selectPersonalSnapshot = async (token: TinySnapshot) => {
     availabilityCheck.current?.abort();
+    if (!(await leaveRoomToOpenSnapshot())) return;
     setSnapshotToken(null);
     useSnapshotTokenStore.setState({ snapshotSelected: true });
     setLandscapeToken(null);
@@ -128,8 +130,9 @@ export default function Landscapes() {
     });
   };
 
-  const selectSharedSnapshot = (token: TinySnapshot) => {
+  const selectSharedSnapshot = async (token: TinySnapshot) => {
     availabilityCheck.current?.abort();
+    if (!(await leaveRoomToOpenSnapshot())) return;
     useSnapshotTokenStore.setState({ snapshotSelected: true });
     setLandscapeToken(null);
     navigate({
