@@ -94,6 +94,7 @@ it('creates a Room and shows its code and the creator as Host', async () => {
       options: {
         contractVersion: CONTRACT_VERSION,
         name: 'Ada',
+        visibility: 'public',
         // Each capability adds its part; its own tests check it.
         startingState: expect.objectContaining({ districts: { closed: [], hidden: [] } }),
       },
@@ -302,14 +303,14 @@ it('remembers the typed display name for the next time', async () => {
   expect(await screen.findByRole('textbox', { name: /display name/i })).toHaveValue('Ada');
 });
 
-it('asks for a display name before creating or joining', async () => {
+it('allows creating or joining without a user display name', async () => {
   serviceAnswers();
   render(<CollaborationControls />);
   const user = userEvent.setup();
   await user.type(await screen.findByRole('textbox', { name: /room code/i }), 'K7XQ2M');
 
-  expect(screen.getByRole('button', { name: /create room/i })).toBeDisabled();
-  expect(screen.getByRole('button', { name: /join/i })).toBeDisabled();
+  expect(screen.getByRole('button', { name: /create room/i })).toBeEnabled();
+  expect(screen.getByRole('button', { name: /join/i })).toBeEnabled();
 });
 
 it('takes the name from the login when login is on', async () => {
@@ -368,4 +369,52 @@ it('lets a Participant change their own color, which everyone sees', async () =>
   room.update((state) => (state.participants.get('session-other')!.color = '#123456'));
   const swatch = participantRows()[1].querySelector('[aria-hidden]') as HTMLElement;
   expect(swatch.style.backgroundColor).toBe('rgb(18, 52, 86)');
+});
+
+it('sends an optional room name when creating without a display name', async () => {
+  serviceAnswers();
+  render(<CollaborationControls />);
+  const user = userEvent.setup();
+  await user.type(await screen.findByRole('textbox', { name: /^room name$/i }), '  Team review  ');
+  await user.click(screen.getByRole('button', { name: /create room/i }));
+  await vi.waitFor(() => expect(service.requests.at(-1)?.options).toMatchObject({ name: '', roomName: 'Team review' }));
+});
+
+it('creates a public Room unless the creator chooses to share only its code', async () => {
+  serviceAnswers();
+  render(<CollaborationControls />);
+  const user = userEvent.setup();
+
+  expect(await screen.findByRole('combobox', { name: /visibility/i })).toHaveValue('public');
+  await user.click(screen.getByRole('button', { name: /create room/i }));
+  await vi.waitFor(() => expect(service.requests.at(-1)?.options.visibility).toBe('public'));
+  expect(await screen.findByText('Public')).toBeInTheDocument();
+});
+
+it('creates a Room that is joined with its code only and shows it next to the room code', async () => {
+  serviceAnswers();
+  render(<CollaborationControls />);
+  const user = userEvent.setup();
+
+  await user.selectOptions(await screen.findByRole('combobox', { name: /visibility/i }), 'Join with code');
+  await user.type(screen.getByRole('textbox', { name: /^room name$/i }), 'Review');
+  await user.click(screen.getByRole('button', { name: /create room/i }));
+
+  await vi.waitFor(() => expect(service.requests.at(-1)?.options.visibility).toBe('code'));
+  expect(await screen.findByText('Review')).toBeInTheDocument();
+  const badge = screen.getByText('Code only');
+  expect(badge.closest('div')).toHaveTextContent(/ROOM01\s*Code only/);
+
+  await user.hover(badge);
+  expect(await screen.findByRole('tooltip')).toHaveTextContent(
+    /not listed under Rooms.*only people you give the room code/i
+  );
+});
+
+it('offers no list of rooms, only joining by code', async () => {
+  serviceAnswers();
+  render(<CollaborationControls />);
+
+  expect(await screen.findByRole('textbox', { name: /room code/i })).toBeInTheDocument();
+  expect(screen.queryByRole('button', { name: /browse rooms/i })).not.toBeInTheDocument();
 });

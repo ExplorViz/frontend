@@ -92,7 +92,10 @@ useLandscapeTokenStore.subscribe((state, previous) => {
   if (!current || !value || value === previous.token?.value || value === current.roomLandscape) return;
   const { room } = current;
   if (room.sessionId === room.state.hostId) {
-    room.send('switchLandscape', { landscapeToken: value } satisfies ClientMessages['switchLandscape']);
+    room.send('switchLandscape', {
+      landscapeToken: value,
+      landscapeName: state.token?.alias,
+    } satisfies ClientMessages['switchLandscape']);
     return;
   }
   if (!current.roomLandscape) return;
@@ -106,7 +109,7 @@ useLandscapeTokenStore.subscribe((state, previous) => {
 registerHandOver({
   startingState: () => {
     const value = tokenStore().token?.value;
-    return value ? { landscapeToken: value } : {};
+    return value ? { landscapeToken: value, landscapeName: tokenStore().token?.alias } : {};
   },
   enter: (room) => {
     followed = { room, roomLandscape: room.state.landscapeToken ?? '' };

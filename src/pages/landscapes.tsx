@@ -1,3 +1,4 @@
+import RoomSelection from 'explorviz-frontend/src/components/room-selection';
 import SnapshotSelection from 'explorviz-frontend/src/components/snapshot-selection';
 import TokenCreationModal, { LandscapeTokenCreateParams } from 'explorviz-frontend/src/components/token-creation-modal';
 import TokenSelection from 'explorviz-frontend/src/components/token-selection';
@@ -86,6 +87,16 @@ export default function Landscapes() {
     navigate({
       pathname: '/visualization',
       search: `?${createSearchParams({ landscapeToken: token.value })}`,
+    });
+  };
+
+  /** Joining a Room from the Rooms tab already set the Room's Landscape; this only shows it. */
+  const openRoomLandscape = (landscapeToken: string) => {
+    availabilityCheck.current?.abort();
+    useSnapshotTokenStore.setState({ latestSnapshotToken: null });
+    navigate({
+      pathname: '/visualization',
+      search: `?${createSearchParams({ landscapeToken })}`,
     });
   };
 
@@ -284,6 +295,10 @@ export default function Landscapes() {
               selectSharedToken={selectSharedSnapshot}
               reload={reload}
             />
+          </Tab>
+          {/* Mounted only while open, so the rooms are loaded each time the tab is opened. */}
+          <Tab eventKey="rooms" title="Rooms" id="rooms-tab" mountOnEnter unmountOnExit>
+            <RoomSelection openRoomLandscape={openRoomLandscape} />
           </Tab>
         </Tabs>
       </div>

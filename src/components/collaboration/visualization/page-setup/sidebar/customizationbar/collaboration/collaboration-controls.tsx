@@ -5,17 +5,26 @@ import { isLoginSkipped } from 'explorviz-frontend/src/utils/auth-config';
 import 'explorviz-frontend/src/utils/collaboration/capabilities';
 import { setParticipantMuted, useChat } from 'explorviz-frontend/src/utils/collaboration/chat';
 import { isCollaborationServiceReachable } from 'explorviz-frontend/src/utils/collaboration/collaboration-service';
+import {
+  MAX_DISPLAY_NAME_LENGTH,
+  readDisplayName,
+  rememberDisplayName,
+} from 'explorviz-frontend/src/utils/collaboration/display-name';
 import { setDistrictSharing, useDistrictSharing } from 'explorviz-frontend/src/utils/collaboration/districts';
 import {
   normalizeRoomCode,
   useRoomConnectionStore,
   useRoomState,
 } from 'explorviz-frontend/src/utils/collaboration/room-connection';
+import type { RoomVisibility } from 'explorviz-frontend/src/utils/collaboration/room-contract.generated';
 import { saveSnapshotOfView } from 'explorviz-frontend/src/utils/snapshot/snapshot-helpers';
 import { SpectateButton, SpectatingStatus } from './spectating-status';
 import { useEffect, useState } from 'react';
+import Badge from 'react-bootstrap/Badge';
 import Button from 'react-bootstrap/Button';
 import Form from 'react-bootstrap/Form';
+import OverlayTrigger from 'react-bootstrap/OverlayTrigger';
+import Tooltip from 'react-bootstrap/Tooltip';
 
 type Reachability = 'checking' | 'reachable' | 'unreachable';
 
@@ -61,24 +70,6 @@ export default function CollaborationControls() {
   );
 }
 
-const DISPLAY_NAME_KEY = 'explorviz.collaboration.displayName';
-
-function readDisplayName() {
-  try {
-    return localStorage.getItem(DISPLAY_NAME_KEY) ?? '';
-  } catch {
-    return '';
-  }
-}
-
-function rememberDisplayName(name: string) {
-  try {
-    localStorage.setItem(DISPLAY_NAME_KEY, name);
-  } catch {
-    // The name is only a convenience.
-  }
-}
-
 function RoomEntryForm() {
   const { createRoom, joinRoom, connecting } = useRoomConnectionStore();
   const loginName = useAuthStore((state) => state.user?.name);
@@ -86,10 +77,13 @@ function RoomEntryForm() {
   const typesName = isLoginSkipped();
   const [displayName, setDisplayName] = useState(readDisplayName);
   const [roomCode, setRoomCode] = useState('');
+  const [roomName, setRoomName] = useState('');
+  const [visibility, setVisibility] = useState<RoomVisibility>('public');
   const [askingToJoin, setAskingToJoin] = useState(false);
 
+  // An empty name is fine: the service then names the Participant "Anonymous" plus a number.
   const name = typesName ? displayName.trim() : (loginName ?? '');
-  const canEnter = !connecting && name !== '';
+  const canEnter = !connecting;
 
   const enter = (action: (name: string) => Promise<void>) => {
     if (typesName) rememberDisplayName(name);
@@ -105,20 +99,47 @@ function RoomEntryForm() {
     >
       {typesName && (
         <Form.Group controlId="collaboration-display-name" className="mb-3">
-          <Form.Label className="small mb-1">Display name</Form.Label>
+          <Form.Label className="small mb-1">User display name</Form.Label>
           <Form.Control
             size="sm"
-            maxLength={40}
+            maxLength={MAX_DISPLAY_NAME_LENGTH}
+            placeholder="Optional — Anonymous if empty"
             value={displayName}
             onChange={(event) => setDisplayName(event.target.value)}
           />
         </Form.Group>
       )}
+      <Form.Group controlId="collaboration-room-name" className="mb-3">
+        <Form.Label className="small mb-1">Room name</Form.Label>
+        <Form.Control
+          size="sm"
+          maxLength={80}
+          placeholder="Optional"
+          value={roomName}
+          onChange={(event) => setRoomName(event.target.value)}
+        />
+      </Form.Group>
+      <Form.Group controlId="collaboration-room-visibility" className="mb-3">
+        <Form.Label className="small mb-1">Visibility</Form.Label>
+        <Form.Select
+          size="sm"
+          value={visibility}
+          onChange={(event) => setVisibility(event.target.value as RoomVisibility)}
+        >
+          <option value="public">Public</option>
+          <option value="code">Join with code</option>
+        </Form.Select>
+        <Form.Text className="small">
+          {visibility === 'public'
+            ? 'Listed under Rooms on the Landscapes page.'
+            : 'Not listed; only people you give the room code can join.'}
+        </Form.Text>
+      </Form.Group>
       <Button
         variant="success"
         className="w-100 mb-3"
         disabled={!canEnter}
-        onClick={() => enter((name) => createRoom(name))}
+        onClick={() => enter((name) => createRoom(name, { roomName, visibility }))}
       >
         Create room
       </Button>
@@ -203,10 +224,14 @@ function RoomPanel() {
           Reconnecting… The room is shown as you last saw it; your changes are not shared until the connection is back.
         </div>
       )}
+      {state?.roomName && <p className="h6 mb-2">{state.roomName}</p>}
       <p className="small mb-1">Room code</p>
-      <p className="h5 mb-3 font-monospace" aria-label="Room code">
-        {room.roomId}
-      </p>
+      <div className="d-flex align-items-center gap-2 mb-3">
+        <p className="h5 mb-0 font-monospace" aria-label="Room code">
+          {room.roomId}
+        </p>
+        <RoomVisibilityBadge visibility={state?.visibility} />
+      </div>
       <ul className="list-unstyled mb-3" aria-label="Participants">
         {Object.entries(state?.participants ?? {}).map(([sessionId, participant]) => (
           <li key={sessionId} className="d-flex align-items-center gap-2 mb-1">
@@ -291,5 +316,35 @@ function RoomPanel() {
         Leave room
       </Button>
     </div>
+  );
+}
+
+const VISIBILITY_EXPLANATIONS = {
+  public:
+    'Public: the room is listed under Rooms on the Landscapes page, where anyone who can collaborate sees its name, ' +
+    'code, Landscape and number of users and can join it. It can also be joined with the room code.',
+  code:
+    'Code only: the room is not listed under Rooms on the Landscapes page. Only people you give the room code can ' +
+    'join it, by typing the code in the collaboration tab.',
+};
+
+/** Whether the Room is listed for everyone or found only through its code; hovering or focusing explains it. */
+function RoomVisibilityBadge({ visibility }: { visibility: string | undefined }) {
+  // Before the first state arrives, the Room's visibility is not known yet.
+  if (!visibility) return null;
+  const isPublic = visibility === 'public';
+  const explanation = VISIBILITY_EXPLANATIONS[isPublic ? 'public' : 'code'];
+  return (
+    <OverlayTrigger placement="bottom" overlay={<Tooltip id="room-visibility-explanation">{explanation}</Tooltip>}>
+      <Badge
+        bg={isPublic ? 'success' : 'warning'}
+        text={isPublic ? undefined : 'dark'}
+        tabIndex={0}
+        aria-describedby="room-visibility-explanation"
+        style={{ cursor: 'help' }}
+      >
+        {isPublic ? 'Public' : 'Code only'}
+      </Badge>
+    </OverlayTrigger>
   );
 }

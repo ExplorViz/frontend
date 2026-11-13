@@ -105,7 +105,9 @@ describe('the Host', () => {
     room.update((state) => state.districts.closed.set('a.x', true));
 
     openLandscape('b');
-    expect(switchesSent(room)).toEqual([{ type: 'switchLandscape', payload: { landscapeToken: 'b' } }]);
+    expect(switchesSent(room)).toEqual([
+      { type: 'switchLandscape', payload: { landscapeToken: 'b', landscapeName: 'Landscape B' } },
+    ]);
 
     room.handleMessages();
     expect(room.state.landscapeToken).toBe('b');

@@ -77,6 +77,9 @@ const CollaborationState = schema(
     participants: t.map(Participant),
     hostId: t.string(),
     landscapeToken: t.string().default(''),
+    roomName: t.string().default(''),
+    landscapeName: t.string().default(''),
+    visibility: t.string().default('public'),
     chat: t.array(ChatEntry),
     districts: Districts,
     highlights: t.map('string'),
@@ -111,9 +114,10 @@ const asIdSets = (districts: ServerState['districts']) => ({
 /** How the service handles each client message (from the sender's session id); extend together with `ClientMessages`. */
 const MESSAGE_HANDLERS: Record<string, (state: ServerState, payload: any, from: string) => void> = {
   // As the service: Host only; clears everything tied to the old Landscape.
-  switchLandscape: (state, { landscapeToken }, from) => {
+  switchLandscape: (state, { landscapeToken, landscapeName }, from) => {
     if (from !== state.hostId || !landscapeToken || landscapeToken === state.landscapeToken) return;
     state.landscapeToken = landscapeToken;
+    state.landscapeName = landscapeName ?? '';
     clearLandscapeState(state);
   },
   // As the service: the first to share a popup is recorded; anyone closes it.
@@ -504,6 +508,9 @@ export class FakeCollaborationService {
     this.throwRefusal();
     const room = new FakeServerRoom(`ROOM${String(++this.codes).padStart(2, '0')}`);
     this.rooms.set(room.code, room);
+    // As the service: the creator's choices for the Room.
+    room.state.roomName = options.roomName ?? '';
+    room.state.visibility = options.visibility === 'code' ? 'code' : 'public';
     const creator = room.seat(this.nextSessionId(), options.name, this.takeHold());
     // As the service: the creator's highlights become theirs.
     room.update((state) => {

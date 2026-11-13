@@ -12,6 +12,7 @@ import {
   type ClientMessages,
   type CollaborationState,
   type JoinOptions,
+  type RoomVisibility,
   type StartingState,
 } from 'explorviz-frontend/src/utils/collaboration/room-contract.generated';
 import { create } from 'zustand';
@@ -31,7 +32,7 @@ type RoomConnectionState = {
    */
   reconnecting: boolean;
   /** Creates a Room and joins it as Host. Refusals are shown as a toast. */
-  createRoom: (name: string) => Promise<void>;
+  createRoom: (name: string, room?: RoomChoices) => Promise<void>;
   /** Joins the Room with this code. Refusals are shown as a toast. */
   joinRoom: (code: string, name: string) => Promise<void>;
   /** Leaves the Room; exploring goes on alone. */
@@ -40,6 +41,14 @@ type RoomConnectionState = {
   kick: (sessionId: string) => void;
   /** Host only: makes this Participant the Host instead. The service refuses it from anyone else. */
   handOverHost: (sessionId: string) => void;
+};
+
+/** What the creator chooses for a new Room. */
+export type RoomChoices = {
+  /** The Room's name; none if empty. */
+  roomName?: string;
+  /** Who may find the Room; public if left out. */
+  visibility?: RoomVisibility;
 };
 
 const TOAST_HEADER = 'Collaboration';
@@ -132,7 +141,13 @@ export const useRoomConnectionStore = create<RoomConnectionState>((set, get) => 
     room: undefined,
     connecting: false,
     reconnecting: false,
-    createRoom: (name) => enter('created', (options) => serviceClient().create(ROOM_NAME, options), name),
+    createRoom: (name, { roomName = '', visibility } = {}) =>
+      enter(
+        'created',
+        (options) =>
+          serviceClient().create(ROOM_NAME, { ...options, roomName: roomName.trim() || undefined, visibility }),
+        name
+      ),
     joinRoom: (code, name) =>
       enter('joined', (options) => serviceClient().joinById(normalizeRoomCode(code), options), name),
     leaveRoom: async () => {
