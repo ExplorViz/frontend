@@ -240,8 +240,10 @@ it('shows each Participant in the color the service assigned', async () => {
   await createRoomAs('Ada');
   await screen.findByText('ROOM01');
 
-  const swatch = participantRows()[0].querySelector('[aria-hidden]') as HTMLElement;
-  expect(swatch.style.backgroundColor).toBe('rgb(230, 25, 75)'); // #e6194b
+  // The own color is shown by the picker that changes it, not by a second swatch.
+  const ownRow = participantRows()[0];
+  expect(within(ownRow).getByLabelText('Your color')).toHaveValue('#e6194b');
+  expect(ownRow.querySelector('[aria-hidden]')).toBeNull();
 });
 
 it('leaves the Room without reloading and offers the entry form again', async () => {

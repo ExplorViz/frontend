@@ -35,29 +35,28 @@ export default function CollaborationControls() {
     };
   }, []);
 
+  // The chat sits below the controls at the bottom of the screen; only the controls scroll.
   return (
     <div className="collaboration-controls">
-      <h6 className="bold mb-3">Collaboration</h6>
-      {room ? (
-        <RoomPanel />
-      ) : (
-        <>
-          {reachability === 'checking' && (
-            <p className="small text-muted mb-0">Looking for the collaboration service…</p>
-          )}
-          {reachability === 'unreachable' && (
-            <p className="small text-muted mb-0">
-              Collaboration is currently disabled because the collaboration service is not reachable.
-            </p>
-          )}
-          {reachability === 'reachable' && <RoomEntryForm />}
-          {keptChat && (
-            <div className="mt-3">
-              <ChatBox />
-            </div>
-          )}
-        </>
-      )}
+      <div className="collaboration-controls-scroll">
+        <h6 className="bold mb-3">Collaboration</h6>
+        {room ? (
+          <RoomPanel />
+        ) : (
+          <>
+            {reachability === 'checking' && (
+              <p className="small text-muted mb-0">Looking for the collaboration service…</p>
+            )}
+            {reachability === 'unreachable' && (
+              <p className="small text-muted mb-0">
+                Collaboration is currently disabled because the collaboration service is not reachable.
+              </p>
+            )}
+            {reachability === 'reachable' && <RoomEntryForm />}
+          </>
+        )}
+      </div>
+      {(room || keptChat) && <ChatBox />}
     </div>
   );
 }
@@ -211,12 +210,7 @@ function RoomPanel() {
       <ul className="list-unstyled mb-3" aria-label="Participants">
         {Object.entries(state?.participants ?? {}).map(([sessionId, participant]) => (
           <li key={sessionId} className="d-flex align-items-center gap-2 mb-1">
-            <span
-              aria-hidden
-              className="d-inline-block rounded-circle"
-              style={{ width: '0.75rem', height: '0.75rem', backgroundColor: participant.color }}
-            />
-            {sessionId === room.sessionId && (
+            {sessionId === room.sessionId ? (
               <input
                 type="color"
                 aria-label="Your color"
@@ -225,6 +219,12 @@ function RoomPanel() {
                 style={{ width: '1.25rem', height: '1.25rem' }}
                 value={participant.color}
                 onChange={(event) => room.send('setColor', { color: event.target.value })}
+              />
+            ) : (
+              <span
+                aria-hidden
+                className="d-inline-block rounded-circle"
+                style={{ width: '0.75rem', height: '0.75rem', backgroundColor: participant.color }}
               />
             )}
             <span>{participant.name}</span>
@@ -290,9 +290,6 @@ function RoomPanel() {
       <Button variant="outline-danger" size="sm" className="w-100" onClick={() => leaveRoom()}>
         Leave room
       </Button>
-      <div className="mt-3">
-        <ChatBox />
-      </div>
     </div>
   );
 }
