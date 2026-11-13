@@ -136,9 +136,10 @@ export default function SnapshotSelection({
       subscribedUsers: { subscriberList: [] },
       deleteAt: 0,
     };
-    await useSnapshotTokenStore.getState().saveSnapshot(imported, name);
-    reset();
-    reload();
+    if (await useSnapshotTokenStore.getState().saveSnapshot(imported, name)) {
+      reset();
+      reload();
+    }
   };
 
   const createLink = async (snapshot: TinySnapshot) => {

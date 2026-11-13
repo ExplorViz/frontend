@@ -73,7 +73,7 @@ interface SnapshotTokenState {
   latestSnapshotToken: SnapshotToken | null;
   retrieveTokens: () => Promise<SnapshotInfo>;
   retrieveToken: (owner: string, createdAt: number, isShared: boolean) => Promise<SnapshotToken | null>;
-  /** Resolves to whether the Snapshot was saved; failures are shown as a toast. */
+  /** Resolves to true if the snapshot was saved. Success and errors are reported via toasts. */
   saveSnapshot: (content: SnapshotToken, name?: string) => Promise<boolean>;
   subsribe: (owner: string, createdAt: number, subscriber: string) => Promise<void>;
   exportFile: (exportData: SnapshotToken) => Promise<void>;
@@ -176,35 +176,32 @@ export const useSnapshotTokenStore = create<SnapshotTokenState>((set, get) => ({
   },
 
   saveSnapshot: async (content: SnapshotToken, name?: string) => {
-    const snapshotToken: SnapshotToken = name !== undefined ? { ...content, name: name } : content;
+    const toast = useToastHandlerStore.getState();
 
-    const url = `${userService}/snapshot/create`;
-    let saved = false;
-    await fetch(url, {
-      method: 'POST',
-      body: stringifySnapshotJson(snapshotToken),
-      headers: snapshotAuthHeaders(),
-    })
-      .then(async (response: Response) => {
-        if (response.ok) {
-          saved = true;
-          useToastHandlerStore.getState().showSuccessToastMessage('Successfully saved snapshot.');
-        } else if (response.status === 422) {
-          useToastHandlerStore
-            .getState()
-            .showErrorToastMessage(await getResponseErrorMessage(response, 'Snapshot already exists.'));
-        } else {
-          useToastHandlerStore
-            .getState()
-            .showErrorToastMessage(
-              await getResponseErrorMessage(response, 'Something went wrong. Snapshot could not be saved.')
-            );
-        }
-      })
-      .catch(async () => {
-        useToastHandlerStore.getState().showErrorToastMessage('Snapshot server could not be reached.');
+    try {
+      const snapshotToken: SnapshotToken = name !== undefined ? { ...content, name: name } : content;
+
+      const response = await fetch(`${userService}/snapshot/create`, {
+        method: 'POST',
+        body: stringifySnapshotJson(snapshotToken),
+        headers: snapshotAuthHeaders(),
       });
-    return saved;
+
+      if (response.ok) {
+        toast.showSuccessToastMessage(`Successfully saved snapshot "${snapshotToken.name}".`);
+        return true;
+      }
+
+      const fallback =
+        response.status === 422 ? 'Snapshot already exists.' : 'Something went wrong. Snapshot could not be saved.';
+      toast.showErrorToastMessage(await getResponseErrorMessage(response, fallback));
+    } catch (error) {
+      console.error('Snapshot could not be saved:', error);
+      toast.showErrorToastMessage(
+        error instanceof TypeError ? 'Snapshot server could not be reached.' : 'Snapshot could not be saved.'
+      );
+    }
+    return false;
   },
 
   subsribe: async (owner: string, createdAt: number, subscriber: string) => {
