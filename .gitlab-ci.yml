@@ -1,7 +1,3 @@
-include:
-  - project: 'ExplorViz/code/deployment'
-    file: '.gitlab-ci-explorviz-common.yml'
-
 variables:
   NODE_OPTIONS: '--max-old-space-size=4096'
 
@@ -14,7 +10,6 @@ stages:
   - code-analysis
   - test
   - build
-  - deploy:images
 
 workflow:
   rules:
@@ -76,13 +71,3 @@ build:
       - dist
   rules:
     - if: '$CI_PIPELINE_SOURCE != "schedule"'
-
-deploy-merge-request:
-  extends:
-    - .build-and-deploy
-  dependencies:
-    - build
-  variables:
-    DOCKERHUB_TAG: mr-$CI_MERGE_REQUEST_IID
-  rules:
-    - if: '$CI_PIPELINE_SOURCE == "merge_request_event" && $CI_MERGE_REQUEST_TARGET_BRANCH_NAME == "main"'
