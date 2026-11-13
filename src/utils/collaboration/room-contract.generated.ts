@@ -170,9 +170,7 @@ export type DistrictLists = {
  * nobody's view: everyone takes the Room's Districts as their own. Switching
  * it on makes the Host's own Districts the Room's, so it carries them.
  */
-export type DistrictSharing =
-  | { shared: false }
-  | { shared: true; districts: DistrictLists };
+export type DistrictSharing = { shared: false } | { shared: true; districts: DistrictLists };
 
 /**
  * What `applyDistrictActions` changes: a set of District ids. While
