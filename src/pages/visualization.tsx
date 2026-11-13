@@ -323,6 +323,16 @@ export default function Visualization() {
 
         let loadedSnapshot = useSnapshotTokenStore.getState().snapshotToken;
 
+        // Ignore a stale token that belongs to another snapshot than the one requested via URL.
+        if (
+          loadedSnapshot &&
+          snapshotOwner &&
+          snapshotCreatedAt &&
+          (loadedSnapshot.owner !== snapshotOwner || loadedSnapshot.createdAt !== Number(snapshotCreatedAt))
+        ) {
+          loadedSnapshot = null;
+        }
+
         if (!loadedSnapshot && snapshotOwner && snapshotCreatedAt) {
           loadedSnapshot = await useSnapshotTokenStore
             .getState()

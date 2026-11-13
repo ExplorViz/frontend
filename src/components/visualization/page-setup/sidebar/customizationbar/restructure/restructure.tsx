@@ -449,6 +449,11 @@ export default function Restructure({
       deleteAt: expDate !== null ? expDate : 0,
     });
 
+    if (sharedToken === null) {
+      console.error('Cannot build snapshot token');
+      return;
+    }
+
     if (createPersonalSnapshot) {
       const personalToken: SnapshotToken = {
         ...sharedToken,

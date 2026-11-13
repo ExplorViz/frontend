@@ -1,15 +1,14 @@
 import { useAuthStore } from 'explorviz-frontend/src/stores/auth';
 import { LandscapeToken } from 'explorviz-frontend/src/stores/landscape-token';
 import { useToastHandlerStore } from 'explorviz-frontend/src/stores/toast-handler';
-import { getCircularReplacer } from 'explorviz-frontend/src/utils/circular-replacer';
 import { SerializedRoom } from 'explorviz-frontend/src/utils/collaboration/web-socket-messages/types/serialized-room';
 import { CommSummary } from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/communication';
 import { FlatLandscape } from 'explorviz-frontend/src/utils/landscape-schemes/flat-landscape';
 import { StructureLandscapeData } from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
 import { DynamicLandscapeData } from 'explorviz-frontend/src/utils/landscape-schemes/telemetry/traces';
 import { Timestamp } from 'explorviz-frontend/src/utils/landscape-schemes/timestamp';
+import { parseSnapshotJson, stringifySnapshotJson } from 'explorviz-frontend/src/utils/snapshot/snapshot-json';
 import { getResponseErrorMessage } from 'explorviz-frontend/src/utils/response-error';
-import { reject } from 'rsvp';
 import { create } from 'zustand';
 
 export type SnapshotStructureData = {
@@ -96,13 +95,14 @@ export const useSnapshotTokenStore = create<SnapshotTokenState>((set, get) => ({
 
   retrieveTokens: () => {
     return new Promise<SnapshotInfo>((resolve) => {
-      const userId = encodeURI(useAuthStore.getState().user?.sub || '');
+      const userId = encodeURIComponent(useAuthStore.getState().user?.sub || '');
       if (!userId) {
         resolve({
           personalSnapshots: [],
           sharedSnapshots: [],
           subscribedSnapshots: [],
         });
+        return;
       }
 
       fetch(`${userService}/snapshot?owner=${userId}`, {
@@ -145,7 +145,7 @@ export const useSnapshotTokenStore = create<SnapshotTokenState>((set, get) => ({
   retrieveToken: (owner: string, createdAt: number, isShared: boolean) => {
     return new Promise<SnapshotToken | null>((resolve) => {
       fetch(
-        `${userService}/snapshot/get?owner=${owner}&createdAt=${createdAt}&isShared=${isShared}&subscriber=${useAuthStore.getState().user!.sub}`,
+        `${userService}/snapshot/get?owner=${encodeURIComponent(owner)}&createdAt=${createdAt}&isShared=${isShared}&subscriber=${encodeURIComponent(useAuthStore.getState().user?.sub ?? '')}`,
         {
           headers: {
             Authorization: `Bearer ${useAuthStore.getState().accessToken}`,
@@ -154,12 +154,13 @@ export const useSnapshotTokenStore = create<SnapshotTokenState>((set, get) => ({
       )
         .then(async (response: Response) => {
           if (response.ok) {
-            const tokens = (await response.json()) as SnapshotToken | null;
-            resolve(tokens);
+            // The service answers with an empty body (204) if the snapshot does not exist.
+            const text = await response.text();
+            resolve(text ? parseSnapshotJson<SnapshotToken>(text) : null);
           } else {
             set({ snapshotSelected: false });
             set({ snapshotToken: null });
-            reject();
+            resolve(null);
             useToastHandlerStore
               .getState()
               .showErrorToastMessage(await getResponseErrorMessage(response, 'Snapshot could not be loaded.'));
@@ -168,7 +169,7 @@ export const useSnapshotTokenStore = create<SnapshotTokenState>((set, get) => ({
         .catch(async () => {
           set({ snapshotSelected: false });
           set({ snapshotToken: null });
-          reject();
+          resolve(null);
           useToastHandlerStore.getState().showErrorToastMessage('Shared snapshot does not exist or is expired.');
         });
     });
@@ -181,7 +182,7 @@ export const useSnapshotTokenStore = create<SnapshotTokenState>((set, get) => ({
     let saved = false;
     await fetch(url, {
       method: 'POST',
-      body: JSON.stringify(snapshotToken, getCircularReplacer()),
+      body: stringifySnapshotJson(snapshotToken),
       headers: snapshotAuthHeaders(),
     })
       .then(async (response: Response) => {
@@ -207,7 +208,7 @@ export const useSnapshotTokenStore = create<SnapshotTokenState>((set, get) => ({
   },
 
   subsribe: async (owner: string, createdAt: number, subscriber: string) => {
-    const url = `${userService}/snapshot/subscribe?owner=${owner}&createdAt=${createdAt}&subscriber=${subscriber}`;
+    const url = `${userService}/snapshot/subscribe?owner=${encodeURIComponent(owner)}&createdAt=${createdAt}&subscriber=${encodeURIComponent(subscriber)}`;
 
     await fetch(url, {
       method: 'PUT',
@@ -226,9 +227,7 @@ export const useSnapshotTokenStore = create<SnapshotTokenState>((set, get) => ({
   },
 
   exportFile: async (exportData: SnapshotToken) => {
-    const jsonString = `data:text/json;chatset=utf-8,${encodeURIComponent(
-      JSON.stringify(exportData, getCircularReplacer())
-    )}`;
+    const jsonString = `data:text/json;charset=utf-8,${encodeURIComponent(stringifySnapshotJson(exportData))}`;
     const link = document.createElement('a');
     link.href = jsonString;
     link.download = `snapshot-${exportData.name}.explorviz`;
@@ -237,7 +236,7 @@ export const useSnapshotTokenStore = create<SnapshotTokenState>((set, get) => ({
   },
 
   shareSnapshot: async (snapshot: TinySnapshot, expDate: number) => {
-    const url = `${userService}/snapshot/share?owner=${snapshot.owner}&createdAt=${snapshot.createdAt}&deleteAt=${expDate}`;
+    const url = `${userService}/snapshot/share?owner=${encodeURIComponent(snapshot.owner)}&createdAt=${snapshot.createdAt}&deleteAt=${expDate}`;
 
     await fetch(url, {
       method: 'PUT',
@@ -247,7 +246,9 @@ export const useSnapshotTokenStore = create<SnapshotTokenState>((set, get) => ({
         if (response.status === 200) {
           useToastHandlerStore
             .getState()
-            .showSuccessToastMessage('Successfully shared snapshot. Snaphsot URL copied to clipboard');
+            .showSuccessToastMessage(
+              'Successfully shared snapshot. Use the share button of the shared snapshot to copy its URL.'
+            );
         } else if (response.status === 222) {
           useToastHandlerStore.getState().showInfoToastMessage('A shared version already exists.');
         } else {
@@ -265,24 +266,28 @@ export const useSnapshotTokenStore = create<SnapshotTokenState>((set, get) => ({
 
   deleteSnapshot: async (snapshot: TinySnapshot, isShared: boolean, subscribed: boolean) => {
     if (subscribed) {
-      const url = `${userService}/snapshot/unsubscribe?owner=${snapshot.owner}&createdAt=${snapshot.createdAt}&subscriber=${useAuthStore.getState().user!.sub}`;
+      const url = `${userService}/snapshot/unsubscribe?owner=${encodeURIComponent(snapshot.owner)}&createdAt=${snapshot.createdAt}&subscriber=${encodeURIComponent(useAuthStore.getState().user?.sub ?? '')}`;
 
       await fetch(url, {
         method: 'PUT',
         headers: snapshotAuthHeaders(),
-      }).then(async (response: Response) => {
-        if (!response.ok) {
-          useToastHandlerStore
-            .getState()
-            .showErrorToastMessage(
-              await getResponseErrorMessage(response, 'Subscribed Snapshot could not be deleted.')
-            );
-        } else {
-          useToastHandlerStore.getState().showSuccessToastMessage('Subscribed Snapshot successfully deleted.');
-        }
-      });
+      })
+        .then(async (response: Response) => {
+          if (!response.ok) {
+            useToastHandlerStore
+              .getState()
+              .showErrorToastMessage(
+                await getResponseErrorMessage(response, 'Subscribed Snapshot could not be deleted.')
+              );
+          } else {
+            useToastHandlerStore.getState().showSuccessToastMessage('Subscribed Snapshot successfully deleted.');
+          }
+        })
+        .catch(async () => {
+          useToastHandlerStore.getState().showErrorToastMessage('Snapshot server could not be reached.');
+        });
     } else {
-      const url = `${userService}/snapshot/delete?owner=${snapshot.owner}&createdAt=${snapshot.createdAt}&isShared=${isShared}`;
+      const url = `${userService}/snapshot/delete?owner=${encodeURIComponent(snapshot.owner)}&createdAt=${snapshot.createdAt}&isShared=${isShared}`;
 
       await fetch(url, {
         method: 'DELETE',

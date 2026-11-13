@@ -15,7 +15,7 @@ export type SerializedRoom = {
 
 export type SerializedLandscape = {
   landscapeToken: string | undefined;
-  timestamp: number;
+  timestamp: bigint;
 };
 
 export type SerializedHighlightedEntity = {
