@@ -1,8 +1,9 @@
+import { useAuthStore } from 'explorviz-frontend/src/stores/auth';
 import { useAnnotationHandlerStore } from 'explorviz-frontend/src/stores/annotation-handler';
 import { useCameraControlsStore } from 'explorviz-frontend/src/stores/camera-controls-store';
 import { useRoomSerializerStore } from 'explorviz-frontend/src/stores/collaboration/room-serializer';
 import { useCommunicationStore } from 'explorviz-frontend/src/stores/communication-store';
-import { LandscapeToken } from 'explorviz-frontend/src/stores/landscape-token';
+import { LandscapeToken, useLandscapeTokenStore } from 'explorviz-frontend/src/stores/landscape-token';
 import { usePopupHandlerStore } from 'explorviz-frontend/src/stores/popup-handler';
 import { useReloadHandlerStore } from 'explorviz-frontend/src/stores/reload-handler';
 import { useRenderingServiceStore } from 'explorviz-frontend/src/stores/rendering-service';
@@ -13,11 +14,13 @@ import {
   useSnapshotTokenStore,
 } from 'explorviz-frontend/src/stores/snapshot-token';
 import { useTimestampStore } from 'explorviz-frontend/src/stores/timestamp';
+import { useToastHandlerStore } from 'explorviz-frontend/src/stores/toast-handler';
 import { useTimestampPollingStore } from 'explorviz-frontend/src/stores/timestamp-polling';
 import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
 import { useVisualizationStore } from 'explorviz-frontend/src/stores/visualization-store';
 import { closeDistrictsByList } from 'explorviz-frontend/src/utils/city-rendering/entity-manipulation';
-import { removeAllHighlighting } from 'explorviz-frontend/src/utils/city-rendering/highlighting';
+import { highlightOnly } from 'explorviz-frontend/src/utils/city-rendering/highlighting';
+import { canApplySnapshot } from 'explorviz-frontend/src/utils/collaboration/snapshots';
 import { SerializedRoom } from 'explorviz-frontend/src/utils/collaboration/web-socket-messages/types/serialized-room';
 import { CROSS_COMMIT_IDENTIFIER } from 'explorviz-frontend/src/utils/evolution-schemes/evolution-data';
 import { CommSummary } from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/communication';
@@ -62,7 +65,31 @@ export function buildSnapshotToken(params: {
   };
 }
 
+/**
+ * Saves what the person sees (in a Room, the Room's exploration) as a normal
+ * personal Snapshot of the shown Landscape. Resolves to whether it was saved.
+ */
+export async function saveSnapshotOfView(name: string): Promise<boolean> {
+  const owner = useAuthStore.getState().user?.sub;
+  const content = owner
+    ? buildSnapshotToken({
+        name,
+        owner,
+        landscapeToken: useLandscapeTokenStore.getState().token,
+        landscapeData: useRenderingServiceStore.getState()._landscapeData,
+      })
+    : null;
+  if (content === null) {
+    useToastHandlerStore.getState().showErrorToastMessage('There is no Landscape to save as a Snapshot.');
+    return false;
+  }
+  return useSnapshotTokenStore.getState().saveSnapshot(content);
+}
+
+/** Makes a Snapshot's exploration the own state. Does nothing in a Room: a Snapshot is never loaded into one. */
 export function applySerializedRoomState(serializedRoom: SerializedRoom): void {
+  if (!canApplySnapshot()) return;
+
   if (serializedRoom.visualizationSettings) {
     useUserSettingsStore.getState().updateSettings(serializedRoom.visualizationSettings);
   }
@@ -73,11 +100,7 @@ export function applySerializedRoomState(serializedRoom: SerializedRoom): void {
     closeDistrictsByList(serializedRoom.closedComponentIds, false, false);
   }
 
-  removeAllHighlighting(false);
-
-  for (const highlight of serializedRoom.highlightedEntities ?? []) {
-    useVisualizationStore.getState().actions.setHighlightedEntityId(highlight.entityId, true);
-  }
+  highlightOnly((serializedRoom.highlightedEntities ?? []).map((highlight) => highlight.entityId));
 
   if (serializedRoom.popups?.length) {
     usePopupHandlerStore.getState().onRestorePopups(serializedRoom.popups);
@@ -121,7 +144,7 @@ async function resolveSnapshotLandscapeData(snapshot: SnapshotToken): Promise<{
   }
 
   const epochNano = snapshot.serializedRoom?.landscape?.timestamp;
-  if (epochNano) {
+  if (epochNano !== undefined && epochNano !== null) {
     try {
       const [flat, dynamic, aggregated] = await useReloadHandlerStore.getState().loadLandscapeByTimestamp(epochNano);
       return { flat, dynamic, aggregated };
@@ -157,7 +180,7 @@ export async function restoreSnapshotFromToken(snapshot: SnapshotToken): Promise
   seedSnapshotTimestamps(snapshot.timestamps?.timestamps ?? []);
 
   const selectedEpoch = snapshot.serializedRoom?.landscape?.timestamp;
-  if (selectedEpoch) {
+  if (selectedEpoch !== undefined && selectedEpoch !== null) {
     useTimestampStore.getState().updateSelectedTimestamp(new Map([[CROSS_COMMIT_IDENTIFIER, [selectedEpoch]]]));
   }
 

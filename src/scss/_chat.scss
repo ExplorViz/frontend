@@ -11,10 +11,31 @@
   --chat-event-border: rgba(245, 158, 11, 0.5);
 }
 
+// While the chat is shown, the Collaboration card spans the full sidebar height
+// so the chat sits at the bottom of the screen below the scrolling controls
+.sidebar-content:has(.collaboration-controls .chat),
+.sidebar-card:has(.collaboration-controls .chat) {
+  flex: 1 1 auto;
+}
+
+.collaboration-controls {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  min-height: 0;
+}
+
+.collaboration-controls-scroll {
+  flex: 0 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+}
+
 .chat {
   display: flex;
   flex-direction: column;
-  height: 600px;
+  flex: 1 0 20rem;
+  min-height: 20rem;
   width: 100%;
   margin-top: 1.5rem;
   background: var(--chat-bg);

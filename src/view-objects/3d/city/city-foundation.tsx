@@ -1,9 +1,10 @@
 import { Text } from '@react-three/drei';
 import { ThreeEvent } from '@react-three/fiber';
 import useClickPreventionOnDoubleClick from 'explorviz-frontend/src/hooks/useClickPreventionOnDoubleClick';
-import { usePopupHandlerStore } from 'explorviz-frontend/src/stores/popup-handler';
+import { addPopup } from 'explorviz-frontend/src/utils/collaboration/popups';
 import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
 import { useVisualizationStore } from 'explorviz-frontend/src/stores/visualization-store';
+import { useHighlights } from 'explorviz-frontend/src/utils/collaboration/highlights';
 import { getEntityDisplayName } from 'explorviz-frontend/src/utils/annotation-utils';
 import * as EntityManipulation from 'explorviz-frontend/src/utils/city-rendering/entity-manipulation';
 import { getHighlightingColorForEntity } from 'explorviz-frontend/src/utils/city-rendering/highlighting';
@@ -51,17 +52,12 @@ export default function CityFoundation({ city, layout }: { city: City; layout: B
     }
   }, [layout.width, layout.positionY, layout.depth]);
 
-  const { isHighlighted, isHovered, setHoveredEntityId } = useVisualizationStore(
+  // The set while highlighted, so that a takeover (a new color) re-renders too.
+  const isHighlighted = useHighlights((ids) => (ids.has(city.id) ? ids : undefined)) !== undefined;
+  const { isHovered, setHoveredEntityId } = useVisualizationStore(
     useShallow((state) => ({
-      isHighlighted: state.highlightedEntityIds.has(city.id),
       isHovered: state.hoveredEntityId === city.id,
       setHoveredEntityId: state.actions.setHoveredEntityId,
-    }))
-  );
-
-  const { addPopup } = usePopupHandlerStore(
-    useShallow((state) => ({
-      addPopup: state.addPopup,
     }))
   );
 

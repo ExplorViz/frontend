@@ -118,3 +118,20 @@ if (isSkipLoginEnabled) {
     });
   };
 }
+
+/**
+ * The access token, refreshed first if it expires within `minValidity` seconds.
+ * For a service that checks the token once, e.g. when joining a collaboration Room.
+ */
+export async function freshAccessToken(minValidity = 30): Promise<string | undefined> {
+  if (!isLoginSkipped() && keycloak.authenticated) {
+    try {
+      if (await keycloak.updateToken(minValidity)) {
+        useAuthStore.setState({ accessToken: keycloak.token });
+      }
+    } catch (error) {
+      console.error('Could not refresh the login token:', error);
+    }
+  }
+  return useAuthStore.getState().accessToken;
+}

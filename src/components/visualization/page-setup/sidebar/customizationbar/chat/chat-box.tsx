@@ -1,369 +1,206 @@
-import React, { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 
-import { DownloadIcon, GearIcon, TrashIcon } from '@primer/octicons-react';
+import { DownloadIcon, TrashIcon } from '@primer/octicons-react';
 import { useCameraControlsStore } from 'explorviz-frontend/src/stores/camera-controls-store';
-import { ChatMessageInterface, useChatStore } from 'explorviz-frontend/src/stores/chat';
-import { useLocalUserStore } from 'explorviz-frontend/src/stores/collaboration/local-user';
-import { useToastHandlerStore } from 'explorviz-frontend/src/stores/toast-handler';
-import { pingReplay } from 'explorviz-frontend/src/view-objects/3d/city/ping-animation';
-import { me, usePlayersList } from 'playroomkit';
+import { isMessage, useChat, type ChatEntry } from 'explorviz-frontend/src/utils/collaboration/chat';
+import { ChatEntryKind } from 'explorviz-frontend/src/utils/collaboration/room-contract.generated';
+import { getEntityName, replayPing } from 'explorviz-frontend/src/view-objects/3d/city/ping-animation';
 import Button from 'react-bootstrap/Button';
+import Form from 'react-bootstrap/Form';
 
-interface ChatUser {
-  id: string;
-  name: string;
-}
+const EVERYTHING = 'Everything';
+const EVENTS = 'Events';
 
+/**
+ * The chat of the Collaboration section: the Room's history while in a Room,
+ * or the own copy kept after leaving.
+ */
 export default function ChatBox() {
-  const userId = useLocalUserStore((state) => state.userId);
-  const userIsHost = useLocalUserStore((state) => state.isHost);
-  const { lookAtEntity } = useCameraControlsStore();
-  const chatMessages = useChatStore((state) => state.chatMessages);
-  const filteredMessages = useChatStore((state) => state.filteredChatMessages);
-  const sendChatMessage = useChatStore((state) => state.sendChatMessage);
-  const removeChatMessage = useChatStore((state) => state.removeChatMessage);
-  const clearFilter = useChatStore((state) => state.clearFilter);
-  const filterChat = useChatStore((state) => state.filterChat);
-  const clearChat = () => removeChatMessage(chatMessages.map((m) => m.msgId));
-  const [openFilterOptions, setOpenFilterOptions] = useState<boolean>(false);
-  const [openDeleteActions, setOpenDeleteActions] = useState<boolean>(false);
-  const [isFilterEnabled, setIsFilterEnabled] = useState<boolean>(false);
-  const [filterMode, setFilterMode] = useState<string>('');
-  const [filterValue, setFilterValue] = useState<string>('');
-  const [selectedMessages, setSelectedMessages] = useState<Set<number>>(() => new Set());
-  const showErrorToastMessage = useToastHandlerStore((state) => state.showErrorToastMessage);
+  const { entries, inRoom, muted, isOwn, canDelete, send, deleteEntry, clear } = useChat();
+  const [filter, setFilter] = useState(EVERYTHING);
+  const [draft, setDraft] = useState('');
+  const threadRef = useRef<HTMLUListElement>(null);
 
-  const chatThreadRef = useRef<HTMLUListElement>(null);
-  const inputRef = useRef<HTMLInputElement>(null);
-
-  const usersInChat = React.useMemo<ChatUser[]>(() => {
-    const uniqueUsers = new Map<string, string>();
-    chatMessages.forEach((msg) => {
-      uniqueUsers.set(msg.userId, msg.userName);
-    });
-
-    return Array.from(uniqueUsers.entries()).map(([id, name]) => ({
-      id,
-      name: `${name}(${id})`,
-    }));
-  }, [chatMessages]);
-
-  const playerCount = usePlayersList().length;
-  const canModifyChat = userIsHost || playerCount === 0;
+  const authors = useMemo(
+    () => Array.from(new Set(entries.filter(isMessage).map((entry) => entry.authorName))),
+    [entries]
+  );
+  const shown = entries.filter((entry) => {
+    if (filter === EVERYTHING) return true;
+    if (filter === EVENTS) return !isMessage(entry);
+    return isMessage(entry) && entry.authorName === filter;
+  });
 
   useEffect(() => {
-    if (chatThreadRef.current) {
-      chatThreadRef.current.scrollTop = chatThreadRef.current.scrollHeight;
-    }
-  }, [chatMessages, filteredMessages, isFilterEnabled]);
+    if (threadRef.current) threadRef.current.scrollTop = threadRef.current.scrollHeight;
+  }, [entries]);
 
-  const toggleFilter = () => {
-    setOpenFilterOptions((prev) => !prev);
-  };
-
-  const toggleDeleteAction = () => {
-    setOpenDeleteActions((prev) => !prev);
-  };
-
-  const deleteSelectedMessages = () => {
-    const messageIds = Array.from(selectedMessages);
-    removeChatMessage(messageIds);
-    setSelectedMessages(new Set());
-    setOpenDeleteActions(false);
-  };
-
-  const renderChatActions = () => {
-    if (!canModifyChat) return null;
-
-    return (
-      <div className="d-flex gap-2">
-        <Button
-          variant={openDeleteActions ? 'secondary' : 'outline-secondary'}
-          title="Select Messages to Delete"
-          onClick={toggleDeleteAction}
-          className="btn-chat-action"
-        >
-          <TrashIcon size="small" />
-          <span className="ms-1">Select Messages</span>
-        </Button>
-        {openDeleteActions && (
-          <Button
-            title="Delete Selected"
-            variant="danger"
-            size="sm"
-            onClick={deleteSelectedMessages}
-            disabled={selectedMessages.size === 0}
-            className="btn-delete-action"
-          >
-            Delete ({selectedMessages.size})
-          </Button>
-        )}
-        <Button
-          variant="outline-danger"
-          title="Clear All Messages"
-          onClick={clearChat}
-          className="btn-chat-action btn-clear-chat"
-          disabled={chatMessages.length === 0}
-        >
-          <TrashIcon size="small" />
-          <span className="ms-1">Clear Chat</span>
-        </Button>
-      </div>
-    );
-  };
-
-  const toggleCheckbox = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const checked = event.target.checked;
-    setIsFilterEnabled(checked);
-    if (!checked) {
-      clearFilter();
-    } else {
-      filterChat(filterMode, filterValue);
-    }
-  };
-
-  const changeFilterMode = (mode: string) => {
-    setFilterMode(mode);
-    if (isFilterEnabled) {
-      filterChat(mode, filterValue);
-    }
-  };
-
-  const updateFilterValue = (event: React.ChangeEvent<HTMLSelectElement | HTMLInputElement>) => {
-    setFilterValue(event.target.value);
-    if (isFilterEnabled) {
-      filterChat(filterMode, event.target.value);
-    }
-  };
-
-  const downloadChat = () => {
-    const chatContent = chatMessages
-      .map((msg) => `${msg.timestamp} ${msg.userName}(${msg.userId}): ${msg.message}`)
-      .join('\n');
-
-    const blob = new Blob([chatContent], { type: 'text/plain' });
-    const url = window.URL.createObjectURL(blob);
-
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = 'chat.txt';
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    window.URL.revokeObjectURL(url);
-  };
-
-  const insertMessage = () => {
-    if (!inputRef.current) return;
-
-    const msg = inputRef.current.value.trim();
-    if (msg === '') return;
-
-    sendChatMessage(me().id, msg, false);
-    inputRef.current.value = '';
-  };
-
-  const handleEventClick = (chatMessage: ChatMessageInterface) => {
-    if (!chatMessage.eventData || chatMessage.eventData.length === 0) {
-      showErrorToastMessage('No event data');
-      return;
-    }
-
-    const msgUserId = chatMessage.userId;
-    switch (chatMessage.eventType) {
-      case 'ping':
-        {
-          const objId = chatMessage.eventData[0] as string;
-          const pingPos = chatMessage.eventData[1] as {
-            x: number;
-            y: number;
-            z: number;
-          } | null;
-          const pingDurationInMs = chatMessage.eventData[2] as number;
-          pingReplay(msgUserId, objId, pingPos, pingDurationInMs);
-        }
-        break;
-      case 'highlight':
-        {
-          const entityId = chatMessage.eventData[1] as string;
-          lookAtEntity(entityId);
-        }
-        break;
-      default:
-        showErrorToastMessage('Unknown event');
-    }
-  };
-
-  const toggleMessageSelection = (chatMessage: ChatMessageInterface) => {
-    if (!openDeleteActions) return;
-
-    setSelectedMessages((prev) => {
-      const next = new Set(prev);
-      if (next.has(chatMessage.msgId)) {
-        next.delete(chatMessage.msgId);
-      } else {
-        next.add(chatMessage.msgId);
-      }
-      return next;
-    });
-  };
-
-  const messagesToDisplay = isFilterEnabled ? filteredMessages : chatMessages;
-
-  const handleEnabledChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    toggleCheckbox(event);
-  };
-
-  const renderFilterOptions = () => {
-    if (!openFilterOptions) return null;
-
-    return (
-      <div className="filter-options">
-        <label htmlFor="filter-checkbox">
-          <input type="checkbox" checked={isFilterEnabled} id="filter-checkbox" onChange={handleEnabledChange} />
-          <span>Enable Filtering</span>
-        </label>
-        <div className="radio-buttons-chat">
-          <label>
-            <input
-              type="radio"
-              name="filter-type"
-              value="UserId"
-              checked={filterMode === 'UserId'}
-              onChange={() => changeFilterMode('UserId')}
-            />
-            <span>Filter by User</span>
-          </label>
-          {filterMode === 'UserId' && (
-            <select
-              id="filter-val"
-              className="form-select form-select-sm"
-              value={filterValue}
-              onChange={updateFilterValue}
-            >
-              <option value="">Select a user...</option>
-              {usersInChat.map((user) => (
-                <option value={user.name} key={user.id}>
-                  {user.name}
-                </option>
-              ))}
-            </select>
-          )}
-          <label>
-            <input
-              type="radio"
-              name="filter-type"
-              value="Events"
-              checked={filterMode === 'Events'}
-              onChange={() => changeFilterMode('Events')}
-            />
-            <span>Filter by Events</span>
-          </label>
-        </div>
-      </div>
-    );
+  const submit = () => {
+    const text = draft.trim();
+    if (!text) return;
+    setDraft('');
+    send(text);
   };
 
   return (
-    <>
-      <div className="chat">
-        <h5>Collaboration Chat</h5>
-        <div className="chat-button-area">
-          <div className="d-flex gap-2 flex-wrap align-items-center w-100">
-            <div style={{ position: 'relative' }}>
-              <Button
-                variant="outline-secondary"
-                title="Filter Options"
-                onClick={toggleFilter}
-                className="btn-chat-action"
-              >
-                <GearIcon size="small" />
-              </Button>
-              {renderFilterOptions()}
-            </div>
+    <div className="chat">
+      <h6 className="bold mb-2">Chat</h6>
+      <div className="chat-button-area d-flex gap-2 align-items-center">
+        <Form.Select
+          size="sm"
+          aria-label="Show"
+          className="w-auto"
+          value={filter}
+          onChange={(event) => setFilter(event.target.value)}
+        >
+          <option value={EVERYTHING}>Everything</option>
+          <option value={EVENTS}>Events</option>
+          {authors.map((name) => (
+            <option key={name} value={name}>
+              {name}
+            </option>
+          ))}
+        </Form.Select>
+        {!inRoom && (
+          <Button variant="outline-danger" size="sm" className="btn-chat-action" onClick={clear}>
+            <TrashIcon size="small" />
+            <span className="ms-1">Clear chat</span>
+          </Button>
+        )}
+        <Button
+          variant="outline-secondary"
+          size="sm"
+          title="Download chat"
+          aria-label="Download chat"
+          className="btn-chat-action ms-auto"
+          onClick={() => download(entries)}
+        >
+          <DownloadIcon size="small" />
+        </Button>
+      </div>
 
-            {renderChatActions()}
+      <ul className="chat-thread" ref={threadRef} aria-label="Chat history">
+        {shown.map((entry) => (
+          <ChatLine
+            key={entry.id}
+            entry={entry}
+            own={isOwn(entry)}
+            onDelete={canDelete(entry) && isMessage(entry) ? () => deleteEntry(entry.id) : undefined}
+          />
+        ))}
+      </ul>
 
-            <Button
-              variant="outline-secondary"
-              title="Download Chat History"
-              onClick={downloadChat}
-              className="btn-chat-action ms-auto"
-            >
-              <DownloadIcon size="small" />
-            </Button>
-          </div>
-        </div>
-
-        <ul className="chat-thread" ref={chatThreadRef}>
-          {messagesToDisplay.map((chatMessage) => {
-            const isSelf = chatMessage.userId === userId;
-            const isEvent = chatMessage.isEvent;
-            const isSelected = selectedMessages.has(chatMessage.msgId);
-
-            let containerClass = 'message-container';
-            if (isEvent) containerClass += ' event';
-            else if (isSelf) containerClass += ' self';
-            else containerClass += ' other';
-
-            if (openDeleteActions) containerClass += ' selectable';
-            if (isSelected) containerClass += ' selected';
-
-            return (
-              <div
-                key={chatMessage.msgId}
-                className={containerClass}
-                data-message-id={chatMessage.msgId}
-                onClick={() => toggleMessageSelection(chatMessage)}
-              >
-                {!isEvent && (
-                  <div
-                    className="User"
-                    style={{
-                      color: `rgb(${chatMessage.userColor.r * 255}, ${chatMessage.userColor.g * 255}, ${chatMessage.userColor.b * 255})`,
-                    }}
-                  >
-                    {chatMessage.userId !== 'unknown'
-                      ? `${chatMessage.userName} (${chatMessage.userId})`
-                      : chatMessage.userName}
-                  </div>
-                )}
-                <li className={isEvent ? 'event-message' : 'Message'}>
-                  {chatMessage.message}
-                  {(chatMessage.eventType === 'ping' || chatMessage.eventType === 'highlight') && (
-                    <Button
-                      variant="link"
-                      className="event-button"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleEventClick(chatMessage);
-                      }}
-                    >
-                      {chatMessage.eventType === 'highlight' ? 'Look At' : 'Replay'}
-                    </Button>
-                  )}
-                </li>
-                {!isEvent && <div className="chat-timestamp">{chatMessage.timestamp}</div>}
-              </div>
-            );
-          })}
-        </ul>
-
+      {inRoom && (
         <div className="message-box">
+          {muted && <p className="small text-muted mb-1">The Host has muted you.</p>}
           <input
-            ref={inputRef}
-            id="texfield"
             className="message-input"
+            aria-label="Chat message"
             placeholder="Type a message..."
+            maxLength={1000}
+            disabled={muted}
+            value={draft}
+            onChange={(event) => setDraft(event.target.value)}
             onKeyDown={(event) => {
-              if (event.key === 'Enter') {
-                insertMessage();
-              }
+              if (event.key === 'Enter') submit();
             }}
           />
         </div>
-      </div>
-      <div className="bg" />
-    </>
+      )}
+    </div>
   );
+}
+
+function ChatLine({ entry, own, onDelete }: { entry: ChatEntry; own: boolean; onDelete?: () => void }) {
+  if (!isMessage(entry)) {
+    return (
+      <li className="message-container event">
+        <span className="event-message">
+          <span style={{ color: entry.authorColor }}>{entry.authorName}</span> {eventDescription(entry)}
+        </span>
+        <EventAction entry={entry} />
+      </li>
+    );
+  }
+  return (
+    <li className={`message-container ${own ? 'self' : 'other'}`}>
+      <div className="User" style={{ color: entry.authorColor }}>
+        {entry.authorName}
+      </div>
+      <div className="Message">{entry.text}</div>
+      <div className="d-flex align-items-center gap-2">
+        <span className="chat-timestamp">{clockTime(entry.time)}</span>
+        {onDelete && (
+          <Button variant="link" size="sm" className="p-0" aria-label="Delete message" onClick={onDelete}>
+            <TrashIcon size="small" />
+          </Button>
+        )}
+      </div>
+    </li>
+  );
+}
+
+/** What the service logged, with entity names as this browser knows them. */
+function eventDescription(entry: ChatEntry) {
+  switch (entry.kind) {
+    case ChatEntryKind.PING:
+      return entry.entityId
+        ? `pinged ${getEntityName(entry.entityId)}`
+        : `pinged position (${entry.position.map((n) => n.toFixed(2)).join(', ')})`;
+    case ChatEntryKind.HIGHLIGHT:
+      return `highlighted ${getEntityName(entry.entityId)}${entry.entityCount > 1 ? ` and ${entry.entityCount - 1} more` : ''}`;
+    default:
+      return entry.text;
+  }
+}
+
+/** Shows a logged ping again, or moves the camera to a logged highlight. */
+function EventAction({ entry }: { entry: ChatEntry }) {
+  if (entry.kind === ChatEntryKind.PING) {
+    return (
+      <Button
+        variant="outline-secondary"
+        size="sm"
+        className="ms-2"
+        onClick={() => replayPing(entry.entityId, entry.position, entry.authorColor)}
+      >
+        Replay
+      </Button>
+    );
+  }
+  if (entry.kind === ChatEntryKind.HIGHLIGHT && entry.entityId) {
+    return (
+      <Button
+        variant="outline-secondary"
+        size="sm"
+        className="ms-2"
+        onClick={() => useCameraControlsStore.getState().lookAtEntity(entry.entityId)}
+      >
+        Look At
+      </Button>
+    );
+  }
+  return null;
+}
+
+function clockTime(time: number) {
+  const date = new Date(time);
+  return `${date.getHours()}:${String(date.getMinutes()).padStart(2, '0')}`;
+}
+
+function download(entries: ChatEntry[]) {
+  const text = entries
+    .map(
+      (entry) =>
+        `${clockTime(entry.time)} ${isMessage(entry) ? `${entry.authorName}: ${entry.text}` : `${entry.authorName} ${eventDescription(entry)}`}`
+    )
+    .join('\n');
+  const url = URL.createObjectURL(new Blob([text], { type: 'text/plain' }));
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = 'chat.txt';
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  URL.revokeObjectURL(url);
 }

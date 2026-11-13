@@ -3,7 +3,7 @@ import { ToolCallCard } from 'explorviz-frontend/src/components/chatbot/tool-cal
 import { useCameraControlsStore } from 'explorviz-frontend/src/stores/camera-controls-store';
 import { useModelStore } from 'explorviz-frontend/src/stores/repos/model-repository';
 import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
-import { useVisualizationStore } from 'explorviz-frontend/src/stores/visualization-store';
+import { setHighlightingByIds } from 'explorviz-frontend/src/utils/city-rendering/highlighting';
 import {
   closeAllDistrictsInCity,
   closeDistrict,
@@ -129,7 +129,6 @@ function buildSettingsPromptDescription() {
 const settingsPromptDescription = buildSettingsPromptDescription();
 
 export function CopilotTools() {
-  const { actions } = useVisualizationStore();
   const { lookAtEntity, resetCamera } = useCameraControlsStore();
   const { addApplication, addClasses, removeComponent, goBack, goForward, canGoBack, canGoForward } =
     use(EditingContext);
@@ -270,7 +269,7 @@ export function CopilotTools() {
     // @ts-ignore
     _isRenderAndWait: true,
     handler: async ({ ids, areHighlighted }) => {
-      actions.setHighlightedEntityIds(ids, areHighlighted);
+      setHighlightingByIds(ids, areHighlighted);
     },
     render: ({ args, status }) => {
       const action =

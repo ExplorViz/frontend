@@ -1,211 +1,350 @@
-import { DeviceCameraVideoIcon, PersonFillIcon, SignInIcon, SignOutIcon, XCircleIcon } from '@primer/octicons-react';
-import Button from 'react-bootstrap/Button';
-
-import { usePlayroomConnectionStore } from 'explorviz-frontend/src/stores/collaboration/playroom-connection-store';
-import { useSpectateUserStore } from 'explorviz-frontend/src/stores/collaboration/spectate-user';
-import { getRoomCode, isHost, myPlayer, RPC, usePlayersList } from 'playroomkit';
-
-import { LandscapeToken, useLandscapeTokenStore } from 'explorviz-frontend/src/stores/landscape-token';
-import { useMultiplayerState } from 'playroomkit';
+import ChatBox from 'explorviz-frontend/src/components/visualization/page-setup/sidebar/customizationbar/chat/chat-box';
+import { useAuthStore } from 'explorviz-frontend/src/stores/auth';
+import { isLoginSkipped } from 'explorviz-frontend/src/utils/auth-config';
+// Every capability's collaboration module registers its hand-over before a Room is entered from here.
+import 'explorviz-frontend/src/utils/collaboration/capabilities';
+import { setParticipantMuted, useChat } from 'explorviz-frontend/src/utils/collaboration/chat';
+import { isCollaborationServiceReachable } from 'explorviz-frontend/src/utils/collaboration/collaboration-service';
+import {
+  MAX_DISPLAY_NAME_LENGTH,
+  readDisplayName,
+  rememberDisplayName,
+} from 'explorviz-frontend/src/utils/collaboration/display-name';
+import { setDistrictSharing, useDistrictSharing } from 'explorviz-frontend/src/utils/collaboration/districts';
+import {
+  normalizeRoomCode,
+  useRoomConnectionStore,
+  useRoomState,
+} from 'explorviz-frontend/src/utils/collaboration/room-connection';
+import type { RoomVisibility } from 'explorviz-frontend/src/utils/collaboration/room-contract.generated';
+import { saveSnapshotOfView } from 'explorviz-frontend/src/utils/snapshot/snapshot-helpers';
+import { SpectateButton, SpectatingStatus } from './spectating-status';
 import { useEffect, useState } from 'react';
+import Badge from 'react-bootstrap/Badge';
+import Button from 'react-bootstrap/Button';
+import Form from 'react-bootstrap/Form';
+import OverlayTrigger from 'react-bootstrap/OverlayTrigger';
+import Tooltip from 'react-bootstrap/Tooltip';
 
-// This component yields the collaboration controls for the settings
+type Reachability = 'checking' | 'reachable' | 'unreachable';
 
+// The Collaboration section of the sidebar.
 export default function CollaborationControls() {
-  const { isConnected, openLobby, disconnect } = usePlayroomConnectionStore();
-  const players = usePlayersList(true);
-  const me = myPlayer();
+  const [reachability, setReachability] = useState<Reachability>('checking');
+  const room = useRoomConnectionStore((state) => state.room);
+  const keptChat = useChat().entries.length > 0;
 
-  // Functions for starting and stopping spectating
-  const spectatedPlayerId = useSpectateUserStore((state) => state.spectatedPlayerId);
-  const activateSpectateMode = useSpectateUserStore((state) => state.activate);
-  const deactivateSpectateMode = useSpectateUserStore((state) => state.deactivate);
-
-  const toggleSpectate = (playerId: string) => {
-    if (spectatedPlayerId === playerId) {
-      deactivateSpectateMode();
-    } else {
-      activateSpectateMode(playerId);
-    }
-  };
-
-  // This function kicks a certain player
-  const handleKick = (playerId: string) => {
-    if (isHost()) {
-      RPC.call('kick_player', playerId, RPC.Mode.ALL);
-    }
-  };
-
-  const [globalMutedUsers, setGlobalMutedUsers] = useMultiplayerState('globalMutedUsers', [] as string[]);
-
-  // This function is used to prevent errors while loading a not fully connected user
-  const getSafeProfile = (player: any) => {
-    const profile = player.getProfile();
-    return {
-      name: profile?.name || 'Loading...',
-      color: profile?.color?.hex || '#888888',
-    };
-  };
-
-  // functionality for the admin to switch between landscapes in the collaboration tab
-  const [landscapeTokens, setLandscapeTokens] = useState<LandscapeToken[]>([]);
-  const setTokenByValue = useLandscapeTokenStore((state) => state.setTokenByValue);
-  const currentToken = useLandscapeTokenStore((state) => state.token);
   useEffect(() => {
-    if (isHost()) {
-      useLandscapeTokenStore
-        .getState()
-        .retrieveTokens()
-        .then((tokens) => {
-          setLandscapeTokens(tokens);
-        })
-        .catch((e) => {
-          console.error('Error while loading landscapes: ', e);
-        });
-    }
-  }, [isHost]);
+    let active = true;
+    isCollaborationServiceReachable().then((reachable) => {
+      if (active) setReachability(reachable ? 'reachable' : 'unreachable');
+    });
+    return () => {
+      active = false;
+    };
+  }, []);
 
-  const changeLandscape = (newToken: LandscapeToken) => {
-    setTokenByValue(newToken.value);
-  };
-
-  // If not connected to a playroomkit room, show the corresponding screen
-  // with the button to connect
-  if (!isConnected) {
-    return (
-      <div className="collaboration-controls">
-        <h6 className="bold mb-3">Multiplayer (Playroom)</h6>
-        <p className="small text-muted mb-3">Connect to work together with others!</p>
-        <Button variant="success" className="w-100" onClick={openLobby}>
-          <SignInIcon size="small" className="me-2" />
-          Connect / Create Room
-        </Button>
-      </div>
-    );
-  }
-
-  // If connected but the local player isn't loaded yet, show loading screen
-  if (!me) {
-    return <div className="p-3 text-center">Loading profile...</div>;
-  }
-
-  // If connected, show the player list and options
+  // The chat sits below the controls at the bottom of the screen; only the controls scroll.
   return (
     <div className="collaboration-controls">
-      <div className="d-flex justify-content-between align-items-center mb-3">
-        <div>
-          <label className="bold me-2">Room-Code:</label>
-          <strong style={{ color: '#4ade80', letterSpacing: '1px' }}>{getRoomCode()}</strong>
-        </div>
-      </div>
-
-      <label className="bold mb-2">Users:</label>
-      <ul className="list-unstyled">
-        {players.map((player) => {
-          const isMe = player.id === me.id;
-          const isSpectatedByUs = spectatedPlayerId === player.id;
-
-          const { name, color } = getSafeProfile(player);
-
-          return (
-            <div
-              className="d-flex justify-content-between align-items-center mb-2 p-2 border rounded"
-              key={player.id}
-              style={{ backgroundColor: 'rgba(255,255,255,0.05)' }}
-            >
-              <div className="d-flex align-items-center">
-                <PersonFillIcon size="small" style={{ color: color, marginRight: '10px' }} />
-                <span style={{ fontWeight: isMe ? 'bold' : 'normal' }}>
-                  {name} {isMe ? '(You)' : ''}
-                </span>
-              </div>
-
-              {!isMe && (
-                <Button
-                  title={isSpectatedByUs ? 'End Spectating' : 'Spectate'}
-                  variant={isSpectatedByUs ? 'danger' : 'outline-success'}
-                  size="sm"
-                  onClick={() => toggleSpectate(player.id)}
-                >
-                  <DeviceCameraVideoIcon size="small" />
-                </Button>
-              )}
-
-              {isHost() && !isMe && (
-                <Button
-                  className="ml-2"
-                  variant={globalMutedUsers.includes(player.id) ? 'success' : 'outline-warning'}
-                  size="sm"
-                  title={globalMutedUsers.includes(player.id) ? 'Unmute in Chat' : 'Mute in Chat'}
-                  onClick={() => {
-                    const isMuted = globalMutedUsers.includes(player.id);
-                    if (isMuted) {
-                      setGlobalMutedUsers(globalMutedUsers.filter((id: string) => id !== player.id));
-                    } else {
-                      setGlobalMutedUsers([...globalMutedUsers, player.id]);
-                    }
-                  }}
-                >
-                  {globalMutedUsers.includes(player.id) ? 'Unmute' : 'Mute'}
-                </Button>
-              )}
-
-              {!isMe && isHost() && (
-                <Button title="Kick Player" variant="outline-danger" size="sm" onClick={() => handleKick(player.id)}>
-                  <XCircleIcon size="small" /> Kick
-                </Button>
-              )}
-            </div>
-          );
-        })}
-      </ul>
-
-      {isHost() && (
-        <div className="mt-4 border-top pt-3">
-          <h6>Switch Landscape</h6>
-          <div className="landscape-list-sync" style={{ maxHeight: '200px', overflowY: 'auto' }}>
-            {landscapeTokens.filter((t) => t.value !== currentToken?.value).length === 0 ? (
-              <p style={{ fontSize: '0.8rem' }}>No more landscapes found...</p>
-            ) : (
-              landscapeTokens
-                .filter((t) => t.value !== currentToken?.value)
-                .map((t) => (
-                  <div
-                    key={t.value}
-                    className="d-flex justify-content-between align-items-center mb-2 p-2 border rounded"
-                    style={{
-                      cursor: 'pointer',
-                      background: 'var(--bs-tertiary-bg)',
-                    }}
-                    onClick={() => changeLandscape(t)}
-                  >
-                    <div
-                      style={{
-                        fontSize: '0.85rem',
-                        overflow: 'hidden',
-                        textOverflow: 'ellipsis',
-                      }}
-                    >
-                      <strong>{t.alias || t.projectName || 'unnamed'}</strong>
-                      <br />
-                      <small className="text-muted">{t.value.substring(0, 8)}...</small>
-                    </div>
-                    <Button size="sm" variant="outline-primary">
-                      Load
-                    </Button>
-                  </div>
-                ))
+      <div className="collaboration-controls-scroll">
+        <h6 className="bold mb-3">Collaboration</h6>
+        {room ? (
+          <RoomPanel />
+        ) : (
+          <>
+            {reachability === 'checking' && (
+              <p className="small text-muted mb-0">Looking for the collaboration service…</p>
             )}
-          </div>
+            {reachability === 'unreachable' && (
+              <p className="small text-muted mb-0">
+                Collaboration is currently disabled because the collaboration service is not reachable.
+              </p>
+            )}
+            {reachability === 'reachable' && <RoomEntryForm />}
+          </>
+        )}
+      </div>
+      {(room || keptChat) && <ChatBox />}
+    </div>
+  );
+}
+
+function RoomEntryForm() {
+  const { createRoom, joinRoom, connecting } = useRoomConnectionStore();
+  const loginName = useAuthStore((state) => state.user?.name);
+  // With login on, the name comes from the login.
+  const typesName = isLoginSkipped();
+  const [displayName, setDisplayName] = useState(readDisplayName);
+  const [roomCode, setRoomCode] = useState('');
+  const [roomName, setRoomName] = useState('');
+  const [visibility, setVisibility] = useState<RoomVisibility>('public');
+  const [askingToJoin, setAskingToJoin] = useState(false);
+
+  // An empty name is fine: the service then names the Participant "Anonymous" plus a number.
+  const name = typesName ? displayName.trim() : (loginName ?? '');
+  const canEnter = !connecting;
+
+  const enter = (action: (name: string) => Promise<void>) => {
+    if (typesName) rememberDisplayName(name);
+    action(name);
+  };
+
+  return (
+    <Form
+      onSubmit={(event) => {
+        event.preventDefault();
+        if (canEnter && roomCode.trim()) setAskingToJoin(true);
+      }}
+    >
+      {typesName && (
+        <Form.Group controlId="collaboration-display-name" className="mb-3">
+          <Form.Label className="small mb-1">User display name</Form.Label>
+          <Form.Control
+            size="sm"
+            maxLength={MAX_DISPLAY_NAME_LENGTH}
+            placeholder="Optional — Anonymous if empty"
+            value={displayName}
+            onChange={(event) => setDisplayName(event.target.value)}
+          />
+        </Form.Group>
+      )}
+      <Form.Group controlId="collaboration-room-name" className="mb-3">
+        <Form.Label className="small mb-1">Room name</Form.Label>
+        <Form.Control
+          size="sm"
+          maxLength={80}
+          placeholder="Optional"
+          value={roomName}
+          onChange={(event) => setRoomName(event.target.value)}
+        />
+      </Form.Group>
+      <Form.Group controlId="collaboration-room-visibility" className="mb-3">
+        <Form.Label className="small mb-1">Visibility</Form.Label>
+        <Form.Select
+          size="sm"
+          value={visibility}
+          onChange={(event) => setVisibility(event.target.value as RoomVisibility)}
+        >
+          <option value="public">Public</option>
+          <option value="code">Join with code</option>
+        </Form.Select>
+        <Form.Text className="small">
+          {visibility === 'public'
+            ? 'Listed under Rooms on the Landscapes page.'
+            : 'Not listed; only people you give the room code can join.'}
+        </Form.Text>
+      </Form.Group>
+      <Button
+        variant="success"
+        className="w-100 mb-3"
+        disabled={!canEnter}
+        onClick={() => enter((name) => createRoom(name, { roomName, visibility }))}
+      >
+        Create room
+      </Button>
+      <Form.Group controlId="collaboration-room-code" className="d-flex gap-2">
+        <Form.Label visuallyHidden>Room code</Form.Label>
+        <Form.Control
+          size="sm"
+          placeholder="Room code"
+          autoComplete="off"
+          value={roomCode}
+          onChange={(event) => setRoomCode(event.target.value)}
+        />
+        <Button
+          type="submit"
+          size="sm"
+          variant="outline-primary"
+          disabled={!canEnter || !roomCode.trim() || askingToJoin}
+        >
+          Join
+        </Button>
+      </Form.Group>
+      {askingToJoin && (
+        <JoinNotice
+          code={roomCode}
+          onBack={() => setAskingToJoin(false)}
+          onJoin={() => {
+            setAskingToJoin(false);
+            enter((name) => joinRoom(roomCode, name));
+          }}
+        />
+      )}
+    </Form>
+  );
+}
+
+/** Joining drops all local exploration state, so it is never done without asking. */
+function JoinNotice({ code, onBack, onJoin }: { code: string; onBack: () => void; onJoin: () => void }) {
+  const [saving, setSaving] = useState(false);
+
+  // A normal Snapshot of the exploration as it is now; the join goes ahead only once it is saved.
+  const saveSnapshotAndJoin = async () => {
+    setSaving(true);
+    const saved = await saveSnapshotOfView(
+      `Before joining room ${normalizeRoomCode(code)}, ${new Date().toLocaleString()}`
+    );
+    setSaving(false);
+    if (saved) onJoin();
+  };
+
+  return (
+    <div role="alert" className="alert alert-warning small mt-3 mb-0 p-2">
+      <p className="mb-2">
+        Joining replaces your exploration with the room&apos;s: your closed Districts, highlights, annotations and open
+        popups are dropped.
+      </p>
+      <div className="d-flex flex-column gap-1">
+        <Button size="sm" variant="outline-secondary" onClick={onBack}>
+          Go back
+        </Button>
+        <Button size="sm" variant="outline-primary" disabled={saving} onClick={saveSnapshotAndJoin}>
+          {saving ? 'Saving the Snapshot…' : 'Take a Snapshot first'}
+        </Button>
+        <Button size="sm" variant="warning" onClick={onJoin}>
+          Drop my exploration and join
+        </Button>
+      </div>
+    </div>
+  );
+}
+
+function RoomPanel() {
+  const { room, reconnecting, leaveRoom, kick, handOverHost } = useRoomConnectionStore();
+  const state = useRoomState();
+  const districtSharing = useDistrictSharing();
+  if (!room) return null;
+  const isHost = state?.hostId === room.sessionId;
+
+  return (
+    <div>
+      {reconnecting && (
+        <div role="status" aria-label="Reconnecting" className="alert alert-warning small mb-3 p-2">
+          Reconnecting… The room is shown as you last saw it; your changes are not shared until the connection is back.
         </div>
       )}
-
-      <hr />
-
-      <Button title="Leave Room" variant="outline-danger" className="w-100 mt-2" onClick={disconnect}>
-        <SignOutIcon size="small" className="me-2" />
-        Disconnect
+      {state?.roomName && <p className="h6 mb-2">{state.roomName}</p>}
+      <p className="small mb-1">Room code</p>
+      <div className="d-flex align-items-center gap-2 mb-3">
+        <p className="h5 mb-0 font-monospace" aria-label="Room code">
+          {room.roomId}
+        </p>
+        <RoomVisibilityBadge visibility={state?.visibility} />
+      </div>
+      <ul className="list-unstyled mb-3" aria-label="Participants">
+        {Object.entries(state?.participants ?? {}).map(([sessionId, participant]) => (
+          <li key={sessionId} className="d-flex align-items-center gap-2 mb-1">
+            {sessionId === room.sessionId ? (
+              <input
+                type="color"
+                aria-label="Your color"
+                title="Change your color"
+                className="form-control form-control-color p-0 border-0"
+                style={{ width: '1.25rem', height: '1.25rem' }}
+                value={participant.color}
+                onChange={(event) => room.send('setColor', { color: event.target.value })}
+              />
+            ) : (
+              <span
+                aria-hidden
+                className="d-inline-block rounded-circle"
+                style={{ width: '0.75rem', height: '0.75rem', backgroundColor: participant.color }}
+              />
+            )}
+            <span>{participant.name}</span>
+            {sessionId === room.sessionId && <span className="small text-muted">(you)</span>}
+            {sessionId === state?.hostId && <span className="badge bg-secondary">Host</span>}
+            <SpectatingStatus participant={participant} participants={state?.participants ?? {}} />
+            {participant.muted && <span className="small text-muted">muted</span>}
+            {sessionId !== room.sessionId && (
+              <span className="ms-auto d-flex gap-1">
+                <SpectateButton sessionId={sessionId} name={participant.name} />
+                {isHost && (
+                  <>
+                    <Button
+                      variant="outline-secondary"
+                      size="sm"
+                      className="py-0"
+                      aria-label={`${participant.muted ? 'Unmute' : 'Mute'} ${participant.name}`}
+                      onClick={() => setParticipantMuted(sessionId, !participant.muted)}
+                    >
+                      {participant.muted ? 'Unmute' : 'Mute'}
+                    </Button>
+                    <Button
+                      variant="outline-secondary"
+                      size="sm"
+                      className="py-0"
+                      aria-label={`Make ${participant.name} Host`}
+                      title="Make Host"
+                      onClick={() => handOverHost(sessionId)}
+                    >
+                      Make Host
+                    </Button>
+                    <Button
+                      variant="outline-danger"
+                      size="sm"
+                      className="py-0"
+                      aria-label={`Kick ${participant.name}`}
+                      title="Kick"
+                      onClick={() => kick(sessionId)}
+                    >
+                      Kick
+                    </Button>
+                  </>
+                )}
+              </span>
+            )}
+          </li>
+        ))}
+      </ul>
+      <Form.Check
+        type="switch"
+        id="collaboration-district-sharing"
+        className="mb-3"
+        label="Share Districts"
+        title={
+          isHost
+            ? 'When off, everyone opens and closes Districts for themselves'
+            : 'Only the Host can change whether Districts are shared'
+        }
+        checked={districtSharing ?? true}
+        disabled={!isHost}
+        onChange={(event) => setDistrictSharing(event.target.checked)}
+      />
+      <Button variant="outline-danger" size="sm" className="w-100" onClick={() => leaveRoom()}>
+        Leave room
       </Button>
     </div>
+  );
+}
+
+const VISIBILITY_EXPLANATIONS = {
+  public:
+    'Public: the room is listed under Rooms on the Landscapes page, where anyone who can collaborate sees its name, ' +
+    'code, Landscape and number of users and can join it. It can also be joined with the room code.',
+  code:
+    'Code only: the room is not listed under Rooms on the Landscapes page. Only people you give the room code can ' +
+    'join it, by typing the code in the collaboration tab.',
+};
+
+/** Whether the Room is listed for everyone or found only through its code; hovering or focusing explains it. */
+function RoomVisibilityBadge({ visibility }: { visibility: string | undefined }) {
+  // Before the first state arrives, the Room's visibility is not known yet.
+  if (!visibility) return null;
+  const isPublic = visibility === 'public';
+  const explanation = VISIBILITY_EXPLANATIONS[isPublic ? 'public' : 'code'];
+  return (
+    <OverlayTrigger placement="bottom" overlay={<Tooltip id="room-visibility-explanation">{explanation}</Tooltip>}>
+      <Badge
+        bg={isPublic ? 'success' : 'warning'}
+        text={isPublic ? undefined : 'dark'}
+        tabIndex={0}
+        aria-describedby="room-visibility-explanation"
+        style={{ cursor: 'help' }}
+      >
+        {isPublic ? 'Public' : 'Code only'}
+      </Badge>
+    </OverlayTrigger>
   );
 }

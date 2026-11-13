@@ -2,15 +2,15 @@ import React, { ReactNode, useCallback, useEffect, useMemo, useState } from 'rea
 import { Button, Form, Modal } from 'react-bootstrap';
 
 import useLongPress, { type LongPressPosition } from 'explorviz-frontend/src/hooks/useLongPress';
-import { useAnnotationHandlerStore } from 'explorviz-frontend/src/stores/annotation-handler';
+import { getAnnotations } from 'explorviz-frontend/src/utils/collaboration/annotations';
 import { useCameraControlsStore } from 'explorviz-frontend/src/stores/camera-controls-store';
 import { useLocalUserStore } from 'explorviz-frontend/src/stores/collaboration/local-user';
 import { useConfigurationStore } from 'explorviz-frontend/src/stores/configuration';
-import { usePopupHandlerStore } from 'explorviz-frontend/src/stores/popup-handler';
+import { addPopup } from 'explorviz-frontend/src/utils/collaboration/popups';
 import { useRenderingServiceStore } from 'explorviz-frontend/src/stores/rendering-service';
 import { useModelStore } from 'explorviz-frontend/src/stores/repos/model-repository';
 import { useToastHandlerStore } from 'explorviz-frontend/src/stores/toast-handler';
-import { useVisualizationStore } from 'explorviz-frontend/src/stores/visualization-store';
+import { isOwnHighlight } from 'explorviz-frontend/src/utils/collaboration/highlights';
 import { Position2D } from 'explorviz-frontend/src/types/pointer-types';
 import {
   cityHasClosedDistricts,
@@ -26,6 +26,7 @@ import { subscribeContextMenuFromWorld } from 'explorviz-frontend/src/utils/cont
 import { type ContextMenuHitEntity, contextMenuPickAt } from 'explorviz-frontend/src/utils/context-menu-world-pick';
 import { requestRenameCity } from 'explorviz-frontend/src/utils/landscape-http-request-util';
 import { pingByModelId } from 'explorviz-frontend/src/view-objects/3d/city/ping-animation';
+import { useDistricts } from 'explorviz-frontend/src/utils/collaboration/districts';
 
 export type ContextMenuItem = {
   id: string;
@@ -47,7 +48,7 @@ export default function ContextMenu({ children }: ContextMenuProps) {
   const [renameCityName, setRenameCityName] = useState('');
   const [isRenaming, setIsRenaming] = useState(false);
 
-  const closedDistrictIds = useVisualizationStore((state) => state.closedDistrictIds);
+  const closedDistrictIds = useDistricts((districts) => districts.closedDistrictIds);
   const isCommRendered = useConfigurationStore((state) => state.isCommRendered);
 
   const hide = useCallback(() => {
@@ -107,8 +108,8 @@ export default function ContextMenu({ children }: ContextMenuProps) {
   }, [renameCityId, renameCityName]);
 
   const pingAnnotations = useCallback(() => {
-    const annotationHandlerStore = useAnnotationHandlerStore.getState();
-    const allAnnotations = [...annotationHandlerStore.annotationData, ...annotationHandlerStore.minimizedAnnotations];
+    const { annotationData, minimizedAnnotations } = getAnnotations();
+    const allAnnotations = [...annotationData, ...minimizedAnnotations];
 
     const annotatedEntityIds = new Set<string>();
     allAnnotations.forEach((annotation) => {
@@ -180,7 +181,7 @@ export default function ContextMenu({ children }: ContextMenuProps) {
       return backgroundMenuItems;
     }
     const cityHasClosedDistrict = cityHasClosedDistricts(cityId, closedDistrictIds);
-    const foundationIsHighlighted = useVisualizationStore.getState().highlightedEntityIds.has(city.id);
+    const foundationIsHighlighted = isOwnHighlight(city.id);
     return [
       {
         id: `city-rename-${cityId}`,
@@ -218,7 +219,7 @@ export default function ContextMenu({ children }: ContextMenuProps) {
       return backgroundMenuItems;
     }
     const isClosed = isDistrictClosed(districtId, closedDistrictIds);
-    const districtIsHighlighted = useVisualizationStore.getState().highlightedEntityIds.has(districtId);
+    const districtIsHighlighted = isOwnHighlight(districtId);
     return [
       {
         id: `district-open-close-${districtId}`,
@@ -257,13 +258,13 @@ export default function ContextMenu({ children }: ContextMenuProps) {
   };
 
   const getBuildingMenuItems = (buildingId: string) => {
-    const isBuildingHighlighted = useVisualizationStore.getState().highlightedEntityIds.has(buildingId);
+    const isBuildingHighlighted = isOwnHighlight(buildingId);
     return [
       {
         id: `building-show-info-${buildingId}`,
         title: 'Show Info',
         action: () => {
-          usePopupHandlerStore.getState().addPopup({ entityId: buildingId });
+          addPopup({ entityId: buildingId });
         },
       },
       {

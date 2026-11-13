@@ -1,5 +1,5 @@
 import { InfoIcon, SearchIcon, ToolsIcon } from '@primer/octicons-react';
-import { usePopupHandlerStore } from 'explorviz-frontend/src/stores/popup-handler';
+import { addPopup } from 'explorviz-frontend/src/utils/collaboration/popups';
 import { useModelStore } from 'explorviz-frontend/src/stores/repos/model-repository';
 import { pingByModelId } from 'explorviz-frontend/src/view-objects/3d/city/ping-animation';
 import { useEffect, useState } from 'react';
@@ -69,7 +69,6 @@ export function ToolCallCard({
     (district?.fqn && `district ${district.fqn}`) ||
     (building?.fqn && `building ${building.fqn}`) ||
     component?.id?.slice(0, 8);
-  const { addPopup } = usePopupHandlerStore();
 
   return (
     <div className={`tool-call-card ${errorMessage ? 'error' : ''}`}>

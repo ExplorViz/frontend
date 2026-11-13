@@ -3,7 +3,6 @@ import { useEffect, useState } from 'react';
 import BrowserRendering from 'explorviz-frontend/src/components/visualization/rendering/browser-rendering';
 import PlayPauseButton from 'explorviz-frontend/src/components/visualization/rendering/play-pause-button';
 import XrRendering from 'explorviz-frontend/src/components/visualization/rendering/xr-rendering';
-import { useChatStore } from 'explorviz-frontend/src/stores/chat';
 import { useLocalUserStore } from 'explorviz-frontend/src/stores/collaboration/local-user';
 import { useCommitTreeStateStore } from 'explorviz-frontend/src/stores/commit-tree-state';
 import { useEntityFilteringStore } from 'explorviz-frontend/src/stores/entity-filtering-store';
@@ -17,7 +16,6 @@ import { useEvolutionDataRepositoryStore } from 'explorviz-frontend/src/stores/r
 import { useModelStore } from 'explorviz-frontend/src/stores/repos/model-repository';
 import { useTimestampRepositoryStore } from 'explorviz-frontend/src/stores/repos/timestamp-repository';
 import { useSnapshotTokenStore } from 'explorviz-frontend/src/stores/snapshot-token';
-import { useSpectateConfigurationStore } from 'explorviz-frontend/src/stores/spectate-configuration';
 import { useTimestampStore } from 'explorviz-frontend/src/stores/timestamp';
 import {
   TIMESTAMP_POLLING_START_EVENT,
@@ -35,6 +33,7 @@ import {
 } from 'explorviz-frontend/src/utils/code-analysis-reload';
 import eventEmitter from 'explorviz-frontend/src/utils/event-emitter';
 import { DynamicLandscapeData } from 'explorviz-frontend/src/utils/landscape-schemes/telemetry/traces';
+import { leaveRoomToOpenSnapshot, onSnapshotClosedForRoom } from 'explorviz-frontend/src/utils/collaboration/snapshots';
 import { restoreSnapshotFromToken } from 'explorviz-frontend/src/utils/snapshot/snapshot-helpers';
 import TimelineDataObjectHandler from 'explorviz-frontend/src/utils/timeline/timeline-data-object-handler';
 import globalBundlingService from 'explorviz-frontend/src/view-objects/3d/city/global-bundling-service';
@@ -73,7 +72,6 @@ function resetVisualizationSessionState(options?: { clearModels?: boolean }) {
   applyRuntimeVisualizationDefaults();
   useEntityFilteringStore.getState().actions.resetFilters();
   useCommitTreeStateStore.getState().resetCommitTreeFilters();
-  useChatStore.getState().clearFilter();
   usePopupHandlerStore.getState().clearPopups();
 
   if (options?.clearModels) {
@@ -87,7 +85,7 @@ function resetVisualizationSessionState(options?: { clearModels?: boolean }) {
 export default function Visualization() {
   const navigate = useNavigate();
 
-  const [searchParams] = useSearchParams();
+  const [searchParams, setSearchParams] = useSearchParams();
 
   // #region States
   const [userApiTokens, setUserApiTokens] = useState<ApiToken[]>([]);
@@ -129,6 +127,8 @@ export default function Visualization() {
   };
 
   const [countdown, setCountdown] = useState<number>(10);
+  // Counts switches from one Landscape to another while the page is open (in a Room, the Host's switch).
+  const [landscapeSwitches, setLandscapeSwitches] = useState(0);
 
   // # endregion
 
@@ -145,7 +145,6 @@ export default function Visualization() {
   const renderingServiceTriggerRenderingForGivenLandscapeData = useRenderingServiceStore(
     (state) => state.triggerRenderingForGivenLandscapeData
   );
-  const spectateUserSpectateConfigurationId = useSpectateConfigurationStore((state) => state.spectateConfig?.id);
   const localUserVisualizationMode = useLocalUserStore((state) => state.visualizationMode);
   const setVisualizationMode = useLocalUserStore((state) => state.setVisualizationMode);
   const restartTimestampPollingAndVizUpdate = useTimestampRepositoryStore(
@@ -194,8 +193,7 @@ export default function Visualization() {
   const isSingleLandscapeMode =
     import.meta.env.VITE_ONLY_SHOW_TOKEN.length > 0 && import.meta.env.VITE_ONLY_SHOW_TOKEN !== 'change-token';
 
-  const shouldDisplayBottomBar =
-    !showAR && !showVR && !isSingleLandscapeMode && spectateUserSpectateConfigurationId !== 'arena-2';
+  const shouldDisplayBottomBar = !showAR && !showVR && !isSingleLandscapeMode;
 
   // # endregion
 
@@ -261,6 +259,31 @@ export default function Visualization() {
     };
   }, [renderingServiceToggleVisualizationUpdating, renderingServiceTriggerRenderingForGivenLandscapeData]);
 
+  // Another Landscape was opened while this one is shown (in a Room, the Host switched it): load it as if
+  // the page was opened anew. Restoring a Snapshot sets the token of its own Landscape; that is no switch.
+  useEffect(
+    () =>
+      useLandscapeTokenStore.subscribe((state, previous) => {
+        const next = state.token?.value;
+        const before = previous.token?.value;
+        if (!next || !before || next === before || useSnapshotTokenStore.getState().snapshotSelected) return;
+        setSearchParams({ landscapeToken: next }, { replace: true });
+        setLandscapeSwitches((switches) => switches + 1);
+      }),
+    [setSearchParams]
+  );
+
+  // Entering a Room closed the open Snapshot: load the Landscape's live data, as after a switch.
+  useEffect(
+    () =>
+      onSnapshotClosedForRoom(() => {
+        const landscapeToken = useLandscapeTokenStore.getState().token?.value;
+        if (landscapeToken) setSearchParams({ landscapeToken }, { replace: true });
+        setLandscapeSwitches((switches) => switches + 1);
+      }),
+    [setSearchParams]
+  );
+
   useEffect(() => {
     const initRenderingAndSetupListeners = async () => {
       resetVisualizationSessionState({ clearModels: true });
@@ -286,10 +309,29 @@ export default function Visualization() {
       const snapshotOwner = searchParams.get('owner');
       const snapshotCreatedAt = searchParams.get('createdAt');
       const isSharedSnapshot = searchParams.get('sharedSnapshot') === 'true';
-      const shouldRestoreSnapshot = snapshotSelected || (snapshotOwner !== null && snapshotCreatedAt !== null);
+      // After a Landscape switch the new Landscape is loaded, not the Snapshot of the old one.
+      const shouldRestoreSnapshot =
+        landscapeSwitches === 0 && (snapshotSelected || (snapshotOwner !== null && snapshotCreatedAt !== null));
 
       if (shouldRestoreSnapshot) {
+        // A Snapshot is opened alone, never in a Room.
+        if (!(await leaveRoomToOpenSnapshot())) {
+          useSnapshotTokenStore.setState({ snapshotToken: null, snapshotSelected: false });
+          navigate('/landscapes');
+          return;
+        }
+
         let loadedSnapshot = useSnapshotTokenStore.getState().snapshotToken;
+
+        // Ignore a stale token that belongs to another snapshot than the one requested via URL.
+        if (
+          loadedSnapshot &&
+          snapshotOwner &&
+          snapshotCreatedAt &&
+          (loadedSnapshot.owner !== snapshotOwner || loadedSnapshot.createdAt !== Number(snapshotCreatedAt))
+        ) {
+          loadedSnapshot = null;
+        }
 
         if (!loadedSnapshot && snapshotOwner && snapshotCreatedAt) {
           loadedSnapshot = await useSnapshotTokenStore
@@ -370,7 +412,7 @@ export default function Visualization() {
 
       setVisualizationMode('browser');
     };
-  }, []);
+  }, [landscapeSwitches]);
 
   // Countdown timer for loading screen - syncs with actual fetch intervals
   useEffect(() => {

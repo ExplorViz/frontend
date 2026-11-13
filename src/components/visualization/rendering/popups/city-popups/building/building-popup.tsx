@@ -10,7 +10,7 @@ import {
 import BuildingFileHistoryTab from 'explorviz-frontend/src/components/visualization/rendering/popups/city-popups/building/building-file-history-tab';
 import PopupData from 'explorviz-frontend/src/components/visualization/rendering/popups/popup-data';
 import { useCommitTreeStateStore } from 'explorviz-frontend/src/stores/commit-tree-state';
-import { usePopupHandlerStore } from 'explorviz-frontend/src/stores/popup-handler';
+import { getPopup, updatePopup } from 'explorviz-frontend/src/utils/collaboration/popups';
 import { getSourceReferenceCommitHash } from 'explorviz-frontend/src/utils/evolution-data-helpers';
 import generateUuidv4 from 'explorviz-frontend/src/utils/helpers/uuid4-generator';
 import {
@@ -190,7 +190,6 @@ export default function BuildingPopup({ popupData }: BuildingPopupProps) {
 
   const uuid = useMemo(() => generateUuidv4(), []);
   const [history, setHistory] = useState<FileHistory[] | undefined>(undefined);
-  const updatePopup = usePopupHandlerStore((state) => state.updatePopup);
   const selectedCommits = useCommitTreeStateStore((state) => state._selectedCommits);
   const currentSelectedRepositoryName = useCommitTreeStateStore((state) => state._currentSelectedRepositoryName);
   const sourceReferenceCommitHash = useMemo(
@@ -214,9 +213,7 @@ export default function BuildingPopup({ popupData }: BuildingPopupProps) {
           return;
         }
 
-        const currentPopup = usePopupHandlerStore
-          .getState()
-          .popupData.find((popup) => popup.entityId === popupData.entityId);
+        const currentPopup = getPopup(popupData.entityId);
 
         if (currentPopup) {
           updatePopup({ ...currentPopup, fileDetailedData: data });
@@ -229,14 +226,7 @@ export default function BuildingPopup({ popupData }: BuildingPopupProps) {
     return () => {
       cancelled = true;
     };
-  }, [
-    building.id,
-    building.originOfData,
-    popupData.entityId,
-    popupData.fileDetailedData,
-    sourceReferenceCommitHash,
-    updatePopup,
-  ]);
+  }, [building.id, building.originOfData, popupData.entityId, popupData.fileDetailedData, sourceReferenceCommitHash]);
 
   useEffect(() => {
     if (!building.id || !currentSelectedRepositoryName) return;

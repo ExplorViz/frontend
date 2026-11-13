@@ -2,7 +2,6 @@ import { GearIcon, ToolsIcon } from '@primer/octicons-react';
 import VscodeExtensionSettings from 'explorviz-frontend/src/components/collaboration/visualization/page-setup/sidebar/customizationbar/vscode/vscode-extension-settings';
 import HeatmapInfo from 'explorviz-frontend/src/components/heatmap/heatmap-info';
 import ComponentTabs from 'explorviz-frontend/src/components/visualization/page-setup/sidebar/component-tabs';
-import ChatBox from 'explorviz-frontend/src/components/visualization/page-setup/sidebar/customizationbar/chat/chat-box';
 import ChatbotBox from 'explorviz-frontend/src/components/visualization/page-setup/sidebar/customizationbar/chatbot/chatbot-box';
 import EntityConfig from 'explorviz-frontend/src/components/visualization/page-setup/sidebar/customizationbar/entity-config/entity-config';
 import Restructure from 'explorviz-frontend/src/components/visualization/page-setup/sidebar/customizationbar/restructure/restructure';
@@ -33,7 +32,10 @@ import {
 import CanvasWrapper from 'explorviz-frontend/src/components/visualization/rendering/canvas-wrapper';
 import { useIdeWebsocketStore } from 'explorviz-frontend/src/ide/ide-websocket';
 import { useAnnotationHandlerStore } from 'explorviz-frontend/src/stores/annotation-handler';
-import { usePlayroomConnectionStore } from 'explorviz-frontend/src/stores/collaboration/playroom-connection-store';
+import {
+  removeAnnotation as removeShownAnnotation,
+  useAnnotations,
+} from 'explorviz-frontend/src/utils/collaboration/annotations';
 import { useConfigurationStore } from 'explorviz-frontend/src/stores/configuration';
 import { useLandscapeTokenStore } from 'explorviz-frontend/src/stores/landscape-token';
 import { usePopupHandlerStore } from 'explorviz-frontend/src/stores/popup-handler';
@@ -87,17 +89,9 @@ export default function BrowserRendering({ userApiTokens, visualizationPaused }:
     }))
   );
 
-  const annotationHandlerState = useAnnotationHandlerStore(
-    useShallow((state) => ({
-      annotationData: state.annotationData,
-      minimizedAnnotations: state.minimizedAnnotations,
-    }))
-  );
+  const annotationHandlerState = useAnnotations();
   const annotationHandlerActions = useAnnotationHandlerStore(
     useShallow((state) => ({
-      addAnnotation: state.addAnnotation,
-      removeAnnotation: state.removeAnnotation,
-      clearAnnotations: state.clearAnnotations,
       cleanup: state.cleanup,
     }))
   );
@@ -107,7 +101,7 @@ export default function BrowserRendering({ userApiTokens, visualizationPaused }:
   // MARK: Event handlers
 
   const removeAnnotation = (annotationId: number) => {
-    annotationHandlerActions.removeAnnotation(annotationId);
+    removeShownAnnotation(annotationId);
   };
 
   const setGamepadSupport = (enabled: boolean) => {
@@ -296,14 +290,6 @@ export default function BrowserRendering({ userApiTokens, visualizationPaused }:
     };
   }, []);
 
-  // Close the sidebar, when the connection menu is opened (so ot does not overlap)
-  const isConnected = usePlayroomConnectionStore((state) => state.isConnected);
-  const isLobbyOpen = usePlayroomConnectionStore((state) => state.isLobbyOpen);
-  if (isLobbyOpen) {
-    setShowSettingsSidebar(false);
-    setShowToolsSidebar(false);
-  }
-
   const copilotRuntimeRequested = showSettingsSidebar && selectedSettingsSidebarTab === SettingsSidebarTab.Chatbot;
 
   // MARK: JSX
@@ -446,12 +432,7 @@ export default function BrowserRendering({ userApiTokens, visualizationPaused }:
                           },
                           {
                             value: SettingsSidebarTab.Collaboration,
-                            content: (
-                              <>
-                                <CollaborationControls />
-                                {isConnected && <ChatBox />}
-                              </>
-                            ),
+                            content: <CollaborationControls />,
                           },
                           {
                             value: SettingsSidebarTab.Chatbot,

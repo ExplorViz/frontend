@@ -7,11 +7,12 @@ import { useCommitTreeStateStore } from 'explorviz-frontend/src/stores/commit-tr
 import { HeatmapValueMapping, useHeatmapStore } from 'explorviz-frontend/src/stores/heatmap/heatmap-store';
 import { buildFallbackImmersiveInfo, useImmersiveViewStore } from 'explorviz-frontend/src/stores/immersive-view-store';
 import { useLayoutStore } from 'explorviz-frontend/src/stores/layout-store';
-import { usePopupHandlerStore } from 'explorviz-frontend/src/stores/popup-handler';
+import { addPopup, getPopup, updatePopup } from 'explorviz-frontend/src/utils/collaboration/popups';
 import { useModelStore } from 'explorviz-frontend/src/stores/repos/model-repository';
 import { useToastHandlerStore } from 'explorviz-frontend/src/stores/toast-handler';
 import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
 import { useVisualizationStore } from 'explorviz-frontend/src/stores/visualization-store';
+import { useHighlights } from 'explorviz-frontend/src/utils/collaboration/highlights';
 import { buildingTransformMatches } from 'explorviz-frontend/src/utils/city-rendering/building-transform';
 import { resolveBuildingForVisibility } from 'explorviz-frontend/src/utils/city-rendering/entity-visibility';
 import { useSharedEntityVisibilityContext } from 'explorviz-frontend/src/utils/city-rendering/entity-visibility-provider-store';
@@ -135,11 +136,11 @@ const GeometryGroup: React.FC<GeometryGroupProps> = ({ geometryType, buildingIds
   const geometry = getBuildingGeometry(geometryType);
   const lastAppliedFrameVersionRef = useRef(0);
 
-  const { hoveredEntityId, setHoveredEntity, highlightedEntityIds } = useVisualizationStore(
+  const highlightedEntityIds = useHighlights((ids) => ids);
+  const { hoveredEntityId, setHoveredEntity } = useVisualizationStore(
     useShallow((state) => ({
       hoveredEntityId: state.hoveredEntityId,
       setHoveredEntity: state.actions.setHoveredEntityId,
-      highlightedEntityIds: state.highlightedEntityIds,
     }))
   );
 
@@ -193,13 +194,6 @@ const GeometryGroup: React.FC<GeometryGroupProps> = ({ geometryType, buildingIds
       selectedBuildingMetric: state.getSelectedBuildingMetric(),
       selectedGradient: state.selectedGradient,
       selectedValueMapping: state.selectedValueMapping,
-    }))
-  );
-
-  const { addPopup, updatePopup } = usePopupHandlerStore(
-    useShallow((state) => ({
-      addPopup: state.addPopup,
-      updatePopup: state.updatePopup,
     }))
   );
 
@@ -604,7 +598,7 @@ const GeometryGroup: React.FC<GeometryGroupProps> = ({ geometryType, buildingIds
 
     // Check if we have data in an existing popup. Read from the store
     // instead of subscribing so popup drag/hover does not re-render buildings.
-    const existingPopup = usePopupHandlerStore.getState().popupData.find((p) => p.entityId === buildingId);
+    const existingPopup = getPopup(buildingId);
 
     if (existingPopup && existingPopup.fileDetailedData) {
       enterImmersive(buildingId, targetPos, undefined, existingPopup.fileDetailedData);

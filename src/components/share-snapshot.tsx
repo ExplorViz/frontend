@@ -29,7 +29,7 @@ export default function ShareSnapshot(args: ShareSnapshotArgs) {
   const updateExpDate = (event: React.InputEvent<HTMLInputElement>) => {
     const target: HTMLInputElement = event.currentTarget;
     const date = convertDate(target.value);
-    setExpDate(date);
+    setExpDate(Number.isNaN(date) ? null : date);
   };
 
   const shareSnapshot = async (snapshot: TinySnapshot) => {

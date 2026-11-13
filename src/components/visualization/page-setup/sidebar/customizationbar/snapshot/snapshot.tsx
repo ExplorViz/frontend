@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 import AnnotationData from 'explorviz-frontend/src/components/visualization/rendering/annotations/annotation-data';
 import { useAuthStore } from 'explorviz-frontend/src/stores/auth';
 import { LandscapeToken } from 'explorviz-frontend/src/stores/landscape-token';
+import { useToastHandlerStore } from 'explorviz-frontend/src/stores/toast-handler';
 import { useSnapshotTokenStore } from 'explorviz-frontend/src/stores/snapshot-token';
 import { LandscapeData } from 'explorviz-frontend/src/utils/landscape-schemes/landscape-data';
 import { buildSnapshotToken } from 'explorviz-frontend/src/utils/snapshot/snapshot-helpers';
@@ -35,35 +36,45 @@ export default function Snapshot({ landscapeData, landscapeToken }: SnapshotProp
     setSaveSnapshotBtnDisabled(newSnapshotName === '');
   };
 
-  const saveSnapshot = async () => {
-    const content = buildSnapshotToken({
-      name: snapshotName,
-      owner: authUser!.sub,
-      landscapeToken,
-      landscapeData,
-    });
-
-    if (content === null) {
-      console.error('Cannot build snapshot token');
-      return;
+  const buildContent = () => {
+    if (!authUser) {
+      useToastHandlerStore.getState().showErrorToastMessage('You must be logged in to create a snapshot.');
+      return null;
     }
-    await saveSnapshotToStore(content);
-    reset();
+    try {
+      const content = buildSnapshotToken({
+        name: snapshotName,
+        owner: authUser.sub,
+        landscapeToken,
+        landscapeData,
+      });
+      if (content === null) {
+        useToastHandlerStore.getState().showErrorToastMessage('Snapshot could not be created: no landscape selected.');
+      }
+      return content;
+    } catch (error) {
+      console.error('Cannot build snapshot token:', error);
+      useToastHandlerStore.getState().showErrorToastMessage('Snapshot could not be created.');
+      return null;
+    }
+  };
+
+  const saveSnapshot = async () => {
+    const content = buildContent();
+    if (content === null) return;
+
+    // Keep the entered name if saving failed so the user can retry.
+    if (await saveSnapshotToStore(content)) {
+      reset();
+    }
   };
 
   const exportSnapshot = () => {
-    const content = buildSnapshotToken({
-      name: snapshotName,
-      owner: authUser!.sub,
-      landscapeToken,
-      landscapeData,
-    });
+    const content = buildContent();
+    if (content === null) return;
 
-    if (content === null) {
-      console.error('Cannot build snapshot token');
-      return;
-    }
     exportFile(content);
+    useToastHandlerStore.getState().showSuccessToastMessage(`Exported snapshot "${content.name}".`);
     reset();
   };
 

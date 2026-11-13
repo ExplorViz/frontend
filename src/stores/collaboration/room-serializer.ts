@@ -1,10 +1,10 @@
-import { useAnnotationHandlerStore } from 'explorviz-frontend/src/stores/annotation-handler';
+import { getAnnotations } from 'explorviz-frontend/src/utils/collaboration/annotations';
+import { getPopups } from 'explorviz-frontend/src/utils/collaboration/popups';
 import { useLocalUserStore } from 'explorviz-frontend/src/stores/collaboration/local-user';
 import { useLandscapeTokenStore } from 'explorviz-frontend/src/stores/landscape-token';
-import { usePopupHandlerStore } from 'explorviz-frontend/src/stores/popup-handler';
+
 import { useTimestampStore } from 'explorviz-frontend/src/stores/timestamp';
 import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
-import { useVisualizationStore } from 'explorviz-frontend/src/stores/visualization-store';
 import {
   SerializedAnnotation,
   SerializedLandscape,
@@ -12,6 +12,8 @@ import {
   SerializedRoom,
 } from 'explorviz-frontend/src/utils/collaboration/web-socket-messages/types/serialized-room';
 import { create } from 'zustand';
+import { getDistricts } from 'explorviz-frontend/src/utils/collaboration/districts';
+import { getHighlightedEntityIds } from 'explorviz-frontend/src/utils/collaboration/highlights';
 
 interface RoomSerializerState {
   serializedRoom?: SerializedRoom;
@@ -32,13 +34,13 @@ export const useRoomSerializerStore = create<RoomSerializerState>((set, get) => 
   serializeRoom: (snapshot: boolean = false): SerializedRoom => {
     const serializedRoom: SerializedRoom = {
       landscape: get()._serializeLandscape(),
-      closedComponentIds: Array.from(useVisualizationStore.getState().closedDistrictIds),
-      highlightedEntities: Array.from(useVisualizationStore.getState().highlightedEntityIds).map((entityId) => {
+      closedComponentIds: Array.from(getDistricts().closedDistrictIds),
+      highlightedEntities: Array.from(getHighlightedEntityIds()).map((entityId) => {
         return {
           userId: useLocalUserStore.getState().userId,
           entityId: entityId,
         };
-      }), // TODO: Add highlighted entities of remote users
+      }),
       popups: get()._serializeOpenPopups(snapshot),
       annotations: get()._serializeOpenAnnotations(snapshot),
     };
@@ -69,9 +71,8 @@ export const useRoomSerializerStore = create<RoomSerializerState>((set, get) => 
    */
   // private
   _serializeOpenPopups: (snapshot: boolean): SerializedPopup[] => {
-    return usePopupHandlerStore
-      .getState()
-      .popupData.filter((popup) => {
+    return getPopups()
+      .filter((popup) => {
         if (snapshot) {
           return true;
         }
@@ -90,7 +91,7 @@ export const useRoomSerializerStore = create<RoomSerializerState>((set, get) => 
 
   // private
   _serializeOpenAnnotations: (snapshot: boolean): SerializedAnnotation[] => {
-    const { annotationData, minimizedAnnotations } = useAnnotationHandlerStore.getState();
+    const { annotationData, minimizedAnnotations } = getAnnotations();
 
     const annotationsToSerialize = snapshot
       ? [...annotationData, ...minimizedAnnotations]

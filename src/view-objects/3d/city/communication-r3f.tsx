@@ -1,6 +1,6 @@
 import { ThreeElements, ThreeEvent, useThree } from '@react-three/fiber';
 import useClickPreventionOnDoubleClick from 'explorviz-frontend/src/hooks/useClickPreventionOnDoubleClick';
-import { usePopupHandlerStore } from 'explorviz-frontend/src/stores/popup-handler';
+import { addPopup } from 'explorviz-frontend/src/utils/collaboration/popups';
 import { useModelStore } from 'explorviz-frontend/src/stores/repos/model-repository';
 import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
 import { useVisibilityServiceStore } from 'explorviz-frontend/src/stores/visibility-service';
@@ -30,6 +30,8 @@ import { HierarchicalAttractionSystem } from './edge-bundling-utils';
 import globalBundlingService from './global-bundling-service';
 import { getGlobalLayoutMap } from './global-layout-map';
 import { HAPSystemManager } from './hap-system-manager';
+import { useDistricts } from 'explorviz-frontend/src/utils/collaboration/districts';
+import { highlighterColor, useHighlights } from 'explorviz-frontend/src/utils/collaboration/highlights';
 
 // HAP System Manager Instance
 const hapSystemManager = HAPSystemManager.getInstance();
@@ -117,16 +119,23 @@ export default function CommunicationR3F({
   const enableEdgeBundling = !isEdgeBundlingNone;
   const enable3DHAPAlgorithm = is3DHAPAlgorithm;
 
-  const { isHighlighted, isHovered, setHoveredEntity, closedComponentIds } = useVisualizationStore(
+  // The highlighted one of this communication and its base communications, if any; its highlighter gives the color.
+  const highlightedId = useHighlights((ids) =>
+    [communicationModel.id, ...communicationModel.baseCommunications.map((comm) => comm.id)].find((id) => ids.has(id))
+  );
+  const isHighlighted = highlightedId !== undefined;
+  const highlighter = useHighlights(() => (highlightedId ? highlighterColor(highlightedId) : undefined));
+  const highlightingColor = useMemo(
+    () => (highlighter ? new THREE.Color(highlighter) : highlightedEntityColor),
+    [highlighter, highlightedEntityColor]
+  );
+  const { isHovered, setHoveredEntity } = useVisualizationStore(
     useShallow((state) => ({
-      isHighlighted:
-        state.highlightedEntityIds.has(communicationModel.id) ||
-        communicationModel.baseCommunications.some((comm) => state.highlightedEntityIds.has(comm.id)),
       isHovered: state.hoveredEntityId === communicationModel.id,
       setHoveredEntity: state.actions.setHoveredEntityId,
-      closedComponentIds: state.closedDistrictIds,
     }))
   );
+  const closedComponentIds = useDistricts((districts) => districts.closedDistrictIds);
 
   const sceneLayers = useVisualizationStore((state) => state.sceneLayers);
 
@@ -158,12 +167,6 @@ export default function CommunicationR3F({
     meshRef.current = mesh;
     setMeshInstance(mesh);
   }, []);
-
-  const { addPopup } = usePopupHandlerStore(
-    useShallow((state) => ({
-      addPopup: state.addPopup,
-    }))
-  );
 
   const handleOnPointerOver = (event: any) => {
     event.stopPropagation();
@@ -1767,7 +1770,7 @@ export default function CommunicationR3F({
       curveHeight={computedCurveHeight}
       defaultColor={new THREE.Color(communicationColor)}
       highlighted={isHighlighted}
-      highlightingColor={highlightedEntityColor}
+      highlightingColor={highlightingColor}
       isHovered={enableHoverEffects && isHovered}
       ref={attachMesh}
       // Edge Bundling props

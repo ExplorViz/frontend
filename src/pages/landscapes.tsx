@@ -1,3 +1,4 @@
+import RoomSelection from 'explorviz-frontend/src/components/room-selection';
 import SnapshotSelection from 'explorviz-frontend/src/components/snapshot-selection';
 import TokenCreationModal, { LandscapeTokenCreateParams } from 'explorviz-frontend/src/components/token-creation-modal';
 import TokenSelection from 'explorviz-frontend/src/components/token-selection';
@@ -7,6 +8,7 @@ import { LandscapeToken, useLandscapeTokenStore } from 'explorviz-frontend/src/s
 import { SnapshotInfo, TinySnapshot, useSnapshotTokenStore } from 'explorviz-frontend/src/stores/snapshot-token';
 import { useToastHandlerStore } from 'explorviz-frontend/src/stores/toast-handler';
 import { requestLandscapeHasData } from 'explorviz-frontend/src/utils/landscape-http-request-util';
+import { leaveRoomToOpenSnapshot } from 'explorviz-frontend/src/utils/collaboration/snapshots';
 import { getResponseErrorMessage } from 'explorviz-frontend/src/utils/response-error';
 import { useEffect, useRef, useState } from 'react';
 import { Button, Modal, Tab, Tabs } from 'react-bootstrap';
@@ -88,6 +90,16 @@ export default function Landscapes() {
     });
   };
 
+  /** Joining a Room from the Rooms tab already set the Room's Landscape; this only shows it. */
+  const openRoomLandscape = (landscapeToken: string) => {
+    availabilityCheck.current?.abort();
+    useSnapshotTokenStore.setState({ latestSnapshotToken: null });
+    navigate({
+      pathname: '/visualization',
+      search: `?${createSearchParams({ landscapeToken })}`,
+    });
+  };
+
   const selectToken = async (token: LandscapeToken) => {
     availabilityCheck.current?.abort();
     const check = new AbortController();
@@ -114,6 +126,7 @@ export default function Landscapes() {
 
   const selectPersonalSnapshot = async (token: TinySnapshot) => {
     availabilityCheck.current?.abort();
+    if (!(await leaveRoomToOpenSnapshot())) return;
     setSnapshotToken(null);
     useSnapshotTokenStore.setState({ snapshotSelected: true });
     setLandscapeToken(null);
@@ -128,8 +141,9 @@ export default function Landscapes() {
     });
   };
 
-  const selectSharedSnapshot = (token: TinySnapshot) => {
+  const selectSharedSnapshot = async (token: TinySnapshot) => {
     availabilityCheck.current?.abort();
+    if (!(await leaveRoomToOpenSnapshot())) return;
     useSnapshotTokenStore.setState({ snapshotSelected: true });
     setLandscapeToken(null);
     navigate({
@@ -281,6 +295,10 @@ export default function Landscapes() {
               selectSharedToken={selectSharedSnapshot}
               reload={reload}
             />
+          </Tab>
+          {/* Mounted only while open, so the rooms are loaded each time the tab is opened. */}
+          <Tab eventKey="rooms" title="Rooms" id="rooms-tab" mountOnEnter unmountOnExit>
+            <RoomSelection openRoomLandscape={openRoomLandscape} />
           </Tab>
         </Tabs>
       </div>

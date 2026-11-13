@@ -1,9 +1,9 @@
 import { DeviceCameraVideoIcon, LocationIcon, PaintbrushIcon } from '@primer/octicons-react';
 import { useLiveBuildings } from 'explorviz-frontend/src/components/visualization/rendering/popups/city-popups/use-live-flat-entity';
 import { useCameraControlsStore } from 'explorviz-frontend/src/stores/camera-controls-store';
-import { useLocalHighlightStore } from 'explorviz-frontend/src/stores/collaboration/local-highlight-store';
 import { getFileExtensionGroupsFromBuildings } from 'explorviz-frontend/src/stores/entity-filtering-store';
-import { highlightById, unhighlightById } from 'explorviz-frontend/src/utils/city-rendering/highlighting';
+import { setHighlightingByIds } from 'explorviz-frontend/src/utils/city-rendering/highlighting';
+import { isOwnHighlight, useHighlights } from 'explorviz-frontend/src/utils/collaboration/highlights';
 import { pingByModelId } from 'explorviz-frontend/src/view-objects/3d/city/ping-animation';
 import { useMemo } from 'react';
 import Button from 'react-bootstrap/Button';
@@ -14,21 +14,15 @@ interface FilesTabProps {
   readonly buildingIds: readonly string[];
 }
 
-function areAllBuildingsHighlighted(buildingIds: readonly string[], localHighlightedIds: ReadonlySet<string>): boolean {
-  return buildingIds.length > 0 && buildingIds.every((buildingId) => localHighlightedIds.has(buildingId));
+/** Whether the person highlighted all of these buildings themself. */
+function areAllBuildingsHighlighted(buildingIds: readonly string[]): boolean {
+  return buildingIds.length > 0 && buildingIds.every(isOwnHighlight);
 }
 
 function toggleHighlightBuildings(buildingIds: readonly string[]) {
-  const localHighlightedIds = useLocalHighlightStore.getState().localHighlightedIds;
-  const allHighlighted = areAllBuildingsHighlighted(buildingIds, localHighlightedIds);
+  const allHighlighted = areAllBuildingsHighlighted(buildingIds);
 
-  buildingIds.forEach((buildingId) => {
-    if (allHighlighted) {
-      unhighlightById(buildingId);
-    } else {
-      highlightById(buildingId);
-    }
-  });
+  setHighlightingByIds([...buildingIds], !allHighlighted);
 }
 
 function pingBuildings(buildingIds: readonly string[]) {
@@ -49,8 +43,7 @@ interface FileExtensionListItemProps {
 }
 
 function FileExtensionListItem({ extension, count, buildingIds }: FileExtensionListItemProps) {
-  const localHighlightedIds = useLocalHighlightStore((state) => state.localHighlightedIds);
-  const allHighlighted = areAllBuildingsHighlighted(buildingIds, localHighlightedIds);
+  const allHighlighted = useHighlights(() => areAllBuildingsHighlighted(buildingIds));
   const highlightTooltip = allHighlighted ? 'Unhighlight all' : 'Highlight all';
   const highlightAriaLabel = allHighlighted ? `Unhighlight all ${extension} files` : `Highlight all ${extension} files`;
 

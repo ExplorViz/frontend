@@ -1,16 +1,15 @@
 import { extend, ThreeElement, ThreeEvent } from '@react-three/fiber';
 import { InstancedMesh2 } from '@three.ez/instanced-mesh';
 import useClickPreventionOnDoubleClick from 'explorviz-frontend/src/hooks/useClickPreventionOnDoubleClick';
-import { usePlayroomConnectionStore } from 'explorviz-frontend/src/stores/collaboration/playroom-connection-store';
-import { useRemoteHighlightingStore } from 'explorviz-frontend/src/stores/collaboration/remote-highlighting-store';
 import { useCommitTreeStateStore } from 'explorviz-frontend/src/stores/commit-tree-state';
 import { useHeatmapStore } from 'explorviz-frontend/src/stores/heatmap/heatmap-store';
 import { useLayoutStore } from 'explorviz-frontend/src/stores/layout-store';
-import { usePopupHandlerStore } from 'explorviz-frontend/src/stores/popup-handler';
+import { addPopup } from 'explorviz-frontend/src/utils/collaboration/popups';
 import { useModelStore } from 'explorviz-frontend/src/stores/repos/model-repository';
 import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
 import { useVisibilityServiceStore } from 'explorviz-frontend/src/stores/visibility-service';
 import { useVisualizationStore } from 'explorviz-frontend/src/stores/visualization-store';
+import { useHighlights } from 'explorviz-frontend/src/utils/collaboration/highlights';
 import { isDistrictOpen } from 'explorviz-frontend/src/utils/city-rendering/district-close-state';
 import * as EntityManipulation from 'explorviz-frontend/src/utils/city-rendering/entity-manipulation';
 import { isDistrictVisible } from 'explorviz-frontend/src/utils/city-rendering/entity-visibility';
@@ -25,6 +24,7 @@ import gsap from 'gsap';
 import { forwardRef, useCallback, useEffect, useMemo, useRef } from 'react';
 import { BoxGeometry, Color, Matrix4, MeshLambertMaterial, Quaternion, Vector3 } from 'three';
 import { useShallow } from 'zustand/react/shallow';
+import { useDistricts } from 'explorviz-frontend/src/utils/collaboration/districts';
 
 // add InstancedMesh2 to the jsx catalog i.e use it as a jsx component
 extend({ InstancedMesh2 });
@@ -63,10 +63,10 @@ const CityDistricts = forwardRef<InstancedMesh2, Args>(({ districtIds, layoutMap
     return () => killAllTweens(tweens);
   }, []);
 
-  const { closedDistrictIds, highlightedEntityIds, hoveredEntityId, setHoveredEntity } = useVisualizationStore(
+  const closedDistrictIds = useDistricts((districts) => districts.closedDistrictIds);
+  const highlightedEntityIds = useHighlights((ids) => ids);
+  const { hoveredEntityId, setHoveredEntity } = useVisualizationStore(
     useShallow((state) => ({
-      closedDistrictIds: state.closedDistrictIds,
-      highlightedEntityIds: state.highlightedEntityIds,
       hoveredEntityId: state.hoveredEntityId,
       setHoveredEntity: state.actions.setHoveredEntityId,
     }))
@@ -111,9 +111,6 @@ const CityDistricts = forwardRef<InstancedMesh2, Args>(({ districtIds, layoutMap
     }))
   );
 
-  const isCollaborationConnected = usePlayroomConnectionStore((state) => state.isConnected);
-  const remoteHighlights = useRemoteHighlightingStore((state) => state.remoteHighlights);
-
   const { heatmapActive, selectedBuildingMetric } = useHeatmapStore(
     useShallow((state) => ({
       heatmapActive: state.isActive(),
@@ -131,12 +128,6 @@ const CityDistricts = forwardRef<InstancedMesh2, Args>(({ districtIds, layoutMap
   const currentSelectedRepo = useCommitTreeStateStore((state) => state._currentSelectedRepositoryName);
 
   const isDiffMode = (_selectedCommits.get(currentSelectedRepo)?.length || 0) === 2;
-
-  const { addPopup } = usePopupHandlerStore(
-    useShallow((state) => ({
-      addPopup: state.addPopup,
-    }))
-  );
 
   const sceneLayers = useVisualizationStore((state) => state.sceneLayers);
 
@@ -463,8 +454,6 @@ const CityDistricts = forwardRef<InstancedMesh2, Args>(({ districtIds, layoutMap
   }, [
     highlightedEntityIds,
     highlightedEntityColor,
-    isCollaborationConnected,
-    remoteHighlights,
     hoveredEntityId,
     heatmapActive,
     selectedBuildingMetric,

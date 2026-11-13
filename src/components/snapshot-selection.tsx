@@ -2,12 +2,14 @@ import { FileAddedIcon, ShareAndroidIcon } from '@primer/octicons-react';
 import AdditionalSnapshotInfo from 'explorviz-frontend/src/components/additional-snapshot-info';
 import DeleteSnapshot from 'explorviz-frontend/src/components/delete-snapshot';
 import ShareSnapshot from 'explorviz-frontend/src/components/share-snapshot';
+import { useAuthStore } from 'explorviz-frontend/src/stores/auth';
 import {
   SnapshotInfo,
   SnapshotToken,
   TinySnapshot,
   useSnapshotTokenStore,
 } from 'explorviz-frontend/src/stores/snapshot-token';
+import { parseSnapshotJson } from 'explorviz-frontend/src/utils/snapshot/snapshot-json';
 import { useToastHandlerStore } from 'explorviz-frontend/src/stores/toast-handler';
 import React, { useState } from 'react';
 import { Button, Modal, OverlayTrigger, Tooltip } from 'react-bootstrap';
@@ -32,7 +34,6 @@ export default function SnapshotSelection({
   const [sortOrderPersonal, setSortOrderPersonal] = useState<'asc' | 'desc'>('desc');
   const [sortOrderShared, setSortOrderShared] = useState<'asc' | 'desc'>('desc');
   const [uploadSnapshotMenu, setUploadSnapshotMenu] = useState<boolean>(false);
-  const [uploadSnapshotBtnDisabled, setUploadSnapshotBtnDisabled] = useState<boolean>(true);
   const [displayName, setDisplayName] = useState<boolean>(false);
   const [snapshotData, setSnapshotData] = useState<SnapshotToken | null>(null);
   const [name, setName] = useState<string>('');
@@ -94,7 +95,6 @@ export default function SnapshotSelection({
   const updateName = (event: React.InputEvent<HTMLInputElement>) => {
     const target: HTMLInputElement = event.currentTarget;
     setName(target.value);
-    canSaveSnapshot();
   };
 
   const updateFile = (event: React.InputEvent<HTMLInputElement>) => {
@@ -104,33 +104,42 @@ export default function SnapshotSelection({
 
       fileReader.onload = () => {
         const fileContent = fileReader.result as string;
-        const jsonData = JSON.parse(fileContent);
-        setSnapshotData(jsonData as SnapshotToken);
-        if (snapshotData === null) {
-          setName('unnamed');
-        } else {
-          setName(snapshotData!.name);
+        try {
+          const jsonData = parseSnapshotJson<SnapshotToken>(fileContent);
+          setSnapshotData(jsonData);
+          setName(jsonData.name || 'unnamed');
+          setDisplayName(true);
+        } catch {
+          setSnapshotData(null);
+          setDisplayName(false);
+          useToastHandlerStore.getState().showErrorToastMessage('The selected file is not a valid snapshot.');
         }
-        setDisplayName(true);
-        canSaveSnapshot();
       };
 
-      fileReader.readAsText(target.files[0]);
+      if (target.files.length > 0) {
+        fileReader.readAsText(target.files[0]);
+      }
     }
   };
 
-  const canSaveSnapshot = () => {
-    if (name !== '' && snapshotData !== null) {
-      setUploadSnapshotBtnDisabled(false);
-    } else {
-      setUploadSnapshotBtnDisabled(true);
-    }
-  };
+  const uploadSnapshotBtnDisabled = name === '' || snapshotData === null;
 
   const uploadSnapshot = async () => {
-    await useSnapshotTokenStore.getState().saveSnapshot(snapshotData!, name);
-    reset();
-    reload();
+    const owner = useAuthStore.getState().user?.sub;
+    if (!owner) return;
+    // Re-own the imported snapshot: a fresh identity avoids collisions and foreign owners.
+    const imported: SnapshotToken = {
+      ...snapshotData!,
+      owner,
+      createdAt: Date.now(),
+      isShared: false,
+      subscribedUsers: { subscriberList: [] },
+      deleteAt: 0,
+    };
+    if (await useSnapshotTokenStore.getState().saveSnapshot(imported, name)) {
+      reset();
+      reload();
+    }
   };
 
   const createLink = async (snapshot: TinySnapshot) => {
@@ -165,7 +174,7 @@ export default function SnapshotSelection({
               {snapshotInfo.personalSnapshots.length > 0 ? (
                 sortSnapshots(snapshotInfo.personalSnapshots, sortPropertyPersonal, sortOrderPersonal).map(
                   (personalToken) => (
-                    <tr key={personalToken.name} className="token-selection-row">
+                    <tr key={personalToken.createdAt} className="token-selection-row">
                       <th scope="row" onClick={() => selectPersonalToken(personalToken)}>
                         {personalToken.name}{' '}
                       </th>
@@ -258,7 +267,7 @@ export default function SnapshotSelection({
             <tbody>
               {snapshotInfo.sharedSnapshots.length > 0 ? (
                 sortSnapshots(snapshotInfo.sharedSnapshots, sortPropertyShared, sortOrderShared).map((sharedToken) => (
-                  <tr key={sharedToken.name} className="token-selection-row">
+                  <tr key={sharedToken.createdAt} className="token-selection-row">
                     <th scope="row" onClick={() => selectSharedToken(sharedToken)}>
                       {sharedToken.name}
                     </th>
@@ -320,7 +329,7 @@ export default function SnapshotSelection({
               {snapshotInfo.subscribedSnapshots.length > 0 ? (
                 sortSnapshots(snapshotInfo.subscribedSnapshots, sortPropertyShared, sortOrderShared).map(
                   (subscribedToken) => (
-                    <tr key={subscribedToken.name} className="token-selection-row">
+                    <tr key={`${subscribedToken.owner}-${subscribedToken.createdAt}`} className="token-selection-row">
                       <th scope="row" onClick={() => selectSharedToken(subscribedToken)}>
                         {subscribedToken.name}
                       </th>

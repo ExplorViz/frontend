@@ -18,7 +18,6 @@ import { LandscapeData } from 'explorviz-frontend/src/utils/landscape-schemes/la
 import { StructureLandscapeData } from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
 import { DynamicLandscapeData } from 'explorviz-frontend/src/utils/landscape-schemes/telemetry/traces';
 import { buildSnapshotToken } from 'explorviz-frontend/src/utils/snapshot/snapshot-helpers';
-import { usePlayersList } from 'playroomkit';
 import Button from 'react-bootstrap/Button';
 import Modal from 'react-bootstrap/Modal';
 import Select from 'react-select';
@@ -92,8 +91,6 @@ export default function Restructure({
   );
 
   const changeLogEntries = useChangelogStore((state) => state.changeLogEntries);
-  const userCount = usePlayersList().length;
-  const isOnline = userCount > 0;
   const authUser = useAuthStore((state) => state.user);
   const saveSnapshot = useSnapshotTokenStore((state) => state.saveSnapshot);
 
@@ -442,15 +439,25 @@ export default function Restructure({
     setCreatePersonalSnapshot((prev) => !prev);
   };
 
-  const createSnapshot = () => {
-    const sharedToken = buildSnapshotToken({
-      name: snapshotName!,
-      owner: authUser!.sub,
-      landscapeToken,
-      landscapeData,
-      isShared: true,
-      deleteAt: expDate !== null ? expDate : 0,
-    });
+  const createSnapshot = async () => {
+    let sharedToken: SnapshotToken | null = null;
+    try {
+      sharedToken = buildSnapshotToken({
+        name: snapshotName!,
+        owner: authUser!.sub,
+        landscapeToken,
+        landscapeData,
+        isShared: true,
+        deleteAt: expDate !== null ? expDate : 0,
+      });
+    } catch (error) {
+      console.error('Cannot build snapshot token:', error);
+    }
+
+    if (sharedToken === null) {
+      showErrorToastMessage('Snapshot could not be created.');
+      return;
+    }
 
     if (createPersonalSnapshot) {
       const personalToken: SnapshotToken = {
@@ -458,10 +465,11 @@ export default function Restructure({
         isShared: false,
         deleteAt: 0,
       };
-      saveSnapshot(personalToken);
+      await saveSnapshot(personalToken);
     }
 
-    saveSnapshot(sharedToken);
+    // Success and error toasts are shown by the store; only link the snapshot if it was saved.
+    if (!(await saveSnapshot(sharedToken))) return;
     const snapshotURL = `${shareSnapshot}visualization?landscapeToken=${sharedToken.landscapeToken.value}&owner=${sharedToken.owner}&createdAt=${sharedToken.createdAt}&sharedSnapshot=${true}`;
     addSnapshotLink(index!, snapshotURL, sharedToken.name);
     closeSnapshotModal();

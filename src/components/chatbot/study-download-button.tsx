@@ -9,6 +9,8 @@ import { use } from 'react';
 import Button from 'react-bootstrap/Button';
 import { EditingContext } from '../editing/editing-context-store';
 import { ChatbotContext } from './chatbot-context-store';
+import { useDistricts } from 'explorviz-frontend/src/utils/collaboration/districts';
+import { useHighlights } from 'explorviz-frontend/src/utils/collaboration/highlights';
 
 function flattenSettings(settings: VisualizationSettings) {
   const flattened: Record<VisualizationSettingId, unknown> = {} as Record<VisualizationSettingId, unknown>;
@@ -20,7 +22,9 @@ function flattenSettings(settings: VisualizationSettings) {
 
 export function StudyDownloadButton() {
   const { messages } = useCopilotChatInternal();
-  const { closedDistrictIds, highlightedEntityIds, hoveredEntityId, removedDistrictIds } = useVisualizationStore();
+  const { hoveredEntityId, removedDistrictIds } = useVisualizationStore();
+  const highlightedEntityIds = useHighlights((ids) => ids);
+  const closedDistrictIds = useDistricts((districts) => districts.closedDistrictIds);
   const {
     selectedProvider,
     selectedModel,

@@ -11,6 +11,7 @@ export default defineConfig(({ mode }) => {
   const logTarget = env.LOG_SERV_URL || env.VITE_LOG_SERV_URL || 'http://localhost:8083';
 
   const userTarget = env.USER_SERV_URL || env.VITE_USER_SERV_URL || 'http://localhost:8084';
+  const collaborationTarget = env.COLLAB_SERV_URL || env.VITE_COLLAB_SERV_URL || 'http://localhost:2567';
 
   return {
     plugins: [
@@ -29,6 +30,13 @@ export default defineConfig(({ mode }) => {
     server: {
       port: 4200,
       proxy: {
+        // The collaboration service expects its paths without the prefix.
+        '/collaboration/': {
+          target: collaborationTarget,
+          changeOrigin: true,
+          ws: true,
+          rewrite: (path) => path.replace(/^\/collaboration/, ''),
+        },
         '/api/analysis': {
           target: codeAnalyzerTarget,
           changeOrigin: true,

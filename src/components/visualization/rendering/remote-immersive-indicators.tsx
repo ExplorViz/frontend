@@ -1,32 +1,32 @@
 import { useFrame } from '@react-three/fiber';
 import { useLayoutStore } from 'explorviz-frontend/src/stores/layout-store';
 import { getWorldPositionOfModel } from 'explorviz-frontend/src/utils/layout-helper';
+import {
+  useRemoteImmersiveViews,
+  useShareImmersiveView,
+} from 'explorviz-frontend/src/utils/collaboration/immersive-view-sharing';
 import BoxLayout from 'explorviz-frontend/src/utils/layout/box-layout';
-import { myPlayer, usePlayersState } from 'playroomkit';
 import { useRef } from 'react';
 import * as THREE from 'three';
 
-// This component is responsible to draw indicators, when another member of the current collaboration room is in immersive view mode.
+// Shares your immersive view with the Room and marks the buildings the other Participants view immersively.
 export default function RemoteImmersiveIndicators() {
-  const me = myPlayer();
-  const entries = usePlayersState('immersiveMeshId');
+  useShareImmersiveView();
+  const views = useRemoteImmersiveViews();
 
   return (
     <group>
-      {entries.map(({ player, state: buildingId }) => {
-        if (me && player.id === me.id) return null;
-        if (!buildingId) return null;
-
-        const buildingLayout = useLayoutStore.getState().getLayout(buildingId);
-        const buildingPosition = getWorldPositionOfModel(buildingId);
+      {views.map(({ sessionId, entityId, color }) => {
+        const buildingLayout = useLayoutStore.getState().getLayout(entityId);
+        const buildingPosition = getWorldPositionOfModel(entityId);
         if (!buildingLayout || !buildingPosition) return null;
 
         return (
           <IndicatorSphere
-            key={player.id}
+            key={sessionId}
             buildingLayout={buildingLayout}
             buildingPosition={buildingPosition}
-            color={player.getProfile()?.color?.hexString || '#000000'}
+            color={color}
           />
         );
       })}

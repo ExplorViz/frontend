@@ -14,7 +14,7 @@ export default function DeleteSnapshot({ token, isShared, subscribed, reload }: 
   const deleteSnapshotInStore = useSnapshotTokenStore((state) => state.deleteSnapshot);
 
   const deleteSnapshot = async (snapShot: TinySnapshot, isShared: boolean, subscribed: boolean) => {
-    deleteSnapshotInStore(snapShot, isShared, subscribed);
+    await deleteSnapshotInStore(snapShot, isShared, subscribed);
     reload();
   };
 

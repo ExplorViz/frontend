@@ -1,3 +1,4 @@
+import LeaveRoomForSnapshotNotice from 'explorviz-frontend/src/components/collaboration/leave-room-for-snapshot-notice';
 import LoginPage from 'explorviz-frontend/src/components/page-setup/login-page';
 import Navbar from 'explorviz-frontend/src/components/page-setup/navbar';
 import ToastMessage from 'explorviz-frontend/src/components/page-setup/toast-message';
@@ -117,6 +118,7 @@ export default function Application() {
           <>
             <Navbar />
             <ToastMessage />
+            <LeaveRoomForSnapshotNotice />
           </>
         )}
         {checkedLandscapeToken && <Outlet />}

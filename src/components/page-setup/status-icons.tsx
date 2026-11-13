@@ -1,36 +1,30 @@
-import { DeviceCameraVideoIcon, EyeClosedIcon, GlobeIcon } from '@primer/octicons-react';
-import { usePlayersList } from 'playroomkit';
+import { DeviceCameraVideoIcon, EyeClosedIcon, SyncIcon } from '@primer/octicons-react';
 import { OverlayTrigger, Tooltip } from 'react-bootstrap';
-import { useSpectateUserStore } from '../../stores/collaboration/spectate-user';
 import { useConfigurationStore } from '../../stores/configuration';
+import { useReconnecting } from '../../utils/collaboration/room-connection';
+import { useSpectating } from '../../utils/collaboration/spectating';
 
 export default function StatusIcons() {
-  const userCount = usePlayersList().length;
-  const isOnline = userCount > 0;
-  const spectatedPlayerId = useSpectateUserStore((state) => state.spectatedPlayerId);
   const isCommRendered = useConfigurationStore((state) => state.isCommRendered);
+  const { target, targetName: spectatedName } = useSpectating();
+  const reconnecting = useReconnecting();
 
   return (
     <div className="navbar-status-icons">
-      {spectatedPlayerId !== null && (
-        <div className="navbar-danger-icon">
-          <OverlayTrigger placement="bottom" overlay={<Tooltip>Spectator mode is active</Tooltip>}>
+      {reconnecting && (
+        <div className="navbar-danger-icon" aria-label="Reconnecting to the room">
+          <OverlayTrigger placement="bottom" overlay={<Tooltip>Reconnecting to the room…</Tooltip>}>
+            <SyncIcon size="small" />
+          </OverlayTrigger>
+        </div>
+      )}
+      {target && (
+        <div className="navbar-danger-icon" aria-label={`Spectating ${spectatedName ?? ''}`}>
+          <OverlayTrigger placement="bottom" overlay={<Tooltip>Spectating {spectatedName}</Tooltip>}>
             <DeviceCameraVideoIcon size="small" />
           </OverlayTrigger>
         </div>
       )}
-
-      {isOnline && (
-        <OverlayTrigger placement="bottom" overlay={<Tooltip>Connected to a room with {userCount} users.</Tooltip>}>
-          <div className="navbar-success-icon">
-            <>
-              <GlobeIcon size="small" />
-              &nbsp;({userCount})
-            </>
-          </div>
-        </OverlayTrigger>
-      )}
-
       {!isCommRendered && (
         <div className="navbar-danger-icon">
           <OverlayTrigger placement="bottom" overlay={<Tooltip>Communication is hidden</Tooltip>}>

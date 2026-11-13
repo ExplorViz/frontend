@@ -28,16 +28,21 @@ vi.mock('../src/stores/visualization-store', async () => {
   }));
   return { useVisualizationStore: store };
 });
-vi.mock('../src/stores/popup-handler', async () => {
-  const { create } = await import('zustand');
-  return { usePopupHandlerStore: create(() => ({ addPopup: vi.fn() })) };
-});
+vi.mock('../src/utils/collaboration/popups', () => ({ addPopup: vi.fn() }));
 vi.mock('../src/utils/city-rendering/entity-manipulation', () => ({
   closeAllDistrictsInCity: vi.fn(),
 }));
 vi.mock('../src/utils/city-rendering/highlighting', () => ({
   getHighlightingColorForEntity: () => new Color('#ff0000'),
 }));
+// Alone, the highlights module shows the own highlights of the visualization store.
+vi.mock('../src/utils/collaboration/highlights', async () => {
+  const { useVisualizationStore } = await import('../src/stores/visualization-store');
+  return {
+    useHighlights: (select: (ids: Set<string>) => unknown) =>
+      useVisualizationStore((state: any) => select(state.highlightedEntityIds)),
+  };
+});
 vi.mock('../src/utils/annotation-utils', () => ({
   getEntityDisplayName: (name: string) => name,
 }));
@@ -45,10 +50,10 @@ vi.mock('../src/utils/context-menu-bridge', () => ({
   emitContextMenuFromWorld: vi.fn(),
 }));
 
-import { usePopupHandlerStore } from '../src/stores/popup-handler';
 import { useUserSettingsStore } from '../src/stores/user-settings';
 import { useVisualizationStore } from '../src/stores/visualization-store';
 import { closeAllDistrictsInCity } from '../src/utils/city-rendering/entity-manipulation';
+import { addPopup } from '../src/utils/collaboration/popups';
 import { emitContextMenuFromWorld } from '../src/utils/context-menu-bridge';
 
 let renderer: Awaited<ReturnType<typeof create>> | undefined;
@@ -172,7 +177,7 @@ describe('city foundation scene', () => {
     });
     await vi.advanceTimersByTimeAsync(250);
     await click;
-    expect(usePopupHandlerStore.getState().addPopup).toHaveBeenCalledWith({
+    expect(addPopup).toHaveBeenCalledWith({
       entityId: city.id,
       entity: city,
       position: { x: 20, y: 30 },
