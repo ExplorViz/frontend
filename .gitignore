@@ -17,8 +17,8 @@
 # broccoli-debug
 /DEBUG/
 
-# Ignore custom pre-commit hooks
-.husky/*
+# Husky's generated helpers; the shared hooks in .husky/ are committed
+.husky/_
 
 # Cursor
 .cursor
