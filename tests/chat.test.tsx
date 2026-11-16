@@ -194,7 +194,7 @@ it('shows entries the service wrote as events, without an author', async () => {
   await joinRoomAs('Grace', 'K7XQ2M');
 
   expect(chatEntries()[0]).toHaveTextContent('Ada pinged a class');
-  expect(chatEntries()[0]).toHaveClass('event');
+  expect(chatEntries()[0]).toHaveClass('chat-event');
 });
 
 it('keeps the history as your own copy after leaving, until you clear it', async () => {
@@ -317,13 +317,16 @@ describe('event entries', () => {
 
     await joinRoomAs('Grace', 'K7XQ2M');
 
-    expect(chatEntries().map((entry) => entry.textContent)).toEqual([
-      `Ada pinged ${building.name}Replay`,
-      'Ada pinged position (0.50, 0.00, -4.00)Replay',
-      `Ada highlighted ${building.name}Look At`,
-      'Ada highlighted goneLook At',
-      `Ada highlighted ${building.name} and 2 moreLook At`,
+    expect(chatEntries().map((entry) => entry.querySelector('.chat-event-text')?.textContent)).toEqual([
+      `Ada pinged ${building.name}`,
+      'Ada pinged',
+      `Ada highlighted ${building.name}`,
+      'Ada highlighted gone',
+      `Ada highlighted ${building.name} and 2 more`,
     ]);
+    const [entityPing, positionPing] = chatEntries();
+    expect(within(entityPing).getByRole('button', { name: /replay/i })).toBeInTheDocument();
+    expect(within(positionPing).getByRole('button', { name: /replay/i })).toBeInTheDocument();
   });
 
   it('replays a ping in the color of whoever pinged, without sending it', async () => {
@@ -340,16 +343,31 @@ describe('event entries', () => {
     expect(me.sent.filter((message) => message.type === 'ping')).toEqual([]);
   });
 
-  it('looks at a highlighted entity', async () => {
+  it('looks at a highlighted or pinged entity when its name is clicked', async () => {
     const lookAtEntity = vi.fn();
     useCameraControlsStore.setState({ lookAtEntity });
     const room = service.openRoom('K7XQ2M', 'Ada');
     writeEvent(room, { kind: ChatEntryKind.HIGHLIGHT, entityId: building.id, text: `Highlighted ${building.id}` });
+    writeEvent(room, { kind: ChatEntryKind.PING, entityId: building.id, position: [1, 2, 3], text: 'Pinged' });
     const user = await joinRoomAs('Grace', 'K7XQ2M');
 
-    await user.click(within(chatEntries()[0]).getByRole('button', { name: /look at/i }));
+    await user.click(within(chatEntries()[0]).getByRole('button', { name: building.name }));
+    await user.click(within(chatEntries()[1]).getByRole('button', { name: building.name }));
 
+    expect(lookAtEntity).toHaveBeenCalledTimes(2);
     expect(lookAtEntity).toHaveBeenCalledWith(building.id);
+  });
+
+  it('looks at a pinged position when "pinged" is clicked', async () => {
+    const moveCameraTo = vi.fn();
+    useCameraControlsStore.setState({ moveCameraTo });
+    const room = service.openRoom('K7XQ2M', 'Ada');
+    writeEvent(room, { kind: ChatEntryKind.PING, position: [4, 5, 6], text: 'Pinged position (4.00, 5.00, 6.00)' });
+    const user = await joinRoomAs('Grace', 'K7XQ2M');
+
+    await user.click(within(chatEntries()[0]).getByRole('button', { name: 'pinged' }));
+
+    expect(moveCameraTo).toHaveBeenCalledWith([6, 7, 8], [4, 5, 6]);
   });
 
   it('lists events under "Events" and not under their author', async () => {

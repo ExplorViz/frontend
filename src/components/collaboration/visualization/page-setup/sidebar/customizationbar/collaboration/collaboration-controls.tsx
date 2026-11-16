@@ -1,3 +1,17 @@
+import {
+  AlertIcon,
+  CheckIcon,
+  CopyIcon,
+  GlobeIcon,
+  KeyIcon,
+  LockIcon,
+  MuteIcon,
+  PlusIcon,
+  SignOutIcon,
+  SyncIcon,
+  UnmuteIcon,
+  XIcon,
+} from '@primer/octicons-react';
 import ChatBox from 'explorviz-frontend/src/components/visualization/page-setup/sidebar/customizationbar/chat/chat-box';
 import { useAuthStore } from 'explorviz-frontend/src/stores/auth';
 import { isLoginSkipped } from 'explorviz-frontend/src/utils/auth-config';
@@ -20,8 +34,6 @@ import type { RoomVisibility } from 'explorviz-frontend/src/utils/collaboration/
 import { saveSnapshotOfView } from 'explorviz-frontend/src/utils/snapshot/snapshot-helpers';
 import { SpectateButton, SpectatingStatus } from './spectating-status';
 import { useEffect, useState } from 'react';
-import Badge from 'react-bootstrap/Badge';
-import Button from 'react-bootstrap/Button';
 import Form from 'react-bootstrap/Form';
 import OverlayTrigger from 'react-bootstrap/OverlayTrigger';
 import Tooltip from 'react-bootstrap/Tooltip';
@@ -53,11 +65,9 @@ export default function CollaborationControls() {
           <RoomPanel />
         ) : (
           <>
-            {reachability === 'checking' && (
-              <p className="small text-muted mb-0">Looking for the collaboration service…</p>
-            )}
+            {reachability === 'checking' && <p className="collab-hint mb-0">Looking for the collaboration service…</p>}
             {reachability === 'unreachable' && (
-              <p className="small text-muted mb-0">
+              <p className="collab-hint mb-0">
                 Collaboration is currently disabled because the collaboration service is not reachable.
               </p>
             )}
@@ -91,76 +101,101 @@ function RoomEntryForm() {
   };
 
   return (
-    <Form
+    <form
+      className="collab-entry"
       onSubmit={(event) => {
         event.preventDefault();
         if (canEnter && roomCode.trim()) setAskingToJoin(true);
       }}
     >
       {typesName && (
-        <Form.Group controlId="collaboration-display-name" className="mb-3">
-          <Form.Label className="small mb-1">User display name</Form.Label>
-          <Form.Control
-            size="sm"
+        <div className="collab-field">
+          <label className="collab-label" htmlFor="collaboration-display-name">
+            User display name
+          </label>
+          <input
+            id="collaboration-display-name"
+            className="collab-input"
             maxLength={MAX_DISPLAY_NAME_LENGTH}
-            placeholder="Optional — Anonymous if empty"
+            placeholder="Anonymous if empty"
             value={displayName}
             onChange={(event) => setDisplayName(event.target.value)}
           />
-        </Form.Group>
+        </div>
       )}
-      <Form.Group controlId="collaboration-room-name" className="mb-3">
-        <Form.Label className="small mb-1">Room name</Form.Label>
-        <Form.Control
-          size="sm"
-          maxLength={80}
-          placeholder="Optional"
-          value={roomName}
-          onChange={(event) => setRoomName(event.target.value)}
-        />
-      </Form.Group>
-      <Form.Group controlId="collaboration-room-visibility" className="mb-3">
-        <Form.Label className="small mb-1">Visibility</Form.Label>
-        <Form.Select
-          size="sm"
-          value={visibility}
-          onChange={(event) => setVisibility(event.target.value as RoomVisibility)}
+
+      <section className="collab-group" aria-labelledby="collaboration-new-room">
+        <h6 className="collab-group-title" id="collaboration-new-room">
+          New room
+        </h6>
+        <div className="collab-field">
+          <label className="collab-label" htmlFor="collaboration-room-name">
+            Room name
+          </label>
+          <input
+            id="collaboration-room-name"
+            className="collab-input"
+            maxLength={80}
+            placeholder="Optional"
+            value={roomName}
+            onChange={(event) => setRoomName(event.target.value)}
+          />
+        </div>
+        <div className="collab-field">
+          <label className="collab-label" htmlFor="collaboration-room-visibility">
+            Visibility
+          </label>
+          <select
+            id="collaboration-room-visibility"
+            className="collab-input collab-select"
+            value={visibility}
+            onChange={(event) => setVisibility(event.target.value as RoomVisibility)}
+          >
+            <option value="public">Public</option>
+            <option value="code">Join with code</option>
+          </select>
+          <p className="collab-hint">
+            {visibility === 'public'
+              ? 'Listed under Rooms on the Landscapes page.'
+              : 'Not listed; only people you give the room code can join.'}
+          </p>
+        </div>
+        <button
+          type="button"
+          className="collab-button primary"
+          disabled={!canEnter}
+          onClick={() => enter((name) => createRoom(name, { roomName, visibility }))}
         >
-          <option value="public">Public</option>
-          <option value="code">Join with code</option>
-        </Form.Select>
-        <Form.Text className="small">
-          {visibility === 'public'
-            ? 'Listed under Rooms on the Landscapes page.'
-            : 'Not listed; only people you give the room code can join.'}
-        </Form.Text>
-      </Form.Group>
-      <Button
-        variant="success"
-        className="w-100 mb-3"
-        disabled={!canEnter}
-        onClick={() => enter((name) => createRoom(name, { roomName, visibility }))}
-      >
-        Create room
-      </Button>
-      <Form.Group controlId="collaboration-room-code" className="d-flex gap-2">
-        <Form.Label visuallyHidden>Room code</Form.Label>
-        <Form.Control
-          size="sm"
+          <PlusIcon size={14} />
+          Create room
+        </button>
+      </section>
+
+      <div className="collab-divider">
+        <span>or</span>
+      </div>
+
+      <div className="collab-join-row">
+        <label className="visually-hidden" htmlFor="collaboration-room-code">
+          Room code
+        </label>
+        <input
+          id="collaboration-room-code"
+          className="collab-input collab-code-input"
           placeholder="Room code"
           autoComplete="off"
+          spellCheck={false}
           value={roomCode}
           onChange={(event) => setRoomCode(event.target.value)}
         />
-        <Button
+        <button
           type="submit"
-          size="sm"
-          variant="outline-primary"
+          className="collab-button secondary"
           disabled={!canEnter || !roomCode.trim() || askingToJoin}
         >
           Join
-        </Button>
-      </Form.Group>
+        </button>
+      </div>
       {askingToJoin && (
         <JoinNotice
           code={roomCode}
@@ -171,7 +206,7 @@ function RoomEntryForm() {
           }}
         />
       )}
-    </Form>
+    </form>
   );
 }
 
@@ -190,21 +225,24 @@ function JoinNotice({ code, onBack, onJoin }: { code: string; onBack: () => void
   };
 
   return (
-    <div role="alert" className="alert alert-warning small mt-3 mb-0 p-2">
-      <p className="mb-2">
-        Joining replaces your exploration with the room&apos;s: your closed Districts, highlights, annotations and open
-        popups are dropped.
+    <div role="alert" className="collab-notice warning">
+      <p className="collab-notice-text">
+        <AlertIcon size={14} />
+        <span>
+          Joining replaces your exploration with the room&apos;s: your closed Districts, highlights, annotations and
+          open popups are dropped.
+        </span>
       </p>
-      <div className="d-flex flex-column gap-1">
-        <Button size="sm" variant="outline-secondary" onClick={onBack}>
-          Go back
-        </Button>
-        <Button size="sm" variant="outline-primary" disabled={saving} onClick={saveSnapshotAndJoin}>
+      <div className="collab-notice-actions">
+        <button type="button" className="collab-button secondary" disabled={saving} onClick={saveSnapshotAndJoin}>
           {saving ? 'Saving the Snapshot…' : 'Take a Snapshot first'}
-        </Button>
-        <Button size="sm" variant="warning" onClick={onJoin}>
+        </button>
+        <button type="button" className="collab-button warning" onClick={onJoin}>
           Drop my exploration and join
-        </Button>
+        </button>
+        <button type="button" className="collab-button ghost" onClick={onBack}>
+          Go back
+        </button>
       </div>
     </div>
   );
@@ -216,92 +254,128 @@ function RoomPanel() {
   const districtSharing = useDistrictSharing();
   if (!room) return null;
   const isHost = state?.hostId === room.sessionId;
+  const participants = Object.entries(state?.participants ?? {});
 
   return (
-    <div>
+    <div className="collab-room">
       {reconnecting && (
-        <div role="status" aria-label="Reconnecting" className="alert alert-warning small mb-3 p-2">
-          Reconnecting… The room is shown as you last saw it; your changes are not shared until the connection is back.
+        <div role="status" aria-label="Reconnecting" className="collab-notice warning">
+          <p className="collab-notice-text">
+            <SyncIcon size={14} className="collab-spin" />
+            <span>
+              Reconnecting… The room is shown as you last saw it; your changes are not shared until the connection is
+              back.
+            </span>
+          </p>
         </div>
       )}
-      {state?.roomName && <p className="h6 mb-2">{state.roomName}</p>}
-      <p className="small mb-1">Room code</p>
-      <div className="d-flex align-items-center gap-2 mb-3">
-        <p className="h5 mb-0 font-monospace" aria-label="Room code">
-          {room.roomId}
-        </p>
-        <RoomVisibilityBadge visibility={state?.visibility} />
+
+      <div className="collab-room-card">
+        {state?.roomName ? (
+          <p className="collab-room-name">{state.roomName}</p>
+        ) : (
+          <p className="collab-label mb-0">Room code</p>
+        )}
+        <div className="collab-room-code-row">
+          <span className="collab-room-code" aria-label="Room code">
+            {room.roomId}
+          </span>
+          <CopyButton text={room.roomId} />
+          <RoomVisibilityBadge visibility={state?.visibility} />
+        </div>
       </div>
-      <ul className="list-unstyled mb-3" aria-label="Participants">
-        {Object.entries(state?.participants ?? {}).map(([sessionId, participant]) => (
-          <li key={sessionId} className="d-flex align-items-center gap-2 mb-1">
-            {sessionId === room.sessionId ? (
-              <input
-                type="color"
-                aria-label="Your color"
-                title="Change your color"
-                className="form-control form-control-color p-0 border-0"
-                style={{ width: '1.25rem', height: '1.25rem' }}
-                value={participant.color}
-                onChange={(event) => room.send('setColor', { color: event.target.value })}
-              />
-            ) : (
-              <span
-                aria-hidden
-                className="d-inline-block rounded-circle"
-                style={{ width: '0.75rem', height: '0.75rem', backgroundColor: participant.color }}
-              />
-            )}
-            <span>{participant.name}</span>
-            {sessionId === room.sessionId && <span className="small text-muted">(you)</span>}
-            {sessionId === state?.hostId && <span className="badge bg-secondary">Host</span>}
-            <SpectatingStatus participant={participant} participants={state?.participants ?? {}} />
-            {participant.muted && <span className="small text-muted">muted</span>}
-            {sessionId !== room.sessionId && (
-              <span className="ms-auto d-flex gap-1">
-                <SpectateButton sessionId={sessionId} name={participant.name} />
-                {isHost && (
-                  <>
-                    <Button
-                      variant="outline-secondary"
-                      size="sm"
-                      className="py-0"
-                      aria-label={`${participant.muted ? 'Unmute' : 'Mute'} ${participant.name}`}
-                      onClick={() => setParticipantMuted(sessionId, !participant.muted)}
-                    >
-                      {participant.muted ? 'Unmute' : 'Mute'}
-                    </Button>
-                    <Button
-                      variant="outline-secondary"
-                      size="sm"
-                      className="py-0"
-                      aria-label={`Make ${participant.name} Host`}
-                      title="Make Host"
-                      onClick={() => handOverHost(sessionId)}
-                    >
-                      Make Host
-                    </Button>
-                    <Button
-                      variant="outline-danger"
-                      size="sm"
-                      className="py-0"
-                      aria-label={`Kick ${participant.name}`}
-                      title="Kick"
-                      onClick={() => kick(sessionId)}
-                    >
-                      Kick
-                    </Button>
-                  </>
-                )}
-              </span>
-            )}
-          </li>
-        ))}
+
+      <div className="collab-group-header">
+        <h6 className="collab-group-title">Participants</h6>
+        {participants.length > 0 && <span className="collab-count">{participants.length}</span>}
+      </div>
+      <ul className="collab-participants" aria-label="Participants">
+        {participants.map(([sessionId, participant]) => {
+          const own = sessionId === room.sessionId;
+          return (
+            <li key={sessionId} className={`collab-participant${own ? ' own' : ''}`}>
+              {own ? (
+                <label
+                  className="collab-avatar editable"
+                  data-initial={initial(participant.name)}
+                  style={{ backgroundColor: participant.color }}
+                >
+                  <input
+                    type="color"
+                    aria-label="Your color"
+                    title="Change your color"
+                    value={participant.color}
+                    onChange={(event) => room.send('setColor', { color: event.target.value })}
+                  />
+                </label>
+              ) : (
+                <span
+                  aria-hidden
+                  className="collab-avatar"
+                  data-initial={initial(participant.name)}
+                  style={{ backgroundColor: participant.color }}
+                />
+              )}
+              <div className="collab-participant-main">
+                <div className="collab-participant-name">
+                  <span className="collab-name">{participant.name}</span>
+                  {own && <span className="collab-you">(you)</span>}
+                  {sessionId === state?.hostId && <span className="collab-chip">Host</span>}
+                </div>
+                <div className="collab-participant-status">
+                  <SpectatingStatus participant={participant} participants={state?.participants ?? {}} />
+                  {participant.muted && (
+                    <span>
+                      <MuteIcon size={10} /> muted
+                    </span>
+                  )}
+                </div>
+              </div>
+              {!own && (
+                <span className="collab-participant-actions">
+                  <SpectateButton sessionId={sessionId} name={participant.name} />
+                  {isHost && (
+                    <>
+                      <button
+                        type="button"
+                        className="collab-icon-button"
+                        aria-label={`${participant.muted ? 'Unmute' : 'Mute'} ${participant.name}`}
+                        title={participant.muted ? 'Unmute' : 'Mute'}
+                        onClick={() => setParticipantMuted(sessionId, !participant.muted)}
+                      >
+                        {participant.muted ? <UnmuteIcon size={14} /> : <MuteIcon size={14} />}
+                      </button>
+                      <button
+                        type="button"
+                        className="collab-icon-button"
+                        aria-label={`Make ${participant.name} Host`}
+                        title="Make Host"
+                        onClick={() => handOverHost(sessionId)}
+                      >
+                        <KeyIcon size={14} />
+                      </button>
+                      <button
+                        type="button"
+                        className="collab-icon-button danger"
+                        aria-label={`Kick ${participant.name}`}
+                        title="Kick"
+                        onClick={() => kick(sessionId)}
+                      >
+                        <XIcon size={14} />
+                      </button>
+                    </>
+                  )}
+                </span>
+              )}
+            </li>
+          );
+        })}
       </ul>
+
       <Form.Check
         type="switch"
         id="collaboration-district-sharing"
-        className="mb-3"
+        className="collab-setting"
         label="Share Districts"
         title={
           isHost
@@ -312,10 +386,44 @@ function RoomPanel() {
         disabled={!isHost}
         onChange={(event) => setDistrictSharing(event.target.checked)}
       />
-      <Button variant="outline-danger" size="sm" className="w-100" onClick={() => leaveRoom()}>
+
+      <button type="button" className="collab-button danger-outline" onClick={() => leaveRoom()}>
+        <SignOutIcon size={14} />
         Leave room
-      </Button>
+      </button>
     </div>
+  );
+}
+
+function initial(name: string) {
+  return name.trim().charAt(0).toUpperCase() || '?';
+}
+
+/** Copies the room code, confirming it briefly with a check mark. */
+function CopyButton({ text }: { text: string }) {
+  const [copied, setCopied] = useState(false);
+
+  useEffect(() => {
+    if (!copied) return;
+    const timeout = setTimeout(() => setCopied(false), 1500);
+    return () => clearTimeout(timeout);
+  }, [copied]);
+
+  return (
+    <button
+      type="button"
+      className={`collab-icon-button${copied ? ' success' : ''}`}
+      title={copied ? 'Copied' : 'Copy room code'}
+      aria-label={copied ? 'Copied room code' : 'Copy room code'}
+      onClick={() =>
+        navigator.clipboard?.writeText(text).then(
+          () => setCopied(true),
+          () => undefined
+        )
+      }
+    >
+      {copied ? <CheckIcon size={14} /> : <CopyIcon size={14} />}
+    </button>
   );
 }
 
@@ -336,15 +444,14 @@ function RoomVisibilityBadge({ visibility }: { visibility: string | undefined })
   const explanation = VISIBILITY_EXPLANATIONS[isPublic ? 'public' : 'code'];
   return (
     <OverlayTrigger placement="bottom" overlay={<Tooltip id="room-visibility-explanation">{explanation}</Tooltip>}>
-      <Badge
-        bg={isPublic ? 'success' : 'warning'}
-        text={isPublic ? undefined : 'dark'}
+      <span
+        className={`collab-visibility ${isPublic ? 'public' : 'code'}`}
         tabIndex={0}
         aria-describedby="room-visibility-explanation"
-        style={{ cursor: 'help' }}
       >
-        {isPublic ? 'Public' : 'Code only'}
-      </Badge>
+        {isPublic ? <GlobeIcon size={12} /> : <LockIcon size={12} />}
+        <span>{isPublic ? 'Public' : 'Code only'}</span>
+      </span>
     </OverlayTrigger>
   );
 }

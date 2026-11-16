@@ -1,15 +1,16 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 
-import { DownloadIcon, TrashIcon } from '@primer/octicons-react';
+import { DownloadIcon, PaperAirplaneIcon, SyncIcon, TrashIcon } from '@primer/octicons-react';
 import { useCameraControlsStore } from 'explorviz-frontend/src/stores/camera-controls-store';
 import { isMessage, useChat, type ChatEntry } from 'explorviz-frontend/src/utils/collaboration/chat';
 import { ChatEntryKind } from 'explorviz-frontend/src/utils/collaboration/room-contract.generated';
 import { getEntityName, replayPing } from 'explorviz-frontend/src/view-objects/3d/city/ping-animation';
-import Button from 'react-bootstrap/Button';
-import Form from 'react-bootstrap/Form';
 
 const EVERYTHING = 'Everything';
 const EVENTS = 'Events';
+
+/** Consecutive messages of one author closer together than this share one header. */
+const GROUP_WINDOW_MS = 5 * 60 * 1000;
 
 /**
  * The chat of the Collaboration section: the Room's history while in a Room,
@@ -33,7 +34,7 @@ export default function ChatBox() {
 
   useEffect(() => {
     if (threadRef.current) threadRef.current.scrollTop = threadRef.current.scrollHeight;
-  }, [entries]);
+  }, [entries, filter]);
 
   const submit = () => {
     const text = draft.trim();
@@ -43,13 +44,12 @@ export default function ChatBox() {
   };
 
   return (
-    <div className="chat">
-      <h6 className="bold mb-2">Chat</h6>
-      <div className="chat-button-area d-flex gap-2 align-items-center">
-        <Form.Select
-          size="sm"
+    <section className="chat" aria-label="Chat">
+      <header className="chat-header">
+        <h6 className="chat-title">Chat</h6>
+        <select
+          className="chat-filter"
           aria-label="Show"
-          className="w-auto"
           value={filter}
           onChange={(event) => setFilter(event.target.value)}
         >
@@ -60,80 +60,147 @@ export default function ChatBox() {
               {name}
             </option>
           ))}
-        </Form.Select>
-        {!inRoom && (
-          <Button variant="outline-danger" size="sm" className="btn-chat-action" onClick={clear}>
-            <TrashIcon size="small" />
-            <span className="ms-1">Clear chat</span>
-          </Button>
-        )}
-        <Button
-          variant="outline-secondary"
-          size="sm"
+        </select>
+        <button
+          type="button"
+          className="chat-icon-button"
           title="Download chat"
           aria-label="Download chat"
-          className="btn-chat-action ms-auto"
+          disabled={entries.length === 0}
           onClick={() => download(entries)}
         >
-          <DownloadIcon size="small" />
-        </Button>
+          <DownloadIcon size={14} />
+        </button>
+        {!inRoom && (
+          <button
+            type="button"
+            className="chat-icon-button danger"
+            title="Clear chat"
+            aria-label="Clear chat"
+            disabled={entries.length === 0}
+            onClick={clear}
+          >
+            <TrashIcon size={14} />
+          </button>
+        )}
+      </header>
+
+      <div className="chat-body">
+        <ul className="chat-thread" ref={threadRef} aria-label="Chat history">
+          {shown.map((entry, index) => (
+            <ChatLine
+              key={entry.id}
+              entry={entry}
+              own={isOwn(entry)}
+              continued={continuesGroup(shown[index - 1], entry)}
+              onDelete={canDelete(entry) && isMessage(entry) ? () => deleteEntry(entry.id) : undefined}
+            />
+          ))}
+        </ul>
+        {shown.length === 0 && (
+          <p className="chat-empty">{entries.length === 0 ? 'No messages yet' : 'Nothing matches this filter'}</p>
+        )}
       </div>
 
-      <ul className="chat-thread" ref={threadRef} aria-label="Chat history">
-        {shown.map((entry) => (
-          <ChatLine
-            key={entry.id}
-            entry={entry}
-            own={isOwn(entry)}
-            onDelete={canDelete(entry) && isMessage(entry) ? () => deleteEntry(entry.id) : undefined}
-          />
-        ))}
-      </ul>
-
+      {inRoom && muted && <p className="chat-muted-note">The Host has muted you.</p>}
       {inRoom && (
-        <div className="message-box">
-          {muted && <p className="small text-muted mb-1">The Host has muted you.</p>}
+        <form
+          className="chat-composer"
+          onSubmit={(event) => {
+            event.preventDefault();
+            submit();
+          }}
+        >
           <input
-            className="message-input"
+            className="chat-input"
             aria-label="Chat message"
-            placeholder="Type a message..."
+            placeholder="Message"
             maxLength={1000}
             disabled={muted}
             value={draft}
             onChange={(event) => setDraft(event.target.value)}
-            onKeyDown={(event) => {
-              if (event.key === 'Enter') submit();
-            }}
           />
-        </div>
+          <button
+            type="submit"
+            className="chat-send"
+            title="Send"
+            aria-label="Send message"
+            disabled={muted || !draft.trim()}
+          >
+            <PaperAirplaneIcon size={14} />
+          </button>
+        </form>
       )}
-    </div>
+    </section>
   );
 }
 
-function ChatLine({ entry, own, onDelete }: { entry: ChatEntry; own: boolean; onDelete?: () => void }) {
+function continuesGroup(previous: ChatEntry | undefined, entry: ChatEntry) {
+  return (
+    !!previous &&
+    isMessage(previous) &&
+    isMessage(entry) &&
+    previous.authorId === entry.authorId &&
+    entry.time - previous.time < GROUP_WINDOW_MS
+  );
+}
+
+function ChatLine({
+  entry,
+  own,
+  continued,
+  onDelete,
+}: {
+  entry: ChatEntry;
+  own: boolean;
+  continued: boolean;
+  onDelete?: () => void;
+}) {
   if (!isMessage(entry)) {
     return (
-      <li className="message-container event">
-        <span className="event-message">
-          <span style={{ color: entry.authorColor }}>{entry.authorName}</span> {eventDescription(entry)}
+      <li className="chat-event">
+        <span className="chat-dot" style={{ backgroundColor: entry.authorColor }} aria-hidden />
+        <span className="chat-event-text">
+          <strong>{entry.authorName}</strong> <EventDescription entry={entry} />
         </span>
-        <EventAction entry={entry} />
+        {entry.kind === ChatEntryKind.PING && (
+          <button
+            type="button"
+            className="chat-icon-button"
+            title="Replay ping"
+            aria-label="Replay ping"
+            onClick={() => replayPing(entry.entityId, entry.position, entry.authorColor)}
+          >
+            <SyncIcon size={12} />
+          </button>
+        )}
+        <time className="chat-time">{clockTime(entry.time)}</time>
       </li>
     );
   }
   return (
-    <li className={`message-container ${own ? 'self' : 'other'}`}>
-      <div className="User" style={{ color: entry.authorColor }}>
-        {entry.authorName}
-      </div>
-      <div className="Message">{entry.text}</div>
-      <div className="d-flex align-items-center gap-2">
-        <span className="chat-timestamp">{clockTime(entry.time)}</span>
+    <li className={`chat-message ${own ? 'own' : 'other'}${continued ? ' continued' : ''}`}>
+      {!continued && (
+        <div className="chat-meta">
+          {!own && <span className="chat-dot" style={{ backgroundColor: entry.authorColor }} aria-hidden />}
+          <span className="chat-author">{entry.authorName}</span>
+          <time className="chat-time">{clockTime(entry.time)}</time>
+        </div>
+      )}
+      <div className="chat-bubble-row">
+        <div className="chat-bubble" title={continued ? clockTime(entry.time) : undefined}>
+          {entry.text}
+        </div>
         {onDelete && (
-          <Button variant="link" size="sm" className="p-0" aria-label="Delete message" onClick={onDelete}>
-            <TrashIcon size="small" />
-          </Button>
+          <button
+            type="button"
+            className="chat-icon-button chat-delete"
+            title="Delete message"
+            aria-label="Delete message"
+            onClick={onDelete}
+          >
+            <TrashIcon size={12} />
+          </button>
         )}
       </div>
     </li>
@@ -144,43 +211,70 @@ function ChatLine({ entry, own, onDelete }: { entry: ChatEntry; own: boolean; on
 function eventDescription(entry: ChatEntry) {
   switch (entry.kind) {
     case ChatEntryKind.PING:
-      return entry.entityId
-        ? `pinged ${getEntityName(entry.entityId)}`
-        : `pinged position (${entry.position.map((n) => n.toFixed(2)).join(', ')})`;
+      return entry.entityId ? `pinged ${getEntityName(entry.entityId)}` : 'pinged';
     case ChatEntryKind.HIGHLIGHT:
-      return `highlighted ${getEntityName(entry.entityId)}${entry.entityCount > 1 ? ` and ${entry.entityCount - 1} more` : ''}`;
+      return `highlighted ${getEntityName(entry.entityId)}${moreSuffix(entry)}`;
     default:
       return entry.text;
   }
 }
 
-/** Shows a logged ping again, or moves the camera to a logged highlight. */
-function EventAction({ entry }: { entry: ChatEntry }) {
-  if (entry.kind === ChatEntryKind.PING) {
-    return (
-      <Button
-        variant="outline-secondary"
-        size="sm"
-        className="ms-2"
-        onClick={() => replayPing(entry.entityId, entry.position, entry.authorColor)}
-      >
-        Replay
-      </Button>
-    );
+/** The event as shown in the thread: the entity name moves the camera to it. */
+function EventDescription({ entry }: { entry: ChatEntry }) {
+  switch (entry.kind) {
+    case ChatEntryKind.PING:
+      return entry.entityId ? (
+        <>
+          pinged <EntityLink entityId={entry.entityId} />
+        </>
+      ) : (
+        <PositionLink position={entry.position} />
+      );
+    case ChatEntryKind.HIGHLIGHT:
+      return (
+        <>
+          highlighted <EntityLink entityId={entry.entityId} />
+          {moreSuffix(entry)}
+        </>
+      );
+    default:
+      return <>{entry.text}</>;
   }
-  if (entry.kind === ChatEntryKind.HIGHLIGHT && entry.entityId) {
-    return (
-      <Button
-        variant="outline-secondary"
-        size="sm"
-        className="ms-2"
-        onClick={() => useCameraControlsStore.getState().lookAtEntity(entry.entityId)}
-      >
-        Look At
-      </Button>
-    );
-  }
-  return null;
+}
+
+/** "pinged" for a position ping, moving the camera to the pinged position. */
+function PositionLink({ position }: { position: number[] }) {
+  if (position.length !== 3) return <>pinged</>;
+  const [x, y, z] = position;
+  return (
+    <button
+      type="button"
+      className="chat-entity-link"
+      title="Look at pinged position"
+      onClick={() => useCameraControlsStore.getState().moveCameraTo([x + 2, y + 2, z + 2], [x, y, z])}
+    >
+      pinged
+    </button>
+  );
+}
+
+function EntityLink({ entityId }: { entityId: string }) {
+  const name = getEntityName(entityId);
+  if (!entityId) return <>{name}</>;
+  return (
+    <button
+      type="button"
+      className="chat-entity-link"
+      title={`Look at ${name}`}
+      onClick={() => useCameraControlsStore.getState().lookAtEntity(entityId)}
+    >
+      {name}
+    </button>
+  );
+}
+
+function moreSuffix(entry: ChatEntry) {
+  return entry.entityCount > 1 ? ` and ${entry.entityCount - 1} more` : '';
 }
 
 function clockTime(time: number) {
