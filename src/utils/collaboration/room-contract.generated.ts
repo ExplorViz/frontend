@@ -425,6 +425,11 @@ export type ClientMessages = {
   handOverHost: { sessionId: string };
   /** Changes the sender's own color to a CSS hex color such as "#e6194b". Other values are ignored. */
   setColor: { color: string };
+  /**
+   * Changes the sender's own display name. Ignored while login is on (the
+   * name then comes from the login), and when the name is empty.
+   */
+  setName: { name: string };
   /** Post a chat message. Rejected with a ChatRefusal (e.g. "muted"). */
   chatSend: { text: string };
   /** Delete a chat entry for everyone. Allowed for its author and the Host. */

@@ -535,6 +535,16 @@
   font-weight: 500;
 }
 
+.collab-name-input {
+  height: 1.625rem;
+  padding: 0 0.5rem;
+}
+
+.collab-icon-button.small {
+  width: 1.375rem;
+  height: 1.375rem;
+}
+
 .collab-you {
   flex: none;
   color: var(--collab-muted);

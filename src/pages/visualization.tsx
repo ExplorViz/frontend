@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 import BrowserRendering from 'explorviz-frontend/src/components/visualization/rendering/browser-rendering';
 import PlayPauseButton from 'explorviz-frontend/src/components/visualization/rendering/play-pause-button';
@@ -33,6 +33,8 @@ import {
 } from 'explorviz-frontend/src/utils/code-analysis-reload';
 import eventEmitter from 'explorviz-frontend/src/utils/event-emitter';
 import { DynamicLandscapeData } from 'explorviz-frontend/src/utils/landscape-schemes/telemetry/traces';
+import { currentRoom, useRoomConnectionStore } from 'explorviz-frontend/src/utils/collaboration/room-connection';
+import { joinRoomFromLink, ROOM_PARAM } from 'explorviz-frontend/src/utils/collaboration/room-link';
 import { leaveRoomToOpenSnapshot, onSnapshotClosedForRoom } from 'explorviz-frontend/src/utils/collaboration/snapshots';
 import { restoreSnapshotFromToken } from 'explorviz-frontend/src/utils/snapshot/snapshot-helpers';
 import TimelineDataObjectHandler from 'explorviz-frontend/src/utils/timeline/timeline-data-object-handler';
@@ -64,6 +66,12 @@ function applyRuntimeVisualizationDefaults() {
   useRenderingServiceStore.getState().setAnalysisModeFromEvolutionRenderingConfig(RUNTIME_VISUALIZATION_DEFAULTS);
 }
 
+/** The search params for showing this Landscape, keeping the joined Room's code. */
+function landscapeSearchParams(landscapeToken: string): Record<string, string> {
+  const roomCode = currentRoom()?.roomId;
+  return roomCode ? { landscapeToken, [ROOM_PARAM]: roomCode } : { landscapeToken };
+}
+
 function resetVisualizationSessionState(options?: { clearModels?: boolean }) {
   useLayoutStore.getState().clearLayouts();
   useVisualizationStore.getState().actions.resetVisualizationState();
@@ -86,6 +94,10 @@ export default function Visualization() {
   const navigate = useNavigate();
 
   const [searchParams, setSearchParams] = useSearchParams();
+
+  // A room code in the URL the page was opened with is a Room to join; true until that was tried.
+  const joiningRoomFromLink = useRef(searchParams.get(ROOM_PARAM) !== null);
+  const unmounted = useRef(false);
 
   // #region States
   const [userApiTokens, setUserApiTokens] = useState<ApiToken[]>([]);
@@ -169,6 +181,7 @@ export default function Visualization() {
   const landscapeTokenServiceToken = useLandscapeTokenStore((state) => state.token);
   const landscapeTokenRemoveToken = useLandscapeTokenStore((state) => state.removeToken);
   const snapshotSelected = useSnapshotTokenStore((state) => state.snapshotSelected);
+  const joinedRoomCode = useRoomConnectionStore((state) => state.room?.roomId);
 
   // # endregion
 
@@ -199,6 +212,30 @@ export default function Visualization() {
 
   // #region useEffects
 
+  // Leaving the visualization leaves the Room. Declared first, so the Room's last state becomes the own state
+  // before the cleanups below reset it.
+  useEffect(
+    () => () => {
+      unmounted.current = true;
+      void useRoomConnectionStore.getState().leaveRoom();
+    },
+    []
+  );
+
+  // The URL carries the joined Room's code, so it can be shared as a link to the Room.
+  useEffect(() => {
+    if (joiningRoomFromLink.current || searchParams.get(ROOM_PARAM) === (joinedRoomCode ?? null)) return;
+    setSearchParams(
+      (params) => {
+        const next = new URLSearchParams(params);
+        if (joinedRoomCode) next.set(ROOM_PARAM, joinedRoomCode);
+        else next.delete(ROOM_PARAM);
+        return next;
+      },
+      { replace: true }
+    );
+  }, [joinedRoomCode, searchParams, setSearchParams]);
+
   useEffect(() => {
     const loadUserAPITokens = async () => {
       const token = await useUserApiTokenStore.getState().retrieveApiTokens();
@@ -224,6 +261,7 @@ export default function Visualization() {
     if (
       landscapeTokenServiceToken === null &&
       !searchParams.get('landscapeToken') &&
+      !searchParams.get(ROOM_PARAM) &&
       snapshotToken === null &&
       !snapshotSelected
     ) {
@@ -267,7 +305,7 @@ export default function Visualization() {
         const next = state.token?.value;
         const before = previous.token?.value;
         if (!next || !before || next === before || useSnapshotTokenStore.getState().snapshotSelected) return;
-        setSearchParams({ landscapeToken: next }, { replace: true });
+        setSearchParams(landscapeSearchParams(next), { replace: true });
         setLandscapeSwitches((switches) => switches + 1);
       }),
     [setSearchParams]
@@ -278,7 +316,7 @@ export default function Visualization() {
     () =>
       onSnapshotClosedForRoom(() => {
         const landscapeToken = useLandscapeTokenStore.getState().token?.value;
-        if (landscapeToken) setSearchParams({ landscapeToken }, { replace: true });
+        if (landscapeToken) setSearchParams(landscapeSearchParams(landscapeToken), { replace: true });
         setLandscapeSwitches((switches) => switches + 1);
       }),
     [setSearchParams]
@@ -286,6 +324,31 @@ export default function Visualization() {
 
   useEffect(() => {
     const initRenderingAndSetupListeners = async () => {
+      // Opened from a Room link: join the Room first, which loads its Landscape like joining from the Rooms tab.
+      if (joiningRoomFromLink.current) {
+        const roomCode = searchParams.get(ROOM_PARAM)!;
+        const roomLandscape = await joinRoomFromLink(roomCode);
+        joiningRoomFromLink.current = false;
+        if (unmounted.current) {
+          // The page was left while joining.
+          void useRoomConnectionStore.getState().leaveRoom();
+          return;
+        }
+        if (!roomLandscape) {
+          // Nothing to show: joining failed (the refusal is shown) or the Room has no Landscape.
+          // Leaving the page leaves the Room again.
+          if (roomLandscape === '') {
+            useToastHandlerStore
+              .getState()
+              .showInfoToastMessage('The room has no Landscape open yet, so you left it again.', 'Collaboration');
+          }
+          navigate('/landscapes');
+          return;
+        }
+        // The code as the Room has it (links may carry it in lower case).
+        setSearchParams(landscapeSearchParams(roomLandscape), { replace: true });
+      }
+
       resetVisualizationSessionState({ clearModels: true });
 
       const tokenFromUrl = searchParams.get('landscapeToken');

@@ -61,7 +61,8 @@ it('offers the Host kick and handover for every other Participant', async () => 
 
   expect(within(row('Grace')).getByRole('button', { name: 'Kick Grace' })).toBeInTheDocument();
   expect(within(row('Grace')).getByRole('button', { name: 'Make Grace Host' })).toBeInTheDocument();
-  expect(within(row('Ada')).queryByRole('button')).not.toBeInTheDocument();
+  // The own row has only the own controls (changing the name), none for kicking or handing over.
+  expect(within(row('Ada')).queryByRole('button', { name: /kick|host/i })).not.toBeInTheDocument();
 });
 
 it('shows no kick or handover controls to anyone but the Host', async () => {

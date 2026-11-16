@@ -7,6 +7,7 @@ import { useLandscapeTokenStore } from 'explorviz-frontend/src/stores/landscape-
 import { useSnapshotTokenStore } from 'explorviz-frontend/src/stores/snapshot-token';
 import { useInitNavigation } from 'explorviz-frontend/src/stores/store-router';
 import { isLoginSkipped } from 'explorviz-frontend/src/utils/auth-config';
+import { ROOM_PARAM } from 'explorviz-frontend/src/utils/collaboration/room-link';
 import { useEffect, useState } from 'react';
 import { createSearchParams, Outlet, useNavigate, useSearchParams } from 'react-router-dom';
 
@@ -71,7 +72,12 @@ export default function Application() {
           navigate('/landscapes');
         }
       } else {
-        if (!searchParams.get('landscapeToken') || landscapeToken?.value === searchParams.get('landscapeToken')) {
+        // With a room code, the Room decides the Landscape (which the person need not own); the page joins it.
+        if (
+          !searchParams.get('landscapeToken') ||
+          searchParams.get(ROOM_PARAM) ||
+          landscapeToken?.value === searchParams.get('landscapeToken')
+        ) {
           setCheckedLandscapeToken(true);
           return;
         }

@@ -4,8 +4,10 @@ import {
   CopyIcon,
   GlobeIcon,
   KeyIcon,
+  LinkIcon,
   LockIcon,
   MuteIcon,
+  PencilIcon,
   PlusIcon,
   SignOutIcon,
   SyncIcon,
@@ -30,10 +32,11 @@ import {
   useRoomConnectionStore,
   useRoomState,
 } from 'explorviz-frontend/src/utils/collaboration/room-connection';
+import { roomLink } from 'explorviz-frontend/src/utils/collaboration/room-link';
 import type { RoomVisibility } from 'explorviz-frontend/src/utils/collaboration/room-contract.generated';
 import { saveSnapshotOfView } from 'explorviz-frontend/src/utils/snapshot/snapshot-helpers';
 import { SpectateButton, SpectatingStatus } from './spectating-status';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState, type ReactNode } from 'react';
 import Form from 'react-bootstrap/Form';
 import OverlayTrigger from 'react-bootstrap/OverlayTrigger';
 import Tooltip from 'react-bootstrap/Tooltip';
@@ -280,7 +283,8 @@ function RoomPanel() {
           <span className="collab-room-code" aria-label="Room code">
             {room.roomId}
           </span>
-          <CopyButton text={room.roomId} />
+          <CopyButton text={room.roomId} what="room code" />
+          <CopyButton text={roomLink(room.roomId)} what="room link" icon={<LinkIcon size={14} />} />
           <RoomVisibilityBadge visibility={state?.visibility} />
         </div>
       </div>
@@ -318,7 +322,11 @@ function RoomPanel() {
               )}
               <div className="collab-participant-main">
                 <div className="collab-participant-name">
-                  <span className="collab-name">{participant.name}</span>
+                  {own && isLoginSkipped() ? (
+                    <OwnName name={participant.name} onRename={(name) => room.send('setName', { name })} />
+                  ) : (
+                    <span className="collab-name">{participant.name}</span>
+                  )}
                   {own && <span className="collab-you">(you)</span>}
                   {sessionId === state?.hostId && <span className="collab-chip">Host</span>}
                 </div>
@@ -395,12 +403,75 @@ function RoomPanel() {
   );
 }
 
+/**
+ * The own display name, with a button that turns it into a field to change it
+ * (login off only: with login on, the name comes from the login). Enter or
+ * leaving the field saves, Escape cancels; an empty name keeps the old one.
+ */
+function OwnName({ name, onRename }: { name: string; onRename: (name: string) => void }) {
+  const [draft, setDraft] = useState<string | undefined>();
+  // Removing the field may blur it; a blur after Escape or Enter must not save again.
+  const editing = useRef(false);
+
+  if (draft === undefined) {
+    return (
+      <>
+        <span className="collab-name">{name}</span>
+        <button
+          type="button"
+          className="collab-icon-button small"
+          aria-label="Change your name"
+          title="Change your name"
+          onClick={() => {
+            editing.current = true;
+            setDraft(name);
+          }}
+        >
+          <PencilIcon size={12} />
+        </button>
+      </>
+    );
+  }
+
+  const save = () => {
+    if (!editing.current) return;
+    editing.current = false;
+    setDraft(undefined);
+    const typed = draft.trim();
+    if (!typed || typed === name) return;
+    rememberDisplayName(typed);
+    onRename(typed);
+  };
+
+  return (
+    <input
+      autoFocus
+      className="collab-input collab-name-input"
+      aria-label="Your name"
+      maxLength={MAX_DISPLAY_NAME_LENGTH}
+      value={draft}
+      onChange={(event) => setDraft(event.target.value)}
+      onBlur={save}
+      onKeyDown={(event) => {
+        if (event.key === 'Enter') {
+          event.preventDefault();
+          save();
+        } else if (event.key === 'Escape') {
+          event.preventDefault();
+          editing.current = false;
+          setDraft(undefined);
+        }
+      }}
+    />
+  );
+}
+
 function initial(name: string) {
   return name.trim().charAt(0).toUpperCase() || '?';
 }
 
-/** Copies the room code, confirming it briefly with a check mark. */
-function CopyButton({ text }: { text: string }) {
+/** Copies the text, confirming it briefly with a check mark. */
+function CopyButton({ text, what, icon = <CopyIcon size={14} /> }: { text: string; what: string; icon?: ReactNode }) {
   const [copied, setCopied] = useState(false);
 
   useEffect(() => {
@@ -413,8 +484,8 @@ function CopyButton({ text }: { text: string }) {
     <button
       type="button"
       className={`collab-icon-button${copied ? ' success' : ''}`}
-      title={copied ? 'Copied' : 'Copy room code'}
-      aria-label={copied ? 'Copied room code' : 'Copy room code'}
+      title={copied ? 'Copied' : `Copy ${what}`}
+      aria-label={copied ? `Copied ${what}` : `Copy ${what}`}
       onClick={() =>
         navigator.clipboard?.writeText(text).then(
           () => setCopied(true),
@@ -422,7 +493,7 @@ function CopyButton({ text }: { text: string }) {
         )
       }
     >
-      {copied ? <CheckIcon size={14} /> : <CopyIcon size={14} />}
+      {copied ? <CheckIcon size={14} /> : icon}
     </button>
   );
 }

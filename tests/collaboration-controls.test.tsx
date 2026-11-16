@@ -244,7 +244,7 @@ it('shows each Participant in the color the service assigned', async () => {
   // The own color is shown by the picker that changes it, not by a second swatch.
   const ownRow = participantRows()[0];
   expect(within(ownRow).getByLabelText('Your color')).toHaveValue('#e6194b');
-  expect(ownRow.querySelector('[aria-hidden]')).toBeNull();
+  expect(ownRow.querySelector('.collab-avatar[aria-hidden]')).toBeNull();
 });
 
 it('leaves the Room without reloading and offers the entry form again', async () => {
@@ -369,6 +369,56 @@ it('lets a Participant change their own color, which everyone sees', async () =>
   room.update((state) => (state.participants.get('session-other')!.color = '#123456'));
   const swatch = participantRows()[1].querySelector('[aria-hidden]') as HTMLElement;
   expect(swatch.style.backgroundColor).toBe('rgb(18, 52, 86)');
+});
+
+it('lets a Participant change their own name while login is off, and remembers it', async () => {
+  const user = await createRoomAs('Ada');
+  await screen.findByText('ROOM01');
+  const room = service.rooms.get('ROOM01')!;
+  room.seat('session-other', 'Grace');
+  await screen.findByText('Grace');
+  const [own] = room.clients.values();
+  expect(within(participantRows()[1]).queryByRole('button', { name: 'Change your name' })).not.toBeInTheDocument();
+
+  await user.click(screen.getByRole('button', { name: 'Change your name' }));
+  const field = screen.getByRole('textbox', { name: 'Your name' });
+  expect(field).toHaveValue('Ada');
+  await user.clear(field);
+  await user.type(field, '  Ada Lovelace {Enter}');
+
+  expect(own.sent).toEqual([{ type: 'setName', payload: { name: 'Ada Lovelace' } }]);
+  expect(screen.queryByRole('textbox', { name: 'Your name' })).not.toBeInTheDocument();
+  expect(localStorage.getItem('explorviz.collaboration.displayName')).toBe('Ada Lovelace');
+});
+
+it('keeps the name when changing it is cancelled or left empty', async () => {
+  const user = await createRoomAs('Ada');
+  await screen.findByText('ROOM01');
+  const [own] = service.rooms.get('ROOM01')!.clients.values();
+
+  await user.click(screen.getByRole('button', { name: 'Change your name' }));
+  await user.type(screen.getByRole('textbox', { name: 'Your name' }), ' Grace{Escape}');
+  await user.click(screen.getByRole('button', { name: 'Change your name' }));
+  await user.clear(screen.getByRole('textbox', { name: 'Your name' }));
+  await user.tab();
+  await user.click(screen.getByRole('button', { name: 'Change your name' }));
+  await user.type(screen.getByRole('textbox', { name: 'Your name' }), '{Enter}');
+
+  expect(own.sent).toEqual([]);
+  expect(screen.getByText('Ada')).toBeInTheDocument();
+});
+
+it('offers no name change with login on, as the name comes from the login', async () => {
+  vi.stubEnv('VITE_ENABLE_SKIP_LOGIN', 'false');
+  useAuthStore.setState({ user: { name: 'Ada Lovelace', nickname: 'ada', sub: '1' } });
+  serviceAnswers();
+  render(<CollaborationControls />);
+  const user = userEvent.setup();
+
+  await user.click(await screen.findByRole('button', { name: /create room/i }));
+  await screen.findByText('ROOM01');
+
+  expect(screen.queryByRole('button', { name: 'Change your name' })).not.toBeInTheDocument();
 });
 
 it('sends an optional room name when creating without a display name', async () => {
