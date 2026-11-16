@@ -19,6 +19,7 @@
 @use '_loading_screen';
 @use '_login';
 @use '_kubediagrams';
+@use '_web_view';
 
 :root {
   --ev-radius-sm: 0.25rem;

@@ -1121,16 +1121,6 @@ export const defaultVizSettings: VisualizationSettings = {
     isFlagSetting: true,
   },
 
-  // Misc Settings
-  showEmbeddedBrowserIcon: {
-    level: SettingLevel.DEFAULT,
-    value: false,
-    group: 'Misc',
-    displayName: 'Show Embedded Browser Icons',
-    description: 'Toggle visibility of the embedded browser icons near the code cities',
-    isFlagSetting: true,
-  },
-
   // Magnifier Settings
   isMagnifierActive: {
     level: SettingLevel.DEFAULT,

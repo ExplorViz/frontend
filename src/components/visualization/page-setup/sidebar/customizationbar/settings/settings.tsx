@@ -100,7 +100,6 @@ export default function Settings({ enterFullscreen, setGamepadSupport }: Setting
       Minimap: [],
       'Semantic Zoom': [],
       'Virtual Reality': [],
-      Misc: [],
       Debugging: [],
     };
 

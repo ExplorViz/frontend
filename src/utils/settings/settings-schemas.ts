@@ -13,7 +13,6 @@ export type SettingGroup =
   | 'Label'
   | 'Magnifier'
   | 'Minimap'
-  | 'Misc'
   | 'Semantic Zoom'
   | 'Virtual Reality';
 
@@ -237,11 +236,6 @@ export type SemanticZoomSettings = {
 };
 export type SemanticZoomSettingId = keyof SemanticZoomSettings;
 
-export type MiscSettings = {
-  showEmbeddedBrowserIcon: FlagSetting;
-};
-export type MiscSettingId = keyof MiscSettings;
-
 export type MagnifierSettings = {
   isMagnifierActive: FlagSetting;
   magnifierZoom: RangeSetting;
@@ -269,7 +263,6 @@ export type VisualizationSettingId =
   | LabelSettingId
   | MagnifierSettingId
   | MinimapSettingId
-  | MiscSettingId
   | SemanticZoomSettingId
   | 'autoEnterVr'
   | ColorOverrideSettingsId
@@ -288,7 +281,6 @@ export type VisualizationSettings = CameraSettings &
   LabelSettings &
   MagnifierSettings &
   MinimapSettings &
-  MiscSettings &
   SemanticZoomSettings &
   XrSettings &
   ColorSettings &

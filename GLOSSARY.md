@@ -76,3 +76,7 @@ _Avoid_: Class, Clazz, File (as a synonym; a file is one kind of Building)
 **District**:
 A grouping of Buildings and nested Districts within a City, such as a package, a directory or an endpoint path segment, depending on what the analysis grouped by.
 _Avoid_: Package, Component (as synonyms; a package is one kind of District)
+
+**Web View**:
+A web page embedded next to a City (e.g., the running application's UI), opened from the context menu of the City's foundation.
+_Avoid_: Embedded Browser, iFrame (as names for the feature)

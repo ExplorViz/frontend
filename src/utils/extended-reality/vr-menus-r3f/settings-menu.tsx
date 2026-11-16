@@ -63,7 +63,6 @@ export default function SettingsMenu() {
       Label: [],
       Magnifier: [],
       Minimap: [],
-      Misc: [],
       Popups: [],
       'Semantic Zoom': [],
       'Virtual Reality': [],

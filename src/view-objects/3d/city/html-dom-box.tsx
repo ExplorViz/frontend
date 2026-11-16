@@ -1,45 +1,81 @@
-import { Box, Edges, Html, Line } from '@react-three/drei';
-import { usePointerStop } from 'explorviz-frontend/src/hooks/pointer-stop';
+import { Edges, Html, Line } from '@react-three/drei';
+import { ThreeEvent } from '@react-three/fiber';
 import useClickPreventionOnDoubleClick from 'explorviz-frontend/src/hooks/useClickPreventionOnDoubleClick';
 import { BoxData } from 'explorviz-frontend/src/view-objects/3d/city/html-visualizer';
-import { useRef, useState } from 'react';
+import { useCallback, useLayoutEffect, useRef, useState } from 'react';
 import * as THREE from 'three';
+
+const HTML_PIXELS_PER_UNIT = 40;
+/** Gap between the top edge of a box and its label in CSS pixels. */
+const LABEL_GAP = 12;
+const MAX_LABEL_LENGTH = 300;
+
+const noRaycast = () => null;
 
 export default function HtmlDomBox({
   box,
   color,
-  distanceBetweenLevels,
+  levelDistance,
+  stackDistance,
+  pixelScale,
   visible,
   setClickedNode,
 }: {
   box: BoxData;
   color: string;
-  distanceBetweenLevels: number;
+  /** Distance between two DOM levels in world units. */
+  levelDistance: number;
+  /** Distance between overlapping boxes of the same level in world units. */
+  stackDistance: number;
+  pixelScale: number;
   visible: boolean;
-  setClickedNode: any;
+  setClickedNode: (node: Element | null) => void;
 }) {
-  const [clicked, setClicked] = useState(box.isSubtreeRoot);
+  const isSelected = box.isSubtreeRoot;
+  const levelZ = box.level * levelDistance;
+  // Overlapping boxes of the same level are slightly moved to the front to avoid flickering (z-fighting)
+  const z = levelZ + box.stackIndex * stackDistance;
+  const depth = isSelected ? pixelScale + levelDistance / 2 : pixelScale;
 
-  const meshRef = useRef<THREE.Group | null>(null);
+  // The text (HTML) of a node is shown while it is selected or hovered
+  const [isHovered, setIsHovered] = useState(false);
+  const showLabel = (isSelected || isHovered) && visible;
 
-  const handlePointerStop = (/*event: ThreeEvent<PointerEvent>*/) => {
-    // TODO: Add popup
+  // drei's <Html occlude="blending"> adds a plane that cuts the hole into the canvas through which the label is
+  // visible. That plane must not catch the pointer, otherwise the label would block hovering and clicking the
+  // boxes behind it (and the hovered box would lose its hover, i.e., the label would flicker).
+  const labelGroupRef = useRef<THREE.Group>(null);
+  useLayoutEffect(() => {
+    labelGroupRef.current?.traverse((object) => {
+      object.raycast = noRaycast;
+    });
+  });
+
+  // drei centers the label at its position and sizes the occlusion (the hole in the canvas through which the
+  // HTML is visible) to the label. Hence, the label is lifted by half of its measured height in 3D instead of
+  // via CSS, so that it ends right above the box and does not overlap the selected node.
+  const [labelHeight, setLabelHeight] = useState(0);
+  const labelRef = useCallback((element: HTMLDivElement | null) => {
+    if (!element) return;
+    const observer = new ResizeObserver(() => setLabelHeight(element.offsetHeight));
+    observer.observe(element);
+    return () => observer.disconnect();
+  }, []);
+
+  const labelText =
+    box.htmlWithText.length > MAX_LABEL_LENGTH ? box.htmlWithText.slice(0, MAX_LABEL_LENGTH) + '…' : box.htmlWithText;
+
+  const handleClick = (event: ThreeEvent<MouseEvent>) => {
+    event.stopPropagation();
+    setClickedNode(isSelected ? null : box.htmlNode);
   };
 
-  const pointerStopHandlers = usePointerStop(handlePointerStop, 50);
-
-  const handleClick = () => {
-    setClicked(!clicked);
-    if (clicked) {
-      setClickedNode(null);
-    } else {
-      setClickedNode(box.htmlNode);
-    }
-  };
-
-  const handleDoubleClick = () => {
-    if (box.htmlNode instanceof HTMLElement) {
-      box.htmlNode.click();
+  const handleDoubleClick = (event: ThreeEvent<MouseEvent>) => {
+    event.stopPropagation();
+    // The node belongs to the realm of the iframe, hence `instanceof HTMLElement` would be false
+    const node = box.htmlNode as HTMLElement;
+    if (typeof node.click === 'function') {
+      node.click();
     }
   };
 
@@ -49,57 +85,59 @@ export default function HtmlDomBox({
   );
 
   return (
-    <group
-      position={[300, 218, 0]}
-      visible={visible}
-      onClick={handleClickWithPrevent}
-      onDoubleClick={handleDoubleClickWithPrevent}
-      ref={meshRef}
-      {...pointerStopHandlers}
-    >
-      <Box position={[135, -63, -1]} args={[290, 200, 1]} />
-      <mesh position={[box.position[0], box.position[1], box.level * distanceBetweenLevels]}>
-        {!clicked && <boxGeometry args={box.size} />}
-        {clicked && <boxGeometry args={[box.size[0], box.size[1], box.size[2] + distanceBetweenLevels / 2]} />}
-        <meshToonMaterial map={box.texture} color={box.texture ? 'white' : color} transparent={true} opacity={1} />
-        {(clicked || box.isSubtreeRoot) && <Edges linewidth={5} scale={1} color="black" />}
-        {!clicked && <Edges linewidth={1} scale={1} color="black" />}
+    <group visible={visible} onClick={handleClickWithPrevent} onDoubleClick={handleDoubleClickWithPrevent}>
+      <mesh
+        position={[box.position[0], box.position[1], z]}
+        userData={{ isDomBox: true }}
+        // three.js also raycasts invisible objects, a filtered out box must not catch clicks for the visible ones
+        raycast={visible ? THREE.Mesh.prototype.raycast : noRaycast}
+        onPointerOver={(event) => {
+          // Only the front-most box under the pointer is hovered
+          event.stopPropagation();
+          setIsHovered(true);
+        }}
+        onPointerOut={() => setIsHovered(false)}
+      >
+        <boxGeometry args={[box.size[0], box.size[1], depth]} />
+        {/* Separate materials: three.js does not recompile a shader when `map` changes from null to a
+            texture, so reusing one material would keep the box untextured. The rendered HTML is unlit
+            and not tone mapped to keep the colors of the web page. */}
+        {box.texture ? <meshBasicMaterial map={box.texture} toneMapped={false} /> : <meshToonMaterial color={color} />}
+        <Edges linewidth={isSelected ? 5 : 1} color="black" />
       </mesh>
       {box.level !== 0 && (
         <Line
           points={[
-            [box.position[0], box.position[1], box.level * distanceBetweenLevels],
-            [box.position[0], box.position[1], box.level * distanceBetweenLevels - distanceBetweenLevels],
+            [box.position[0], box.position[1], z],
+            [box.position[0], box.position[1], levelZ - levelDistance],
           ]}
-          color={'black'}
-          raycast={() => {}}
+          color="black"
+          raycast={() => null}
         />
       )}
-      {(clicked || box.isSubtreeRoot) && (
-        <Html
-          position={[
-            box.position[0],
-            box.position[1] + box.size[1] / 2 + box.htmlWithText.length * 0.25,
-            box.level * distanceBetweenLevels + 0.2,
-          ]}
-          occlude={'blending'}
-          transform
-          raycast={() => {}}
-        >
-          <div
-            style={{
-              background: 'white',
-              padding: '10px',
-              border: '1px solid black',
-              whiteSpace: 'pre-wrap',
-              fontSize: '10rem',
-              pointerEvents: 'none',
-            }}
+      {showLabel && (
+        <group ref={labelGroupRef}>
+          <Html
+            transform
+            occlude="blending"
+            pointerEvents="none"
+            scale={pixelScale * HTML_PIXELS_PER_UNIT}
+            position={[
+              box.position[0],
+              box.position[1] + box.size[1] / 2 + (LABEL_GAP + labelHeight / 2) * pixelScale,
+              z + depth / 2,
+            ]}
           >
-            {/* {box.htmlWithText} */}
-            <code style={{ pointerEvents: 'none' }}>{box.htmlWithText}</code>
-          </div>
-        </Html>
+            <div
+              ref={labelRef}
+              className="web-view-node-label"
+              // Hidden until measured to avoid a flash at the wrong position
+              style={{ visibility: labelHeight ? 'visible' : 'hidden' }}
+            >
+              <code>{labelText}</code>
+            </div>
+          </Html>
+        </group>
       )}
     </group>
   );

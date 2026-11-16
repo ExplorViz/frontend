@@ -1,12 +1,10 @@
-import { Container, Root } from '@react-three/uikit';
-import { Button } from '@react-three/uikit-default';
-import { AppWindow } from '@react-three/uikit-lucide';
 import { InstancedMesh2 } from '@three.ez/instanced-mesh';
 import { useEvolutionAnimationStore } from 'explorviz-frontend/src/components/visualization/page-setup/bottom-bar/animation/evolution-animation-store';
 import { useEntityFilteringStore } from 'explorviz-frontend/src/stores/entity-filtering-store';
 import { useLayoutStore } from 'explorviz-frontend/src/stores/layout-store';
 import { useModelStore } from 'explorviz-frontend/src/stores/repos/model-repository';
 import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
+import { useWebViewStore } from 'explorviz-frontend/src/stores/web-view-store';
 import {
   filterBuildingIdsForCity,
   filterDistrictIdsForCity,
@@ -39,15 +37,14 @@ export default function CodeCity({ cityId }: { cityId: string }) {
     }))
   );
 
-  const { animationDuration, enableAnimations, showEmbeddedBrowserIcon, buildingLayoutAlgorithm } =
-    useUserSettingsStore(
-      useShallow((state) => ({
-        animationDuration: state.visualizationSettings.animationDuration.value,
-        enableAnimations: state.visualizationSettings.enableAnimations.value,
-        showEmbeddedBrowserIcon: state.visualizationSettings.showEmbeddedBrowserIcon.value,
-        buildingLayoutAlgorithm: state.visualizationSettings.buildingLayoutAlgorithm.value,
-      }))
-    );
+  const { animationDuration, enableAnimations, buildingLayoutAlgorithm } = useUserSettingsStore(
+    useShallow((state) => ({
+      animationDuration: state.visualizationSettings.animationDuration.value,
+      enableAnimations: state.visualizationSettings.enableAnimations.value,
+      buildingLayoutAlgorithm: state.visualizationSettings.buildingLayoutAlgorithm.value,
+    }))
+  );
+  const isWebViewOpen = useWebViewStore((state) => state.openCityIds.has(cityId));
 
   const filterMode = useEntityFilteringStore((state) => state.filterMode);
 
@@ -82,7 +79,6 @@ export default function CodeCity({ cityId }: { cityId: string }) {
   );
 
   const [cityPosition, setCityPosition] = useState<THREE.Vector3 | undefined>(cityLayout?.position);
-  const [isBrowserActive, setIsBrowserActive] = useState(false);
 
   const componentInstanceMeshRef = useRef<InstancedMesh2>(null);
 
@@ -113,24 +109,7 @@ export default function CodeCity({ cityId }: { cityId: string }) {
 
   return (
     <group position={cityPosition} userData={{ cityName: city.name }}>
-      {showEmbeddedBrowserIcon && (
-        <Root positionBottom={15} positionLeft={0} pixelSize={1}>
-          <Container>
-            <Button
-              width={25}
-              height={25}
-              padding={5}
-              backgroundColor={isBrowserActive ? 'red' : 'black'}
-              onClick={() => {
-                setIsBrowserActive(!isBrowserActive);
-              }}
-            >
-              <AppWindow />
-            </Button>
-          </Container>
-        </Root>
-      )}
-      {isBrowserActive && <EmbeddedBrowser city={city} />}
+      {isWebViewOpen && cityLayout && <EmbeddedBrowser city={city} layout={cityLayout} />}
       {cityLayout && <CityFoundation city={city} layout={cityLayout} />}
       <CodeBuildings buildingIds={visibleBuildingIds} city={city} />
       {visibleBuildingIds.map((buildingId) => (

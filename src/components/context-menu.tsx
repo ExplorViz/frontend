@@ -10,6 +10,7 @@ import { addPopup } from 'explorviz-frontend/src/utils/collaboration/popups';
 import { useRenderingServiceStore } from 'explorviz-frontend/src/stores/rendering-service';
 import { useModelStore } from 'explorviz-frontend/src/stores/repos/model-repository';
 import { useToastHandlerStore } from 'explorviz-frontend/src/stores/toast-handler';
+import { useWebViewStore } from 'explorviz-frontend/src/stores/web-view-store';
 import { isOwnHighlight } from 'explorviz-frontend/src/utils/collaboration/highlights';
 import { Position2D } from 'explorviz-frontend/src/types/pointer-types';
 import {
@@ -182,6 +183,7 @@ export default function ContextMenu({ children }: ContextMenuProps) {
     }
     const cityHasClosedDistrict = cityHasClosedDistricts(cityId, closedDistrictIds);
     const foundationIsHighlighted = isOwnHighlight(city.id);
+    const isWebViewOpen = useWebViewStore.getState().openCityIds.has(cityId);
     return [
       {
         id: `city-rename-${cityId}`,
@@ -209,6 +211,11 @@ export default function ContextMenu({ children }: ContextMenuProps) {
             highlightById(city.id);
           }
         },
+      },
+      {
+        id: `city-web-view-${cityId}`,
+        title: isWebViewOpen ? 'Close Web View' : 'Open Web View',
+        action: () => useWebViewStore.getState().toggleWebView(cityId),
       },
     ];
   };

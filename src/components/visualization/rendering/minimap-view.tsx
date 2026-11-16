@@ -167,6 +167,9 @@ export default function MinimapView({ mainCameraControls, landscapeData }: Minim
   // Add event listeners for minimap interaction
   useEffect(() => {
     const canvas = gl.domElement;
+    // drei's <Html occlude="blending"> (e.g., the web view) sets `pointer-events: none` on the canvas
+    // and does not revert it. The parent element receives the events in both cases.
+    const eventTarget = canvas.parentElement ?? canvas;
 
     // Handles pointer down event:
     // When clicked on small minimap make full size
@@ -277,13 +280,13 @@ export default function MinimapView({ mainCameraControls, landscapeData }: Minim
       }
     };
 
-    canvas.addEventListener('pointerdown', handlePointerDown);
-    canvas.addEventListener('wheel', handleWheel);
+    eventTarget.addEventListener('pointerdown', handlePointerDown);
+    eventTarget.addEventListener('wheel', handleWheel);
 
     // Clean up function for when the component is unmounted (minimap disabled)
     return () => {
-      canvas.removeEventListener('pointerdown', handlePointerDown);
-      canvas.removeEventListener('wheel', handleWheel);
+      eventTarget.removeEventListener('pointerdown', handlePointerDown);
+      eventTarget.removeEventListener('wheel', handleWheel);
       resetMainViewport(gl);
     };
   }, [gl, isFullscreen, mainCameraControls, minimapShape, minimapRotate]);

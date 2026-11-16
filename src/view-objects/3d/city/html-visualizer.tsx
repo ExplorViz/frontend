@@ -1,136 +1,173 @@
-import { Container, Root, Text } from '@react-three/uikit';
-import { Button, Checkbox, Input, Label } from '@react-three/uikit-default';
-import { RefreshCcw } from '@react-three/uikit-lucide';
+import { SyncIcon } from '@primer/octicons-react';
+import { Html } from '@react-three/drei';
+import { useThree } from '@react-three/fiber';
+import type { WebViewSize } from 'explorviz-frontend/src/stores/web-view-store';
+import { assignStackIndices } from 'explorviz-frontend/src/utils/dom-box-stacking';
 import HtmlDomBox from 'explorviz-frontend/src/view-objects/3d/city/html-dom-box';
 import * as htmlToImage from 'html-to-image';
-import { useEffect, useRef, useState } from 'react';
+import { type SyntheticEvent, useEffect, useRef, useState } from 'react';
 import * as THREE from 'three';
 
+/** Height of the control panel above the 3D boxes in CSS pixels. */
+const CONTROLS_HEIGHT = 96;
+/** Minimal delay between two recomputations triggered by DOM mutations. */
+const MUTATION_DEBOUNCE_MS = 100;
+const HTML_PIXELS_PER_UNIT = 40;
+/** Change of the distance between layers (in CSS pixels) per pixel of horizontal scrolling. */
+const DISTANCE_PER_SCROLL_PIXEL = 0.25;
+const MIN_DISTANCE_BETWEEN_LEVELS = 1;
+/** Distance between overlapping boxes of the same layer in CSS pixels (larger than the box depth of 1 px). */
+const STACK_DISTANCE = 2;
+
+/**
+ * Returns the horizontal scroll distance in pixels (e.g., of the thumb wheel of a mouse),
+ * or 0 if the wheel event is mainly a vertical scroll.
+ */
+function getHorizontalScrollPixels(event: WheelEvent) {
+  if (Math.abs(event.deltaX) <= Math.abs(event.deltaY)) return 0;
+  const pixelsPerUnit = event.deltaMode === WheelEvent.DOM_DELTA_LINE ? 16 : event.deltaMode === 2 ? 100 : 1;
+  return event.deltaX * pixelsPerUnit;
+}
+
+/**
+ * Whether the web page shows the element, i.e., it has a box and neither it nor an ancestor is hidden via
+ * `display: none`, `visibility: hidden` or `opacity: 0`.
+ */
+function isRendered(element: Element) {
+  // Not supported by older browsers, all elements are shown there
+  if (typeof element.checkVisibility !== 'function') return true;
+  // The newer option names and their older aliases (supported by more browser versions)
+  return element.checkVisibility({
+    opacityProperty: true,
+    visibilityProperty: true,
+    checkOpacity: true,
+    checkVisibilityCSS: true,
+  });
+}
+
+/** Whether the object and all of its ancestors are visible. */
+function isShown(object: THREE.Object3D | null): boolean {
+  for (let current = object; current; current = current.parent) {
+    if (!current.visible) return false;
+  }
+  return true;
+}
+
+function stopPropagation(event: SyntheticEvent) {
+  event.stopPropagation();
+}
+
+/**
+ * Visualizes the DOM of the given (same-origin) document as stacked 3D boxes.
+ * Each DOM level is lifted by `distanceBetweenLevels` CSS pixels.
+ *
+ * @param origin Top-left corner of the visualized viewport in local coordinates.
+ * @param pixelScale World units per CSS pixel.
+ */
 export default function HtmlVisualizer({
   html,
   updateHtml,
+  pixelScale,
+  viewportSize,
+  origin,
 }: {
-  html: HTMLElement | null | undefined;
+  html: Document | undefined;
   updateHtml: () => void;
+  pixelScale: number;
+  viewportSize: WebViewSize;
+  origin: [number, number, number];
 }) {
   const [boxes, setBoxes] = useState<BoxData[]>([]);
   const [useHashedColors, setUseHashedColors] = useState(false);
   const [renderHtmlTextures, setRenderHtmlTextures] = useState(false);
   const [renderOnlyHtmlLeafs, setRenderOnlyHtmlLeafs] = useState(true);
-  const [distanceBetweenLevels, setDistanceBetweenLevels] = useState(5);
+  const [distanceBetweenLevels, setDistanceBetweenLevels] = useState(35);
   const [reloadCounter, setReloadCounter] = useState(0);
-  const observerCallback = () => {
-    setReloadCounter((current) => current + 1);
-  };
-  const [clickedNode, setClickedNode] = useState<any>(null);
-  const observer = useRef<MutationObserver | null>(null);
-  const maxLayer = useRef(0);
-  useEffect(() => () => observer.current?.disconnect(), []);
-
+  const [clickedNode, setClickedNode] = useState<Element | null>(null);
   const [updateWithObserver, setUpdateWithObserver] = useState(true);
-
-  // Parameters for UI layout
-  const sizeX = 1000;
-  const sizeY = 1000;
-  const scale = 0.5;
-  const positionBottom = -500 * scale;
-  const positionLeft = 800;
-  const navbarHeight = 40;
-  const inputWidth = 50;
-
   const [restrictToLayer, setRestrictToLayer] = useState(0);
   const [searchString, setSearchString] = useState('');
   const [cropToViewport, setCropToViewport] = useState(true);
+  const [maxLayer, setMaxLayer] = useState(0);
+  const [maxStackIndex, setMaxStackIndex] = useState(0);
 
-  const computeBoxes = (img: HTMLImageElement | undefined = undefined) => {
+  const camera = useThree((state) => state.camera);
+  const gl = useThree((state) => state.gl);
+  const eventSource = useThree((state) => state.events.connected) as HTMLElement | null | undefined;
+  const boxesGroupRef = useRef<THREE.Group>(null);
+
+  // Scrolling to the right increases the distance between layers, scrolling to the left decreases it
+  const changeDistanceByScrolling = (event: WheelEvent) => {
+    const scrollPixels = getHorizontalScrollPixels(event);
+    if (scrollPixels === 0) return false;
+    setDistanceBetweenLevels((current) =>
+      Math.max(MIN_DISTANCE_BETWEEN_LEVELS, current + scrollPixels * DISTANCE_PER_SCROLL_PIXEL)
+    );
+    return true;
+  };
+
+  // Horizontal scrolling while the pointer is on a layer (box) changes the distance between layers.
+  // A capturing listener is needed to handle the event before the camera controls, which listen on the same element.
+  useEffect(() => {
     if (!html) return;
+    const target = eventSource ?? gl.domElement;
+    const raycaster = new THREE.Raycaster();
+    const pointer = new THREE.Vector2();
 
-    // Avoid that multiple observer fire in parallel
-    observer.current?.disconnect();
+    const handleWheel = (event: WheelEvent) => {
+      const group = boxesGroupRef.current;
+      if (!group || getHorizontalScrollPixels(event) === 0) return;
 
-    // Register (new) observer
-    observer.current = new MutationObserver(observerCallback);
-    if (updateWithObserver) {
-      observer.current.observe(html, {
-        attributes: true,
-        characterData: true,
-        childList: true,
-        subtree: true,
-      });
-    }
+      const rect = gl.domElement.getBoundingClientRect();
+      pointer.set(
+        ((event.clientX - rect.left) / rect.width) * 2 - 1,
+        -((event.clientY - rect.top) / rect.height) * 2 + 1
+      );
+      raycaster.setFromCamera(pointer, camera);
+      const isOnLayer = raycaster
+        .intersectObjects(group.children, true)
+        .some((intersection) => intersection.object.userData.isDomBox && isShown(intersection.object));
+      if (!isOnLayer) return;
 
-    let tempBoxes: BoxData[] = [];
-    const rootChildren = Array.from(html.children);
-    let firstOffset: NodeOffset | null = null;
-
-    let maxLevel = 0;
-
-    const processNode = async (node: HTMLElement | Element, level: number, insideClickedSubtree = false) => {
-      if (level > maxLevel) {
-        maxLevel = level;
-      }
-
-      if (clickedNode == node) {
-        insideClickedSubtree = true;
-      }
-
-      let rect: DOMRect = node.getBoundingClientRect();
-
-      const clampedRect = getClampedRect(rect);
-      if (cropToViewport) {
-        rect = getClampedRect(rect);
-      }
-
-      if (!firstOffset) {
-        firstOffset = {
-          x: rect.left * NODE_SCALAR,
-          y: rect.top * NODE_SCALAR,
-        };
-      }
-
-      const offset = getOffset(rect, firstOffset);
-
-      if (clickedNode && !insideClickedSubtree) {
-        Array.from(node.children).forEach((child) => processNode(child, level + 1));
-        return;
-      }
-
-      // Only display html element itself without child nodes
-      let htmlString = node.outerHTML.replace(node.innerHTML || '', '');
-      const innerText = node.firstChild?.nodeType === node.TEXT_NODE ? node.innerText : '';
-      const htmlWithText = htmlString.replace('>', '>' + innerText);
-
-      const boxData: BoxData = {
-        id: 'dom-box-' + Math.random(),
-        position: [offset.x, offset.y, level * distanceBetweenLevels],
-        size: [Math.max(1, rect.width * NODE_SCALAR), Math.max(1, rect.height * NODE_SCALAR), 0.01],
-        htmlNode: node,
-        renderHtml: renderHtmlTextures && (!renderOnlyHtmlLeafs || node.childElementCount === 0), //renderHtml(node),
-        isSubtreeRoot: node == clickedNode,
-        level,
-        htmlString,
-        innerText,
-        htmlWithText,
-        children: [],
-        texture: null,
-      };
-
-      if (!cropToViewport || (clampedRect.width > 0 && clampedRect.height > 0)) {
-        tempBoxes.push(boxData);
-      }
-
-      if (boxData.renderHtml && img) {
-        boxData.texture = getTextureForRect(clampedRect, img);
-      }
-
-      Array.from(node.children).forEach((child) => processNode(child, level + 1, insideClickedSubtree));
+      event.preventDefault();
+      event.stopImmediatePropagation();
+      changeDistanceByScrolling(event);
     };
 
-    rootChildren.forEach((node) => processNode(node, 0));
+    target.addEventListener('wheel', handleWheel, { capture: true, passive: false });
+    return () => target.removeEventListener('wheel', handleWheel, { capture: true });
+  }, [html, camera, gl, eventSource]);
 
-    maxLayer.current = maxLevel;
-    setBoxes(tempBoxes);
+  // Stable ids keep the React keys (and thereby the meshes) of unchanged DOM nodes
+  const nodeIds = useRef(new WeakMap<Element, number>());
+  const nextNodeId = useRef(0);
+
+  const getNodeId = (node: Element) => {
+    let id = nodeIds.current.get(node);
+    if (id === undefined) {
+      id = nextNodeId.current++;
+      nodeIds.current.set(node, id);
+    }
+    return 'dom-box-' + id;
   };
+
+  // Recompute when the document changes (debounced, since pages may mutate continuously)
+  useEffect(() => {
+    if (!html || !updateWithObserver) return;
+    let timeout: number | undefined;
+    const observer = new MutationObserver(() => {
+      if (timeout !== undefined) return;
+      timeout = window.setTimeout(() => {
+        timeout = undefined;
+        setReloadCounter((current) => current + 1);
+      }, MUTATION_DEBOUNCE_MS);
+    });
+    observer.observe(html, { attributes: true, characterData: true, childList: true, subtree: true });
+    return () => {
+      observer.disconnect();
+      if (timeout !== undefined) window.clearTimeout(timeout);
+    };
+  }, [html, updateWithObserver]);
 
   useEffect(() => {
     if (!html) {
@@ -138,209 +175,265 @@ export default function HtmlVisualizer({
       return;
     }
 
-    if (renderHtmlTextures) {
-      let img = new Image();
+    let cancelled = false;
+    const { width, height } = viewportSize;
+
+    const computeBoxes = (img?: HTMLImageElement) => {
+      const tempBoxes: BoxData[] = [];
+      let firstOffset: NodeOffset | null = null;
+      let maxLevel = 0;
+
+      const processNode = (node: Element, level: number, insideClickedSubtree = false) => {
+        maxLevel = Math.max(maxLevel, level);
+        if (clickedNode === node) {
+          insideClickedSubtree = true;
+        }
+
+        const clampedRect = getClampedRect(node.getBoundingClientRect(), width, height);
+        const rect = cropToViewport ? clampedRect : node.getBoundingClientRect();
+
+        if (!firstOffset) {
+          firstOffset = { x: rect.left * pixelScale, y: rect.top * pixelScale };
+        }
+
+        if (clickedNode && !insideClickedSubtree) {
+          Array.from(node.children).forEach((child) => processNode(child, level + 1));
+          return;
+        }
+
+        // Elements that the web page does not show (e.g., entries filtered out by the web application) get no
+        // box. Their children are still visited, since they may be visible again (e.g., `visibility: visible`).
+        if (!isRendered(node)) {
+          Array.from(node.children).forEach((child) => processNode(child, level + 1, insideClickedSubtree));
+          return;
+        }
+
+        // Only display the HTML element itself without its child nodes
+        const htmlString = node.outerHTML.replace(node.innerHTML || '', '');
+        // Note: `instanceof HTMLElement` does not work here, the node belongs to the realm of the iframe
+        const innerText =
+          node.firstChild?.nodeType === Node.TEXT_NODE
+            ? ((node as HTMLElement).innerText ?? node.textContent ?? '')
+            : '';
+        const htmlWithText = htmlString.replace('>', '>' + innerText);
+        const isLeaf = !Array.from(node.children).some(isRendered);
+        const renderHtml = renderHtmlTextures && (!renderOnlyHtmlLeafs || isLeaf);
+
+        if (!cropToViewport || (clampedRect.width > 0 && clampedRect.height > 0)) {
+          const offset = getOffset(rect, firstOffset, pixelScale);
+          tempBoxes.push({
+            id: getNodeId(node),
+            position: [offset.x, offset.y],
+            size: [Math.max(pixelScale, rect.width * pixelScale), Math.max(pixelScale, rect.height * pixelScale)],
+            htmlNode: node,
+            isSubtreeRoot: node === clickedNode,
+            level,
+            stackIndex: 0,
+            htmlWithText,
+            texture: renderHtml && img ? getTextureForRect(clampedRect, img) : null,
+          });
+        }
+
+        Array.from(node.children).forEach((child) => processNode(child, level + 1, insideClickedSubtree));
+      };
+
+      Array.from(html.children).forEach((node) => processNode(node, 0));
+
+      if (cancelled) {
+        tempBoxes.forEach((box) => box.texture?.dispose());
+        return;
+      }
+      setMaxLayer(maxLevel);
+      setMaxStackIndex(assignStackIndices(tempBoxes));
+      setBoxes(tempBoxes);
+    };
+
+    const body = html.body;
+    if (renderHtmlTextures && body) {
       htmlToImage
-        .toPng(html.getElementsByTagName('body')[0], {
-          width: 1920,
-          height: 1080,
-          pixelRatio: 1,
-        })
-        .then((dataUrl) => {
+        .toPng(body, { width, height, pixelRatio: 1 })
+        .then(async (dataUrl) => {
+          const img = new Image();
           img.src = dataUrl;
-          document.body.appendChild(img);
-        })
-        .then(() => {
-          computeBoxes(img);
+          await img.decode();
+          if (!cancelled) computeBoxes(img);
         })
         .catch(() => {
           console.error('Could not create image of HTML!');
-          computeBoxes();
+          if (!cancelled) computeBoxes();
         });
     } else {
       computeBoxes();
     }
-  }, [cropToViewport, html, reloadCounter, updateWithObserver, renderHtmlTextures, renderOnlyHtmlLeafs, clickedNode]);
 
-  const isBoxVisible = (box: BoxData) => {
-    return (
-      (!restrictToLayer || box.level + 1 === restrictToLayer) &&
-      (!searchString || box.htmlWithText.toLowerCase().includes(searchString.toLowerCase()))
-    );
-  };
+    return () => {
+      cancelled = true;
+    };
+  }, [
+    cropToViewport,
+    html,
+    reloadCounter,
+    renderHtmlTextures,
+    renderOnlyHtmlLeafs,
+    clickedNode,
+    pixelScale,
+    viewportSize.width,
+    viewportSize.height,
+  ]);
+
+  // Free GPU memory of textures that are no longer displayed
+  useEffect(() => () => boxes.forEach((box) => box.texture?.dispose()), [boxes]);
+
+  if (!html) return null;
+
+  const isBoxVisible = (box: BoxData) =>
+    (!restrictToLayer || box.level + 1 === restrictToLayer) &&
+    (!searchString || box.htmlWithText.toLowerCase().includes(searchString.toLowerCase()));
+
+  const visibleBoxCount = boxes.filter(isBoxVisible).length;
+  const viewportWidth = viewportSize.width * pixelScale;
+  const viewportHeight = viewportSize.height * pixelScale;
+  const levelDistance = distanceBetweenLevels * pixelScale;
+  // Overlapping boxes of a layer are stacked by this offset. The stack takes at most half of the distance
+  // between two layers, such that it does not reach into the next layer.
+  const stackDistance = Math.min(STACK_DISTANCE * pixelScale, levelDistance / 2 / (maxStackIndex + 1));
 
   return (
-    <group onPointerEnter={(event) => event.stopPropagation()} onClick={(event) => event.stopPropagation()}>
-      {html && (
-        <Root
-          positionBottom={positionBottom}
-          positionLeft={positionLeft}
-          sizeX={sizeX}
-          sizeY={sizeY}
-          pixelSize={scale}
-          onWheel={(event) => {
-            if (event.deltaX > 0) {
-              setDistanceBetweenLevels((prev) => prev + 1);
-            }
-            if (event.deltaX < 0) {
-              setDistanceBetweenLevels((prev) => Math.max(1, prev - 1));
-            }
-          }}
+    <group
+      position={origin}
+      // Keep the meshes behind the visualization (e.g., other cities) from reacting
+      onPointerOver={(event) => event.stopPropagation()}
+      onClick={(event) => event.stopPropagation()}
+      onDoubleClick={(event) => event.stopPropagation()}
+      onContextMenu={(event) => event.stopPropagation()}
+    >
+      <Html
+        transform
+        occlude="blending"
+        scale={pixelScale * HTML_PIXELS_PER_UNIT}
+        position={[viewportWidth / 2, (CONTROLS_HEIGHT / 2 + 8) * pixelScale, 0]}
+      >
+        <div
+          className="web-view-inspector"
+          style={{ width: viewportSize.width, height: CONTROLS_HEIGHT }}
+          onPointerDown={stopPropagation}
+          onPointerUp={stopPropagation}
+          onClick={stopPropagation}
+          onDoubleClick={stopPropagation}
+          onContextMenu={stopPropagation}
+          onWheel={stopPropagation}
         >
-          <Container flexDirection="row" alignItems="flex-start" gap={10}>
-            <Container flexDirection="column" alignItems="flex-start" gap={10}>
-              <Container gap={17}>
-                <Label>
-                  <Text fontSize={15}>Distance:</Text>
-                </Label>
-                <Input
-                  value={distanceBetweenLevels.toString()}
-                  onValueChange={(value) => {
-                    const newValue = parseFloat(value);
-                    if (!isNaN(newValue)) {
-                      setDistanceBetweenLevels(newValue);
-                    }
-                  }}
-                  width={inputWidth}
-                  height={navbarHeight / 2}
-                />
-              </Container>
-              <Container gap={0}>
-                <Label>
-                  <Text fontSize={10}>Only Show Layer:</Text>
-                </Label>
-                <Input
-                  value={restrictToLayer.toString()}
-                  onValueChange={(value) => {
-                    const newValue = parseFloat(value);
-                    if (!isNaN(newValue)) {
-                      setRestrictToLayer(Math.max(0, Math.min(maxLayer.current + 1, newValue)));
-                    }
-                  }}
-                  onWheel={(event) => {
-                    event.stopPropagation();
-                    if (event.deltaX > 0) {
-                      setRestrictToLayer((prev) => Math.min(maxLayer.current + 1, prev + 1));
-                    }
-                    if (event.deltaX < 0) {
-                      setRestrictToLayer((prev) => Math.max(0, prev - 1));
-                    }
-                  }}
-                  width={inputWidth}
-                  height={navbarHeight / 2}
-                />
-              </Container>
-            </Container>
-            <Container positionTop={-7} flexDirection="column" gap={1}>
-              <Container flexDirection="row" gap={5}>
-                <Checkbox
-                  checked={updateWithObserver}
-                  onCheckedChange={(isActive) => {
-                    setUpdateWithObserver(isActive);
-                  }}
-                />
-                <Label>
-                  <Text>Cont. Update</Text>
-                </Label>
-              </Container>
-              <Container flexDirection="row" gap={5}>
-                <Checkbox
-                  checked={cropToViewport}
-                  onCheckedChange={(isActive) => {
-                    setCropToViewport(isActive);
-                  }}
-                />
-                ;
-                <Label>
-                  <Text>Crop to Viewport</Text>
-                </Label>
-              </Container>
-              <Container flexDirection="row" gap={5}>
-                <Checkbox
-                  checked={useHashedColors}
-                  onCheckedChange={(isActive) => {
-                    setUseHashedColors(isActive);
-                  }}
-                />
-                ;
-                <Label>
-                  <Text>Hashed Colors</Text>
-                </Label>
-              </Container>
-              <Container flexDirection="row" gap={5}>
-                <Checkbox
-                  checked={renderHtmlTextures}
-                  onCheckedChange={(isActive) => {
-                    setRenderHtmlTextures(isActive);
-                  }}
-                />
-                ;
-                <Label>
-                  <Text>Render HTML</Text>
-                </Label>
-              </Container>
-            </Container>
-            <Container flexDirection="column" positionLeft={20} positionTop={-5} gap={5}>
-              <Label>
-                <Text fontSize={14}>Search:</Text>
-              </Label>
-              <Input
-                value={searchString}
-                onValueChange={(value) => {
-                  setSearchString(value);
-                }}
-                width={150}
-                height={25}
-              />
-              {renderHtmlTextures && (
-                <Container flexDirection="row" gap={5}>
-                  <Checkbox
-                    checked={renderOnlyHtmlLeafs}
-                    onCheckedChange={(isActive) => {
-                      setRenderOnlyHtmlLeafs(isActive);
-                    }}
-                  />
-                  ;
-                  <Label>
-                    <Text>Render only Leafs</Text>
-                  </Label>
-                </Container>
-              )}
-            </Container>
-            <Container positionTop={7} positionLeft={50}>
-              <Button
-                width={navbarHeight}
-                height={navbarHeight}
-                padding={0}
-                onClick={() => {
-                  updateHtml();
-                  setReloadCounter((current) => current + 1);
-                }}
-              >
-                <RefreshCcw />
-              </Button>
-            </Container>
-          </Container>
-          <Container positionBottom={620} positionLeft={-490}>
-            <Text>HTML Nodes: {boxes.filter((box) => isBoxVisible(box)).length}</Text>
-          </Container>
-        </Root>
-      )}
-      {boxes.map((box, _) => (
-        <HtmlDomBox
-          visible={isBoxVisible(box)}
-          distanceBetweenLevels={distanceBetweenLevels}
-          key={box.id}
-          box={box}
-          color={useHashedColors ? hashElementToColor(box.htmlNode) : COLORS_GRAD[box.level % COLORS_GRAD.length]}
-          setClickedNode={setClickedNode}
-        />
-      ))}
+          <label>
+            Distance
+            <input
+              type="number"
+              className="form-control form-control-sm"
+              min={MIN_DISTANCE_BETWEEN_LEVELS}
+              title="Scroll horizontally here or on a layer to change the distance"
+              value={Math.round(distanceBetweenLevels)}
+              onChange={(event) => {
+                const value = parseFloat(event.target.value);
+                if (!isNaN(value)) setDistanceBetweenLevels(Math.max(MIN_DISTANCE_BETWEEN_LEVELS, value));
+              }}
+              onWheel={(event) => changeDistanceByScrolling(event.nativeEvent)}
+            />
+          </label>
+          <label>
+            Only show layer
+            <input
+              type="number"
+              className="form-control form-control-sm"
+              min={0}
+              max={maxLayer + 1}
+              title="0 shows all layers. Scroll horizontally here to change the distance between layers"
+              value={restrictToLayer}
+              onChange={(event) => {
+                const value = parseInt(event.target.value, 10);
+                if (!isNaN(value)) setRestrictToLayer(Math.max(0, Math.min(maxLayer + 1, value)));
+              }}
+              onWheel={(event) => changeDistanceByScrolling(event.nativeEvent)}
+            />
+          </label>
+          <label>
+            Search
+            <input
+              type="search"
+              className="form-control form-control-sm"
+              value={searchString}
+              onChange={(event) => setSearchString(event.target.value)}
+            />
+          </label>
+          <InspectorCheckbox label="Cont. update" checked={updateWithObserver} onChange={setUpdateWithObserver} />
+          <InspectorCheckbox label="Crop to viewport" checked={cropToViewport} onChange={setCropToViewport} />
+          <InspectorCheckbox label="Hashed colors" checked={useHashedColors} onChange={setUseHashedColors} />
+          <InspectorCheckbox label="Render HTML" checked={renderHtmlTextures} onChange={setRenderHtmlTextures} />
+          {renderHtmlTextures && (
+            <InspectorCheckbox
+              label="Render only leafs"
+              checked={renderOnlyHtmlLeafs}
+              onChange={setRenderOnlyHtmlLeafs}
+            />
+          )}
+          <span className="web-view-inspector-count">HTML nodes: {visibleBoxCount}</span>
+          <button
+            type="button"
+            className="btn btn-sm btn-light"
+            title="Refresh"
+            aria-label="Refresh"
+            onClick={() => {
+              updateHtml();
+              setReloadCounter((current) => current + 1);
+            }}
+          >
+            <SyncIcon />
+          </button>
+        </div>
+      </Html>
+      {/* Backdrop that marks the extent of the visualized viewport */}
+      <mesh position={[viewportWidth / 2, -viewportHeight / 2, -pixelScale * 2]}>
+        <boxGeometry args={[viewportWidth, viewportHeight, pixelScale * 2]} />
+        <meshBasicMaterial color="white" />
+      </mesh>
+      <group ref={boxesGroupRef}>
+        {boxes.map((box) => (
+          <HtmlDomBox
+            key={box.id}
+            visible={isBoxVisible(box)}
+            levelDistance={levelDistance}
+            stackDistance={stackDistance}
+            pixelScale={pixelScale}
+            box={box}
+            color={useHashedColors ? hashElementToColor(box.htmlNode) : COLORS_GRAD[box.level % COLORS_GRAD.length]}
+            setClickedNode={setClickedNode}
+          />
+        ))}
+      </group>
     </group>
   );
 }
 
-const NODE_SCALAR = 0.14;
+function InspectorCheckbox({
+  label,
+  checked,
+  onChange,
+}: {
+  label: string;
+  checked: boolean;
+  onChange: (checked: boolean) => void;
+}) {
+  return (
+    <label className="form-check-label web-view-inspector-checkbox">
+      <input
+        type="checkbox"
+        className="form-check-input"
+        checked={checked}
+        onChange={(event) => onChange(event.target.checked)}
+      />
+      {label}
+    </label>
+  );
+}
+
 const COLORS_GRAD = [
   '#4B0082',
   '#800080',
@@ -396,10 +489,10 @@ const COLORS_GRAD = [
   '#FFFFFF',
 ];
 
-function getOffset(rect: DOMRect, firstOffset: NodeOffset) {
+function getOffset(rect: DOMRect, firstOffset: NodeOffset, pixelScale: number) {
   return {
-    x: rect.right * NODE_SCALAR - (rect.width * NODE_SCALAR) / 2 - firstOffset.x,
-    y: -rect.bottom * NODE_SCALAR + (rect.height * NODE_SCALAR) / 2 + firstOffset.y,
+    x: (rect.left + rect.width / 2) * pixelScale - firstOffset.x,
+    y: -(rect.top + rect.height / 2) * pixelScale + firstOffset.y,
   };
 }
 
@@ -417,51 +510,41 @@ function clamp(num: number, min: number, max: number) {
   return Math.min(Math.max(num, min), max);
 }
 
-function getClampedRect(rect: any, width = 1920, height = 1080) {
+function getClampedRect(rect: DOMRect, width: number, height: number) {
   const clampedLeft = clamp(rect.left, 0, width);
   const clampedRight = clamp(rect.right, 0, width);
-  const clampedWidth = Math.max(0, clampedRight - clampedLeft);
   const clampedTop = clamp(rect.top, 0, height);
   const clampedBottom = clamp(rect.bottom, 0, height);
-  const clampedHeight = Math.max(0, clampedBottom - clampedTop);
 
-  return new DOMRect(clampedLeft, clampedTop, clampedWidth, clampedHeight);
+  return new DOMRect(
+    clampedLeft,
+    clampedTop,
+    Math.max(0, clampedRight - clampedLeft),
+    Math.max(0, clampedBottom - clampedTop)
+  );
 }
 
 function getTextureForRect(rect: DOMRect, img: HTMLImageElement) {
+  if (rect.width < 1 || rect.height < 1) return null;
+
   const canvas = document.createElement('canvas');
   const ctx = canvas.getContext('2d');
+  if (!ctx) return null;
 
-  // Define the size of the upper-left portion you want to use
-  const textureWidth = rect.width; // Example width
-  const textureHeight = rect.height; // Example height
+  canvas.width = rect.width;
+  canvas.height = rect.height;
+  // Copy the part of the page screenshot that is covered by the element
+  ctx.drawImage(img, rect.left, rect.top, rect.width, rect.height, 0, 0, rect.width, rect.height);
 
-  canvas.width = textureWidth;
-  canvas.height = textureHeight;
-
-  // Draw the upper-left portion of the image onto the canvas
-  if (ctx) {
-    ctx.drawImage(
-      img,
-      rect.left, // Source X (start at the left edge of the image)
-      rect.top, // Source Y (start at the top edge of the image)
-      rect.width, // Source width (how much to take from the image)
-      rect.height, // Source height (how much to take from the image)
-      0, // Destination X (top-left corner of the canvas)
-      0, // Destination Y (top-left corner of the canvas)
-      rect.width, // Destination width (width of the canvas)
-      rect.height // Destination height (height of the canvas)
-    );
-    return new THREE.CanvasTexture(canvas);
-  } else {
-    return null;
-  }
+  const texture = new THREE.CanvasTexture(canvas);
+  texture.colorSpace = THREE.SRGBColorSpace;
+  return texture;
 }
 
 function hashElementToColor(element: Element) {
-  const tagHash = stringToHash(element.tagName.toLowerCase() || '');
-  const classHash = stringToHash(element.className || '');
-  const innerHash = stringToHash(element.innerText || '');
+  const tagHash = stringToHash(element.tagName.toLowerCase());
+  const classHash = stringToHash(typeof element.className === 'string' ? element.className : '');
+  const innerHash = stringToHash(element.textContent ?? '');
 
   // Convert hash to HSL color
   const hue = tagHash % 360;
@@ -473,17 +556,17 @@ function hashElementToColor(element: Element) {
 
 export type BoxData = {
   id: string;
-  position: [number, number, number];
-  size: [number, number, number];
-  htmlNode: HTMLElement | Element;
+  /** Center of the box (x, y) relative to the top-left corner of the viewport. */
+  position: [number, number];
+  /** Width and height of the box. */
+  size: [number, number];
+  htmlNode: Element;
   isSubtreeRoot: boolean;
   level: number;
-  renderHtml: boolean;
-  htmlString: string;
-  innerText: string;
+  /** Position within the stack of overlapping boxes of the same level (0 = backmost). */
+  stackIndex: number;
   htmlWithText: string;
-  children: any[];
-  texture: any;
+  texture: THREE.CanvasTexture | null;
 };
 
 type NodeOffset = {
