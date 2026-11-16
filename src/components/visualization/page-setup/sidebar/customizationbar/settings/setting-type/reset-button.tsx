@@ -1,15 +1,23 @@
 import { SyncIcon } from '@primer/octicons-react';
 
-export default function ResetButton({ onClick, args }: { onClick: (args: any) => void; args?: unknown | undefined }) {
+export default function ResetButton({
+  onClick,
+  args,
+  label = 'Reset to default',
+}: {
+  onClick: (args: any) => void;
+  args?: unknown | undefined;
+  label?: string;
+}) {
   return (
     <button
       type="button"
-      className="btn btn-small btn-light setting-reset-button"
-      title="Reset to default"
-      aria-label="Reset to default"
+      className="setting-icon-button"
+      title={label}
+      aria-label={label}
       onClick={() => onClick(args)}
     >
-      <SyncIcon verticalAlign="middle" size="small" fill="#777" />
+      <SyncIcon size={14} />
     </button>
   );
 }

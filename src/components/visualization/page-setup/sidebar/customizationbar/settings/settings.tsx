@@ -306,21 +306,18 @@ export default function Settings({ enterFullscreen, setGamepadSupport }: Setting
     }
     const sectionId = `settings-group-${groupId.toLowerCase().replace(/\s+/g, '-')}`;
     return (
-      <React.Fragment key={groupId}>
-        <div id={sectionId} style={{ display: 'flex', justifyContent: 'space-between' }}>
-          <h6 className="mt-3">
-            <strong>{groupId}</strong>
+      <section key={groupId} id={sectionId} className="settings-group" aria-labelledby={`${sectionId}-title`}>
+        <header className="settings-group-header">
+          <h6 className="settings-group-title" id={`${sectionId}-title`}>
+            {groupId}
           </h6>
-          <ResetButton onClick={resetGroup} args={groupId} />
-        </div>
+          <ResetButton onClick={resetGroup} args={groupId} label={`Reset ${groupId} to defaults`} />
+        </header>
 
-        {groupId === 'Colors' && (
-          <div id="colorHeader" className="mb-2">
+        <div className="settings-list">
+          {groupId === 'Colors' && (
             <ColorSchemeSelector colorSchemes={colorSchemes} applyColorScheme={applyColorScheme} />
-          </div>
-        )}
-
-        <div className="ml-3">
+          )}
           {settingIdArray.map((settingId) => {
             const setting = visualizationSettings[settingId];
             if (isFlagSetting(setting)) {
@@ -346,7 +343,7 @@ export default function Settings({ enterFullscreen, setGamepadSupport }: Setting
             return null;
           })}
         </div>
-      </React.Fragment>
+      </section>
     );
   });
 
@@ -357,28 +354,19 @@ export default function Settings({ enterFullscreen, setGamepadSupport }: Setting
 
   return (
     <>
-      {/* Navigation Links */}
       {availableGroups.length > 1 && (
-        <div ref={stickyNavRef} className="mb-3 quick-navigation-container">
-          <h6 className="mb-2">
-            <strong>Quick Navigation</strong>
-          </h6>
-          <div className="d-flex flex-wrap gap-1">
-            {availableGroups.map((groupId) => (
-              <button
-                key={groupId}
-                type="button"
-                className="btn btn-outline-secondary btn-sm quick-navigation-button"
-                onClick={() => scrollToSection(groupId)}
-              >
-                {groupId}
-              </button>
-            ))}
-          </div>
-        </div>
+        <nav ref={stickyNavRef} className="settings-nav" aria-label="Quick navigation">
+          {availableGroups.map((groupId) => (
+            <button key={groupId} type="button" className="settings-nav-chip" onClick={() => scrollToSection(groupId)}>
+              {groupId}
+            </button>
+          ))}
+        </nav>
       )}
-      <SettingPresets />
-      {groupedSettings}
+      <div className="settings">
+        <SettingPresets />
+        {groupedSettings}
+      </div>
     </>
   );
 }

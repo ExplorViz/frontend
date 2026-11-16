@@ -1,28 +1,515 @@
-.range-slider--container {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
+// The Settings tab of the right sidebar, styled like the Collaboration section
+
+:root {
+  --settings-surface: var(--bs-body-bg, #fff);
+  --settings-subtle: var(--bs-tertiary-bg, #f8f9fa);
+  --settings-border: var(--bs-border-color-translucent, rgba(0, 0, 0, 0.1));
+  --settings-text: var(--bs-body-color, #212529);
+  --settings-muted: var(--bs-secondary-color, #6c757d);
+  --settings-accent: var(--bs-primary, #0d6efd);
+  --settings-danger: var(--bs-danger, #dc3545);
+  --settings-track: var(--bs-secondary-bg, #dee2e6);
+  --settings-hover: rgba(0, 0, 0, 0.05);
 }
 
-.quick-navigation-container {
+.settings {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  color: var(--settings-text);
+  font-size: 0.875rem;
+}
+
+// Quick navigation: chips that stay on top while the settings scroll
+
+.settings-nav {
   position: sticky;
   // Stick at the scroll area's edge rather than below the card body padding,
   // so no scrolled content shows above it
   top: calc(-1 * var(--bs-card-spacer-y));
   z-index: 10;
-  background-color: var(--bs-body-bg, #fff);
-  padding-top: 0.5rem;
-  padding-bottom: 0.5rem;
-  border-bottom: 1px solid var(--bs-border-color, #dee2e6);
-  margin-bottom: 1rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+  margin: 0 0 1rem;
+  padding: 0.5rem 0;
+  border-bottom: 1px solid var(--settings-border);
+  background-color: var(--settings-surface);
 }
 
-.quick-navigation-button {
-  min-height: var(--ev-button-min-height);
-  border-radius: var(--ev-radius-md);
-  font-size: 0.875rem;
-  padding: 0.375rem 0.625rem;
+.settings-nav-chip {
+  height: 1.625rem;
+  padding: 0 0.625rem;
+  border: 1px solid var(--settings-border);
+  border-radius: 999px;
+  background: var(--settings-surface);
+  color: var(--settings-muted);
+  font-size: 0.75rem;
   font-weight: 500;
+  white-space: nowrap;
+  transition:
+    background-color var(--ev-transition-fast),
+    border-color var(--ev-transition-fast),
+    color var(--ev-transition-fast);
+
+  &:hover {
+    border-color: var(--settings-accent);
+    background: rgba(13, 110, 253, 0.06);
+    color: var(--settings-accent);
+  }
+
+  &:focus-visible {
+    outline: var(--ev-focus-outline);
+    outline-offset: 1px;
+  }
+}
+
+// Groups: one card each, headed by a tinted band with the title and its reset
+
+.settings-group {
+  overflow: hidden;
+  border: 1px solid var(--settings-border);
+  border-radius: var(--ev-radius-lg);
+  background: var(--settings-surface);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+  // Keeps the title clear of the sticky navigation when jumped to
+  scroll-margin-top: 1rem;
+}
+
+.settings-group-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 2.5rem;
+  padding: 0.25rem 0.375rem 0.25rem 0.75rem;
+  border-bottom: 1px solid var(--settings-border);
+  background: var(--settings-subtle);
+
+  // An accent bar marks where a group starts
+  &::before {
+    content: '';
+    flex: none;
+    width: 3px;
+    height: 1rem;
+    margin-right: 0.5rem;
+    border-radius: 999px;
+    background: var(--settings-accent);
+  }
+}
+
+.settings-group-title {
+  flex: 1 1 auto;
+  margin: 0;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--settings-text);
+}
+
+.setting-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  min-height: 2.75rem;
+  padding: 0.375rem 0.75rem;
+
+  & + & {
+    border-top: 1px solid var(--settings-border);
+  }
+
+  &.stacked {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.25rem;
+    padding-top: 0.5rem;
+    padding-bottom: 0.5rem;
+  }
+}
+
+.setting-row-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.setting-label {
+  display: flex;
+  flex: 1 1 auto;
+  align-items: center;
+  min-width: 0;
+  line-height: 1.3;
+
+  label {
+    margin: 0;
+  }
+
+  // The info icon of HelpTooltip
+  .inline {
+    display: inline-flex;
+    flex: none;
+    margin: 0 0 0 0.25rem !important;
+    opacity: 0.6;
+    cursor: help;
+    transition: opacity var(--ev-transition-fast);
+
+    &:hover {
+      opacity: 1;
+    }
+  }
+}
+
+.setting-control {
+  display: flex;
+  flex: none;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+// Controls
+
+.setting-icon-button {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  width: 1.75rem;
+  height: 1.75rem;
+  padding: 0;
+  border: 0;
+  border-radius: var(--ev-radius-md);
+  background: transparent;
+  color: var(--settings-muted);
+  transition:
+    background-color var(--ev-transition-fast),
+    color var(--ev-transition-fast),
+    opacity var(--ev-transition-fast);
+
+  &:hover:not(:disabled) {
+    background: var(--settings-hover);
+    color: var(--settings-text);
+  }
+
+  &.danger:hover:not(:disabled) {
+    background: rgba(220, 53, 69, 0.1);
+    color: var(--settings-danger);
+  }
+
+  &:disabled {
+    opacity: 0.4;
+    cursor: default;
+  }
+
+  &:focus-visible {
+    outline: var(--ev-focus-outline);
+    outline-offset: 1px;
+  }
+}
+
+.setting-input,
+.setting-select,
+.setting-number {
+  height: 1.875rem;
+  min-width: 0;
+  border: 1px solid var(--settings-border);
+  border-radius: var(--ev-radius-md);
+  background-color: var(--settings-subtle);
+  color: var(--settings-text);
+  font-size: 0.8125rem;
+  transition:
+    border-color var(--ev-transition-fast),
+    box-shadow var(--ev-transition-fast),
+    background-color var(--ev-transition-fast);
+
+  &:focus {
+    outline: none;
+    border-color: var(--settings-accent);
+    background-color: var(--settings-surface);
+    box-shadow: 0 0 0 3px rgba(13, 110, 253, 0.15);
+  }
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+
+  &.grow {
+    flex: 1 1 auto;
+  }
+}
+
+.setting-input {
+  padding: 0 0.625rem;
+
+  &::placeholder {
+    color: var(--settings-muted);
+  }
+}
+
+.setting-select {
+  max-width: 11rem;
+  padding: 0 1.75rem 0 0.625rem;
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%236c757d' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='m4 6 4 4 4-4'/%3e%3c/svg%3e");
+  background-repeat: no-repeat;
+  background-position: right 0.5rem center;
+  background-size: 12px;
+  text-overflow: ellipsis;
+  appearance: none;
+  cursor: pointer;
+
+  &.grow {
+    max-width: none;
+  }
+}
+
+.setting-number {
+  width: 4.5rem;
+  padding: 0 0.375rem;
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+
+.setting-action {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  gap: 0.25rem;
+  height: 1.875rem;
+  padding: 0 0.75rem;
+  border: 1px solid var(--settings-border);
+  border-radius: var(--ev-radius-md);
+  background: var(--settings-surface);
+  color: var(--settings-text);
+  font-size: 0.8125rem;
+  font-weight: 500;
+  white-space: nowrap;
+  transition:
+    background-color var(--ev-transition-fast),
+    border-color var(--ev-transition-fast),
+    filter var(--ev-transition-fast),
+    opacity var(--ev-transition-fast);
+
+  &:hover:not(:disabled) {
+    background: var(--settings-subtle);
+  }
+
+  &.primary {
+    border-color: transparent;
+    background: var(--settings-accent);
+    color: #fff;
+
+    &:hover:not(:disabled) {
+      background: var(--settings-accent);
+      filter: brightness(0.93);
+    }
+  }
+
+  &.danger {
+    border-color: rgba(220, 53, 69, 0.35);
+    color: var(--settings-danger);
+
+    &:hover:not(:disabled) {
+      background: rgba(220, 53, 69, 0.08);
+    }
+  }
+
+  &:disabled {
+    opacity: 0.45;
+    cursor: default;
+  }
+
+  &:focus-visible {
+    outline: var(--ev-focus-outline);
+    outline-offset: 2px;
+  }
+}
+
+.setting-swatch {
+  position: relative;
+  width: 1.75rem;
+  height: 1.75rem;
+  padding: 0;
+  overflow: hidden;
+  border: 1px solid var(--settings-border);
+  border-radius: var(--ev-radius-md);
+  background-color: var(--settings-surface);
+  box-shadow: inset 0 0 0 2px var(--settings-surface);
+  cursor: pointer;
+  transition: box-shadow var(--ev-transition-fast);
+
+  &:hover {
+    box-shadow:
+      inset 0 0 0 2px var(--settings-surface),
+      0 0 0 2px rgba(13, 110, 253, 0.25);
+  }
+
+  &:focus-visible {
+    outline: var(--ev-focus-outline);
+    outline-offset: 2px;
+  }
+
+  // No color chosen: a red diagonal
+  &.crossed::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 140%;
+    height: 2px;
+    background: var(--settings-danger);
+    transform: translate(-50%, -50%) rotate(-45deg);
+  }
+}
+
+// Range: slider with a filled track, bounds below
+
+.setting-range {
+  width: 100%;
+  height: 1.25rem;
+  margin: 0;
+  background: transparent;
+  appearance: none;
+  cursor: pointer;
+
+  &::-webkit-slider-runnable-track {
+    height: 0.25rem;
+    border-radius: 999px;
+    background: linear-gradient(
+      to right,
+      var(--settings-accent) var(--fill, 0%),
+      var(--settings-track) var(--fill, 0%)
+    );
+  }
+
+  &::-moz-range-track {
+    height: 0.25rem;
+    border-radius: 999px;
+    background: var(--settings-track);
+  }
+
+  &::-moz-range-progress {
+    height: 0.25rem;
+    border-radius: 999px;
+    background: var(--settings-accent);
+  }
+
+  &::-webkit-slider-thumb {
+    width: 0.875rem;
+    height: 0.875rem;
+    margin-top: -0.3125rem;
+    border: 2px solid var(--settings-accent);
+    border-radius: 50%;
+    background: var(--settings-surface);
+    appearance: none;
+    transition: transform var(--ev-transition-fast);
+  }
+
+  &::-moz-range-thumb {
+    width: 0.625rem;
+    height: 0.625rem;
+    border: 2px solid var(--settings-accent);
+    border-radius: 50%;
+    background: var(--settings-surface);
+  }
+
+  &:hover::-webkit-slider-thumb {
+    transform: scale(1.15);
+  }
+
+  &:focus-visible {
+    outline: none;
+
+    &::-webkit-slider-thumb {
+      box-shadow: 0 0 0 3px rgba(13, 110, 253, 0.25);
+    }
+
+    &::-moz-range-thumb {
+      box-shadow: 0 0 0 3px rgba(13, 110, 253, 0.25);
+    }
+  }
+}
+
+.setting-range-bounds {
+  display: flex;
+  justify-content: space-between;
+  margin-top: -0.125rem;
+  color: var(--settings-muted);
+  font-size: 0.6875rem;
+  font-variant-numeric: tabular-nums;
+}
+
+// Presets
+
+.preset-row {
+  justify-content: flex-start;
+  gap: 0.375rem;
+}
+
+// Switch for on/off values (also used outside the settings)
+
+.wide-checkbox-container {
+  position: relative;
+  display: inline-flex;
+  flex: none;
+  margin: 0;
+  cursor: pointer;
+  user-select: none;
+
+  input {
+    position: absolute;
+    width: 0;
+    height: 0;
+    opacity: 0;
+  }
+}
+
+.wide-checkbox {
+  position: relative;
+  display: block;
+  width: 2.125rem;
+  height: 1.25rem;
+  border-radius: 999px;
+  background-color: var(--settings-track);
+  transition: background-color var(--ev-transition-fast);
+
+  &::after {
+    content: '';
+    position: absolute;
+    top: 0.125rem;
+    left: 0.125rem;
+    width: 1rem;
+    height: 1rem;
+    border-radius: 50%;
+    background: #fff;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.25);
+    transition: transform var(--ev-transition-fast);
+  }
+}
+
+.wide-checkbox-container:hover .wide-checkbox {
+  filter: brightness(0.96);
+}
+
+.wide-checkbox-container input:checked ~ .wide-checkbox {
+  background-color: var(--settings-accent);
+
+  &::after {
+    transform: translateX(0.875rem);
+  }
+}
+
+.wide-checkbox-container input:focus-visible ~ .wide-checkbox {
+  outline: var(--ev-focus-outline);
+  outline-offset: 2px;
+}
+
+// Sliders of the trace replayer in the left sidebar
+
+.range-slider--container {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
 }
 
 .range-slider--values {
@@ -31,112 +518,10 @@
   font-size: 0.75rem;
 }
 
-.reset-all-button {
-  margin-top: 1rem;
-}
-
-/* Customize the label (the wide-checkbox-container) */
-.wide-checkbox-container {
-  display: block;
-  position: relative;
-  cursor: pointer;
-  line-height: 1.25;
-  -webkit-user-select: none;
-  -moz-user-select: none;
-  -ms-user-select: none;
-  user-select: none;
-}
-
-/* Hide the browser's default checkbox */
-.wide-checkbox-container input {
-  position: absolute;
-  opacity: 0;
-  cursor: pointer;
-  height: 0;
-  width: 0;
-}
-
-/* Create a custom checkbox */
-.wide-checkbox {
-  position: absolute;
-  border-radius: 0.25rem;
-  right: 0.5rem;
-  height: 1.25rem;
-  width: 3rem;
-  background-color: var(--bs-secondary-bg, #d9dde2);
-}
-
-.setting-container:hover {
-  background-color: var(--bs-tertiary-bg, #f1f3f5);
-}
-
-.setting-button {
-  min-height: 2rem !important;
-  border-radius: var(--ev-radius-md) !important;
-  padding: 0.25rem 0.5rem !important;
-  line-height: 0.5rem !important;
-  font-size: 0.875rem !important;
-  font-weight: 500 !important;
-}
-
-.setting-reset-button {
-  min-height: 2rem !important;
-  min-width: 2rem !important;
-  border-radius: var(--ev-radius-md) !important;
-  margin-top: auto;
-  margin-bottom: auto;
-  padding: 0 0.375rem !important;
-  line-height: 1 !important;
-}
-
-/* On mouse-over, add a grey background color */
-.wide-checkbox-container:hover input ~ .wide-checkbox {
-  background-color: var(--bs-secondary-bg, #cfd4da);
-}
-
-/* When the checkbox is checked, add a blue background */
-.wide-checkbox-container input:checked ~ .wide-checkbox {
-  background-color: var(--bs-primary, #22497c);
-}
-
-.wide-checkbox-container:hover input:checked ~ .wide-checkbox {
-  background-color: var(--bs-primary-text-emphasis, #1b3b66);
-}
-
-.wide-checkbox:before {
-  content: 'Off';
-  display: block;
-  color: var(--bs-emphasis-color, #212529);
-  text-align: center;
-  font-size: 0.875rem;
-}
-
-.wide-checkbox-container input:checked ~ .wide-checkbox:before {
-  display: none;
-}
-
-/* Create the wide-checkbox/indicator (hidden when not checked) */
-.wide-checkbox:after {
-  content: 'On';
-  display: none;
-  color: var(--bs-light, #f8f9fa);
-  text-align: center;
-  font-size: 0.875rem;
-}
-
-/* Show the wide-checkbox when checked */
-.wide-checkbox-container input:checked ~ .wide-checkbox:after {
-  display: block;
-}
-
-/* Preset controls */
-.preset-controls-row {
-  display: flex;
-  gap: 0.5rem;
-  align-items: center;
-  margin-bottom: 0.5rem;
-}
-
-.preset-control-input {
-  width: 200px;
+@media (prefers-reduced-motion: reduce) {
+  .wide-checkbox,
+  .wide-checkbox::after,
+  .setting-range::-webkit-slider-thumb {
+    transition: none;
+  }
 }

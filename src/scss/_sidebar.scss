@@ -1,12 +1,3 @@
-#colorHeader {
-  display: flex;
-  justify-content: flex-end;
-}
-
-#colorTitle {
-  padding-top: 6px;
-}
-
 #colorPresets {
   display: flex;
   justify-content: flex-end;
@@ -29,24 +20,6 @@
 .red-hover:hover {
   color: var(--bs-danger, #dc3545) !important;
   text-decoration: none;
-}
-
-.colorpicker-input {
-  padding: 6px 0 6px 0;
-
-  &-addon {
-    border-radius: 0 !important;
-    cursor: pointer;
-    background-color: var(--colorpicker-color) !important;
-  }
-}
-
-.colorpicker-label {
-  padding: 5px 0 0 0;
-}
-
-.colorpicker-wrapper {
-  position: relative;
 }
 
 .colorpicker-popup {

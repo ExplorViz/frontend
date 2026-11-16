@@ -1,5 +1,5 @@
-import HelpTooltip from 'explorviz-frontend/src/components/help-tooltip.tsx';
 import ResetButton from 'explorviz-frontend/src/components/visualization/page-setup/sidebar/customizationbar/settings/setting-type/reset-button.tsx';
+import SettingLabel from 'explorviz-frontend/src/components/visualization/page-setup/sidebar/customizationbar/settings/setting-type/setting-label';
 import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
 import { defaultVizSettings } from 'explorviz-frontend/src/utils/settings/default-settings';
 import {
@@ -15,49 +15,48 @@ export default function RangeSetting({
   settingId: VisualizationSettingId;
 }) {
   const setting = useUserSettingsStore.getState().visualizationSettings[settingId]! as RangeSettingSchema;
+  const defaultValue = defaultVizSettings[settingId].value;
+  const { min, max, step } = setting.range;
+  const fill = max > min ? ((setting.value - min) / (max - min)) * 100 : 0;
 
   const handleInput = (newValue: number) => {
     onChange(settingId, newValue);
   };
 
   return (
-    <div className="setting-container">
-      <HelpTooltip title={setting.description} />
-      <label className="m-0" htmlFor={setting.displayName}>
-        {setting.displayName}
-      </label>
-      <div className="range-slider--container">
-        <div style={{ width: '100%' }}>
+    <div className="setting-row stacked">
+      <div className="setting-row-head">
+        <SettingLabel name={setting.displayName} description={setting.description} htmlFor={setting.displayName} />
+        <div className="setting-control">
+          {typeof defaultValue === 'number' && setting.value !== defaultValue && (
+            <ResetButton onClick={() => handleInput(defaultValue)} />
+          )}
           <input
-            id={setting.displayName}
-            value={setting.value.toFixed(2)}
-            min={setting.range.min}
-            max={setting.range.max}
-            type="range"
-            step={setting.range.step}
-            className="form-control mr-2"
-            style={{ height: '1rem' }}
+            className="setting-number"
+            type="number"
+            aria-label={`${setting.displayName} value`}
+            min={min}
+            max={max}
+            step={step}
+            value={Number(setting.value.toFixed(2))}
             onChange={(event) => handleInput(Number(event.target.value))}
           />
-          <div className="range-slider--values">
-            <span>{setting.range.min.toFixed(2)}</span>
-            <input
-              style={{ fontWeight: 'bold', textAlign: 'center', width: '5rem' }}
-              type="number"
-              value={Number(setting.value.toFixed(2))}
-              onChange={(event) => handleInput(Number(event.target.value))}
-            />
-            <span>{setting.range.max.toFixed(2)}</span>
-          </div>
         </div>
-        <ResetButton
-          onClick={() => {
-            const defaultValue = defaultVizSettings[settingId].value;
-            if (typeof defaultValue === 'number') {
-              handleInput(defaultValue);
-            }
-          }}
-        />
+      </div>
+      <input
+        id={setting.displayName}
+        className="setting-range"
+        type="range"
+        min={min}
+        max={max}
+        step={step}
+        value={setting.value.toFixed(2)}
+        style={{ ['--fill' as string]: `${Math.min(100, Math.max(0, fill))}%` }}
+        onChange={(event) => handleInput(Number(event.target.value))}
+      />
+      <div className="setting-range-bounds" aria-hidden>
+        <span>{min.toFixed(2)}</span>
+        <span>{max.toFixed(2)}</span>
       </div>
     </div>
   );

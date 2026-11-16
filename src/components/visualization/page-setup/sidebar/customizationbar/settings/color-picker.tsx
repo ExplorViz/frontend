@@ -43,7 +43,7 @@ export default function ColorPicker({ label, value, initialValue, onChange }: Co
   const [popupPosition, setPopupPosition] = useState<PopupPosition | null>(null);
 
   const colorPickerRef = useRef<HTMLDivElement>(null);
-  const triggerRef = useRef<HTMLSpanElement>(null);
+  const triggerRef = useRef<HTMLButtonElement>(null);
   const popupRef = useRef<HTMLDivElement>(null);
 
   useLayoutEffect(() => {
@@ -132,41 +132,22 @@ export default function ColorPicker({ label, value, initialValue, onChange }: Co
 
   return (
     <>
-      <div className="setting-container input-group justify-content-between" ref={colorPickerRef}>
-        <span className="colorpicker-label">{label}</span>
-        <div className="d-flex align-items-center gap-2">
-          <span className="input-group-append colorpicker-input">
-            <div className="colorpicker-wrapper">
-              <span
-                ref={triggerRef}
-                className={`input-group-text colorpicker-input-addon overflow-hidden ${isNoColorSelected ? 'crossed' : ''}`}
-                onClick={() => setDisplayColorPicker(!displayColorPicker)}
-                style={{
-                  ['--colorpicker-color' as string]: colorObject.getStyle(),
-                }}
-              >
-                <i></i>
-              </span>
-
-              {/* Show red diagonal across box if no value is selected */}
-              <style>
-                {`
-                  .crossed::after {
-                    content: "";
-                    position: absolute;
-                    left: 50%;
-                    top: 50%;
-                    width: 100%;
-                    height: 2px;
-                    background: red;
-                    transform: translate(-50%, -50%) rotate(-45deg);
-                    overflow: hidden;
-                  }
-                `}
-              </style>
-            </div>
-          </span>
+      <div className="setting-row" ref={colorPickerRef}>
+        <div className="setting-label">
+          <span>{label}</span>
+        </div>
+        <div className="setting-control">
           {initialValue !== undefined && <ResetButton onClick={handleResetClick} />}
+          <button
+            ref={triggerRef}
+            type="button"
+            className={`setting-swatch${isNoColorSelected ? ' crossed' : ''}`}
+            title={`Pick ${label} color`}
+            aria-label={`Pick ${label} color`}
+            aria-expanded={displayColorPicker}
+            style={{ backgroundColor: isNoColorSelected ? undefined : colorObject.getStyle() }}
+            onClick={() => setDisplayColorPicker(!displayColorPicker)}
+          />
         </div>
       </div>
       {popup}

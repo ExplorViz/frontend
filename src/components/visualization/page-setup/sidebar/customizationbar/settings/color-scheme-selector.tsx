@@ -1,55 +1,29 @@
-import React, { useState, useRef, useEffect } from 'react';
 import { ColorSchemeId } from 'explorviz-frontend/src/utils/settings/color-schemes';
+import SettingLabel from './setting-type/setting-label';
 
+/** Applies one of the predefined color schemes; it has no current value, so it always shows its prompt. */
 export default function ColorSchemeSelector({ colorSchemes, applyColorScheme }: ColorSchemeProps) {
-  const [isOpen, setIsOpen] = useState(false);
-  const dropdownRef: React.MutableRefObject<any> = useRef(null);
-
-  const toggleDropdown = () => {
-    setIsOpen(!isOpen);
-  };
-
-  const handleApplyColorScheme = (colorSchemeId: string) => {
-    applyColorScheme(colorSchemeId);
-    setIsOpen(false); // Close the dropdown after selection
-  };
-
-  // Close dropdown on outside click
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
-        setIsOpen(false);
-      }
-    };
-
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
-  }, [dropdownRef]);
-
   return (
-    <div id="colorPresets" className="dropdown" ref={dropdownRef}>
-      <button
-        className="btn btn-outline-dark dropdown-toggle autoMargin"
-        type="button"
-        onClick={toggleDropdown}
-        aria-haspopup="true"
-        aria-expanded={isOpen}
-      >
-        Color Presets
-      </button>
-
-      <div className={`dropdown-menu dropdown-menu-right ${isOpen ? 'show' : ''}`} aria-labelledby="dropdownMenuButton">
-        {colorSchemes.map((colorScheme) => (
-          <div
-            key={colorScheme.id}
-            className="dropdown-item pointer-cursor"
-            onClick={() => handleApplyColorScheme(colorScheme.id)}
-          >
-            {colorScheme.name}
-          </div>
-        ))}
+    <div className="setting-row">
+      <SettingLabel name="Color Presets" htmlFor="setting-color-presets" />
+      <div className="setting-control">
+        <select
+          id="setting-color-presets"
+          className="setting-select"
+          value=""
+          onChange={(event) => {
+            if (event.target.value) applyColorScheme(event.target.value as ColorSchemeId);
+          }}
+        >
+          <option value="" disabled>
+            Apply…
+          </option>
+          {colorSchemes.map((colorScheme) => (
+            <option key={colorScheme.id} value={colorScheme.id}>
+              {colorScheme.name}
+            </option>
+          ))}
+        </select>
       </div>
     </div>
   );

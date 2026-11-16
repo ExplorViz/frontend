@@ -1,16 +1,13 @@
-import HelpTooltip from 'explorviz-frontend/src/components/help-tooltip.tsx';
+import SettingLabel from 'explorviz-frontend/src/components/visualization/page-setup/sidebar/customizationbar/settings/setting-type/setting-label';
 
 export default function ButtonSetting({ setting, onClick, settingId }: any) {
   return (
-    <div className="setting-container d-flex justify-content-between">
-      <div>
-        <HelpTooltip title={setting.description} />
-        {setting.displayName}
-      </div>
-      <div className="d-flex align-self-center">
+    <div className="setting-row">
+      <SettingLabel name={setting.displayName} description={setting.description} />
+      <div className="setting-control">
         <button
           type="button"
-          className={`btn btn-${setting.type} setting-button`}
+          className={`setting-action ${setting.type}`}
           title={setting.description}
           onClick={() => onClick(settingId)}
         >

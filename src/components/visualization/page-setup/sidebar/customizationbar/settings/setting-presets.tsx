@@ -1,5 +1,7 @@
 import { useEffect, useState } from 'react';
 
+import { PlusIcon, TrashIcon, UploadIcon } from '@primer/octicons-react';
+
 import { useToastHandlerStore } from 'explorviz-frontend/src/stores/toast-handler';
 import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
 import { useShallow } from 'zustand/react/shallow';
@@ -136,72 +138,93 @@ export default function SettingPresets() {
   };
 
   return (
-    <div key="preset-controls" className="mb-3">
-      <h6 className="mt-1">
-        <strong>Presets</strong>
-      </h6>
+    <section className="settings-group" aria-labelledby="settings-group-presets-title">
+      <header className="settings-group-header">
+        <h6 className="settings-group-title" id="settings-group-presets-title">
+          Presets
+        </h6>
+      </header>
+      <div className="settings-list">
+        <div className="setting-row preset-row">
+          <select
+            className="setting-select grow"
+            aria-label="Preset"
+            value={selectedPreset || ''}
+            onChange={(e) => {
+              handlePresetSelection(e.target.value || null);
+            }}
+          >
+            <option value="">— Select preset —</option>
+            {Object.keys(presets || {}).map((p) => (
+              <option key={p} value={p}>
+                {p}
+              </option>
+            ))}
+          </select>
+          <button
+            type="button"
+            className="setting-icon-button"
+            onClick={handleSavePreset}
+            title="Save current settings into selected preset (or into name field)"
+            aria-label="Update preset"
+          >
+            <UploadIcon size={14} />
+          </button>
+          <button
+            type="button"
+            className="setting-icon-button danger"
+            onClick={handleDeletePreset}
+            title="Delete selected preset"
+            aria-label="Delete preset"
+            disabled={!selectedPreset}
+          >
+            <TrashIcon size={14} />
+          </button>
+        </div>
 
-      <div className="preset-controls-row">
-        <select
-          className="form-control form-control-sm preset-control-input"
-          value={selectedPreset || ''}
-          onChange={(e) => {
-            handlePresetSelection(e.target.value || null);
-          }}
-        >
-          <option value="">— Select preset —</option>
-          {Object.keys(presets || {}).map((p) => (
-            <option key={p} value={p}>
-              {p}
-            </option>
-          ))}
-        </select>
+        <div className="setting-row preset-row">
+          <input
+            className="setting-input grow"
+            aria-label="New name for the selected preset"
+            placeholder={selectedPreset ? `Rename "${selectedPreset}" to…` : 'Select preset to rename'}
+            value={renameTo}
+            disabled={!selectedPreset}
+            onChange={(e) => setRenameTo(e.target.value)}
+          />
+          <button
+            type="button"
+            className="setting-action secondary"
+            onClick={handleRenamePreset}
+            disabled={!selectedPreset || !renameTo.trim()}
+            title="Rename selected preset"
+          >
+            Rename
+          </button>
+        </div>
 
-        <button
-          className="btn btn-sm btn-warning"
-          onClick={handleSavePreset}
-          title="Save current settings into selected preset (or into name field)"
-        >
-          Update
-        </button>
-
-        <button className="btn btn-sm btn-danger" onClick={handleDeletePreset} title="Delete selected preset">
-          Delete
-        </button>
+        <div className="setting-row preset-row">
+          <input
+            className="setting-input grow"
+            aria-label="Name of the new preset"
+            placeholder="New preset name…"
+            value={newPresetName}
+            onChange={(e) => setNewPresetName(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') handleSaveAsPreset();
+            }}
+          />
+          <button
+            type="button"
+            className="setting-action primary"
+            onClick={handleSaveAsPreset}
+            disabled={!newPresetName.trim()}
+            title="Save current settings as a new preset"
+          >
+            <PlusIcon size={14} />
+            Save
+          </button>
+        </div>
       </div>
-
-      <div className="preset-controls-row">
-        <input
-          className="form-control form-control-sm preset-control-input"
-          placeholder={selectedPreset ? `Rename "${selectedPreset}" to...` : 'Select preset to rename'}
-          value={renameTo}
-          onChange={(e) => setRenameTo(e.target.value)}
-        />
-        <button
-          className="btn btn-sm btn-outline-secondary"
-          onClick={handleRenamePreset}
-          disabled={!selectedPreset}
-          title="Rename selected preset"
-        >
-          Rename
-        </button>
-      </div>
-
-      <div className="preset-controls-row">
-        <input
-          className="form-control form-control-sm preset-control-input"
-          placeholder="Preset name..."
-          value={newPresetName}
-          onChange={(e) => setNewPresetName(e.target.value)}
-        />
-        <button
-          className="btn btn-sm btn-success"
-          onClick={handleSaveAsPreset}
-          title="Save current settings as a new preset"
-        >
-          Save New Preset
-        </button>
-      </div>
-    </div>
+    </section>
   );
 }

@@ -1,12 +1,11 @@
-import HelpTooltip from 'explorviz-frontend/src/components/help-tooltip.tsx';
 import ResetButton from 'explorviz-frontend/src/components/visualization/page-setup/sidebar/customizationbar/settings/setting-type/reset-button.tsx';
+import SettingLabel from 'explorviz-frontend/src/components/visualization/page-setup/sidebar/customizationbar/settings/setting-type/setting-label';
 import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
 import { defaultVizSettings } from 'explorviz-frontend/src/utils/settings/default-settings';
 import {
   SelectSetting as SelectSettingData,
   VisualizationSettingId,
 } from 'explorviz-frontend/src/utils/settings/settings-schemas';
-import { Dropdown, DropdownButton } from 'react-bootstrap';
 
 export default function SelectSetting({
   onChange,
@@ -19,39 +18,28 @@ export default function SelectSetting({
 }) {
   const setting = useUserSettingsStore((state) => state.visualizationSettings[settingId]) as SelectSettingData<unknown>;
   const options = (defaultVizSettings[settingId] as SelectSettingData<unknown>).options;
+  const defaultValue = defaultVizSettings[settingId].value;
+  const selectId = `setting-${settingId}`;
 
   const getOptionLabel = (option: unknown) => formatOptionLabel?.(option) ?? String(option);
 
-  const handleInput = (newValue: unknown) => {
-    onChange(settingId, newValue);
-  };
-
   return (
-    <div className="setting-container mb-3">
-      <HelpTooltip title={setting.description} />
-      <label className="m-0" htmlFor={setting.displayName}>
-        {setting.displayName}
-      </label>
-      <div className="d-flex justify-content-between align-items-center">
-        <div>
-          <DropdownButton id="dropdown-basic-button" title={getOptionLabel(setting.value)} variant="primary">
-            {options.map((option) => (
-              <Dropdown.Item
-                key={option as string}
-                onClick={() => {
-                  handleInput(option);
-                }}
-              >
-                {getOptionLabel(option)}
-              </Dropdown.Item>
-            ))}
-          </DropdownButton>
-        </div>
-        <ResetButton
-          onClick={() => {
-            handleInput(defaultVizSettings[settingId].value);
-          }}
-        />
+    <div className="setting-row">
+      <SettingLabel name={setting.displayName} description={setting.description} htmlFor={selectId} />
+      <div className="setting-control">
+        {setting.value !== defaultValue && <ResetButton onClick={() => onChange(settingId, defaultValue)} />}
+        <select
+          id={selectId}
+          className="setting-select"
+          value={options.indexOf(setting.value)}
+          onChange={(event) => onChange(settingId, options[Number(event.target.value)])}
+        >
+          {options.map((option, index) => (
+            <option key={String(option)} value={index}>
+              {getOptionLabel(option)}
+            </option>
+          ))}
+        </select>
       </div>
     </div>
   );
