@@ -41,12 +41,23 @@ import ImmersiveInterface from 'explorviz-frontend/src/view-objects/3d/city/Imme
 import TraceReplayOverlayR3F from 'explorviz-frontend/src/view-objects/3d/city/trace-replay-overlay-r3f';
 import ClusterCentroidsR3F from 'explorviz-frontend/src/view-objects/3d/cluster-centroids-r3f';
 import LandscapeR3F from 'explorviz-frontend/src/view-objects/3d/landscape/landscape-r3f';
-import { type MouseEvent as ReactMouseEvent, Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import {
+  type CSSProperties,
+  type MouseEvent as ReactMouseEvent,
+  Suspense,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import * as THREE from 'three';
 import { useShallow } from 'zustand/react/shallow';
 import ContextMenuWorldPickRegister from './context-menu-world-pick-register';
 import HotkeyHandler from './hotkey-handler';
 import RemoteImmersiveIndicators from './remote-immersive-indicators';
+import HostTileProjection from './host-tile-projection';
+import ScreenWallOutline from './screen-wall-outline';
 import SpectateCameraController from './spectate-camera-controller';
 import ImmersiveCameraHandler from './immersive-view-camrea-handler';
 import MinimapView from './minimap-view';
@@ -469,7 +480,8 @@ export default function CanvasWrapper({
           powerPreference: 'high-performance',
           preserveDrawingBuffer: true,
         }}
-        style={{ background: sceneBackgroundColor }}
+        // The canvas itself carries the background too: shown fullscreen, it leaves its wrapper behind.
+        style={{ background: sceneBackgroundColor, '--scene-background': sceneBackgroundColor } as CSSProperties}
         onContextMenu={onCanvasContextMenu}
         onMouseMove={(e) => {
           if (isMagnifierActive) {
@@ -533,6 +545,8 @@ export default function CanvasWrapper({
               />
             )}
             <SpectateCameraController />
+            <HostTileProjection />
+            <ScreenWallOutline />
           </>
         )}
         <XR store={resolvedXrStore}>

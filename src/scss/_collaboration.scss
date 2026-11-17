@@ -81,6 +81,19 @@
   gap: 0.625rem;
 }
 
+.collab-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.375rem;
+  margin-bottom: 1rem;
+}
+
+.collab-header-actions {
+  display: flex;
+  gap: 0.25rem;
+}
+
 .collab-group-header {
   display: flex;
   align-items: center;
@@ -610,5 +623,124 @@
 @media (prefers-reduced-motion: reduce) {
   .collab-spin {
     animation: none;
+  }
+}
+
+// Screen Wall editor (Host only)
+
+.collab-group-actions {
+  display: flex;
+  gap: 0.125rem;
+  margin-left: auto;
+
+  label.collab-icon-button {
+    margin: 0;
+    cursor: pointer;
+  }
+}
+
+.collab-tiles {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.collab-tile {
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+  padding: 0.5rem;
+  border: 1px solid var(--collab-border);
+  border-radius: var(--ev-radius-md);
+}
+
+.collab-tile-line {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+
+  .collab-input {
+    flex: 1 1 0;
+  }
+
+  .collab-select {
+    flex: 1.4 1 0;
+  }
+}
+
+.collab-tile-number {
+  flex: none;
+  width: 1.5rem;
+  border-radius: 999px;
+  background: var(--collab-accent);
+  color: #fff;
+  font-size: 0.75rem;
+  font-weight: 600;
+  line-height: 1.5rem;
+  text-align: center;
+}
+
+.collab-tile-times,
+.collab-tile-unit {
+  flex: none;
+  color: var(--collab-muted);
+  font-size: 0.75rem;
+}
+
+.collab-tile-unit {
+  flex: 2 1 0;
+}
+
+.collab-tile-warning {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.25rem;
+  color: var(--bs-warning-text-emphasis, #997404);
+}
+
+.collab-wall-arrangement {
+  width: 100%;
+  aspect-ratio: 16 / 10;
+  border: 1px solid var(--collab-border);
+  border-radius: var(--ev-radius-md);
+  background: var(--collab-subtle);
+  touch-action: none;
+}
+
+.collab-wall-tile {
+  cursor: grab;
+
+  rect {
+    fill: var(--collab-surface);
+    stroke: var(--collab-accent);
+    stroke-width: 0.6;
+  }
+
+  text {
+    fill: var(--collab-accent);
+    font-weight: 600;
+    pointer-events: none;
+    user-select: none;
+  }
+
+  &:active {
+    cursor: grabbing;
+  }
+}
+
+.collab-screen-wall-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.375rem;
+
+  .collab-button.primary {
+    flex: 1 0 100%;
+  }
+
+  .collab-button:not(.primary) {
+    flex: 1 1 0;
   }
 }

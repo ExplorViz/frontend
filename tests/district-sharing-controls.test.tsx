@@ -30,6 +30,8 @@ it('lets the Host switch District sharing off and on again', async () => {
   await user.type(await screen.findByRole('textbox', { name: /display name/i }), 'Ada');
   await user.click(screen.getByRole('button', { name: /create room/i }));
   await screen.findByText('ROOM01');
+  expect(screen.queryByRole('checkbox', { name: /share districts/i })).not.toBeInTheDocument();
+  await user.click(screen.getByRole('button', { name: /room settings/i }));
   const room = service.rooms.get('ROOM01')!;
   const [me] = room.clients.values();
   expect(sharingSwitch()).toBeChecked();
@@ -44,7 +46,7 @@ it('lets the Host switch District sharing off and on again', async () => {
   expect(sharingSwitch()).toBeChecked();
 });
 
-it('shows the option to everyone but lets only the Host change it', async () => {
+it('shows the option to everyone in the room settings but lets only the Host change it', async () => {
   const room = service.openRoom('K7XQ2M', 'Ada');
   const user = userEvent.setup();
   render(<CollaborationControls />);
@@ -53,6 +55,7 @@ it('shows the option to everyone but lets only the Host change it', async () => 
   await user.click(screen.getByRole('button', { name: /join/i }));
   await user.click(screen.getByRole('button', { name: /drop .* and join/i }));
   await screen.findByText('K7XQ2M');
+  await user.click(screen.getByRole('button', { name: /room settings/i }));
 
   expect(sharingSwitch()).toBeChecked();
   expect(sharingSwitch()).toBeDisabled();

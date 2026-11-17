@@ -51,6 +51,14 @@ The Host's switch that decides whether opening and closing Districts acts on the
 **Spectating**:
 Following another Participant's camera.
 
+**Screen Wall**:
+A Room's arrangement of monitors, configured by the Host, whose browsers together show the Host's view enlarged into one continuous picture.
+_Avoid_: Monitor configuration, Spectate configuration, Multi-monitor setup
+
+**Tile**:
+One monitor of a Screen Wall, shown by one browser window, which is one Participant; it belongs to the Participant with its display name.
+_Avoid_: Device, Projector, Monitor (for the configured part)
+
 ### Time
 
 **Timestamp**:
