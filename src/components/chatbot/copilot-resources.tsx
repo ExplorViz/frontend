@@ -11,8 +11,26 @@ import { defaultVizSettings } from 'explorviz-frontend/src/utils/settings/defaul
 import { VisualizationSettings } from 'explorviz-frontend/src/utils/settings/settings-schemas';
 import { use } from 'react';
 
-const ASSISTANT_INSTRUCTIONS =
-  'You are assisting the user as best as you can. You are embedded inside the frontend of a software visualization tool called ExplorViz. ExplorViz takes data from static and dynamic program analysis to visualize software systems as software landscapes using the 3D city metaphor. In the city metaphor applications are represented as cities, their directories are represented as districts of the cities and files are represented as buildings in the city. The user can interact with the 3D visualization by asking you to highlight, open, or close districts. You can also provide information about the applications, directories, files, classes, and functions in the landscape. Applications/Cities are the highest level of organization in the landscape, containing directories/districts. Directories/Districts can contain sub-directories/sub-districts and files/buildings. Files/Buildings have associated metric and can contain classes, functions, and variables. By default all districts are open (visible) and not highlighted.';
+const ASSISTANT_INSTRUCTIONS = `You are the assistant embedded in ExplorViz, a tool that visualizes software systems from static and dynamic program analysis as a 3D landscape using the city metaphor.
+
+Model:
+- City: the top-level unit, e.g. an application, service, or repository.
+- District: a grouping inside a city, e.g. a package or directory. Districts can be nested. A closed district hides its content.
+- Building: a leaf, e.g. a source file or class, with metrics such as lines of code.
+By default all districts are open and nothing is highlighted.
+
+Answering:
+- Be brief. Answer in a few sentences or a short list and lead with the answer. Give more detail only when the user asks for it or the question cannot be answered correctly without it.
+- Answer in the language of the user.
+- Do not announce, narrate, or summarize tool calls: the user sees every tool call in the chat. After an action, confirm it in one short sentence at most.
+- Refer to entities by name, not by id, unless the user asks for ids.
+- Do not repeat data the user did not ask for, and do not end with offers for further help.
+
+Working:
+- The context below reflects the current state. Check it before calling a tool, and do not query what it or the conversation already tells you.
+- Look up ids with query-landscape-data before using them in another tool; never guess ids.
+- Request the least data that answers the question (filters, limits, lowest sufficient detail level).
+- State facts about the landscape only if they come from the context or a tool result. If the data does not contain the answer, say so.`;
 
 interface CopilotResourcesProps {
   cities?: City[];
@@ -26,18 +44,23 @@ export function CopilotResources({ cities }: CopilotResourcesProps) {
   const { canGoBack, canGoForward } = use(EditingContext);
   const visualizationSettings = useUserSettingsStore((state) => state.visualizationSettings);
 
-  const flattenSettings = (settings: VisualizationSettings) => {
+  /** Only what differs from the defaults: those are part of the settings tool description. */
+  const changedSettings = (settings: VisualizationSettings) => {
     const result: Record<string, unknown> = {};
     Object.entries(settings).forEach(([id, setting]) => {
-      result[id] = (setting as any).value;
+      const value = (setting as { value: unknown }).value;
+      const defaultValue = (defaultVizSettings as Record<string, { value: unknown } | undefined>)[id]?.value;
+      if (JSON.stringify(value) !== JSON.stringify(defaultValue)) {
+        result[id] = value;
+      }
     });
     return result;
   };
 
   const summarizeCities = (cities: City[]) =>
     cities.map((city) => {
-      let directoryCount = city.allContainedDistrictIds.length;
-      let fileCount = city.allContainedBuildingIds.length;
+      const districtCount = city.allContainedDistrictIds.length;
+      const buildingCount = city.allContainedBuildingIds.length;
       let languages: string[] = [];
       let functionCount = 0;
       let linesOfCode = 0;
@@ -59,12 +82,12 @@ export function CopilotResources({ cities }: CopilotResourcesProps) {
       });
 
       return {
-        cityId: city.id,
-        cityName: city.name,
+        id: city.id,
+        name: city.name,
         languages,
         originOfData: city.originOfData,
-        directoryCount,
-        fileCount,
+        districtCount,
+        buildingCount,
         functionCount,
         linesOfCode,
         sourceCodeLines,
@@ -76,70 +99,46 @@ export function CopilotResources({ cities }: CopilotResourcesProps) {
   const { showToolsSidebar, showSettingsSidebar, selectedToolbarTool, selectedSettingsSidebarTab } =
     use(ChatbotContext);
 
+  const hoveredEntity = hoveredEntityId
+    ? (useModelStore.getState().getBuilding(hoveredEntityId) ??
+      useModelStore.getState().getDistrict(hoveredEntityId) ??
+      useModelStore.getState().getCity(hoveredEntityId))
+    : undefined;
+
+  // Few entries with short descriptions: all of them are sent with every
+  // request. The entries that rarely change come first.
   useAgentContext({
-    description: 'Instructions for you, the ExplorViz assistant',
+    description: 'Your instructions',
     value: ASSISTANT_INSTRUCTIONS,
   });
 
   useAgentContext({
-    description:
-      "Get a lightweight summary of the cities/applications in the 3D landscape (counts only). Use the 'query-landscape-data' tool when you need filtered or detailed data.",
+    description: 'Cities of the landscape with their totals. For anything more detailed use query-landscape-data.',
     value: JSON.stringify(summarizeCities(cities ?? [])),
   });
 
   useAgentContext({
     description:
-      'Get the list of all currently closed components in the 3D visualization by their IDs. Closed components have their children hidden in the visualization.',
-    value: JSON.stringify([...closedDistrictIds]),
+      'Current state of the user interface: opened sidebars and their opened component (null if none), whether a landscape edit can be undone or redone, and the visualization settings that differ from their defaults (all others have their default).',
+    value: JSON.stringify({
+      toolsSidebar: { open: showToolsSidebar, component: selectedToolbarTool },
+      settingsSidebar: { open: showSettingsSidebar, component: selectedSettingsSidebarTab },
+      canUndoEdit: canGoBack,
+      canRedoEdit: canGoForward,
+      changedSettings: changedSettings(visualizationSettings),
+    }),
   });
+
   useAgentContext({
     description:
-      'Get the list of all currently highlighted components in the 3D visualization by their IDs. Highlighted components are visually emphasized in the visualization.',
-    value: JSON.stringify([...highlightedEntityIds]),
+      'Current state of the 3D visualization as entity ids: closed districts (content hidden), highlighted entities, removed entities (not visible), and the entity under the mouse pointer of the user (null if none). Resolve ids to names with the ids parameter of query-landscape-data.',
+    value: JSON.stringify({
+      closedDistrictIds: [...closedDistrictIds],
+      highlightedEntityIds: [...highlightedEntityIds],
+      removedEntityIds: [...removedDistrictIds],
+      hoveredEntity: hoveredEntityId ? { id: hoveredEntityId, name: hoveredEntity?.fqn ?? hoveredEntity?.name } : null,
+    }),
   });
-  useAgentContext({
-    description:
-      'Get the ID of the component currently being hovered over by the user in the 3D visualization. If no component is being hovered over, this will be null.',
-    value: hoveredEntityId ?? 'null',
-  });
-  useAgentContext({
-    description:
-      'Get the list of all currently removed components from the 3D visualization by their IDs. Removed components are not visible in the visualization.',
-    value: JSON.stringify([...removedDistrictIds]),
-  });
-  useAgentContext({
-    description: 'Indicates whether the user can navigate back in their editing history of the 3D landscape data.',
-    value: JSON.stringify(canGoBack),
-  });
-  useAgentContext({
-    description: 'Indicates whether the user can navigate forward in their editing history of the 3D landscape data.',
-    value: JSON.stringify(canGoForward),
-  });
-  useAgentContext({
-    description: 'Get the current visualization settings as a map of setting IDs to their values.',
-    value: JSON.stringify(flattenSettings(visualizationSettings)),
-  });
-  useAgentContext({
-    description:
-      'Get the default visualization settings as a map of setting IDs to their default values. Use this to reset settings or reason about valid values.',
-    value: JSON.stringify(flattenSettings(defaultVizSettings)),
-  });
-  useAgentContext({
-    description: 'Indicates whether the tools sidebar in the visualization UI is currently visible.',
-    value: JSON.stringify(showToolsSidebar),
-  });
-  useAgentContext({
-    description: 'Indicates whether the settings sidebar in the visualization UI is currently visible.',
-    value: JSON.stringify(showSettingsSidebar),
-  });
-  useAgentContext({
-    description: 'Gets the identifier of the currently opened component in the tools sidebar, or null if none is open.',
-    value: JSON.stringify(selectedToolbarTool),
-  });
-  useAgentContext({
-    description:
-      'Gets the identifier of the currently opened component in the settings sidebar, or null if none is open.',
-    value: JSON.stringify(selectedSettingsSidebarTab),
-  });
+
   return null;
 }

@@ -10,9 +10,12 @@ import {
   openAllDistrictsInCity,
   openDistrict,
 } from 'explorviz-frontend/src/utils/city-rendering/entity-manipulation';
-import { Building, City, District } from 'explorviz-frontend/src/utils/landscape-schemes/flat-landscape';
 import { defaultVizSettings } from 'explorviz-frontend/src/utils/settings/default-settings';
-import { VisualizationSettings } from 'explorviz-frontend/src/utils/settings/settings-schemas';
+import {
+  isRangeSetting,
+  isSelectSetting,
+  VisualizationSettings,
+} from 'explorviz-frontend/src/utils/settings/settings-schemas';
 import { pingByModelId } from 'explorviz-frontend/src/view-objects/3d/city/ping-animation';
 import * as htmlToImage from 'html-to-image';
 import { use } from 'react';
@@ -27,6 +30,13 @@ import {
   resolveCopilotSettingsTab,
   resolveCopilotToolbarTool,
 } from './copilot-sidebar-map';
+import {
+  DEFAULT_MAX_BUILDINGS,
+  DEFAULT_MAX_DISTRICTS,
+  LANDSCAPE_DETAIL_LEVELS,
+  queryLandscape,
+  referenceEarlierResult,
+} from './landscape-query';
 
 const SCREENSHOT_MAX_WIDTH = 1280;
 const SCREENSHOT_MAX_HEIGHT = 720;
@@ -52,99 +62,51 @@ async function takeScreenshot() {
   return dataUrl;
 }
 
-function normalizeText(value?: string) {
-  return (value ?? '').trim().toLowerCase();
-}
-
-function matchesText(target: string | undefined, filter?: string) {
-  const normalizedFilter = normalizeText(filter);
-  if (!normalizedFilter) {
-    return true;
-  }
-  return (target ?? '').toLowerCase().includes(normalizedFilter);
-}
-
-function limitList<T>(list: T[], limit?: number) {
-  if (typeof limit === 'number' && limit > 0) {
-    return list.slice(0, limit);
-  }
-  return list;
-}
-
-function districtMatchesFilter(district: District, districtName?: string) {
-  if (!normalizeText(districtName)) {
-    return true;
-  }
-  return matchesText(district.name, districtName) || matchesText(district.fqn, districtName);
-}
-
-function buildingMatchesFilter(building: Building, buildingName?: string) {
-  if (!normalizeText(buildingName)) {
-    return true;
-  }
-  return matchesText(building.name, buildingName) || matchesText(building.fqn, buildingName);
-}
-
-function buildCitySummary(
-  city: City,
-  districts: District[],
-  buildings: Building[],
-  limitedDistricts: District[],
-  limitedBuildings: Building[]
-) {
-  return {
-    cityId: city.id,
-    cityName: city.name,
-    originOfData: city.originOfData,
-    districtCount: districts.length,
-    buildingCount: buildings.length,
-    returnedDistrictCount: limitedDistricts.length,
-    returnedBuildingCount: limitedBuildings.length,
-  };
-}
-
-function toDistrictResult(district: District) {
-  return {
-    districtId: district.id,
-    districtName: district.name,
-    districtFqn: district.fqn,
-    districtParentDistrictId: district.parentDistrictId ?? null,
-    districtParentCityId: district.parentCityId,
-    originOfData: district.originOfData,
-    childDistrictCount: district.districtIds.length,
-    buildingCount: district.buildingIds.length,
-    editingState: district.editingState,
-  };
-}
-
-function toBuildingResult(building: Building) {
-  return {
-    buildingId: building.id,
-    buildingName: building.name,
-    buildingFqn: building.fqn,
-    buildingParentDistrictId: building.parentDistrictId ?? null,
-    buildingParentCityId: building.parentCityId,
-    language: building.language,
-    metrics: building.metrics,
-    originOfData: building.originOfData,
-    editingState: building.editingState,
-  };
-}
-
+/**
+ * One line per setting: id, default, value range or options, and what it does.
+ * This is static, so the chatbot needs no separate list of default values.
+ */
 function buildSettingsPromptDescription() {
   return Object.entries(defaultVizSettings)
     .map(([id, setting]) => {
-      const displayName =
-        (setting as any).displayName && (setting as any).displayName !== id
-          ? `${(setting as any).displayName} (${id})`
-          : id;
-      const description =
-        (setting as any).description && (setting as any).description.trim().length
-          ? (setting as any).description
-          : 'No description available.';
-      return `${displayName}: ${description}`;
+      const { displayName, description, value } = setting as {
+        displayName?: string;
+        description?: string;
+        value: unknown;
+      };
+      const constraints = [`default ${JSON.stringify(value)}`];
+      if (isRangeSetting(setting)) {
+        constraints.push(`${setting.range.min} to ${setting.range.max}`);
+      } else if (isSelectSetting(setting)) {
+        constraints.push(`one of ${JSON.stringify(setting.options)}`);
+      }
+      // A description that only repeats the name tells the chatbot nothing new.
+      const explanation = [displayName, description]
+        .map((text) => text?.trim())
+        .filter((text, index, texts) => text && text !== id && texts.indexOf(text) === index)
+        .join(' - ');
+      return `${id} (${constraints.join(', ')})${explanation ? `: ${explanation}` : ''}`;
     })
-    .join('; ');
+    .join('\n');
+}
+
+/** The ids that are neither a city, a district, nor a building of the landscape. */
+function findUnknownEntityIds(ids: string[]) {
+  const { getCity, getDistrict, getBuilding } = useModelStore.getState();
+  return ids.filter((id) => !getCity(id) && !getDistrict(id) && !getBuilding(id));
+}
+
+/**
+ * Tells the chatbot about ids it made up or that are outdated. Without this it
+ * would report success for an action that did nothing.
+ */
+function assertKnownEntityIds(ids: string[]) {
+  const unknownIds = findUnknownEntityIds(ids);
+  if (unknownIds.length > 0) {
+    throw new Error(
+      `Unknown entity ids: ${unknownIds.join(', ')}. Look up the ids with query-landscape-data and try again.`
+    );
+  }
 }
 
 const settingsPromptDescription = buildSettingsPromptDescription();
@@ -171,89 +133,41 @@ export function CopilotTools() {
   useFrontendTool({
     name: 'query-landscape-data',
     description:
-      'Returns flat 3D landscape data (cities, districts, buildings) with filters and adjustable detail level so you can request only the slices you need.',
+      'Looks up cities, districts, and buildings of the landscape. All name filters are case-insensitive substring matches on the name or fully qualified name. Lists are limited; "omitted" states how many matches were cut off. Each entry has "fqn" (or "name" if there is none) and "parentId" (the id of its parent district; absent directly below a city). If the answer is {"unchanged": true}, the data is identical to an earlier result in this conversation: use that result. Request only what you need and do not repeat a query whose result you already have.',
     parameters: z.object({
-      cityIds: z.array(z.string()).optional(),
+      ids: z
+        .array(z.string())
+        .optional()
+        .describe(
+          'Look up exactly these entity ids (e.g. to get the names of highlighted entities). Ignores all filters.'
+        ),
+      cityIds: z.array(z.string()).optional().describe('Restrict to these cities.'),
       cityName: z.string().optional(),
-      districtName: z.string().optional(),
+      districtName: z
+        .string()
+        .optional()
+        .describe('Also restricts buildings to those directly inside a matching district.'),
       buildingName: z.string().optional(),
-      detailLevel: z.string().optional(),
-      maxCities: z.number().optional(),
-      maxDistricts: z.number().optional(),
-      maxBuildings: z.number().optional(),
+      detailLevel: z
+        .enum(LANDSCAPE_DETAIL_LEVELS)
+        .optional()
+        .describe(
+          'summary: only counts per city. structure (default): ids, names, and parents. full: additionally metrics, language, type, origin, and editing state. Use full only when you need those.'
+        ),
+      sortByMetric: z
+        .string()
+        .optional()
+        .describe(
+          'Sort buildings by this metric, largest first, and return buildings only, e.g. lineCount, sloc, cloc, size, functionCount. Combine with maxBuildings for "top N" questions.'
+        ),
+      maxDistricts: z.number().optional().describe(`Default ${DEFAULT_MAX_DISTRICTS}.`),
+      maxBuildings: z.number().optional().describe(`Default ${DEFAULT_MAX_BUILDINGS}.`),
     }),
     // @ts-ignore
     _isRenderAndWait: true,
-    handler: async ({ cityIds, cityName, districtName, buildingName, maxCities, maxDistricts, maxBuildings }) => {
-      const availableCities = useModelStore.getState().getAllCities() ?? [];
-      const filteredCities = availableCities.filter((city) => {
-        const idMatches = !Array.isArray(cityIds) || cityIds.length === 0 || cityIds.includes(city.id);
-        const nameMatches = matchesText(city.name, cityName);
-        return idMatches && nameMatches;
-      });
-
-      const limitedCities = limitList(filteredCities, maxCities);
-
-      const response: {
-        filters: Record<string, unknown>;
-        cities: ReturnType<typeof buildCitySummary>[];
-        districts?: ReturnType<typeof toDistrictResult>[];
-        buildings?: ReturnType<typeof toBuildingResult>[];
-      } = {
-        filters: {
-          cityIds: Array.isArray(cityIds) && cityIds.length > 0 ? cityIds : undefined,
-          cityName: cityName || undefined,
-          districtName: districtName || undefined,
-          buildingName: buildingName || undefined,
-          maxCities,
-          maxDistricts,
-          maxBuildings,
-        },
-        cities: [],
-      };
-
-      limitedCities.forEach((city) => {
-        const cityDistricts = city.allContainedDistrictIds
-          .map((districtId) => useModelStore.getState().getDistrict(districtId))
-          .filter((district): district is District => !!district);
-        const cityBuildings = city.allContainedBuildingIds
-          .map((buildingId) => useModelStore.getState().getBuilding(buildingId))
-          .filter((building): building is Building => !!building);
-
-        const filteredDistricts = cityDistricts.filter((district) => districtMatchesFilter(district, districtName));
-        const filteredBuildings = cityBuildings.filter((building) => buildingMatchesFilter(building, buildingName));
-
-        const filteredBuildingsWithDistrictConstraint = normalizeText(districtName)
-          ? filteredBuildings.filter((building) => {
-              const districtId = building.parentDistrictId;
-              if (!districtId) {
-                return false;
-              }
-              return filteredDistricts.some((district) => district.id === districtId);
-            })
-          : filteredBuildings;
-
-        const limitedDistricts = limitList(filteredDistricts, maxDistricts);
-        const limitedBuildings = limitList(filteredBuildingsWithDistrictConstraint);
-
-        response.cities.push(
-          buildCitySummary(
-            city,
-            filteredDistricts,
-            filteredBuildingsWithDistrictConstraint,
-            limitedDistricts,
-            limitedBuildings
-          )
-        );
-
-        response.districts ??= [];
-        response.districts.push(...limitedDistricts.map(toDistrictResult));
-
-        response.buildings ??= [];
-        response.buildings.push(...limitedBuildings.map(toBuildingResult));
-      });
-
-      return response;
+    handler: async (query, { agent, toolCall }) => {
+      const result = JSON.stringify(queryLandscape(query, useModelStore.getState()));
+      return referenceEarlierResult(result, agent?.messages ?? [], toolCall.id);
     },
     render: ({ status, args }) => {
       const labelParts: string[] = [];
@@ -282,14 +196,15 @@ export function CopilotTools() {
 
   useFrontendTool({
     name: 'highlight-entities',
-    description: 'Highlights or un-highlights cities, districts, or buildings by their ids in the 3D visualization.',
+    description: 'Highlights cities, districts, or buildings, or removes their highlight.',
     parameters: z.object({
       ids: z.array(z.string()),
-      areHighlighted: z.boolean().default(true),
+      areHighlighted: z.boolean().default(true).describe('false removes the highlight.'),
     }),
     // @ts-ignore
     _isRenderAndWait: true,
     handler: async ({ ids, areHighlighted }) => {
+      assertKnownEntityIds(ids);
       setHighlightingByIds(ids, areHighlighted);
     },
     render: ({ args, status }) => {
@@ -302,8 +217,7 @@ export function CopilotTools() {
 
   useFrontendTool({
     name: 'open-close-tools-sidebar',
-    description:
-      'Opens or closes the tools sidebar in the UI. The tools sidebar is located on the top left side of the screen.',
+    description: 'Opens or closes the tools sidebar (top left of the screen).',
     parameters: z.object({
       open: z.boolean(),
     }),
@@ -325,8 +239,7 @@ export function CopilotTools() {
 
   useFrontendTool({
     name: 'open-close-settings-sidebar',
-    description:
-      'Opens or closes the settings sidebar in the UI. The settings sidebar is located on the top right side of the screen.',
+    description: 'Opens or closes the settings sidebar (top right of the screen).',
     parameters: z.object({
       open: z.boolean(),
     }),
@@ -348,7 +261,7 @@ export function CopilotTools() {
 
   useFrontendTool({
     name: 'open-close-tools-component',
-    description: `Opens or closes a component inside the tools sidebar. Opening the component will also open the sidebar. Allowed component ids: ${copilotToolComponentIds.join(', ')}.`,
+    description: `Opens or closes a component inside the tools sidebar. Opening a component also opens the sidebar. Component ids: ${copilotToolComponentIds.join(', ')}.`,
     parameters: z.object({
       id: z.string(),
       open: z.boolean(),
@@ -358,7 +271,7 @@ export function CopilotTools() {
     handler: async ({ id, open }) => {
       const tool = resolveCopilotToolbarTool(id);
       if (!tool) {
-        return;
+        throw new Error(`Unknown component id "${id}". Allowed ids: ${copilotToolComponentIds.join(', ')}.`);
       }
       if (open) {
         setSelectedToolbarTool(tool, { showSidebar: true });
@@ -377,7 +290,7 @@ export function CopilotTools() {
 
   useFrontendTool({
     name: 'open-close-settings-component',
-    description: `Opens or closes a component inside the settings sidebar. Opening the component will also open the sidebar. Allowed component ids: ${copilotSettingComponentIds.join(', ')}.`,
+    description: `Opens or closes a component inside the settings sidebar. Opening a component also opens the sidebar. Component ids: ${copilotSettingComponentIds.join(', ')}.`,
     parameters: z.object({
       id: z.string(),
       open: z.boolean(),
@@ -387,7 +300,7 @@ export function CopilotTools() {
     handler: async ({ id, open }) => {
       const tab = resolveCopilotSettingsTab(id);
       if (!tab) {
-        return;
+        throw new Error(`Unknown component id "${id}". Allowed ids: ${copilotSettingComponentIds.join(', ')}.`);
       }
       if (open) {
         setSelectedSettingsSidebarTab(tab, { showSidebar: true });
@@ -407,9 +320,9 @@ export function CopilotTools() {
   useFrontendTool({
     name: 'filter-entities',
     description:
-      'Filters entities in the visualization using the existing Entity Filtering panel. Provide one or more thresholds.',
+      'Hides buildings below the given thresholds using the Entity Filtering panel, which is opened for the user.',
     parameters: z.object({
-      minClassMethodCount: z.number().optional(),
+      minClassMethodCount: z.number().optional().describe('Hide classes with fewer methods than this.'),
     }),
     // @ts-ignore
     _isRenderAndWait: true,
@@ -428,16 +341,17 @@ export function CopilotTools() {
 
   useFrontendTool({
     name: 'update-visualization-settings',
-    description: `Updates visualization settings by setting specific setting IDs to new values. You can also reset settings to their defaults. Available settings (id: description): ${settingsPromptDescription}`,
+    description: `Sets visualization settings to new values and/or resets them to their defaults. Settings, one per line as "id (default, allowed values): meaning":\n${settingsPromptDescription}`,
     parameters: z.object({
-      settings: z.record(z.string(), z.unknown()).optional(),
-      resetIds: z.array(z.string()).optional(),
-      resetAll: z.boolean().optional(),
+      settings: z.record(z.string(), z.unknown()).optional().describe('Setting id -> new value.'),
+      resetIds: z.array(z.string()).optional().describe('Setting ids to reset to their defaults.'),
+      resetAll: z.boolean().optional().describe('Reset every setting to its default.'),
     }),
     // @ts-ignore
     _isRenderAndWait: true,
     handler: async ({ settings, resetIds, resetAll }) => {
       const { visualizationSettings, updateSetting, applyDefaultSettings } = useUserSettingsStore.getState();
+      const unknownIds: string[] = [];
       if (resetAll) {
         applyDefaultSettings();
       } else if (Array.isArray(resetIds) && resetIds.length > 0) {
@@ -445,6 +359,8 @@ export function CopilotTools() {
           const defaultSetting = (defaultVizSettings as any)[id];
           if (defaultSetting) {
             updateSetting(id as keyof VisualizationSettings, defaultSetting.value);
+          } else {
+            unknownIds.push(id);
           }
         });
       }
@@ -453,8 +369,15 @@ export function CopilotTools() {
         Object.entries(settings as Record<string, unknown>).forEach(([id, value]) => {
           if (Object.prototype.hasOwnProperty.call(visualizationSettings, id)) {
             updateSetting(id as keyof VisualizationSettings, value);
+          } else {
+            unknownIds.push(id);
           }
         });
+      }
+
+      // The known settings are applied; the chatbot must still learn which ones were not.
+      if (unknownIds.length > 0) {
+        return `Unknown setting ids were ignored: ${unknownIds.join(', ')}. The other settings were applied.`;
       }
     },
     render: ({ status, args }) => (
@@ -483,7 +406,7 @@ export function CopilotTools() {
   useFrontendTool({
     name: 'entity-search',
     description:
-      'Searches for cities, districts, and buildings by fully qualified name in the search panel. Optionally selects all results.',
+      'Shows the user the cities, districts, and buildings whose fully qualified name matches the query in the search panel, optionally selecting all results. Returns no data: to look something up yourself, use query-landscape-data.',
     parameters: z.object({
       query: z.string(),
       selectAll: z.boolean().optional(),
@@ -507,7 +430,7 @@ export function CopilotTools() {
   useFrontendTool({
     name: 'open-close-district',
     description:
-      'Opens or closes a district (usually representing a folder), meaning its children are now visible (if opened) or hidden (if closed) in the 3d visualization. Closing a district also closes all its sub-districts automatically. The provided id can also be an id of a city to open or close all districts in this city.',
+      'Opens or closes a district: its children are shown (open) or hidden (closed). Closing a district also closes its nested districts. Pass a city id to open or close all districts of that city.',
     parameters: z.object({
       id: z.string(),
       open: z.boolean(),
@@ -516,6 +439,9 @@ export function CopilotTools() {
     _isRenderAndWait: true,
     handler: async ({ id, open }) => {
       const district = useModelStore.getState().getDistrict(id);
+      if (!district && !useModelStore.getState().getCity(id)) {
+        throw new Error(`"${id}" is neither a district id nor a city id. Look up the id with query-landscape-data.`);
+      }
       if (district) {
         if (open) {
           openDistrict(id);
@@ -543,13 +469,14 @@ export function CopilotTools() {
   useFrontendTool({
     name: 'ping-entities',
     description:
-      "Causes a visual ping effect on given entities (cities, districts, buildings) in the 3D visualization to draw the user's attention to it. This does not change the state of the entity, it only triggers a temporary animated visual effect.",
+      "Plays a temporary ping animation on cities, districts, or buildings to draw the user's attention to them. Changes no state.",
     parameters: z.object({
       ids: z.array(z.string()),
     }),
     // @ts-ignore
     _isRenderAndWait: true,
     handler: async ({ ids }) => {
+      assertKnownEntityIds(ids);
       ids.forEach((id) => {
         pingByModelId(id);
       });
@@ -561,14 +488,14 @@ export function CopilotTools() {
 
   useFrontendTool({
     name: 'move-camera-to-entity',
-    description:
-      'Moves the camera to focus on a specific entity (city, district, building) in the 3D visualization by its id.',
+    description: 'Moves the camera to focus on a city, district, or building.',
     parameters: z.object({
       id: z.string(),
     }),
     // @ts-ignore
     _isRenderAndWait: true,
     handler: async ({ id }) => {
+      assertKnownEntityIds([id]);
       lookAtEntity(id);
     },
     render: ({ args, status }) => <ToolCallCard component={{ id: args.id }} status={status} action="moveCamera" />,
@@ -576,7 +503,7 @@ export function CopilotTools() {
 
   useFrontendTool({
     name: 'reset-camera',
-    description: 'Resets the camera to its default position and orientation in the 3D visualization.',
+    description: 'Resets the camera to its default position and orientation.',
     parameters: z.object({}),
     // @ts-ignore
     _isRenderAndWait: true,
@@ -589,7 +516,7 @@ export function CopilotTools() {
   useFrontendTool({
     name: 'add-application',
     description:
-      'Adds a new application to the current landscape. Classes should include their fully qualified name (FQN) and can optionally include methods.',
+      'Adds a new city (application) with the given classes to the landscape and returns its id. Each class needs its fully qualified name; methods are optional.',
     parameters: z.object({
       name: z.string(),
       classes: z.array(
@@ -626,7 +553,7 @@ export function CopilotTools() {
   useFrontendTool({
     name: 'add-classes-to-application',
     description:
-      'Adds new classes to an existing application in the current landscape. Classes should include their fully qualified name (FQN) and can optionally include methods.',
+      'Adds classes to an existing city (application). Each class needs its fully qualified name; methods are optional.',
     parameters: z.object({
       applicationId: z.string(),
       classes: z.array(
@@ -653,6 +580,9 @@ export function CopilotTools() {
     // @ts-ignore
     _isRenderAndWait: true,
     handler: async ({ applicationId, classes }) => {
+      if (!useModelStore.getState().getCity(applicationId)) {
+        throw new Error(`"${applicationId}" is not a city id. Look up the id with query-landscape-data.`);
+      }
       addClasses(applicationId, classes);
     },
     render: ({ status, args }) => (
@@ -662,14 +592,14 @@ export function CopilotTools() {
 
   useFrontendTool({
     name: 'remove-component-from-landscape',
-    description:
-      'Removes a component (application, package, or class) from the current landscape by its id. If you cant find the removed component, it has been removed already.',
+    description: 'Removes a city, district, or building from the landscape. This can be undone with undo-edit.',
     parameters: z.object({
       id: z.string(),
     }),
     // @ts-ignore
     _isRenderAndWait: true,
     handler: async ({ id }) => {
+      assertKnownEntityIds([id]);
       removeComponent(id);
     },
     render: ({ status, args }) => (
@@ -679,28 +609,30 @@ export function CopilotTools() {
 
   useFrontendTool({
     name: 'undo-edit',
-    description: 'Undoes the last edit made to the landscape, reverting it to the previous state.',
+    description: 'Undoes the last edit of the landscape (added or removed entities).',
     parameters: z.object({}),
     // @ts-ignore
     _isRenderAndWait: true,
     handler: async () => {
-      if (canGoBack) {
-        goBack();
+      if (!canGoBack) {
+        throw new Error('There is no edit to undo.');
       }
+      goBack();
     },
     render: ({ status }) => <ToolCallCard status={status} action="undoEdit" />,
   });
 
   useFrontendTool({
     name: 'redo-edit',
-    description: 'Redoes the last undone edit to the landscape, reapplying the change that was previously reverted.',
+    description: 'Redoes the edit of the landscape that was undone last.',
     parameters: z.object({}),
     // @ts-ignore
     _isRenderAndWait: true,
     handler: async () => {
-      if (canGoForward) {
-        goForward();
+      if (!canGoForward) {
+        throw new Error('There is no undone edit to redo.');
       }
+      goForward();
     },
     render: ({ status }) => <ToolCallCard status={status} action="redoEdit" />,
   });
@@ -708,7 +640,7 @@ export function CopilotTools() {
   useFrontendTool({
     name: 'take-screenshot',
     description:
-      'Takes a screenshot of the current browser window, scaled down to at most 1280x720, and returns it as an image. The chat window itself is left out so the UI behind it stays visible. Use this to see and explain UI parts outside the 3D landscape. When an error occurs when taking the screenshot, please explain the error message to the user.',
+      'Returns a screenshot of the browser window (at most 1280x720) without the chat window. Images are expensive: take one only to see what the context and query-landscape-data cannot tell you, such as UI outside the 3D landscape, and reuse a screenshot that still shows the current state. If it fails, tell the user why.',
     parameters: z.object({}),
     handler: async () => {
       const dataUrl = await takeScreenshot();
@@ -735,10 +667,10 @@ export function CopilotTools() {
   useFrontendTool({
     name: 'click-on-screen',
     description:
-      'Simulates a click on a specific position on the screen given by the normalized screen position. This can be used to interact with UI elements outside of the 3D visualization, such as buttons or menus in the ExplorViz frontend. Do the following steps to achieve optimal results: 1. Check if there was a screenshot taken already, if not take a screenshot with the take-screenshot tool. 2. Read the screenshot resolution (width W, height H in pixels). 3. Visually locate the target element and determine the pixel coordinates of its center (x_px, y_px). Do not guess. Do not eyeball. Aim for the center of interactive elements like texts and buttons. 4. Convert to normalized coordinates with 5 decimals: x = round(x_px / W, 5) y = round(y_px / H, 5). 5. Take these normalized coordinates as parameters for this tool call. If the target is ambiguous or partially hidden, ask for clarification before clicking. After clicking, verify the expected UI change; if not achieved, adjust by small offsets (±3–5 px) and retry once.',
+      'Clicks a position of the browser window, for UI that no other tool can operate (prefer the other tools). Steps: 1. Use a screenshot of the current state (take-screenshot). 2. Locate the center of the target element in the image in pixels (x_px, y_px). 3. Pass x = x_px / image width and y = y_px / image height, each between 0 and 1 with 5 decimals. If the target is ambiguous or hidden, ask the user instead of clicking. Afterwards verify the effect; if nothing changed, retry once with a 3 to 5 px offset.',
     parameters: z.object({
-      x: z.number(),
-      y: z.number(),
+      x: z.number().min(0).max(1).describe('Horizontal position, 0 = left edge, 1 = right edge.'),
+      y: z.number().min(0).max(1).describe('Vertical position, 0 = top edge, 1 = bottom edge.'),
     }),
     // @ts-ignore
     _isRenderAndWait: true,

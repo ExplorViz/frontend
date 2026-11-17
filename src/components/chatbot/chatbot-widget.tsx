@@ -37,6 +37,18 @@ export function ChatbotWidget() {
   const bottomOffset = useBottomBarOffset(widgetRef);
   const contentHeight = useChatContentHeight(chatBodyRef, isCopilotRuntimeReady);
 
+  // Put the cursor into the input when the window opens, so typing can start
+  // right away. Also runs when the chat becomes ready while already open.
+  useEffect(() => {
+    if (!isChatOpen || !isCopilotRuntimeReady) {
+      return;
+    }
+    const frame = requestAnimationFrame(() => {
+      chatBodyRef.current?.querySelector<HTMLTextAreaElement>('textarea')?.focus();
+    });
+    return () => cancelAnimationFrame(frame);
+  }, [isChatOpen, isCopilotRuntimeReady]);
+
   const statusMessage = copilotRuntimeError ?? providersError;
 
   const style = {

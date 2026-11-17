@@ -10,7 +10,7 @@ export function ChatbotChat() {
       agentId={selectedModel.agentId}
       attachments={{ enabled: true }}
       labels={{
-        welcomeMessageText: 'How can I assist you?',
+        welcomeMessageText: 'ExplorViz Chat Assistant',
       }}
     />
   );
