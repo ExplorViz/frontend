@@ -9,12 +9,16 @@ import { useLandscapeTokenStore } from 'explorviz-frontend/src/stores/landscape-
 import { useRenderingServiceStore } from 'explorviz-frontend/src/stores/rendering-service';
 import { useModelStore } from 'explorviz-frontend/src/stores/repos/model-repository';
 import { useToastHandlerStore } from 'explorviz-frontend/src/stores/toast-handler';
+import { findFirstEntityWithOpenedParent } from 'explorviz-frontend/src/utils/city-rendering/communication-layouter';
 import { highlightOnly } from 'explorviz-frontend/src/utils/city-rendering/highlighting';
 import { CROSS_COMMIT_IDENTIFIER } from 'explorviz-frontend/src/utils/evolution-schemes/evolution-data';
 import { CommSummary } from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/communication';
 import { Span, TraceOverview } from 'explorviz-frontend/src/utils/landscape-schemes/telemetry/traces';
-import { useCallback, useEffect, useState } from 'react';
+import { mountedCommunicationMeshes } from 'explorviz-frontend/src/view-objects/3d/city/clazz-communication-mesh';
+import gsap from 'gsap';
+import { type KeyboardEvent, useCallback, useEffect, useRef, useState } from 'react';
 import { Accordion, Button, Card, Spinner } from 'react-bootstrap';
+import { Vector3 } from 'three';
 import TraceTree from './trace-tree';
 
 export interface SpanTree {
@@ -60,6 +64,72 @@ function flattenSpanTree(spanTree: SpanTree): Span[] {
   return result;
 }
 
+function animateAlongCommunication(communicationId: string, reverse: boolean) {
+  const camera = useCameraControlsStore.getState().cameraControlsRef?.current;
+  const mesh = mountedCommunicationMeshes.get(communicationId);
+  const curve = mesh?.getCommunicationCurve();
+  if (!camera || !mesh?.visible || !curve || curve.getLength() === 0) {
+    return;
+  }
+
+  mesh.updateWorldMatrix(true, false);
+  const worldMatrix = mesh.matrixWorld.clone();
+  const start = curve.getPointAt(reverse ? 1 : 0).applyMatrix4(worldMatrix);
+  const initialPosition = camera.getPosition(new Vector3(), false);
+  const initialTarget = camera.getTarget(new Vector3(), false);
+  const offset = new Vector3(1, 1, 1);
+  const startPosition = start.clone().add(offset);
+  const position = new Vector3();
+  const target = new Vector3();
+  const setView = () => camera.setLookAt(position.x, position.y, position.z, target.x, target.y, target.z, false);
+  const approach = { progress: 0 };
+  const traversal = { progress: 0 };
+
+  return gsap
+    .timeline()
+    .to(approach, {
+      progress: 1,
+      duration: 0.35,
+      ease: 'power2.inOut',
+      onUpdate: () => {
+        position.lerpVectors(initialPosition, startPosition, approach.progress);
+        target.lerpVectors(initialTarget, start, approach.progress);
+        setView();
+      },
+    })
+    .to(traversal, {
+      progress: 1,
+      duration: 0.85,
+      ease: 'power2.inOut',
+      onUpdate: () => {
+        curve.getPointAt(reverse ? 1 - traversal.progress : traversal.progress, target).applyMatrix4(worldMatrix);
+        position.copy(target).add(offset);
+        setView();
+      },
+    });
+}
+
+function bounceCamera() {
+  const camera = useCameraControlsStore.getState().cameraControlsRef?.current;
+  if (!camera) {
+    return;
+  }
+
+  const position = camera.getPosition(new Vector3(), false);
+  const target = camera.getTarget(new Vector3(), false);
+  const bounce = { height: 0 };
+  const setHeight = (height: number) =>
+    camera.setLookAt(position.x, position.y + height, position.z, target.x, target.y, target.z, false);
+  return gsap.timeline({ onInterrupt: () => setHeight(0) }).to(bounce, {
+    height: 0.2,
+    duration: 0.2,
+    ease: 'sine.inOut',
+    repeat: 1,
+    yoyo: true,
+    onUpdate: () => setHeight(bounce.height),
+  });
+}
+
 interface TraceDetailsProps {
   traceOverview: TraceOverview;
   onBackClick(): void;
@@ -67,7 +137,6 @@ interface TraceDetailsProps {
 
 export default function TraceDetails({ traceOverview, onBackClick }: TraceDetailsProps) {
   const cities = useModelStore((state) => state.cities);
-  const aggregatedCommunications = useModelStore((state) => state.aggregatedCommunications);
   const telemetryKeyToEntityId = useModelStore((state) => state.telemetryKeyToEntityId);
   const landscapeToken = useLandscapeTokenStore((state) => state.token);
   const lookAtEntity = useCameraControlsStore((state) => state.lookAtEntity);
@@ -80,65 +149,105 @@ export default function TraceDetails({ traceOverview, onBackClick }: TraceDetail
     flat: Span[];
   } | null>(null);
   const [selectedSpanIndex, setSelectedSpanIndex] = useState<number | null>(null);
+  const cameraAnimation = useRef<gsap.core.Timeline | undefined>(undefined);
 
   const handleSpanChange = useCallback(
-    (newSpan: Span, parent?: Span) => {
-      const entityId = newSpan.telemetryKey
-        ? telemetryKeyToEntityId.get(newSpan.telemetryKey)
-        : Object.values(cities).find((c) => c.name === newSpan.serviceName)?.id;
+    (newSpan: Span, parent?: Span, previousSpan?: Span, animateStep = true) => {
+      cameraAnimation.current?.kill();
+      cameraAnimation.current = undefined;
+      const getEntityId = (span: Span) =>
+        span.telemetryKey
+          ? telemetryKeyToEntityId.get(span.telemetryKey)
+          : Object.values(cities).find((c) => c.name === span.serviceName)?.id;
+      const entityId = getEntityId(newSpan);
 
       if (!entityId) {
         return;
       }
 
-      lookAtEntity(entityId, 1);
+      const targetId = findFirstEntityWithOpenedParent(entityId);
+      const previousId = previousSpan && getEntityId(previousSpan);
+      if (animateStep && previousId && findFirstEntityWithOpenedParent(previousId) === targetId) {
+        highlightOnly([entityId]);
+        cameraAnimation.current = bounceCamera();
+        return;
+      }
 
-      const parentEntityid = !parent
-        ? undefined
-        : parent.telemetryKey
-          ? telemetryKeyToEntityId.get(parent.telemetryKey)
-          : Object.values(cities).find((c) => c.name === parent.serviceName)?.id;
-
-      const comm = parent
-        ? Object.values(aggregatedCommunications).find(
-            (c) => c.sourceEntity.id === parentEntityid && c.targetEntity.id === entityId
+      const origin = previousSpan?.parentSpanId === newSpan.spanId ? previousSpan : parent;
+      const originId = origin && getEntityId(origin);
+      const sourceId = originId && findFirstEntityWithOpenedParent(originId);
+      const comm = sourceId
+        ? Object.values(useModelStore.getState().aggregatedCommunications).find(
+            ({ sourceEntity, targetEntity }) =>
+              (sourceEntity.id === sourceId && targetEntity.id === targetId) ||
+              (sourceEntity.id === targetId && targetEntity.id === sourceId)
           )
         : undefined;
+
       // One action: the span's entity (and the call to it) become the only own highlights.
       highlightOnly(comm ? [entityId, comm.id] : [entityId]);
+
+      if (comm && animateStep) {
+        cameraAnimation.current = animateAlongCommunication(comm.id, comm.targetEntity.id === sourceId);
+      }
+
+      if (!cameraAnimation.current) {
+        lookAtEntity(entityId, 1);
+      }
     },
-    [cities, telemetryKeyToEntityId, aggregatedCommunications, lookAtEntity]
+    [cities, telemetryKeyToEntityId, lookAtEntity]
+  );
+
+  useEffect(
+    () => () => {
+      cameraAnimation.current?.kill();
+    },
+    []
   );
 
   const handleStepBackClick = () => {
-    if (selectedSpanIndex === null || spanData === null) {
+    if (selectedSpanIndex === null || selectedSpanIndex === 0 || spanData === null) {
       return;
     }
-    const newIndex = Math.min(Math.max(selectedSpanIndex - 1, 0), spanData.flat.length - 1);
+    const newIndex = selectedSpanIndex - 1;
 
     const newSpan = spanData.flat[newIndex];
     const parent = spanData.flat.find((s) => s.spanId === newSpan.parentSpanId);
 
     setSelectedSpanIndex(newIndex);
-    handleSpanChange(newSpan, parent);
+    handleSpanChange(newSpan, parent, spanData.flat[selectedSpanIndex]);
   };
 
   const handleStepForwardClick = () => {
-    if (selectedSpanIndex === null || spanData === null) {
+    if (selectedSpanIndex === null || spanData === null || selectedSpanIndex >= spanData.flat.length - 1) {
       return;
     }
-    const newIndex = Math.min(selectedSpanIndex + 1, spanData.flat.length - 1);
+    const newIndex = selectedSpanIndex + 1;
 
     const newSpan = spanData.flat[newIndex];
     const parent = spanData.flat.find((s) => s.spanId === newSpan.parentSpanId);
 
     setSelectedSpanIndex(newIndex);
-    handleSpanChange(newSpan, parent);
+    handleSpanChange(newSpan, parent, spanData.flat[selectedSpanIndex]);
+  };
+
+  const handleKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
+    if (event.altKey || event.ctrlKey || event.metaKey || (event.key !== 'ArrowLeft' && event.key !== 'ArrowRight')) {
+      return;
+    }
+
+    event.preventDefault();
+    event.stopPropagation();
+    if (event.key === 'ArrowLeft') {
+      handleStepBackClick();
+    } else {
+      handleStepForwardClick();
+    }
   };
 
   const handleSpanClick = (spanId: string) => {
     const newIndex = spanData?.flat.findIndex((s) => s.spanId === spanId);
-    if (newIndex === undefined || spanData === null) {
+    if (newIndex === undefined || newIndex < 0 || spanData === null) {
       return;
     }
 
@@ -146,7 +255,9 @@ export default function TraceDetails({ traceOverview, onBackClick }: TraceDetail
     const parent = spanData.flat.find((s) => s.spanId === newSpan.parentSpanId);
 
     setSelectedSpanIndex(newIndex);
-    handleSpanChange(newSpan, parent);
+    const previousSpan = selectedSpanIndex === null ? undefined : spanData.flat[selectedSpanIndex];
+    const animateStep = selectedSpanIndex !== null && Math.abs(newIndex - selectedSpanIndex) <= 1;
+    handleSpanChange(newSpan, parent, previousSpan, animateStep);
   };
 
   const fetchSpans = useSpanFetch();
@@ -262,7 +373,7 @@ export default function TraceDetails({ traceOverview, onBackClick }: TraceDetail
   const selectedSpan = spanData?.flat[selectedSpanIndex ?? 0];
 
   return (
-    <div>
+    <div onKeyDown={handleKeyDown}>
       <div className="d-flex justify-content-center align-items-center position-relative">
         <Button variant="outline-white" onClick={onBackClick} className="position-absolute start-0 px-0 py-0 border-0">
           &larr;

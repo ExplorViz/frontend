@@ -95,6 +95,10 @@ function SpanTreeItem({ spanTree, selectedSpanId, depth = 0, onClick, onSelectPr
   const invalidParent = spanTree.parent === undefined && spanTree.data.parentSpanId !== undefined;
 
   const handleKeyDown = (event: React.KeyboardEvent) => {
+    if (event.key !== 'ArrowUp' && event.key !== 'ArrowDown') {
+      return;
+    }
+
     event.stopPropagation();
     event.preventDefault();
 

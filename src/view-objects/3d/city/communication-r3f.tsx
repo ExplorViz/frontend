@@ -20,7 +20,9 @@ import {
 } from 'explorviz-frontend/src/utils/landscape-schemes/flat-landscape';
 import BoxLayout from 'explorviz-frontend/src/utils/layout/box-layout';
 import CommunicationLayout from 'explorviz-frontend/src/utils/layout/communication-layout';
-import ClazzCommunicationMesh from 'explorviz-frontend/src/view-objects/3d/city/clazz-communication-mesh';
+import ClazzCommunicationMesh, {
+  mountedCommunicationMeshes,
+} from 'explorviz-frontend/src/view-objects/3d/city/clazz-communication-mesh';
 import ClazzCommuMeshDataModel from 'explorviz-frontend/src/view-objects/3d/city/utils/clazz-communication-mesh-data-model';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import * as THREE from 'three';
@@ -163,10 +165,18 @@ export default function CommunicationR3F({
   const meshRef = useRef<ClazzCommunicationMesh | null>(null);
   // Mirrors meshRef so effects can react to the mesh instance being recreated.
   const [meshInstance, setMeshInstance] = useState<ClazzCommunicationMesh | null>(null);
-  const attachMesh = useCallback((mesh: ClazzCommunicationMesh | null) => {
-    meshRef.current = mesh;
-    setMeshInstance(mesh);
-  }, []);
+  const attachMesh = useCallback(
+    (mesh: ClazzCommunicationMesh | null) => {
+      if (mesh) {
+        mountedCommunicationMeshes.set(communicationModel.id, mesh);
+      } else if (mountedCommunicationMeshes.get(communicationModel.id) === meshRef.current) {
+        mountedCommunicationMeshes.delete(communicationModel.id);
+      }
+      meshRef.current = mesh;
+      setMeshInstance(mesh);
+    },
+    [communicationModel.id]
+  );
 
   const handleOnPointerOver = (event: any) => {
     event.stopPropagation();
