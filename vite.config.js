@@ -73,14 +73,6 @@ export default defineConfig(({ mode }) => {
           target: userTarget,
           changeOrigin: true,
         },
-        '/v2/code': {
-          target: landscapeTarget,
-          changeOrigin: true,
-        },
-        '/v2/landscapes': {
-          target: landscapeTarget,
-          changeOrigin: true,
-        },
         '/v3/landscapes': {
           target: landscapeTarget,
           changeOrigin: true,

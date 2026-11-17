@@ -97,16 +97,6 @@ server {
 
   # BEGIN landscape-service
 
-  location /v2/code {
-    set $upstream_landscape ${LANDSCAPE_SERV_URL};
-    proxy_pass $upstream_landscape;
-  }
-
-  location /v2/landscapes {
-    set $upstream_landscape ${LANDSCAPE_SERV_URL};
-    proxy_pass $upstream_landscape;
-  }
-
   location /v3/landscapes {
     set $upstream_landscape ${LANDSCAPE_SERV_URL};
     proxy_pass $upstream_landscape;
