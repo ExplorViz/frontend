@@ -1,4 +1,4 @@
-import { CopilotKit } from '@copilotkit/react-core';
+import { CopilotKitProvider, type CopilotKitCoreErrorCode } from '@copilotkit/react-core/v2';
 import { CopilotErrorBoundary } from 'explorviz-frontend/src/components/chatbot/copilot-error-boundary';
 import { type LandscapeData } from 'explorviz-frontend/src/utils/landscape-schemes/landscape-data';
 import { PropsWithChildren, RefObject, use, useEffect, useState } from 'react';
@@ -22,6 +22,66 @@ import { PingIndicator } from './ping-indicator';
 const copilotUrl: string =
   (import.meta.env.VITE_COPILOT_SERV_URL as string | undefined) || (import.meta.env.PROD ? window.location.origin : '');
 
+/** How often to check whether the AI chat service is (still) reachable. */
+const REACHABILITY_INTERVAL_IN_MS = 30_000;
+const REACHABILITY_TIMEOUT_IN_MS = 5_000;
+
+/**
+ * Whether the AI chat service answers. Probes `/providers` rather than
+ * `/health`: behind the production nginx only `/providers` and `/copilot` are
+ * forwarded, and `/health` would be answered by the frontend itself.
+ */
+function useChatServiceReachable() {
+  const [isReachable, setIsReachable] = useState(false);
+
+  useEffect(() => {
+    if (!copilotUrl) {
+      return;
+    }
+
+    let cancelled = false;
+    let controller: AbortController | undefined;
+
+    const probe = async () => {
+      // A hidden tab keeps its last answer and checks again once visible.
+      if (document.hidden) {
+        return;
+      }
+      controller?.abort();
+      controller = new AbortController();
+      const timeout = setTimeout(() => controller?.abort(), REACHABILITY_TIMEOUT_IN_MS);
+      try {
+        const response = await fetch(`${copilotUrl}/providers`, { signal: controller.signal });
+        const data: unknown = response.ok ? await response.json() : null;
+        if (!cancelled) {
+          setIsReachable(Array.isArray((data as { providers?: unknown } | null)?.providers));
+        }
+      } catch {
+        if (!cancelled) {
+          setIsReachable(false);
+        }
+      } finally {
+        clearTimeout(timeout);
+      }
+    };
+
+    probe();
+    const interval = setInterval(probe, REACHABILITY_INTERVAL_IN_MS);
+    document.addEventListener('visibilitychange', probe);
+    window.addEventListener('online', probe);
+
+    return () => {
+      cancelled = true;
+      controller?.abort();
+      clearInterval(interval);
+      document.removeEventListener('visibilitychange', probe);
+      window.removeEventListener('online', probe);
+    };
+  }, []);
+
+  return isReachable;
+}
+
 const PROVIDER_STORAGE_KEY = 'explorviz-copilot-provider';
 const MODEL_STORAGE_KEY = 'explorviz-copilot-model';
 
@@ -32,8 +92,6 @@ function isUnreachableChatServiceError(error: unknown): boolean {
 }
 
 interface ChatbotProviderProps extends PropsWithChildren {
-  /** When false, no provider fetch and no CopilotKit runtime (visualization-only). */
-  copilotRuntimeRequested: boolean;
   landscapeData: LandscapeData | null;
   showToolsSidebar: boolean;
   setShowToolsSidebar: (open: boolean) => void;
@@ -49,7 +107,6 @@ interface ChatbotProviderProps extends PropsWithChildren {
 
 export function ChatbotProvider({
   children,
-  copilotRuntimeRequested,
   landscapeData,
   showToolsSidebar,
   setShowToolsSidebar,
@@ -70,6 +127,19 @@ export function ChatbotProvider({
   const [isLoadingProviders, setIsLoadingProviders] = useState(false);
   const [reloadCounter, setReloadCounter] = useState(0);
   const [copilotRuntimeError, setCopilotRuntimeError] = useState<string | null>(null);
+  const [isChatOpen, setIsChatOpen] = useState(false);
+  // Latched on first open: until then there is no provider fetch and no
+  // CopilotKit runtime (visualization-only). Afterwards the runtime stays
+  // mounted so closing the chat window keeps the conversation.
+  const [copilotRuntimeRequested, setCopilotRuntimeRequested] = useState(false);
+  const isChatServiceReachable = useChatServiceReachable();
+
+  function setIsChatOpenAndRequestRuntime(open: boolean) {
+    setIsChatOpen(open);
+    if (open) {
+      setCopilotRuntimeRequested(true);
+    }
+  }
 
   function setSelectedProviderPersistent(provider: Provider) {
     setSelectedProvider(provider);
@@ -138,6 +208,12 @@ export function ChatbotProvider({
         const fetched = Array.isArray(data?.providers) ? data.providers : [];
         if (cancelled) return;
 
+        if (fetched.some(({ models }) => models.some(({ agentId }) => !agentId))) {
+          throw new Error(
+            'The AI chat service is outdated (its models have no CopilotKit agent ids). Update the ai-chat-service.'
+          );
+        }
+
         setProviders(fetched);
         if (fetched.length === 0) {
           setSelectedProvider(EMPTY_PROVIDER);
@@ -192,27 +268,7 @@ export function ChatbotProvider({
     };
   }, [copilotRuntimeRequested, reloadCounter]);
 
-  const copilotHeaders: Record<string, string> = {};
-  if (selectedProvider.id) {
-    copilotHeaders['x-explorviz-provider'] = selectedProvider.id;
-  }
-  if (selectedModel.id) {
-    copilotHeaders['x-explorviz-model'] = selectedModel.id;
-  }
-
-  let copilotRuntimeUrl: string | undefined;
-  if (copilotUrl) {
-    const url = new URL(`${copilotUrl}/copilot`);
-    if (selectedProvider.id) {
-      url.searchParams.set('provider', selectedProvider.id);
-    }
-    if (selectedModel.id) {
-      url.searchParams.set('model', selectedModel.id);
-    }
-    copilotRuntimeUrl = url.toString();
-  }
-
-  const copilotRuntimeKey = `${selectedProvider.id || 'none'}:${selectedModel.id || 'none'}`;
+  const copilotRuntimeUrl = copilotUrl ? `${copilotUrl}/copilot` : undefined;
 
   const isCopilotRuntimeReady =
     copilotRuntimeRequested &&
@@ -220,7 +276,7 @@ export function ChatbotProvider({
     !providersError &&
     !isLoadingProviders &&
     providers.length > 0 &&
-    Boolean(selectedModel.id) &&
+    Boolean(selectedModel.agentId) &&
     Boolean(copilotRuntimeUrl) &&
     !copilotRuntimeError;
 
@@ -248,9 +304,11 @@ export function ChatbotProvider({
     isCopilotRuntimeReady,
     copilotRuntimeError,
     copilotRuntimeUrl,
-    copilotRuntimeHeaders: copilotHeaders,
-    copilotRuntimeKey,
     reportCopilotCrash: handleCopilotCrash,
+    isChatOpen,
+    setIsChatOpen: setIsChatOpenAndRequestRuntime,
+    copilotRuntimeRequested,
+    isChatServiceReachable,
   };
 
   return (
@@ -261,11 +319,12 @@ export function ChatbotProvider({
   );
 }
 
-function handleCopilotKitError(errorEvent: { message?: string; error?: unknown }) {
-  const message =
-    errorEvent.message ??
-    (errorEvent.error instanceof Error ? errorEvent.error.message : 'CopilotKit reported an error.');
-  console.warn('[CopilotKit]', message, errorEvent);
+function handleCopilotKitError(event: {
+  error: Error;
+  code: CopilotKitCoreErrorCode;
+  context: Record<string, unknown>;
+}) {
+  console.warn('[CopilotKit]', event.code, event.error.message || 'CopilotKit reported an error.', event.context);
 }
 
 /**
@@ -273,14 +332,8 @@ function handleCopilotKitError(errorEvent: { message?: string; error?: unknown }
  * does not remount the 3D visualization.
  */
 export function CopilotRuntime({ children }: PropsWithChildren) {
-  const {
-    isCopilotRuntimeReady,
-    copilotRuntimeUrl,
-    copilotRuntimeHeaders,
-    copilotRuntimeKey,
-    reportCopilotCrash,
-    landscapeData,
-  } = use(ChatbotContext);
+  const { isCopilotRuntimeReady, copilotRuntimeUrl, selectedModel, reportCopilotCrash, landscapeData } =
+    use(ChatbotContext);
 
   if (!isCopilotRuntimeReady || !copilotRuntimeUrl) {
     return children;
@@ -289,19 +342,21 @@ export function CopilotRuntime({ children }: PropsWithChildren) {
   const cities = Object.values(landscapeData?.flatLandscapeData?.cities ?? {});
 
   return (
-    <CopilotErrorBoundary fallback={children} resetKey={copilotRuntimeKey} onError={reportCopilotCrash}>
-      <CopilotKit
-        key={copilotRuntimeKey}
-        enableInspector={false}
-        showDevConsole={false}
+    <CopilotErrorBoundary fallback={children} resetKey={selectedModel.agentId} onError={reportCopilotCrash}>
+      {/* Each model is its own agent on the AI chat service; switching models
+          switches the agent, which starts with its own conversation. */}
+      <CopilotKitProvider
         runtimeUrl={copilotRuntimeUrl}
-        headers={copilotRuntimeHeaders}
+        agentId={selectedModel.agentId}
+        useSingleEndpoint={false}
+        enableInspector={false}
+        showIntelligenceIndicator={false}
         onError={handleCopilotKitError}
       >
         <CopilotResources cities={cities} />
         <CopilotTools />
         {children}
-      </CopilotKit>
+      </CopilotKitProvider>
     </CopilotErrorBoundary>
   );
 }

@@ -20,7 +20,7 @@ import { z } from 'zod';
 import { EditingContext } from '../editing/editing-context-store';
 import { SettingsSidebarTab } from '../visualization/page-setup/sidebar/customizationbar/settings-sidebar-context';
 import { ToolbarTool } from '../visualization/page-setup/sidebar/toolbar/toolbar-context';
-import { ChatbotContext } from './chatbot-context-store';
+import { CHATBOT_WIDGET_CLASS, ChatbotContext } from './chatbot-context-store';
 import {
   copilotSettingComponentIds,
   copilotToolComponentIds,
@@ -30,6 +30,27 @@ import {
 
 const SCREENSHOT_MAX_WIDTH = 1280;
 const SCREENSHOT_MAX_HEIGHT = 720;
+
+/**
+ * Renders the page (including the WebGL canvas) to a JPEG data URL that is at
+ * most 1280x720. JPEG keeps the image small enough to be resent with every
+ * later request of the conversation.
+ */
+async function takeScreenshot() {
+  const width = window.innerWidth;
+  const height = window.innerHeight;
+  const dataUrl = await htmlToImage.toJpeg(document.body, {
+    width,
+    height,
+    pixelRatio: Math.min(1, SCREENSHOT_MAX_WIDTH / width, SCREENSHOT_MAX_HEIGHT / height),
+    quality: 0.85,
+    // JPEG has no transparency; without this, unpainted areas turn black
+    backgroundColor: getComputedStyle(document.body).backgroundColor || '#ffffff',
+    // The chat window would cover the UI the model is asked about
+    filter: (node) => !(node instanceof Element && node.classList.contains(CHATBOT_WIDGET_CLASS)),
+  });
+  return dataUrl;
+}
 
 function normalizeText(value?: string) {
   return (value ?? '').trim().toLowerCase();
@@ -687,71 +708,28 @@ export function CopilotTools() {
   useFrontendTool({
     name: 'take-screenshot',
     description:
-      'Takes a screenshot of the current browser window, scales it down to a max of 1280x720 if larger, and appends it as an user message to the chat. Use this to explain UI parts outside the 3d landscape. When an error occurs when taking the screenshot, please explain the error message to the user.',
+      'Takes a screenshot of the current browser window, scaled down to at most 1280x720, and returns it as an image. The chat window itself is left out so the UI behind it stays visible. Use this to see and explain UI parts outside the 3D landscape. When an error occurs when taking the screenshot, please explain the error message to the user.',
     parameters: z.object({}),
-    // @ts-ignore
-    _isRenderAndWait: true,
     handler: async () => {
-      const url = await htmlToImage.toBlob(document.body).then((blob) => {
-        return new Promise<string>((resolve, reject) => {
-          if (!blob) {
-            reject(new Error('Could not convert to blob'));
-            return;
-          }
-          const reader = new FileReader();
-          reader.onloadend = () => {
-            const img = new Image();
-            img.onload = () => {
-              const { width, height } = img;
-              const scale = Math.min(1, SCREENSHOT_MAX_WIDTH / width, SCREENSHOT_MAX_HEIGHT / height);
-              if (scale < 1) {
-                const canvas = document.createElement('canvas');
-                canvas.width = Math.round(width * scale);
-                canvas.height = Math.round(height * scale);
-                const ctx = canvas.getContext('2d');
-                if (!ctx) {
-                  reject(new Error('Could not get canvas context'));
-                  return;
-                }
-                ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-                resolve(canvas.toDataURL('image/png'));
-              } else {
-                resolve(img.src);
-              }
-            };
-            img.onerror = () => reject(new Error('Could not load screenshot'));
-            img.src = reader.result as string;
-          };
-          reader.onerror = () => reject(new Error('Could not read screenshot data'));
-          reader.readAsDataURL(blob);
-        });
-      });
-      const [format, bytes] = url.split(/data:image\/|;|base64,/).filter(Boolean);
-      const mimeType = format === 'jpg' ? 'image/jpeg' : `image/${format}`;
+      const dataUrl = await takeScreenshot();
+      const [, mimeType, bytes] = dataUrl.match(/^data:([^;,]+);base64,(.+)$/) ?? [];
+      if (!mimeType || !bytes) {
+        throw new Error('The browser returned an empty screenshot');
+      }
+      // An array of AG-UI content parts reaches the model as an image; any
+      // other return value would be sent as JSON text.
       return [
-        {
-          type: 'image',
-          source: {
-            type: 'data',
-            value: bytes,
-            mimeType,
-          },
-        },
+        { type: 'text', text: `Screenshot of the browser window (${window.innerWidth}x${window.innerHeight} CSS px).` },
+        { type: 'image', source: { type: 'data', value: bytes, mimeType } },
       ];
     },
     render: ({ status, result }) => (
       <ToolCallCard
         status={status}
         action="screenshot"
-        errorMessage={
-          (typeof result === 'string' &&
-            result.includes('Error taking screenshot: ') &&
-            result.split('Error taking screenshot: ')[1]) ||
-          undefined
-        }
+        errorMessage={typeof result === 'string' && result.startsWith('Error: ') ? result.slice(7) : undefined}
       />
     ),
-    followUp: false,
   });
 
   useFrontendTool({
@@ -774,7 +752,14 @@ export function CopilotTools() {
         cancelable: true,
         view: window,
       });
-      document.elementFromPoint(clientX, clientY)?.dispatchEvent(clickEvent);
+      // Screenshots leave the chat window out, so click what lies behind it.
+      const target = document
+        .elementsFromPoint(clientX, clientY)
+        .find((element) => !element.closest(`.${CHATBOT_WIDGET_CLASS}`));
+      if (!target) {
+        throw new Error(`There is no element at (${clientX}, ${clientY})`);
+      }
+      target.dispatchEvent(clickEvent);
       pingScreenAtPoint(clientX, clientY);
     },
     render: ({ args, status }) => {

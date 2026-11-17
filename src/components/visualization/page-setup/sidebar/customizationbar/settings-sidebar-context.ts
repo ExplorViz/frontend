@@ -3,7 +3,6 @@ import { createContext } from 'react';
 export enum SettingsSidebarTab {
   EntityConfig = 'Entity Config',
   Collaboration = 'Collaboration',
-  Chatbot = 'Chatbot',
   VsCodeExtension = 'Extension',
   Restructure = 'Restructure',
   Snapshot = 'Snapshot',

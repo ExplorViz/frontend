@@ -2,7 +2,7 @@ import { GearIcon, ToolsIcon } from '@primer/octicons-react';
 import VscodeExtensionSettings from 'explorviz-frontend/src/components/collaboration/visualization/page-setup/sidebar/customizationbar/vscode/vscode-extension-settings';
 import HeatmapInfo from 'explorviz-frontend/src/components/heatmap/heatmap-info';
 import ComponentTabs from 'explorviz-frontend/src/components/visualization/page-setup/sidebar/component-tabs';
-import ChatbotBox from 'explorviz-frontend/src/components/visualization/page-setup/sidebar/customizationbar/chatbot/chatbot-box';
+import { ChatbotWidget } from 'explorviz-frontend/src/components/chatbot/chatbot-widget';
 import EntityConfig from 'explorviz-frontend/src/components/visualization/page-setup/sidebar/customizationbar/entity-config/entity-config';
 import Restructure from 'explorviz-frontend/src/components/visualization/page-setup/sidebar/customizationbar/restructure/restructure';
 import SettingsSidebar from 'explorviz-frontend/src/components/visualization/page-setup/sidebar/customizationbar/settings-sidebar';
@@ -248,14 +248,11 @@ export default function BrowserRendering({ userApiTokens, visualizationPaused }:
     };
   }, []);
 
-  const copilotRuntimeRequested = showSettingsSidebar && selectedSettingsSidebarTab === SettingsSidebarTab.Chatbot;
-
   // MARK: JSX
 
   return (
     <EditingProvider>
       <ChatbotProvider
-        copilotRuntimeRequested={copilotRuntimeRequested}
         landscapeData={landscapeData}
         showToolsSidebar={showToolsSidebar}
         setShowToolsSidebar={setShowToolsSidebar}
@@ -320,6 +317,8 @@ export default function BrowserRendering({ userApiTokens, visualizationPaused }:
                   ))}
                 </div>
               </div>
+
+              <ChatbotWidget />
 
               <ToolSelection show={showToolsSidebar} closeToolSelection={() => setShowToolsSidebar(false)}>
                 <ComponentTabs
@@ -393,10 +392,6 @@ export default function BrowserRendering({ userApiTokens, visualizationPaused }:
                           {
                             value: SettingsSidebarTab.Collaboration,
                             content: <CollaborationControls />,
-                          },
-                          {
-                            value: SettingsSidebarTab.Chatbot,
-                            content: <ChatbotBox />,
                           },
                           {
                             value: SettingsSidebarTab.VsCodeExtension,

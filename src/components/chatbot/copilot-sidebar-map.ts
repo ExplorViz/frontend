@@ -32,7 +32,6 @@ export function resolveCopilotToolbarTool(id: string): ToolbarTool | undefined {
 /** Copilot setting ids -> settings sidebar tab (see open-close-settings-component). */
 export const copilotSettingComponentToTab: Record<string, SettingsSidebarTab> = {
   Collaboration: SettingsSidebarTab.Collaboration,
-  Chatbot: SettingsSidebarTab.Chatbot,
   'VSCode-Extension-Settings': SettingsSidebarTab.VsCodeExtension,
   'Restructure-Landscape': SettingsSidebarTab.Restructure,
   'Persist-Landscape': SettingsSidebarTab.Snapshot,

@@ -1,4 +1,4 @@
-import { useCopilotChatInternal } from '@copilotkit/react-core';
+import { useAgent } from '@copilotkit/react-core/v2';
 import { DownloadIcon } from '@primer/octicons-react';
 import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
 import { useVisualizationStore } from 'explorviz-frontend/src/stores/visualization-store';
@@ -21,7 +21,6 @@ function flattenSettings(settings: VisualizationSettings) {
 }
 
 export function StudyDownloadButton() {
-  const { messages } = useCopilotChatInternal();
   const { hoveredEntityId, removedDistrictIds } = useVisualizationStore();
   const highlightedEntityIds = useHighlights((ids) => ids);
   const closedDistrictIds = useDistricts((districts) => districts.closedDistrictIds);
@@ -34,6 +33,8 @@ export function StudyDownloadButton() {
     selectedToolbarTool,
     selectedSettingsSidebarTab,
   } = use(ChatbotContext);
+  // Messages are read on click, so skip re-rendering on every streamed update.
+  const { agent } = useAgent({ agentId: selectedModel.agentId, updates: [] });
   const { canGoBack, canGoForward } = use(EditingContext);
   const visualizationSettings = useUserSettingsStore((state) => state.visualizationSettings);
 
@@ -49,7 +50,8 @@ export function StudyDownloadButton() {
       createdAt: new Date().toISOString(),
       provider: selectedProvider,
       model: selectedModel,
-      messages,
+      threadId: agent.threadId,
+      messages: agent.messages,
       landscapeData,
       landscapeSummary: applicationSummary,
       resourcesSnapshot: {

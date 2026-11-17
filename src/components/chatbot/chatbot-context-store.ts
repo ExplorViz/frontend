@@ -6,6 +6,8 @@ import { ToolbarTool } from '../visualization/page-setup/sidebar/toolbar/toolbar
 export interface Model {
   id: string;
   name: string;
+  /** CopilotKit agent on the AI chat service that runs this model. */
+  agentId: string;
 }
 
 export interface Provider {
@@ -14,7 +16,10 @@ export interface Provider {
   models: Model[];
 }
 
-export const EMPTY_MODEL: Model = { id: '', name: '' };
+/** Marks the floating chat so screenshots and simulated clicks can look past it. */
+export const CHATBOT_WIDGET_CLASS = 'chatbot-widget';
+
+export const EMPTY_MODEL: Model = { id: '', name: '', agentId: '' };
 export const EMPTY_PROVIDER: Provider = { id: '', name: '', models: [] };
 
 export type EntityFilteringFilters = {
@@ -60,9 +65,14 @@ export interface ChatbotContextData {
   isCopilotRuntimeReady: boolean;
   copilotRuntimeError: string | null;
   copilotRuntimeUrl: string | undefined;
-  copilotRuntimeHeaders: Record<string, string>;
-  copilotRuntimeKey: string;
   reportCopilotCrash: (error: Error) => void;
+  /** Whether the floating chat window is currently shown. */
+  isChatOpen: boolean;
+  setIsChatOpen: (open: boolean) => void;
+  /** True once the chat was opened; from then on the runtime stays mounted. */
+  copilotRuntimeRequested: boolean;
+  /** Whether the AI chat service answered its last reachability check. */
+  isChatServiceReachable: boolean;
 }
 
 const defaultContext: ChatbotContextData = {
@@ -89,9 +99,11 @@ const defaultContext: ChatbotContextData = {
   isCopilotRuntimeReady: false,
   copilotRuntimeError: null,
   copilotRuntimeUrl: undefined,
-  copilotRuntimeHeaders: {},
-  copilotRuntimeKey: 'none:none',
   reportCopilotCrash: () => {},
+  isChatOpen: false,
+  setIsChatOpen: () => {},
+  copilotRuntimeRequested: false,
+  isChatServiceReachable: false,
 };
 
 export const ChatbotContext = createContext(defaultContext);
