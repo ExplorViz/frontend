@@ -5,6 +5,7 @@ import {
   applyHighlightAction,
   clearLandscapeState,
   replaceDistricts,
+  type ScreenWallTileConfig,
 } from '../src/utils/collaboration/room-contract.generated';
 
 /*
@@ -32,6 +33,7 @@ const Participant = schema(
     muted: t.boolean().default(false),
     spectating: t.string().default(''),
     immersiveEntityId: t.string().default(''),
+    tile: t.number().default(-1),
   },
   'Participant'
 );
@@ -72,6 +74,11 @@ const Annotation = schema(
   },
   'Annotation'
 );
+const ScreenWallTile = schema(
+  { name: t.string(), width: t.number(), height: t.number(), diagonal: t.number(), x: t.number(), y: t.number() },
+  'ScreenWallTile'
+);
+const ScreenWall = schema({ active: t.boolean().default(false), tiles: t.array(ScreenWallTile) }, 'ScreenWall');
 const CollaborationState = schema(
   {
     participants: t.map(Participant),
@@ -85,6 +92,7 @@ const CollaborationState = schema(
     highlights: t.map('string'),
     popups: t.map(SharedPopup),
     annotations: t.map(Annotation),
+    screenWall: ScreenWall,
   },
   'CollaborationState'
 );
@@ -412,6 +420,12 @@ export class FakeServerRoom {
       String(annotation.id),
       new Annotation({ title: '', text: '', lastEditorName: annotation.creatorName, ...annotation })
     );
+  }
+
+  /** Sets the Screen Wall's Tiles (the service would also assign `tile` by name); call it inside `update`. */
+  putScreenWallTiles(tiles: ScreenWallTileConfig[]) {
+    this.state.screenWall.tiles.clear();
+    for (const tile of tiles) this.state.screenWall.tiles.push(new ScreenWallTile(tile));
   }
 
   seat(sessionId: string, name: string, holdFirstState = false) {

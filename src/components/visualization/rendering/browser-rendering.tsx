@@ -30,6 +30,7 @@ import {
   ToolbarTool,
 } from 'explorviz-frontend/src/components/visualization/page-setup/sidebar/toolbar/toolbar-context';
 import CanvasWrapper from 'explorviz-frontend/src/components/visualization/rendering/canvas-wrapper';
+import ScreenWallTileMode from 'explorviz-frontend/src/components/visualization/rendering/screen-wall-tile-mode';
 import { useIdeWebsocketStore } from 'explorviz-frontend/src/ide/ide-websocket';
 import { useAnnotationHandlerStore } from 'explorviz-frontend/src/stores/annotation-handler';
 import {
@@ -42,6 +43,7 @@ import { usePopupHandlerStore } from 'explorviz-frontend/src/stores/popup-handle
 import { useRenderingServiceStore } from 'explorviz-frontend/src/stores/rendering-service';
 import { ApiToken } from 'explorviz-frontend/src/stores/user-api-token';
 import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
+import { enterCanvasFullscreen } from 'explorviz-frontend/src/utils/canvas-fullscreen';
 import GamepadControls from 'explorviz-frontend/src/utils/controls/gamepad/gamepad-controls';
 import { useEffect, useRef, useState } from 'react';
 import Button from 'react-bootstrap/Button';
@@ -110,51 +112,7 @@ export default function BrowserRendering({ userApiTokens, visualizationPaused }:
     }
   };
 
-  const enterFullscreen = () => {
-    // Find the canvas element by ID (set in CanvasWrapper)
-    // The Canvas component from @react-three/fiber renders a canvas element
-    let canvasElement: HTMLCanvasElement | null = document.getElementById('three-js-canvas') as HTMLCanvasElement;
-
-    // If not found by ID, try to find the canvas element within the element with that ID
-    // or find any canvas element in the rendering container
-    if (!canvasElement || canvasElement.tagName !== 'CANVAS') {
-      const container = document.getElementById('three-js-canvas');
-      if (container) {
-        canvasElement = container.querySelector('canvas');
-      }
-      // Last resort: find any canvas in the rendering container
-      if (!canvasElement) {
-        const renderingContainer = document.getElementById('rendering');
-        canvasElement = renderingContainer?.querySelector('canvas') || null;
-      }
-    }
-
-    if (!canvasElement) {
-      console.error('Unable to enter fullscreen: Canvas element not found');
-      return;
-    }
-
-    // Try standard fullscreen API first
-    if (canvasElement.requestFullscreen) {
-      canvasElement.requestFullscreen().catch((error) => {
-        console.error('Error entering fullscreen:', error);
-      });
-    }
-    // Fallback for WebKit browsers (Safari)
-    else if ((canvasElement as any).webkitRequestFullscreen) {
-      (canvasElement as any).webkitRequestFullscreen();
-    }
-    // Fallback for Mozilla browsers
-    else if ((canvasElement as any).mozRequestFullScreen) {
-      (canvasElement as any).mozRequestFullScreen();
-    }
-    // Fallback for MS browsers
-    else if ((canvasElement as any).msRequestFullscreen) {
-      (canvasElement as any).msRequestFullscreen();
-    } else {
-      console.error('Fullscreen API is not supported in this browser');
-    }
-  };
+  const enterFullscreen = () => void enterCanvasFullscreen();
 
   // MARK: State
 
@@ -348,6 +306,8 @@ export default function BrowserRendering({ userApiTokens, visualizationPaused }:
                   </ContextMenu>
 
                   {landscapeData && <Popups landscapeData={landscapeData} />}
+
+                  <ScreenWallTileMode />
 
                   {landscapeData && <EntityFilteringApplier landscapeData={landscapeData} />}
 

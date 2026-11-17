@@ -2,6 +2,8 @@ import {
   AlertIcon,
   CheckIcon,
   CopyIcon,
+  DeviceDesktopIcon,
+  GearIcon,
   GlobeIcon,
   KeyIcon,
   LinkIcon,
@@ -32,22 +34,27 @@ import {
   useRoomConnectionStore,
   useRoomState,
 } from 'explorviz-frontend/src/utils/collaboration/room-connection';
-import { roomLink } from 'explorviz-frontend/src/utils/collaboration/room-link';
 import type { RoomVisibility } from 'explorviz-frontend/src/utils/collaboration/room-contract.generated';
+import { roomLink } from 'explorviz-frontend/src/utils/collaboration/room-link';
 import { saveSnapshotOfView } from 'explorviz-frontend/src/utils/snapshot/snapshot-helpers';
-import { SpectateButton, SpectatingStatus } from './spectating-status';
 import { useEffect, useRef, useState, type ReactNode } from 'react';
 import Form from 'react-bootstrap/Form';
 import OverlayTrigger from 'react-bootstrap/OverlayTrigger';
 import Tooltip from 'react-bootstrap/Tooltip';
+import { ScreenWallEditor } from './screen-wall-editor';
+import { SpectateButton, SpectatingStatus } from './spectating-status';
 
 type Reachability = 'checking' | 'reachable' | 'unreachable';
+type Panel = 'settings' | 'screenWall';
 
 // The Collaboration section of the sidebar.
 export default function CollaborationControls() {
   const [reachability, setReachability] = useState<Reachability>('checking');
   const room = useRoomConnectionStore((state) => state.room);
   const keptChat = useChat().entries.length > 0;
+  // The room settings and the Screen Wall editor are hidden until opened from the header.
+  const [openPanel, setOpenPanel] = useState<Panel | undefined>();
+  const toggle = (panel: Panel) => setOpenPanel((open) => (open === panel ? undefined : panel));
 
   useEffect(() => {
     let active = true;
@@ -63,9 +70,12 @@ export default function CollaborationControls() {
   return (
     <div className="collaboration-controls">
       <div className="collaboration-controls-scroll">
-        <h6 className="bold mb-3">Collaboration</h6>
+        <div className="collab-header">
+          <h6 className="bold mb-0">Collaboration</h6>
+          {room && <PanelToggles open={openPanel} onToggle={toggle} />}
+        </div>
         {room ? (
-          <RoomPanel />
+          <RoomPanel openPanel={openPanel} />
         ) : (
           <>
             {reachability === 'checking' && <p className="collab-hint mb-0">Looking for the collaboration service…</p>}
@@ -81,6 +91,38 @@ export default function CollaborationControls() {
       {(room || keptChat) && <ChatBox />}
     </div>
   );
+}
+
+/** The header buttons that open the room settings and, for the Host, the Screen Wall editor. */
+function PanelToggles({ open, onToggle }: { open: Panel | undefined; onToggle: (panel: Panel) => void }) {
+  const isHost = useIsHost();
+  const toggles: { panel: Panel; label: string; icon: ReactNode }[] = [
+    ...(isHost ? [{ panel: 'screenWall' as const, label: 'Screen Wall', icon: <DeviceDesktopIcon size={14} /> }] : []),
+    { panel: 'settings', label: 'Room settings', icon: <GearIcon size={14} /> },
+  ];
+  return (
+    <span className="collab-header-actions">
+      {toggles.map(({ panel, label, icon }) => (
+        <button
+          key={panel}
+          type="button"
+          className={`collab-icon-button${open === panel ? ' active' : ''}`}
+          aria-label={label}
+          aria-pressed={open === panel}
+          title={label}
+          onClick={() => onToggle(panel)}
+        >
+          {icon}
+        </button>
+      ))}
+    </span>
+  );
+}
+
+function useIsHost() {
+  const room = useRoomConnectionStore((state) => state.room);
+  const state = useRoomState();
+  return !!room && state?.hostId === room.sessionId;
 }
 
 function RoomEntryForm() {
@@ -251,7 +293,7 @@ function JoinNotice({ code, onBack, onJoin }: { code: string; onBack: () => void
   );
 }
 
-function RoomPanel() {
+function RoomPanel({ openPanel }: { openPanel: Panel | undefined }) {
   const { room, reconnecting, leaveRoom, kick, handOverHost } = useRoomConnectionStore();
   const state = useRoomState();
   const districtSharing = useDistrictSharing();
@@ -380,20 +422,29 @@ function RoomPanel() {
         })}
       </ul>
 
-      <Form.Check
-        type="switch"
-        id="collaboration-district-sharing"
-        className="collab-setting"
-        label="Share Districts"
-        title={
-          isHost
-            ? 'When off, everyone opens and closes Districts for themselves'
-            : 'Only the Host can change whether Districts are shared'
-        }
-        checked={districtSharing ?? true}
-        disabled={!isHost}
-        onChange={(event) => setDistrictSharing(event.target.checked)}
-      />
+      {openPanel === 'settings' && (
+        <section className="collab-group" aria-labelledby="collaboration-room-settings">
+          <h6 className="collab-group-title" id="collaboration-room-settings">
+            Room settings
+          </h6>
+          <Form.Check
+            type="switch"
+            id="collaboration-district-sharing"
+            className="collab-setting"
+            label="Share Districts"
+            title={
+              isHost
+                ? 'When off, everyone opens and closes Districts for themselves'
+                : 'Only the Host can change whether Districts are shared'
+            }
+            checked={districtSharing ?? true}
+            disabled={!isHost}
+            onChange={(event) => setDistrictSharing(event.target.checked)}
+          />
+        </section>
+      )}
+
+      {isHost && openPanel === 'screenWall' && <ScreenWallEditor />}
 
       <button type="button" className="collab-button danger-outline" onClick={() => leaveRoom()}>
         <SignOutIcon size={14} />

@@ -28,6 +28,7 @@ import { type ContextMenuHitEntity, contextMenuPickAt } from 'explorviz-frontend
 import { requestRenameCity } from 'explorviz-frontend/src/utils/landscape-http-request-util';
 import { pingByModelId } from 'explorviz-frontend/src/view-objects/3d/city/ping-animation';
 import { useDistricts } from 'explorviz-frontend/src/utils/collaboration/districts';
+import { useXrAllowed } from 'explorviz-frontend/src/utils/collaboration/screen-wall-tile';
 
 export type ContextMenuItem = {
   id: string;
@@ -134,6 +135,7 @@ export default function ContextMenu({ children }: ContextMenuProps) {
   }, []);
 
   const setVisualizationMode = useLocalUserStore((state) => state.setVisualizationMode);
+  const xrAllowed = useXrAllowed();
 
   const backgroundMenuItems: ContextMenuItem[] = useMemo(
     () => [
@@ -165,15 +167,19 @@ export default function ContextMenu({ children }: ContextMenuProps) {
         title: 'Ping Annotations',
         action: pingAnnotations,
       },
-      {
-        id: 'bg-enter-vr',
-        title: 'Enter VR',
-        action: () => {
-          setVisualizationMode('vr');
-        },
-      },
+      ...(xrAllowed
+        ? [
+            {
+              id: 'bg-enter-vr',
+              title: 'Enter VR',
+              action: () => {
+                setVisualizationMode('vr');
+              },
+            },
+          ]
+        : []),
     ],
-    [closedDistrictIds, resetView, isCommRendered, pingAnnotations, setVisualizationMode]
+    [closedDistrictIds, resetView, isCommRendered, pingAnnotations, setVisualizationMode, xrAllowed]
   );
 
   const getFoundationMenuItems = (cityId: string) => {

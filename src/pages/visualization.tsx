@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from 'react';
 import BrowserRendering from 'explorviz-frontend/src/components/visualization/rendering/browser-rendering';
 import PlayPauseButton from 'explorviz-frontend/src/components/visualization/rendering/play-pause-button';
 import XrRendering from 'explorviz-frontend/src/components/visualization/rendering/xr-rendering';
+import { useXrAllowed } from 'explorviz-frontend/src/utils/collaboration/screen-wall-tile';
 import { useLocalUserStore } from 'explorviz-frontend/src/stores/collaboration/local-user';
 import { useCommitTreeStateStore } from 'explorviz-frontend/src/stores/commit-tree-state';
 import { useEntityFilteringStore } from 'explorviz-frontend/src/stores/entity-filtering-store';
@@ -157,7 +158,9 @@ export default function Visualization() {
   const renderingServiceTriggerRenderingForGivenLandscapeData = useRenderingServiceStore(
     (state) => state.triggerRenderingForGivenLandscapeData
   );
-  const localUserVisualizationMode = useLocalUserStore((state) => state.visualizationMode);
+  const xrAllowed = useXrAllowed();
+  const storedVisualizationMode = useLocalUserStore((state) => state.visualizationMode);
+  const localUserVisualizationMode = xrAllowed ? storedVisualizationMode : 'browser';
   const setVisualizationMode = useLocalUserStore((state) => state.setVisualizationMode);
   const restartTimestampPollingAndVizUpdate = useTimestampRepositoryStore(
     (state) => state.restartTimestampPollingAndVizUpdate

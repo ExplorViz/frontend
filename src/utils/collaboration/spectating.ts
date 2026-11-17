@@ -1,3 +1,4 @@
+import * as THREE from 'three';
 import { useRoomConnectionStore, useRoomState } from 'explorviz-frontend/src/utils/collaboration/room-connection';
 import type {
   CameraPose,
@@ -55,24 +56,61 @@ export function useSpectating(): SpectatingView {
 }
 
 /*
- * The latest camera received per spectated Participant. It changes every
- * frame, so it is kept out of React and read in the render loop.
+ * The cameras received per spectated Participant, newest last, each with the
+ * time it arrived. They change every frame, so they are kept out of React and
+ * read in the render loop.
  */
-const latestCameras = new Map<string, CameraPose>();
+type ReceivedPose = { at: number; pose: CameraPose };
+const receivedCameras = new Map<string, ReceivedPose[]>();
+/** Enough to span the delay of `smoothCameraOf` even at 60 Hz. */
+const KEPT_POSES = 8;
 let stopListening: (() => void) | undefined;
 
 useRoomConnectionStore.subscribe((state, previous) => {
   if (state.room === previous.room) return;
   stopListening?.();
   stopListening = undefined;
-  latestCameras.clear();
+  receivedCameras.clear();
   stopListening = state.room?.onMessage('camera', (message: ServerMessages['camera']) => {
     const { from, ...pose } = message;
-    latestCameras.set(from, pose);
+    const poses = receivedCameras.get(from) ?? [];
+    poses.push({ at: performance.now(), pose });
+    if (poses.length > KEPT_POSES) poses.shift();
+    receivedCameras.set(from, poses);
   });
 });
 
 /** The last camera the service forwarded from this Participant, if any. */
 export function latestCameraOf(sessionId: string): CameraPose | undefined {
-  return latestCameras.get(sessionId);
+  return receivedCameras.get(sessionId)?.at(-1)?.pose;
 }
+
+/** How far behind `smoothCameraOf` shows the received camera, so that there is a next pose to move towards. */
+export const SMOOTHING_DELAY_MS = 50;
+
+/**
+ * Puts into `camera` this Participant's position and orientation as received
+ * SMOOTHING_DELAY_MS ago, interpolated between the poses around then (lerp and
+ * slerp). Returns the latest pose, for its projection, or undefined if none came.
+ */
+export function smoothCameraOf(sessionId: string, camera: THREE.Object3D): CameraPose | undefined {
+  const poses = receivedCameras.get(sessionId);
+  if (!poses?.length) return undefined;
+  const time = performance.now() - SMOOTHING_DELAY_MS;
+  const next = poses.findIndex(({ at }) => at > time);
+  const latest = poses[poses.length - 1].pose;
+  if (next <= 0) {
+    const { pose } = next === 0 ? poses[0] : poses[poses.length - 1];
+    camera.position.fromArray(pose.position);
+    camera.quaternion.fromArray(pose.quaternion);
+    return latest;
+  }
+  const from = poses[next - 1];
+  const to = poses[next];
+  const t = (time - from.at) / (to.at - from.at);
+  camera.position.fromArray(from.pose.position).lerp(towards.position.fromArray(to.pose.position), t);
+  camera.quaternion.fromArray(from.pose.quaternion).slerp(towards.quaternion.fromArray(to.pose.quaternion), t);
+  return latest;
+}
+
+const towards = { position: new THREE.Vector3(), quaternion: new THREE.Quaternion() };

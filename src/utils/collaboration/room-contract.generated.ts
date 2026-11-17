@@ -414,6 +414,43 @@ export function clearLandscapeState(state: LandscapeBoundState): void {
 }
 
 /**
+ * One Tile of a Screen Wall as the Host configures it: a monitor, shown by
+ * the browser of the Participant with this display name. All Tiles lie in one
+ * plane; positions are in centimeters, x to the right and y downwards, of the
+ * Tile's top-left corner. The service takes the values as they are; nothing
+ * is checked.
+ */
+export type ScreenWallTileConfig = {
+  /** The display name of the Participant whose browser shows this Tile. */
+  name: string;
+  /** The resolution in pixels. */
+  width: number;
+  height: number;
+  /** The diagonal of the visible screen in inches. */
+  diagonal: number;
+  /** The position of the top-left corner in centimeters. */
+  x: number;
+  y: number;
+};
+
+/** A Tile's rectangle on the wall in centimeters: its top-left corner and its physical size. */
+export type TileRectangle = { x: number; y: number; width: number; height: number };
+
+const CENTIMETERS_PER_INCH = 2.54;
+
+/** Where a Tile lies on the wall and how large it is, from its diagonal and the aspect ratio of its resolution. */
+export function tileRectangle(tile: ScreenWallTileConfig): TileRectangle {
+  const diagonalCm = tile.diagonal * CENTIMETERS_PER_INCH;
+  const diagonalPx = Math.hypot(tile.width, tile.height);
+  return {
+    x: tile.x,
+    y: tile.y,
+    width: (diagonalCm * tile.width) / diagonalPx,
+    height: (diagonalCm * tile.height) / diagonalPx,
+  };
+}
+
+/**
  * Messages a client sends to the Room: message type -> payload.
  * Each entry has a handler of the same name in CollaborationRoom's `messages`.
  * A Participant is always named by their session id, in a field `sessionId`.
@@ -440,7 +477,9 @@ export type ClientMessages = {
   spectate: { target: string | null };
   /**
    * The sender's camera, sent only while somebody spectates them, at most
-   * CAMERA_UPDATES_PER_SECOND times per second and only when it changed.
+   * CAMERA_UPDATES_PER_SECOND times per second (the Host
+   * SCREEN_WALL_CAMERA_UPDATES_PER_SECOND while a Screen Wall is active) and
+   * only when it changed.
    */
   camera: CameraPose;
   /** The sender entered the immersive view of this entity, or left it with null. */
@@ -475,6 +514,16 @@ export type ClientMessages = {
   annotationEdit: { id: number; title: string; text: string };
   /** Removes an annotation for everyone. */
   annotationRemove: { id: number };
+  /**
+   * Host only: makes these Tiles the Room's Screen Wall and makes it active
+   * (or keeps it active with the new Tiles). Tile Participants start
+   * spectating the Host at once.
+   */
+  screenWallApply: { tiles: ScreenWallTileConfig[] };
+  /** Host only: ends the Screen Wall. Its Tiles stop spectating; the Tiles stay in the state. */
+  screenWallStop: Record<string, never>;
+  /** Host only: every Participant receives "screenWallIdentify" and, if they show a Tile, shows its number. */
+  screenWallIdentify: Record<string, never>;
 };
 
 /**
@@ -485,6 +534,11 @@ export type ServerMessages = {
   camera: CameraPose & { from: string };
   /** Another Participant's ping, to be shown in their color (`from` is their session id). */
   ping: Required<Ping> & { from: string; color: string };
+  /**
+   * The Host asked every Tile to show its number in large type for a few
+   * seconds. Sent to all Participants; those without a Tile ignore it.
+   */
+  screenWallIdentify: Record<string, never>;
 };
 
 /**
@@ -506,6 +560,9 @@ export type CameraPose = {
 /** How often a spectated Participant sends its camera at most. */
 export const CAMERA_UPDATES_PER_SECOND = 30;
 
+/** How often the Host sends its camera at most while a Screen Wall is active, for smooth Tiles. */
+export const SCREEN_WALL_CAMERA_UPDATES_PER_SECOND = 60;
+
 // Room state, as plain snapshot types.
 
 export type CollaborationState = {
@@ -520,6 +577,7 @@ export type CollaborationState = {
   highlights: Record<string, string>;
   popups: Record<string, SharedPopup>;
   annotations: Record<string, Annotation>;
+  screenWall: ScreenWall;
 };
 
 export type Participant = {
@@ -528,6 +586,7 @@ export type Participant = {
   muted: boolean;
   spectating: string;
   immersiveEntityId: string;
+  tile: number;
 };
 
 export type ChatEntry = {
@@ -563,4 +622,18 @@ export type Annotation = {
   text: string;
   creatorName: string;
   lastEditorName: string;
+};
+
+export type ScreenWall = {
+  active: boolean;
+  tiles: ScreenWallTile[];
+};
+
+export type ScreenWallTile = {
+  name: string;
+  width: number;
+  height: number;
+  diagonal: number;
+  x: number;
+  y: number;
 };

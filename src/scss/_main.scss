@@ -39,6 +39,10 @@ body {
   user-select: none;
 }
 
+.webgl canvas {
+  background: var(--scene-background);
+}
+
 .canvasViz {
   height: 100%;
   width: 100%;
