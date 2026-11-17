@@ -92,7 +92,7 @@ export default function BottomBar({ timelineDataObjectHandler }: BottomBarProps)
         ref={bottomBarChartContainer}
         style={{ '--bottom-bar-height': `${bottomBarHeight}px` } as CSSProperties}
         className={`bottom-bar-chart
-                ${(selectedChart === 'commit-chart' || selectedChart === 'social-metrics') && isExpanded ? 'bottom-bar-chart-commitTree' : ''}
+                ${(selectedChart === 'commit-chart' || selectedChart === 'social-metrics' || selectedChart === 'runtime-chart') && isExpanded ? 'bottom-bar-chart-commitTree' : ''}
                 ${!isExpanded ? 'bottom-bar-chart-hide' : ''}`}
       >
         <BottomBarChartDropdown selectedView={selectedChart} onSelectView={setSelectedChart} />

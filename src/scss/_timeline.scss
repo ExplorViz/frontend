@@ -10,6 +10,19 @@
   height: 200px;
 }
 
+// Runtime chart fills whatever height the resizable bottom bar leaves below the dropdown
+.runtime-timeline {
+  display: flex;
+  flex: 1 1 auto;
+  min-height: 0;
+}
+
+.runtime-timeline-plot {
+  flex: 1 1 auto;
+  min-width: 0;
+  min-height: 180px;
+}
+
 .plotlyCommitDiv {
   // Fill whatever height the resizable bottom bar leaves below the controls
   flex: 1 1 auto;

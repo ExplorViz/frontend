@@ -51,8 +51,8 @@ export default function PlotlyTimeline({ timelineDataObject, clicked }: PlotlyTi
   const userSlidingWindow = useRef<any>(null);
 
   const timelineDiv = useRef<any>(null);
-  const plotlyDivRef = useRef(null);
-  const plotlyDivDummyRef = useRef(null);
+  const plotlyDivRef = useRef<HTMLDivElement>(null);
+  const plotlyDivDummyRef = useRef<HTMLDivElement>(null);
 
   const plotlyTimestampsWithoutNullValues = useRef<any>(null);
 
@@ -706,6 +706,24 @@ export default function PlotlyTimeline({ timelineDataObject, clicked }: PlotlyTi
     }
   }, [timelineDataObject, timelineUpdateVersion, showDummyTimeline]);
 
+  // Chart fills the resizable bottom bar, but Plotly's responsive option only
+  // reacts to window resizes, so redraw whenever the plot's own size changes
+  useEffect(() => {
+    const plotDiv = showDummyTimeline ? plotlyDivDummyRef.current : plotlyDivRef.current;
+    if (!plotDiv) {
+      return;
+    }
+
+    const resizeObserver = new ResizeObserver(() => {
+      if (timelineDiv.current === plotDiv && timelineDiv.current.layout) {
+        void Plotly.Plots.resize(plotDiv);
+      }
+    });
+    resizeObserver.observe(plotDiv);
+
+    return () => resizeObserver.disconnect();
+  }, [showDummyTimeline]);
+
   return (
     <>
       {showDummyTimeline ? (
@@ -713,10 +731,10 @@ export default function PlotlyTimeline({ timelineDataObject, clicked }: PlotlyTi
           <div className="timeline-no-timestamps-outer">
             <div className="timeline-no-timestamps-inner">No timestamps available!</div>
           </div>
-          <div className="plotlyDiv timeline-blur-effect" ref={plotlyDivDummyRef}></div>
+          <div className="runtime-timeline-plot timeline-blur-effect" ref={plotlyDivDummyRef}></div>
         </>
       ) : (
-        <div style={{ display: 'flex' }} className="flex-row">
+        <div className="runtime-timeline">
           <div style={{ width: '75px', marginLeft: '5px' }}>
             <div style={{ fontWeight: 'bold' }}>Filter</div>
             <div>Max:</div>
@@ -735,8 +753,7 @@ export default function PlotlyTimeline({ timelineDataObject, clicked }: PlotlyTi
             />
           </div>
           <div
-            style={{ width: '100%' }}
-            className="plotlyDiv"
+            className="runtime-timeline-plot"
             onMouseEnter={handleMouseEnter}
             onMouseLeave={handleMouseLeave}
             ref={plotlyDivRef}
