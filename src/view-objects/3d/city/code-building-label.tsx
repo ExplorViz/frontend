@@ -18,11 +18,15 @@ import {
   computeMappedBuildingHeight,
   getCachedBuildingMetricBounds,
 } from 'explorviz-frontend/src/utils/settings/building-metrics';
-import { useEffect, useRef, useState } from 'react';
+import { memo, useEffect, useRef, useState } from 'react';
 import * as THREE from 'three';
 import { useShallow } from 'zustand/react/shallow';
 
-export default function CodeBuildingLabel({ buildingId }: { buildingId: string }) {
+// Memoized: rendered once per building, so a re-rendering city (e.g. while its
+// position animates) must not re-render every label.
+export default memo(CodeBuildingLabel);
+
+function CodeBuildingLabel({ buildingId }: { buildingId: string }) {
   const building = useModelStore.getState().getBuilding(buildingId);
 
   const { isBuildingHovered, isParentHovered } = useVisualizationStore(

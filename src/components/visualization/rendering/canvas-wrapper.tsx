@@ -43,6 +43,7 @@ import ClusterCentroidsR3F from 'explorviz-frontend/src/view-objects/3d/cluster-
 import LandscapeR3F from 'explorviz-frontend/src/view-objects/3d/landscape/landscape-r3f';
 import {
   type CSSProperties,
+  memo,
   type MouseEvent as ReactMouseEvent,
   Suspense,
   useCallback,
@@ -78,7 +79,11 @@ function CameraLayerHandler() {
   return null;
 }
 
-export default function CanvasWrapper({
+// Memoized: the surrounding page re-renders for every sidebar interaction,
+// which must not re-render the scene.
+export default memo(CanvasWrapper);
+
+function CanvasWrapper({
   landscapeData,
   xrStore,
 }: {
@@ -176,7 +181,6 @@ export default function CanvasWrapper({
       buildingDepthMultiplier: state.visualizationSettings.buildingDepthMultiplier.value,
       closedDistrictHeight: state.visualizationSettings.closedDistrictHeight,
       districtLabelPlacement: state.visualizationSettings.districtLabelPlacement.value,
-      colors: state.colors,
       openedDistrictHeight: state.visualizationSettings.openedDistrictHeight,
       enableClustering: state.visualizationSettings.enableClustering.value,
       autoOpenCloseDistricts: state.visualizationSettings.autoOpenCloseDistricts.value,
@@ -199,7 +203,6 @@ export default function CanvasWrapper({
       magnifierOutlineColor: state.visualizationSettings.magnifierOutlineColor.value,
       magnifierOutlineThickness: state.visualizationSettings.magnifierOutlineThickness.value,
       magnifierAntialias: state.visualizationSettings.magnifierAntialias.value,
-      visualizationSettings: state.visualizationSettings,
     }))
   );
 

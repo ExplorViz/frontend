@@ -21,11 +21,15 @@ import CodeBuildingLabel from 'explorviz-frontend/src/view-objects/3d/city/code-
 import CodeBuildings from 'explorviz-frontend/src/view-objects/3d/city/code-buildings';
 import EmbeddedBrowser from 'explorviz-frontend/src/view-objects/3d/city/embedded-browser';
 import gsap from 'gsap';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { memo, useEffect, useMemo, useRef, useState } from 'react';
 import * as THREE from 'three';
 import { useShallow } from 'zustand/react/shallow';
 
-export default function CodeCity({ cityId }: { cityId: string }) {
+// Memoized: a city renders one label per building, so it must not re-render
+// whenever the canvas wrapper does.
+export default memo(CodeCity);
+
+function CodeCity({ cityId }: { cityId: string }) {
   const city = useModelStore((state) => state.cities[cityId])!;
   const districtLayouts = useLayoutStore((state) => state.districtLayouts);
   const cityLayout = useLayoutStore((state) => state.cityLayouts.get(cityId));
