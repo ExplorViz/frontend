@@ -29,6 +29,31 @@ import { useShallow } from 'zustand/react/shallow';
 // whenever the canvas wrapper does.
 export default memo(CodeCity);
 
+// Labels are rendered in groups of this many. To insert a new sibling, React
+// looks through all siblings after it for one that is already mounted, so
+// mounting n labels under one parent ("open all") takes n² steps; with a group
+// per chunk it takes at most LABEL_CHUNK_SIZE steps per label.
+const LABEL_CHUNK_SIZE = 256;
+
+type LabelChunk = { key: string; ids: string[] };
+
+/**
+ * The visible ones of `allIds`, in chunks of LABEL_CHUNK_SIZE consecutive
+ * `allIds`. An id stays in its chunk whatever else is visible, and every chunk
+ * is listed, also an empty one, so its group stays mounted.
+ */
+function chunkVisibleIds(allIds: readonly string[], visibleIds: readonly string[]): LabelChunk[] {
+  const visible = new Set(visibleIds);
+  const chunks: LabelChunk[] = [];
+  for (let start = 0; start < allIds.length; start += LABEL_CHUNK_SIZE) {
+    chunks.push({
+      key: allIds[start],
+      ids: allIds.slice(start, start + LABEL_CHUNK_SIZE).filter((id) => visible.has(id)),
+    });
+  }
+  return chunks;
+}
+
 function CodeCity({ cityId }: { cityId: string }) {
   const city = useModelStore((state) => state.cities[cityId])!;
   const districtLayouts = useLayoutStore((state) => state.districtLayouts);
@@ -82,6 +107,15 @@ function CodeCity({ cityId }: { cityId: string }) {
     [filterMode, districtMeshIds, visibleDistrictIds]
   );
 
+  const buildingLabelChunks = useMemo(
+    () => chunkVisibleIds(cityBuildingIds, visibleBuildingIds),
+    [cityBuildingIds, visibleBuildingIds]
+  );
+  const districtLabelChunks = useMemo(
+    () => chunkVisibleIds(cityDistrictIds, visibleDistrictIds),
+    [cityDistrictIds, visibleDistrictIds]
+  );
+
   const [cityPosition, setCityPosition] = useState<THREE.Vector3 | undefined>(cityLayout?.position);
 
   const componentInstanceMeshRef = useRef<InstancedMesh2>(null);
@@ -116,8 +150,12 @@ function CodeCity({ cityId }: { cityId: string }) {
       {isWebViewOpen && cityLayout && <EmbeddedBrowser city={city} layout={cityLayout} />}
       {cityLayout && <CityFoundation city={city} layout={cityLayout} />}
       <CodeBuildings buildingIds={visibleBuildingIds} city={city} />
-      {visibleBuildingIds.map((buildingId) => (
-        <CodeBuildingLabel key={buildingId + '-label'} buildingId={buildingId} />
+      {buildingLabelChunks.map((chunk) => (
+        <group key={'building-labels-' + chunk.key}>
+          {chunk.ids.map((buildingId) => (
+            <CodeBuildingLabel key={buildingId + '-label'} buildingId={buildingId} />
+          ))}
+        </group>
       ))}
       {showDistricts && districtRenderIds.length > 0 && (
         <CityDistricts
@@ -127,14 +165,18 @@ function CodeCity({ cityId }: { cityId: string }) {
           city={city}
         />
       )}
-      {visibleDistrictIds.map((districtId) => {
-        const district = useModelStore.getState().getDistrict(districtId);
-        const layout = useLayoutStore.getState().getLayout(districtId);
-        if (district && layout) {
-          return <CityDistrictLabel key={districtId + '-label'} district={district} layout={layout} />;
-        }
-        return null;
-      })}
+      {districtLabelChunks.map((chunk) => (
+        <group key={'district-labels-' + chunk.key}>
+          {chunk.ids.map((districtId) => {
+            const district = useModelStore.getState().getDistrict(districtId);
+            const layout = useLayoutStore.getState().getLayout(districtId);
+            if (district && layout) {
+              return <CityDistrictLabel key={districtId + '-label'} district={district} layout={layout} />;
+            }
+            return null;
+          })}
+        </group>
+      ))}
     </group>
   );
 }
