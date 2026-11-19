@@ -227,9 +227,6 @@ export default function Settings({ enterFullscreen, setGamepadSupport }: Setting
         case 'enableGamepadControls':
           setGamepadSupport(value);
           break;
-        case 'heatmapEnabled':
-          setHeatmapActive(value);
-          break;
         default:
           break;
       }

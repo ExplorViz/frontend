@@ -1,5 +1,6 @@
 import HeatmapLegend from 'explorviz-frontend/src/components/heatmap/heatmap-legend.tsx';
 import MetricSelector from 'explorviz-frontend/src/components/heatmap/heatmap-metric-selector';
+import { BuildingMetricIds, useHeatmapStore } from 'explorviz-frontend/src/stores/heatmap/heatmap-store';
 import { Position2D } from 'explorviz-frontend/src/types/pointer-types';
 import React, { useEffect, useRef } from 'react';
 
@@ -70,6 +71,11 @@ export default function HeatmapInfo() {
     if (heatmapRef.current != null) {
       setPopupPosition(heatmapRef.current);
     }
+
+    // Closing the heatmap panel disables the heatmap by deselecting its metric
+    return () => {
+      useHeatmapStore.getState().setSelectedBuildingMetric(BuildingMetricIds.None);
+    };
   }, []);
 
   return (
