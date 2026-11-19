@@ -1,5 +1,5 @@
 import { Text } from '@react-three/drei';
-import { useClusterStore } from 'explorviz-frontend/src/stores/cluster-store';
+import { useIsWithinCentroidDistance } from 'explorviz-frontend/src/stores/cluster-store';
 import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
 import { useVisualizationStore } from 'explorviz-frontend/src/stores/visualization-store';
 import { getEntityDisplayName } from 'explorviz-frontend/src/utils/annotation-utils';
@@ -67,10 +67,7 @@ export default function CityDistrictLabel({ district, layout }: { district: Dist
   const sizeMultiplier = 1.0 + layout.area / 100000.0 + fontSize / 10.0;
   const adjustedThreshold = labelDistanceThreshold * sizeMultiplier;
 
-  const isWithinDistance = useClusterStore((state) => {
-    const distance = state.getCentroidDistance(district.id);
-    return distance !== undefined ? distance <= adjustedThreshold : !enableClustering;
-  });
+  const isWithinDistance = useIsWithinCentroidDistance(district.id, adjustedThreshold, !enableClustering);
 
   if (!isWithinDistance) {
     return null;

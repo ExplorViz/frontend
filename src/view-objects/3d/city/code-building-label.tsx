@@ -1,5 +1,5 @@
 import { Text } from '@react-three/drei';
-import { useClusterStore } from 'explorviz-frontend/src/stores/cluster-store';
+import { useIsWithinCentroidDistance } from 'explorviz-frontend/src/stores/cluster-store';
 import { useImmersiveViewStore } from 'explorviz-frontend/src/stores/immersive-view-store';
 import { useLayoutStore } from 'explorviz-frontend/src/stores/layout-store';
 import { useModelStore } from 'explorviz-frontend/src/stores/repos/model-repository';
@@ -65,16 +65,13 @@ function CodeBuildingLabel({ buildingId }: { buildingId: string }) {
   const sizeMultiplier = 1.0 + (layout?.area ?? 0) / 10000.0;
   const threshold = labelDistanceThreshold * sizeMultiplier;
 
-  const isWithinSemanticZoomDistance = useClusterStore((state) => {
-    if (isImmersiveLabelTarget) {
-      return true;
-    }
-    if (!wantsToShowLabel) {
-      return false;
-    }
-    const distance = state.getCentroidDistance(buildingId);
-    return distance !== undefined ? distance <= threshold : !enableClustering;
-  });
+  const isWithinLabelDistance = useIsWithinCentroidDistance(
+    buildingId,
+    threshold,
+    !enableClustering,
+    wantsToShowLabel && !isImmersiveLabelTarget
+  );
+  const isWithinSemanticZoomDistance = isImmersiveLabelTarget || isWithinLabelDistance;
 
   if (!building || !wantsToShowLabel || !isWithinSemanticZoomDistance) {
     return null;

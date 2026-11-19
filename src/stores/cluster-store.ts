@@ -1,3 +1,4 @@
+import { useCallback, useSyncExternalStore } from 'react';
 import * as THREE from 'three';
 import { create } from 'zustand';
 
@@ -135,3 +136,113 @@ export const useClusterStore = create<ClusterStoreState>()((set, get) => ({
     return get().centroidDistances;
   },
 }));
+
+/*
+ * "Is this entity's cluster within this distance of the camera?", for the
+ * semantic zoom of labels.
+ *
+ * A large landscape has a label per building and the distances change several
+ * times a second while the camera moves. Asking every label on every change
+ * costs frames, so a label is only told when its own answer changes: the
+ * labels are kept per cluster with the range of their thresholds, and a
+ * cluster whose distance stays on one side of that range is skipped as a whole.
+ */
+
+type RangeListener = { entityId: string; threshold: number; notify: () => void; clusterId: number };
+type ClusterRangeListeners = { listeners: Set<RangeListener>; min: number; max: number; stale: boolean };
+
+/** Stands in as the cluster of entities that have none (yet). */
+const UNCLUSTERED = -1;
+const rangeListeners = new Map<number, ClusterRangeListeners>();
+
+function addRangeListener(listener: RangeListener) {
+  listener.clusterId = useClusterStore.getState().entityIdToCluster.get(listener.entityId) ?? UNCLUSTERED;
+  let entry = rangeListeners.get(listener.clusterId);
+  if (!entry) {
+    entry = { listeners: new Set(), min: Infinity, max: -Infinity, stale: false };
+    rangeListeners.set(listener.clusterId, entry);
+  }
+  entry.listeners.add(listener);
+  entry.min = Math.min(entry.min, listener.threshold);
+  entry.max = Math.max(entry.max, listener.threshold);
+}
+
+function removeRangeListener(listener: RangeListener) {
+  const entry = rangeListeners.get(listener.clusterId);
+  if (!entry || !entry.listeners.delete(listener)) return;
+  if (entry.listeners.size === 0) {
+    rangeListeners.delete(listener.clusterId);
+  } else if (listener.threshold === entry.min || listener.threshold === entry.max) {
+    entry.stale = true;
+  }
+}
+
+function refreshThresholdRange(entry: ClusterRangeListeners) {
+  entry.min = Infinity;
+  entry.max = -Infinity;
+  entry.listeners.forEach(({ threshold }) => {
+    if (threshold < entry.min) entry.min = threshold;
+    if (threshold > entry.max) entry.max = threshold;
+  });
+  entry.stale = false;
+}
+
+useClusterStore.subscribe((state, previous) => {
+  if (rangeListeners.size === 0) return;
+
+  if (state.entityIdToCluster !== previous.entityIdToCluster) {
+    // New clusters: every answer may have changed.
+    const all = [...rangeListeners.values()].flatMap((entry) => [...entry.listeners]);
+    rangeListeners.clear();
+    all.forEach(addRangeListener);
+    all.forEach((listener) => listener.notify());
+    return;
+  }
+
+  if (state.centroidDistances === previous.centroidDistances) return;
+  rangeListeners.forEach((entry, clusterId) => {
+    const before = previous.centroidDistances.get(clusterId);
+    const after = state.centroidDistances.get(clusterId);
+    if (before === after) return;
+    if (before === undefined || after === undefined) {
+      entry.listeners.forEach((listener) => listener.notify());
+      return;
+    }
+    if (entry.stale) refreshThresholdRange(entry);
+    // An answer changes if its threshold lies between the two distances.
+    const low = Math.min(before, after);
+    const high = Math.max(before, after);
+    if (high <= entry.min || low > entry.max) return;
+    entry.listeners.forEach((listener) => {
+      if (low <= listener.threshold && listener.threshold < high) listener.notify();
+    });
+  });
+});
+
+/**
+ * Whether the entity's cluster is at most `threshold` away from the camera;
+ * `fallback` while the entity has no cluster or its distance is unknown.
+ * Re-renders only when the answer changes. While not `enabled` the answer is
+ * false and nothing is listened to.
+ */
+export function useIsWithinCentroidDistance(
+  entityId: string,
+  threshold: number,
+  fallback: boolean,
+  enabled = true
+): boolean {
+  const subscribe = useCallback(
+    (notify: () => void) => {
+      if (!enabled) return () => {};
+      const listener: RangeListener = { entityId, threshold, notify, clusterId: UNCLUSTERED };
+      addRangeListener(listener);
+      return () => removeRangeListener(listener);
+    },
+    [entityId, threshold, enabled]
+  );
+  return useSyncExternalStore(subscribe, () => {
+    if (!enabled) return false;
+    const distance = useClusterStore.getState().getCentroidDistance(entityId);
+    return distance !== undefined ? distance <= threshold : fallback;
+  });
+}
