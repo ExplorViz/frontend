@@ -21,7 +21,7 @@ import CodeBuildingLabel from 'explorviz-frontend/src/view-objects/3d/city/code-
 import CodeBuildings from 'explorviz-frontend/src/view-objects/3d/city/code-buildings';
 import EmbeddedBrowser from 'explorviz-frontend/src/view-objects/3d/city/embedded-browser';
 import gsap from 'gsap';
-import { memo, useEffect, useMemo, useRef, useState } from 'react';
+import { memo, ReactNode, useEffect, useMemo, useRef, useState } from 'react';
 import * as THREE from 'three';
 import { useShallow } from 'zustand/react/shallow';
 
@@ -52,6 +52,17 @@ function chunkVisibleIds(allIds: readonly string[], visibleIds: readonly string[
     });
   }
   return chunks;
+}
+
+/**
+ * The group of one chunk of labels. A component of its own instead of a bare
+ * <group> in the city, because React DevTools hides host elements like <group>
+ * and, on every label update, searches through all labels of their parent
+ * once per hidden sibling. With a group per chunk directly in the city, this
+ * halved the frame rate while moving the camera with the extension installed.
+ */
+function LabelChunkGroup({ children }: { children: ReactNode }) {
+  return <group>{children}</group>;
 }
 
 function CodeCity({ cityId }: { cityId: string }) {
@@ -151,11 +162,11 @@ function CodeCity({ cityId }: { cityId: string }) {
       {cityLayout && <CityFoundation city={city} layout={cityLayout} />}
       <CodeBuildings buildingIds={visibleBuildingIds} city={city} />
       {buildingLabelChunks.map((chunk) => (
-        <group key={'building-labels-' + chunk.key}>
+        <LabelChunkGroup key={'building-labels-' + chunk.key}>
           {chunk.ids.map((buildingId) => (
             <CodeBuildingLabel key={buildingId + '-label'} buildingId={buildingId} />
           ))}
-        </group>
+        </LabelChunkGroup>
       ))}
       {showDistricts && districtRenderIds.length > 0 && (
         <CityDistricts
@@ -166,7 +177,7 @@ function CodeCity({ cityId }: { cityId: string }) {
         />
       )}
       {districtLabelChunks.map((chunk) => (
-        <group key={'district-labels-' + chunk.key}>
+        <LabelChunkGroup key={'district-labels-' + chunk.key}>
           {chunk.ids.map((districtId) => {
             const district = useModelStore.getState().getDistrict(districtId);
             const layout = useLayoutStore.getState().getLayout(districtId);
@@ -175,7 +186,7 @@ function CodeCity({ cityId }: { cityId: string }) {
             }
             return null;
           })}
-        </group>
+        </LabelChunkGroup>
       ))}
     </group>
   );
