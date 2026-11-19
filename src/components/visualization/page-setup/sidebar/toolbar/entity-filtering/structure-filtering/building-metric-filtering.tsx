@@ -1,6 +1,5 @@
 import React, { useImperativeHandle } from 'react';
 
-import HelpTooltip from 'explorviz-frontend/src/components/help-tooltip';
 import { formatWithUpToTwoDecimals } from 'explorviz-frontend/src/components/visualization/rendering/popups/city-popups/building-metrics-utils';
 import { useRenderingServiceStore } from 'explorviz-frontend/src/stores/rendering-service';
 import { sortBuildingMetricNames } from 'explorviz-frontend/src/utils/settings/settings-schemas';
@@ -84,7 +83,6 @@ const BuildingMetricFiltering = function BuildingMetricFiltering({
 
   return (
     <div className="mb-3">
-      <HelpTooltip title="bla" />
       <label className="m-0" htmlFor="filtering-building-metric-functionCount">
         Min. metric values (# buildings:
         <b>
