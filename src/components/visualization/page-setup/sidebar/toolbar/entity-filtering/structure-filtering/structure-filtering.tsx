@@ -12,6 +12,7 @@ import {
 } from 'explorviz-frontend/src/utils/city-rendering/building-filter';
 import { Building, FlatLandscape } from 'explorviz-frontend/src/utils/landscape-schemes/flat-landscape';
 import { BUILDING_METRIC_NAMES } from 'explorviz-frontend/src/utils/settings/settings-schemas';
+import Form from 'react-bootstrap/Form';
 import { useShallow } from 'zustand/react/shallow';
 
 interface StructureFilteringProps {
@@ -63,8 +64,10 @@ const StructureFiltering = function StructureFiltering({
     inclusionExpressions,
     exclusionExpressions,
     metricThresholds,
+    hideEmptyDistricts,
     baselineFlatLandscape,
     setMetricThreshold,
+    setHideEmptyDistricts,
     setMinMethodCount,
     resetFilters,
   } = useEntityFilteringStore(
@@ -73,8 +76,10 @@ const StructureFiltering = function StructureFiltering({
       inclusionExpressions: state.inclusionExpressions,
       exclusionExpressions: state.exclusionExpressions,
       metricThresholds: state.metricThresholds,
+      hideEmptyDistricts: state.hideEmptyDistricts,
       baselineFlatLandscape: state.baselineFlatLandscape,
       setMetricThreshold: state.actions.setMetricThreshold,
+      setHideEmptyDistricts: state.actions.setHideEmptyDistricts,
       setMinMethodCount: state.actions.setMinMethodCount,
       resetFilters: state.actions.resetFilters,
     }))
@@ -135,6 +140,22 @@ const StructureFiltering = function StructureFiltering({
 
   return (
     <>
+      <h6 className="mb-3 mt-3">
+        <strong>Districts</strong>
+      </h6>
+      <Form.Check
+        type="checkbox"
+        id="hide-empty-districts"
+        label={`${filterMode === 'Remove' ? 'Remove' : 'Hide'} districts without buildings`}
+        title={
+          filterMode === 'Remove'
+            ? 'Removes districts that directly contain no buildings. Their inner districts move up to the parent and the layout becomes more compact.'
+            : 'Hides districts that directly contain no buildings. Their inner districts stay visible and the layout is unchanged.'
+        }
+        checked={hideEmptyDistricts}
+        onChange={(event) => setHideEmptyDistricts(event.target.checked)}
+      />
+
       <h6 className="mb-3 mt-3">
         <strong>
           Buildings (# shown:

@@ -163,3 +163,51 @@ export function openAllDistrictsInCity(city: City, _sendMessage = true) {
 export function openAllDistrictsInLandscape(_sendMessage = true) {
   changeDistricts([{ type: 'openAll' }]);
 }
+
+/**
+ * Brings the closed and hidden Districts in line with the current District
+ * tree, which can change under them (e.g. when the entity filter removes
+ * Districts without buildings and moves their inner Districts up, or restores
+ * them). Afterwards every District inside a closed District is closed and
+ * hidden, and no District without a closed ancestor is hidden.
+ */
+export function reconcileDistrictStatesWithTree() {
+  const { closedDistrictIds, hiddenDistrictIds } = getDistricts();
+  const { districts } = useModelStore.getState();
+
+  const toClose: string[] = [];
+  const toHide: string[] = [];
+  const toShow: string[] = [];
+  const visited = new Set<string>();
+
+  const visit = (districtId: string, hasClosedAncestor: boolean) => {
+    const district = districts[districtId];
+    if (!district || visited.has(districtId)) {
+      return;
+    }
+    visited.add(districtId);
+
+    if (hasClosedAncestor) {
+      if (!closedDistrictIds.has(districtId)) toClose.push(districtId);
+      if (!hiddenDistrictIds.has(districtId)) toHide.push(districtId);
+    } else if (hiddenDistrictIds.has(districtId)) {
+      toShow.push(districtId);
+    }
+
+    const closesChildren = hasClosedAncestor || closedDistrictIds.has(districtId);
+    district.districtIds.forEach((childDistrictId) => visit(childDistrictId, closesChildren));
+  };
+
+  useModelStore
+    .getState()
+    .getAllCities()
+    .forEach((city) => city.districtIds.forEach((districtId) => visit(districtId, false)));
+
+  const actions: DistrictAction[] = [];
+  if (toClose.length > 0) actions.push({ type: 'close', ids: toClose });
+  if (toHide.length > 0) actions.push({ type: 'hide', ids: toHide });
+  if (toShow.length > 0) actions.push({ type: 'show', ids: toShow });
+  if (actions.length > 0) {
+    changeDistricts(actions);
+  }
+}

@@ -14,7 +14,10 @@ import {
   collectFilteredBuildings,
   compileBuildingFilter,
 } from 'explorviz-frontend/src/utils/city-rendering/building-filter';
-import { pruneFlatLandscapeByRemainingBuildings } from 'explorviz-frontend/src/utils/city-rendering/flat-landscape-filter';
+import {
+  collapseDistrictsWithoutBuildings,
+  pruneFlatLandscapeByRemainingBuildings,
+} from 'explorviz-frontend/src/utils/city-rendering/flat-landscape-filter';
 import {
   Building,
   FlatLandscape,
@@ -109,14 +112,16 @@ export default function EntityFilteringApplier({ landscapeData }: EntityFilterin
   const setFilterHiddenBuildingIds = useVisualizationStore((state) => state.actions.setFilterHiddenBuildingIds);
   const commitToSelectedTimestamp = useTimestampStore((state) => state.commitToSelectedTimestamps);
 
-  const { filterMode, inclusionExpressions, exclusionExpressions, metricThresholds } = useEntityFilteringStore(
-    useShallow((state) => ({
-      filterMode: state.filterMode,
-      inclusionExpressions: state.inclusionExpressions,
-      exclusionExpressions: state.exclusionExpressions,
-      metricThresholds: state.metricThresholds,
-    }))
-  );
+  const { filterMode, inclusionExpressions, exclusionExpressions, metricThresholds, hideEmptyDistricts } =
+    useEntityFilteringStore(
+      useShallow((state) => ({
+        filterMode: state.filterMode,
+        inclusionExpressions: state.inclusionExpressions,
+        exclusionExpressions: state.exclusionExpressions,
+        metricThresholds: state.metricThresholds,
+        hideEmptyDistricts: state.hideEmptyDistricts,
+      }))
+    );
   const setMetricThresholds = useEntityFilteringStore((state) => state.actions.setMetricThresholds);
   const setBaselineLanguageStats = useEntityFilteringStore((state) => state.actions.setBaselineLanguageStats);
   const setBaselineLanguageFileExtensionStats = useEntityFilteringStore(
@@ -159,7 +164,11 @@ export default function EntityFilteringApplier({ landscapeData }: EntityFilterin
       removeModePrunedRenderedRef.current = false;
     };
 
-    if (!compiledFilter.isActive) {
+    // In Hide mode, districts without buildings are hidden by the visibility
+    // checks; in Remove mode they are removed from the landscape here.
+    const removesDistrictsWithoutBuildings = filterMode === 'Remove' && hideEmptyDistricts;
+
+    if (!compiledFilter.isActive && !removesDistrictsWithoutBuildings) {
       if (hiddenBuildingIdsByFilterRef.current.size > 0) {
         setFilterHiddenBuildingIds([]);
         hiddenBuildingIdsByFilterRef.current = new Set();
@@ -223,6 +232,9 @@ export default function EntityFilteringApplier({ landscapeData }: EntityFilterin
     }
 
     pruneFlatLandscapeByRemainingBuildings(deepCopyFlatLandscape);
+    if (removesDistrictsWithoutBuildings) {
+      collapseDistrictsWithoutBuildings(deepCopyFlatLandscape);
+    }
 
     syncModelStoreToFlatLandscape(deepCopyFlatLandscape);
 
@@ -293,7 +305,15 @@ export default function EntityFilteringApplier({ landscapeData }: EntityFilterin
 
   useEffect(() => {
     applyFilters();
-  }, [filterMode, hiddenModelTypes, hiddenLanguages, inclusionExpressions, exclusionExpressions, metricThresholds]);
+  }, [
+    filterMode,
+    hiddenModelTypes,
+    hiddenLanguages,
+    inclusionExpressions,
+    exclusionExpressions,
+    metricThresholds,
+    hideEmptyDistricts,
+  ]);
 
   useEffect(
     function resetForNewTimestamp() {

@@ -10,6 +10,7 @@ import {
   calculateAggregatedCommunications,
   computeBuildingCommunication,
 } from 'explorviz-frontend/src/utils/city-rendering/communication-computer';
+import { reconcileDistrictStatesWithTree } from 'explorviz-frontend/src/utils/city-rendering/entity-manipulation';
 import { areArraysEqual } from 'explorviz-frontend/src/utils/helpers/array-helpers';
 import { CommSummary } from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/communication';
 import {
@@ -114,6 +115,10 @@ export default function useLandscapeDataWatcher(landscapeData: LandscapeData | n
     }
 
     calculateAggregatedCommunications(buildingCommunications);
+
+    // The District tree may have changed (e.g. Districts removed or restored by
+    // the entity filter), which can leave open Districts inside closed ones.
+    reconcileDistrictStatesWithTree();
 
     useLayoutStore.getState().updateLayouts(boxLayoutMap, flatLandscapeStructure);
 

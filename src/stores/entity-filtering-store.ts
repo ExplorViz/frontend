@@ -110,6 +110,10 @@ interface EntityFilteringStoreState {
   inclusionExpressions: readonly FqnFilterOption[];
   exclusionExpressions: readonly FqnFilterOption[];
   metricThresholds: Record<string, number>;
+  // Districts without direct buildings: in Hide mode open ones become invisible
+  // (layout unchanged); in Remove mode they are removed and their inner
+  // districts move up to the parent, compacting the layout.
+  hideEmptyDistricts: boolean;
   baselineFlatLandscape: FlatLandscape | null;
   baselineLanguageStats: readonly LanguageCount[];
   baselineLanguageFileExtensionStats: LanguageFileExtensionStats;
@@ -120,6 +124,7 @@ interface EntityFilteringStoreState {
     setMetricThreshold: (metric: string, value: number) => void;
     setMetricThresholds: (thresholds: Record<string, number>) => void;
     setMinMethodCount: (value: number) => void;
+    setHideEmptyDistricts: (hide: boolean) => void;
     setBaselineFlatLandscape: (flatLandscape: FlatLandscape) => void;
     setBaselineLanguageStats: (stats: readonly LanguageCount[]) => void;
     setBaselineLanguageFileExtensionStats: (stats: LanguageFileExtensionStats) => void;
@@ -132,6 +137,7 @@ export const useEntityFilteringStore = create<EntityFilteringStoreState>((set) =
   inclusionExpressions: [],
   exclusionExpressions: [],
   metricThresholds: getDefaultMetricThresholds(),
+  hideEmptyDistricts: false,
   baselineFlatLandscape: null,
   baselineLanguageStats: [],
   baselineLanguageFileExtensionStats: {},
@@ -148,6 +154,7 @@ export const useEntityFilteringStore = create<EntityFilteringStoreState>((set) =
       set((state) => ({
         metricThresholds: { ...state.metricThresholds, functionCount: value },
       })),
+    setHideEmptyDistricts: (hide) => set({ hideEmptyDistricts: hide }),
     setBaselineFlatLandscape: (flatLandscape) => set({ baselineFlatLandscape: flatLandscape }),
     setBaselineLanguageStats: (stats) => set({ baselineLanguageStats: stats }),
     setBaselineLanguageFileExtensionStats: (stats) => set({ baselineLanguageFileExtensionStats: stats }),
@@ -160,6 +167,7 @@ export const useEntityFilteringStore = create<EntityFilteringStoreState>((set) =
         inclusionExpressions: [],
         exclusionExpressions: [],
         metricThresholds: getDefaultMetricThresholds(),
+        hideEmptyDistricts: false,
       });
     },
   },

@@ -1,10 +1,12 @@
 import { useEvolutionAnimationStore } from 'explorviz-frontend/src/components/visualization/page-setup/bottom-bar/animation/evolution-animation-store';
 import { EvolutionBuildingVisualState } from 'explorviz-frontend/src/components/visualization/page-setup/bottom-bar/animation/evolution-frame-visuals';
 import { useCommitTreeStateStore } from 'explorviz-frontend/src/stores/commit-tree-state';
+import { type EntityFilterMode, useEntityFilteringStore } from 'explorviz-frontend/src/stores/entity-filtering-store';
 import { EvolutionModeRenderingConfiguration } from 'explorviz-frontend/src/stores/rendering-service';
 import { useModelStore } from 'explorviz-frontend/src/stores/repos/model-repository';
 import { useVisibilityServiceStore } from 'explorviz-frontend/src/stores/visibility-service';
 import { useVisualizationStore } from 'explorviz-frontend/src/stores/visualization-store';
+import { isDistrictOpen } from 'explorviz-frontend/src/utils/city-rendering/district-close-state';
 import { isBuildingHiddenByClosedDistricts } from 'explorviz-frontend/src/utils/city-rendering/district-tree';
 import { Building, Language, ModelType } from 'explorviz-frontend/src/utils/landscape-schemes/flat-landscape';
 import { TypeOfAnalysis } from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
@@ -20,6 +22,7 @@ export type EntityVisibilityContext = {
   hiddenBuildingIds: Set<string>;
   hiddenModelTypes: Set<ModelType>;
   hiddenLanguages: Set<Language>;
+  hideEmptyDistricts: boolean;
   evoConfig: EvolutionModeRenderingConfiguration;
   isDiffMode: boolean;
 };
@@ -28,6 +31,12 @@ export type EvolutionAnimationSnapshot = {
   totalCount: number;
   buildingVisualStates: Map<string, EvolutionBuildingVisualState>;
 };
+
+// In Remove mode the entity filter applier removes these districts from the
+// landscape instead, so they only need to be hidden in Hide mode.
+function shouldHideEmptyDistricts(state: { filterMode: EntityFilterMode; hideEmptyDistricts: boolean }): boolean {
+  return state.filterMode === 'Hide' && state.hideEmptyDistricts;
+}
 
 function computeIsDiffMode(): boolean {
   const selectedCommits = useCommitTreeStateStore.getState()._selectedCommits;
@@ -64,6 +73,7 @@ function buildEntityVisibilityContext(
     | 'hiddenBuildingIds'
     | 'hiddenModelTypes'
     | 'hiddenLanguages'
+    | 'hideEmptyDistricts'
   >,
   evoConfig: EvolutionModeRenderingConfiguration,
   isDiffMode: boolean
@@ -75,6 +85,7 @@ function buildEntityVisibilityContext(
     hiddenBuildingIds: visualizationState.hiddenBuildingIds,
     hiddenModelTypes: visualizationState.hiddenModelTypes,
     hiddenLanguages: visualizationState.hiddenLanguages,
+    hideEmptyDistricts: visualizationState.hideEmptyDistricts,
     evoConfig,
     isDiffMode,
   };
@@ -82,7 +93,11 @@ function buildEntityVisibilityContext(
 
 export function getEntityVisibilityContext(): EntityVisibilityContext {
   return buildEntityVisibilityContext(
-    { ...useVisualizationStore.getState(), ...getDistricts() },
+    {
+      ...useVisualizationStore.getState(),
+      ...getDistricts(),
+      hideEmptyDistricts: shouldHideEmptyDistricts(useEntityFilteringStore.getState()),
+    },
     useVisibilityServiceStore.getState()._evolutionModeRenderingConfiguration,
     computeIsDiffMode()
   );
@@ -199,7 +214,19 @@ export function isDistrictVisible(
     return false;
   }
 
-  if (!useModelStore.getState().getDistrict(districtId)) {
+  const district = useModelStore.getState().getDistrict(districtId);
+  if (!district) {
+    return false;
+  }
+
+  // A closed district stands in for its whole subtree, so it is never hidden as empty.
+  if (
+    context.hideEmptyDistricts &&
+    isDistrictOpen(districtId, context.closedDistrictIds) &&
+    !district.buildingIds.some((buildingId) =>
+      isBuildingVisibleExceptClosedDistrictCollapse(buildingId, context, undefined, animation)
+    )
+  ) {
     return false;
   }
 
@@ -344,6 +371,7 @@ export function useEntityVisibilityContext(): EntityVisibilityContext {
     }))
   );
 
+  const hideEmptyDistricts = useEntityFilteringStore(shouldHideEmptyDistricts);
   const evoConfig = useVisibilityServiceStore((state) => state._evolutionModeRenderingConfiguration);
 
   const selectedCommits = useCommitTreeStateStore((state) => state._selectedCommits);
@@ -361,6 +389,7 @@ export function useEntityVisibilityContext(): EntityVisibilityContext {
           hiddenBuildingIds,
           hiddenModelTypes,
           hiddenLanguages,
+          hideEmptyDistricts,
         },
         evoConfig,
         isDiffMode
@@ -372,6 +401,7 @@ export function useEntityVisibilityContext(): EntityVisibilityContext {
       hiddenBuildingIds,
       hiddenModelTypes,
       hiddenLanguages,
+      hideEmptyDistricts,
       evoConfig,
       isDiffMode,
     ]

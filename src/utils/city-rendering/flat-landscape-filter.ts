@@ -72,3 +72,42 @@ export function filterFlatLandscapeByBuildingComparisonVisibility(
 
   return filteredFlatLandscape;
 }
+
+/**
+ * Removes every district without direct buildings and moves its inner districts
+ * up to the removed district's parent (district or city), so the layout can
+ * place them more compactly. Mutates the given landscape.
+ */
+export function collapseDistrictsWithoutBuildings(flatLandscape: FlatLandscape): void {
+  const { districts } = flatLandscape;
+
+  const collapse = (districtIds: readonly string[], parentDistrictId: string | undefined): string[] =>
+    districtIds.flatMap((districtId) => {
+      const district = districts[districtId];
+      if (!district) {
+        return [];
+      }
+
+      if (district.buildingIds.length === 0) {
+        const innerDistrictIds = collapse(district.districtIds, parentDistrictId);
+        delete districts[districtId];
+        return innerDistrictIds;
+      }
+
+      if (parentDistrictId === undefined) {
+        delete district.parentDistrictId;
+      } else {
+        district.parentDistrictId = parentDistrictId;
+      }
+      district.districtIds = collapse(district.districtIds, district.id);
+      return [districtId];
+    });
+
+  for (const city of Object.values(flatLandscape.cities)) {
+    city.districtIds = collapse(city.districtIds, undefined);
+  }
+
+  for (const city of Object.values(flatLandscape.cities)) {
+    city.allContainedDistrictIds = city.allContainedDistrictIds.filter((id) => districts[id] !== undefined);
+  }
+}
