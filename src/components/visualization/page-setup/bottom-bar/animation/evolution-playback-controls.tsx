@@ -1,5 +1,8 @@
 import { useEvolutionAnimationFetchServiceStore } from 'explorviz-frontend/src/components/visualization/page-setup/bottom-bar/animation/evolution-animation-fetch-service.ts';
-import { applyAnimationFrameLayout } from 'explorviz-frontend/src/components/visualization/page-setup/bottom-bar/animation/evolution-rendering-setup';
+import {
+  applyAnimationFrameLayout,
+  exitEvolutionAnimation,
+} from 'explorviz-frontend/src/components/visualization/page-setup/bottom-bar/animation/evolution-rendering-setup';
 import { useCommitTreeStateStore } from 'explorviz-frontend/src/stores/commit-tree-state.ts';
 import { useEffect, useRef, useCallback } from 'react';
 import { createPortal } from 'react-dom';
@@ -201,7 +204,7 @@ export default function EvolutionPlaybackControls() {
           className="btn evolution-playback-controls__icon-button"
           aria-label="Stop Animation"
           title="Stop Animation"
-          onClick={actions.reset}
+          onClick={exitEvolutionAnimation}
           onPointerDown={(e) => e.stopPropagation()}
         >
           <XIcon size="small" verticalAlign="middle" />

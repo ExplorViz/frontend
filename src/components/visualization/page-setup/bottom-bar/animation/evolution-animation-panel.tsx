@@ -7,6 +7,7 @@ import {
 import {
   applyEvolutionRenderingConfig,
   applySkeletonLayout,
+  rememberLayoutBeforeAnimation,
 } from 'explorviz-frontend/src/components/visualization/page-setup/bottom-bar/animation/evolution-rendering-setup';
 import {
   FloatingPanelPosition,
@@ -113,6 +114,7 @@ export default function EvolutionAnimationPanel({ onClose }: { onClose: () => vo
 
   //Sync when layout is toggeled
   useEffect(() => {
+    rememberLayoutBeforeAnimation();
     useUserSettingsStore
       .getState()
       .updateSetting('buildingLayoutAlgorithm', layoutMode === 'spiral' ? 'spiral' : 'None');
@@ -157,6 +159,7 @@ export default function EvolutionAnimationPanel({ onClose }: { onClose: () => vo
       let store = useEvolutionAnimationStore.getState();
       const actions = store.actions;
 
+      rememberLayoutBeforeAnimation();
       useUserSettingsStore
         .getState()
         .updateSetting('buildingLayoutAlgorithm', store.layoutMode === 'spiral' ? 'spiral' : 'None');

@@ -1,12 +1,12 @@
 import EvolutionAnimationPanel from 'explorviz-frontend/src/components/visualization/page-setup/bottom-bar/animation/evolution-animation-panel';
 import { useEvolutionAnimationStore } from 'explorviz-frontend/src/components/visualization/page-setup/bottom-bar/animation/evolution-animation-store';
+import { restoreLayoutBeforeAnimation } from 'explorviz-frontend/src/components/visualization/page-setup/bottom-bar/animation/evolution-rendering-setup';
 import EvolutionPlaybackControls from 'explorviz-frontend/src/components/visualization/page-setup/bottom-bar/animation/evolution-playback-controls';
 import { useLandscapeTokenStore } from 'explorviz-frontend/src/stores/landscape-token';
 import { useRenderingServiceStore } from 'explorviz-frontend/src/stores/rendering-service';
-import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
 import { useVisibilityServiceStore } from 'explorviz-frontend/src/stores/visibility-service';
 import { ALL_BUILDING_COMPARISONS_VISIBLE } from 'explorviz-frontend/src/utils/city-rendering/building-comparison-visibility';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 import Button from 'react-bootstrap/Button';
 
 const NORMAL_RENDER_CONFIG = {
@@ -31,29 +31,32 @@ export default function EvolutionAnimationButton({
   const hasFrames = useEvolutionAnimationStore((state) => state.totalCount > 0);
   const landscapeToken = useLandscapeTokenStore((s) => s.token?.value);
 
-  const overriddenLayoutRef = useRef<string | null>(null);
+  const closePanel = () => {
+    setShowPanel(false);
+    // Without a running animation, closing the panel leaves the evolution animation.
+    if (useEvolutionAnimationStore.getState().totalCount === 0) {
+      restoreLayoutBeforeAnimation();
+    }
+  };
 
   const togglePanel = () => {
-    if (!showPanel && overriddenLayoutRef.current === null) {
-      overriddenLayoutRef.current = useUserSettingsStore.getState().visualizationSettings.buildingLayoutAlgorithm.value;
+    if (showPanel) {
+      closePanel();
+    } else {
+      setShowPanel(true);
     }
-    setShowPanel((prev) => !prev);
   };
+
   useEffect(() => {
-    const restoreLayout = () => {
-      if (overriddenLayoutRef.current === null) return;
-      useUserSettingsStore.getState().updateSetting('buildingLayoutAlgorithm', overriddenLayoutRef.current);
-      overriddenLayoutRef.current = null;
-    };
-    window.addEventListener('beforeunload', restoreLayout);
+    window.addEventListener('beforeunload', restoreLayoutBeforeAnimation);
 
     return () => {
-      window.removeEventListener('beforeunload', restoreLayout);
+      window.removeEventListener('beforeunload', restoreLayoutBeforeAnimation);
       useEvolutionAnimationStore.getState().actions.reset();
       setShowPanel(false);
       useRenderingServiceStore.getState().setAnalysisModeFromEvolutionRenderingConfig(NORMAL_RENDER_CONFIG);
       useVisibilityServiceStore.getState().applyEvolutionModeRenderingConfiguration(NORMAL_RENDER_CONFIG);
-      restoreLayout();
+      restoreLayoutBeforeAnimation();
     };
   }, [landscapeToken]);
 
@@ -63,7 +66,7 @@ export default function EvolutionAnimationButton({
         Evolution Animation
       </Button>
 
-      {showPanel && <EvolutionAnimationPanel onClose={() => setShowPanel(false)} />}
+      {showPanel && <EvolutionAnimationPanel onClose={closePanel} />}
       {/*Show playback controls once frames are loaded*/}
       {(showPanel || hasFrames) && <EvolutionPlaybackControls />}
     </>
