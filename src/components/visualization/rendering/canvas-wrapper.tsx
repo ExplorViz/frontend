@@ -57,6 +57,7 @@ import * as THREE from 'three';
 import { useShallow } from 'zustand/react/shallow';
 import ContextMenuWorldPickRegister from './context-menu-world-pick-register';
 import HotkeyHandler from './hotkey-handler';
+import ParticipantPresenceIndicators, { PresenceSender } from './participant-presence';
 import RemoteImmersiveIndicators from './remote-immersive-indicators';
 import HostTileProjection from './host-tile-projection';
 import ScreenWallOutline from './screen-wall-outline';
@@ -554,6 +555,7 @@ function CanvasWrapper({
               />
             )}
             <SpectateCameraController />
+            <PresenceSender />
             <HostTileProjection />
             <ScreenWallOutline />
           </>
@@ -594,6 +596,7 @@ function CanvasWrapper({
             </LandscapeR3F>
           </EntityVisibilityProvider>
           <RemoteImmersiveIndicators />
+          <ParticipantPresenceIndicators />
           {enableClustering && <ClusterCentroidsR3F />}
           {enableClustering && autoOpenCloseDistricts && <AutoDistrictOpenerR3F />}
           <AnimatedPing />

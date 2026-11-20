@@ -1,6 +1,7 @@
 import { CameraControls } from '@react-three/drei';
 import { createPortal, useFrame } from '@react-three/fiber';
 import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
+import { useOwnColor } from 'explorviz-frontend/src/utils/collaboration/room-connection';
 import { RefObject, useRef } from 'react';
 import * as THREE from 'three';
 
@@ -15,6 +16,9 @@ export interface MinimapMarkerAnchor {
   rotateWithView: boolean;
 }
 
+/** The marker's color while exploring alone; in a Room it takes your Participant color. */
+const ALONE_COLOR = 'red';
+
 interface LocalUserMarkerProps {
   minimapScene: THREE.Scene;
   mainCameraControls: React.RefObject<CameraControls>;
@@ -28,6 +32,7 @@ export default function LocalUserMarker({ minimapScene, mainCameraControls, mark
   const zoom = useUserSettingsStore((state) => state.visualizationSettings.minimapZoom);
 
   const minimapMode = useUserSettingsStore((state) => state.visualizationSettings.minimapMode.value);
+  const color = useOwnColor() ?? ALONE_COLOR;
 
   useFrame((state) => {
     if (!markerRef.current || !mainCameraControls.current) return;
@@ -67,12 +72,12 @@ export default function LocalUserMarker({ minimapScene, mainCameraControls, mark
       {minimapMode !== 'target' && (
         <mesh position={[0, 0, 0]} renderOrder={999}>
           <coneGeometry args={[0.3, 0.7, 32]} />
-          <meshBasicMaterial color="red" toneMapped={false} depthTest={false} depthWrite={false} />
+          <meshBasicMaterial color={color} toneMapped={false} depthTest={false} depthWrite={false} />
         </mesh>
       )}
       <mesh position={[0, -0.25, 0]} renderOrder={999}>
         <circleGeometry args={[0.3, 32]} />
-        <meshBasicMaterial color="red" toneMapped={false} depthTest={false} depthWrite={false} />
+        <meshBasicMaterial color={color} toneMapped={false} depthTest={false} depthWrite={false} />
       </mesh>
     </group>,
     minimapScene as any

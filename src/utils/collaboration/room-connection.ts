@@ -241,6 +241,13 @@ export function sameIds(a: ReadonlySet<string>, b: ReadonlySet<string>): boolean
   return a.size === b.size && [...a].every((id) => b.has(id));
 }
 
+/** Your own Participant color in the joined Room, or undefined while alone or before the Room's first state. */
+export function useOwnColor(): string | undefined {
+  const room = useRoomConnectionStore((state) => state.room);
+  const state = useRoomState();
+  return room ? state?.participants[room.sessionId]?.color : undefined;
+}
+
 /** Whether the connection to the joined Room is down and being retried (see `reconnecting`). */
 export function useReconnecting(): boolean {
   return useRoomConnectionStore((state) => state.reconnecting);

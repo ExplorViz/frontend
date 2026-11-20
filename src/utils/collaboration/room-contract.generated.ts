@@ -482,6 +482,13 @@ export type ClientMessages = {
    * only when it changed.
    */
   camera: CameraPose;
+  /**
+   * The sender's Presence: where their camera is and the point it looks at.
+   * Sent while other Participants are in the Room and the sender does not
+   * spectate, at most PRESENCE_UPDATES_PER_SECOND times per second when it
+   * changed, and every PRESENCE_KEEPALIVE_SECONDS seconds when it did not.
+   */
+  presence: Presence;
   /** The sender entered the immersive view of this entity, or left it with null. */
   immersive: { entityId: string | null };
   /**
@@ -532,6 +539,8 @@ export type ClientMessages = {
 export type ServerMessages = {
   /** The camera of the Participant `from`, forwarded only to those who spectate them. */
   camera: CameraPose & { from: string };
+  /** Another Participant's Presence (`from` is their session id), passed to everyone else. Nothing is stored. */
+  presence: Presence & { from: string };
   /** Another Participant's ping, to be shown in their color (`from` is their session id). */
   ping: Required<Ping> & { from: string; color: string };
   /**
@@ -556,6 +565,18 @@ export type CameraPose = {
   quaternion: [number, number, number, number];
   projection: number[];
 };
+
+/** Where a Participant's camera is and the point it looks at (the orbit target), both world positions [x, y, z]. */
+export type Presence = {
+  position: [number, number, number];
+  target: [number, number, number];
+};
+
+/** How often a Participant sends its Presence at most. */
+export const PRESENCE_UPDATES_PER_SECOND = 10;
+
+/** How often a Participant sends its Presence although it did not change, so that late joiners get it too. */
+export const PRESENCE_KEEPALIVE_SECONDS = 2;
 
 /** How often a spectated Participant sends its camera at most. */
 export const CAMERA_UPDATES_PER_SECOND = 30;

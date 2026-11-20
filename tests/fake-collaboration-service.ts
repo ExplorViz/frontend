@@ -142,6 +142,8 @@ const MESSAGE_HANDLERS: Record<string, (state: ServerState, payload: any, from: 
     applyDistrictActions(asIdSets(state.districts), actions);
   },
   highlights: (state, action, from) => applyHighlightAction(state.highlights, from, action),
+  // As the service, which only passes it to the other Participants (use `deliver` for that).
+  presence: () => undefined,
   // As the service, which also passes it to the other Participants (use `deliver` for that).
   ping: (state, { entityId = '', position }, from) => {
     const pinger = state.participants.get(from);

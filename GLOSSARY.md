@@ -51,6 +51,10 @@ The Host's switch that decides whether opening and closing Districts acts on the
 **Spectating**:
 Following another Participant's camera.
 
+**Presence**:
+Where a Participant's camera is and the point it looks at, shown to the other Participants as a marker in the Participant's color.
+_Avoid_: Avatar (the VR avatars are a different thing), Cursor
+
 **Screen Wall**:
 A Room's arrangement of monitors, configured by the Host, whose browsers together show the Host's view enlarged into one continuous picture.
 _Avoid_: Monitor configuration, Spectate configuration, Multi-monitor setup

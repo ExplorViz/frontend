@@ -35,6 +35,7 @@ import {
   useRoomState,
 } from 'explorviz-frontend/src/utils/collaboration/room-connection';
 import type { RoomVisibility } from 'explorviz-frontend/src/utils/collaboration/room-contract.generated';
+import { useShowParticipantsStore } from 'explorviz-frontend/src/utils/collaboration/presence';
 import { roomLink } from 'explorviz-frontend/src/utils/collaboration/room-link';
 import { saveSnapshotOfView } from 'explorviz-frontend/src/utils/snapshot/snapshot-helpers';
 import { useEffect, useRef, useState, type ReactNode } from 'react';
@@ -441,6 +442,8 @@ function RoomPanel({ openPanel }: { openPanel: Panel | undefined }) {
             disabled={!isHost}
             onChange={(event) => setDistrictSharing(event.target.checked)}
           />
+          <h6 className="collab-group-title">Your view</h6>
+          <ShowParticipantsSwitch />
         </section>
       )}
 
@@ -451,6 +454,22 @@ function RoomPanel({ openPanel }: { openPanel: Panel | undefined }) {
         Leave room
       </button>
     </div>
+  );
+}
+
+/** Your own choice whether to see the other Participants' markers in the 3D scene; it changes nothing for them. */
+function ShowParticipantsSwitch() {
+  const { showParticipants, setShowParticipants } = useShowParticipantsStore();
+  return (
+    <Form.Check
+      type="switch"
+      id="collaboration-show-participants"
+      className="collab-setting"
+      label="Show other Participants"
+      title="Marks where the other Participants are and where they look, in their color. Only for you."
+      checked={showParticipants}
+      onChange={(event) => setShowParticipants(event.target.checked)}
+    />
   );
 }
 
