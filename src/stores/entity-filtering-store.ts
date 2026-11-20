@@ -102,14 +102,23 @@ export function getLanguageFileExtensionStatsFromBuildings(
   return stats;
 }
 
-const getDefaultMetricThresholds = (): Record<string, number> =>
-  Object.fromEntries(BUILDING_METRIC_NAMES.map((name) => [name, 0]));
+/**
+ * Inclusive range of metric values a building must lie in to pass the filter.
+ * An upper bound of `Infinity` means the range is open at the top, so it keeps
+ * admitting buildings when a later landscape contains larger values.
+ */
+export type MetricRange = { readonly min: number; readonly max: number };
+
+export const UNBOUNDED_METRIC_RANGE: MetricRange = { min: 0, max: Number.POSITIVE_INFINITY };
+
+const getDefaultMetricRanges = (): Record<string, MetricRange> =>
+  Object.fromEntries(BUILDING_METRIC_NAMES.map((name) => [name, UNBOUNDED_METRIC_RANGE]));
 
 interface EntityFilteringStoreState {
   filterMode: EntityFilterMode;
   inclusionExpressions: readonly FqnFilterOption[];
   exclusionExpressions: readonly FqnFilterOption[];
-  metricThresholds: Record<string, number>;
+  metricRanges: Record<string, MetricRange>;
   // Districts without direct buildings: in Hide mode open ones become invisible
   // (layout unchanged); in Remove mode they are removed and their inner
   // districts move up to the parent, compacting the layout.
@@ -121,8 +130,8 @@ interface EntityFilteringStoreState {
     setFilterMode: (mode: EntityFilterMode) => void;
     setInclusionExpressions: (expressions: readonly FqnFilterOption[]) => void;
     setExclusionExpressions: (expressions: readonly FqnFilterOption[]) => void;
-    setMetricThreshold: (metric: string, value: number) => void;
-    setMetricThresholds: (thresholds: Record<string, number>) => void;
+    setMetricRange: (metric: string, range: MetricRange) => void;
+    setMetricRanges: (ranges: Record<string, MetricRange>) => void;
     setMinMethodCount: (value: number) => void;
     setHideEmptyDistricts: (hide: boolean) => void;
     setBaselineFlatLandscape: (flatLandscape: FlatLandscape) => void;
@@ -136,7 +145,7 @@ export const useEntityFilteringStore = create<EntityFilteringStoreState>((set) =
   filterMode: 'Remove',
   inclusionExpressions: [],
   exclusionExpressions: [],
-  metricThresholds: getDefaultMetricThresholds(),
+  metricRanges: getDefaultMetricRanges(),
   hideEmptyDistricts: false,
   baselineFlatLandscape: null,
   baselineLanguageStats: [],
@@ -145,14 +154,17 @@ export const useEntityFilteringStore = create<EntityFilteringStoreState>((set) =
     setFilterMode: (mode) => set({ filterMode: mode }),
     setInclusionExpressions: (expressions) => set({ inclusionExpressions: expressions ?? [] }),
     setExclusionExpressions: (expressions) => set({ exclusionExpressions: expressions ?? [] }),
-    setMetricThreshold: (metric, value) =>
+    setMetricRange: (metric, range) =>
       set((state) => ({
-        metricThresholds: { ...state.metricThresholds, [metric]: value },
+        metricRanges: { ...state.metricRanges, [metric]: range },
       })),
-    setMetricThresholds: (thresholds) => set({ metricThresholds: thresholds }),
+    setMetricRanges: (ranges) => set({ metricRanges: ranges }),
     setMinMethodCount: (value) =>
       set((state) => ({
-        metricThresholds: { ...state.metricThresholds, functionCount: value },
+        metricRanges: {
+          ...state.metricRanges,
+          functionCount: { ...(state.metricRanges.functionCount ?? UNBOUNDED_METRIC_RANGE), min: value },
+        },
       })),
     setHideEmptyDistricts: (hide) => set({ hideEmptyDistricts: hide }),
     setBaselineFlatLandscape: (flatLandscape) => set({ baselineFlatLandscape: flatLandscape }),
@@ -166,7 +178,7 @@ export const useEntityFilteringStore = create<EntityFilteringStoreState>((set) =
         filterMode: 'Remove',
         inclusionExpressions: [],
         exclusionExpressions: [],
-        metricThresholds: getDefaultMetricThresholds(),
+        metricRanges: getDefaultMetricRanges(),
         hideEmptyDistricts: false,
       });
     },

@@ -1,4 +1,4 @@
-import { type EntityFilterMode } from 'explorviz-frontend/src/stores/entity-filtering-store';
+import { type EntityFilterMode, type MetricRange } from 'explorviz-frontend/src/stores/entity-filtering-store';
 import { ModelType, type Building, type Language } from 'explorviz-frontend/src/utils/landscape-schemes/flat-landscape';
 import { normalizeLanguage } from 'explorviz-frontend/src/utils/language-utils';
 import {
@@ -13,7 +13,7 @@ export type BuildingFilterCriteria = {
   hiddenLanguages: ReadonlySet<Language>;
   inclusionExpressions: readonly string[];
   exclusionExpressions: readonly string[];
-  metricThresholds: Record<string, number>;
+  metricRanges: Record<string, MetricRange>;
 };
 
 export type CompiledBuildingFilter = {
@@ -43,18 +43,19 @@ export function compileBuildingFilter(criteria: BuildingFilterCriteria): Compile
   // than by removing the building from the landscape.
   const filtersByLanguage = criteria.filterMode === 'Remove' && criteria.hiddenLanguages.size > 0;
 
-  // Metric values default to zero and thresholds default to the metric minimum
-  // of zero, so only a positive threshold can exclude anything.
-  const activeMetricNames = BUILDING_METRIC_NAMES.filter(
-    (metricName) => (criteria.metricThresholds[metricName] ?? 0) > 0
-  );
+  // Metric values default to zero and ranges default to [0, Infinity], so only a
+  // positive lower bound or a finite upper bound can exclude anything.
+  const activeMetricRanges = BUILDING_METRIC_NAMES.flatMap((metricName) => {
+    const range = criteria.metricRanges[metricName];
+    return range && (range.min > 0 || Number.isFinite(range.max)) ? [[metricName, range] as const] : [];
+  });
 
   const inclusionExpressions = compileSearchExpressions(criteria.inclusionExpressions);
   const exclusionExpressions = compileSearchExpressions(criteria.exclusionExpressions);
 
   const matchesFqn = inclusionExpressions.length > 0 || exclusionExpressions.length > 0;
 
-  if (!filtersByModelType && !filtersByLanguage && activeMetricNames.length === 0 && !matchesFqn) {
+  if (!filtersByModelType && !filtersByLanguage && activeMetricRanges.length === 0 && !matchesFqn) {
     return NOTHING_FILTERED;
   }
 
@@ -66,8 +67,9 @@ export function compileBuildingFilter(criteria: BuildingFilterCriteria): Compile
       return true;
     }
 
-    for (const metricName of activeMetricNames) {
-      if (getMetricValue(building, metricName) < criteria.metricThresholds[metricName]) {
+    for (const [metricName, range] of activeMetricRanges) {
+      const value = getMetricValue(building, metricName);
+      if (value < range.min || value > range.max) {
         return true;
       }
     }

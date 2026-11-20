@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef } from 'react';
 
 import debug from 'debug';
 import { useEntityFilteringStore } from 'explorviz-frontend/src/stores/entity-filtering-store';
+import { beginLandscapeRenderTask, waitForNextPaint } from 'explorviz-frontend/src/stores/landscape-render-progress';
 import { useLayoutStore } from 'explorviz-frontend/src/stores/layout-store';
 import { useRenderingServiceStore } from 'explorviz-frontend/src/stores/rendering-service';
 import { useModelStore } from 'explorviz-frontend/src/stores/repos/model-repository';
@@ -81,48 +82,57 @@ export default function useLandscapeDataWatcher(landscapeData: LandscapeData | n
   const handleLandscapeUpdate = useCallback(async () => {
     const generation = ++layoutGenerationRef.current;
     log('handleLandscapeUpdate');
-    await Promise.resolve();
+    const endRenderTask = beginLandscapeRenderTask();
 
-    const landscapeDataFromStore = useRenderingServiceStore.getState()._landscapeData;
-    const flatLandscapeStructure = landscapeDataFromStore?.flatLandscapeData ?? flatLandscapeData;
-    const dynamicData = landscapeDataFromStore?.dynamicLandscapeData ?? dynamicLandscapeData;
-    const aggregatedCommunication = landscapeDataFromStore?.aggregatedFileCommunication ?? aggregatedFileCommunication;
+    try {
+      // Let the rendering indicator paint before the work below blocks the main thread.
+      await waitForNextPaint();
 
-    if (!dynamicData || !flatLandscapeStructure) {
-      return;
+      const landscapeDataFromStore = useRenderingServiceStore.getState()._landscapeData;
+      const flatLandscapeStructure = landscapeDataFromStore?.flatLandscapeData ?? flatLandscapeData;
+      const dynamicData = landscapeDataFromStore?.dynamicLandscapeData ?? dynamicLandscapeData;
+      const aggregatedCommunication =
+        landscapeDataFromStore?.aggregatedFileCommunication ?? aggregatedFileCommunication;
+
+      if (!dynamicData || !flatLandscapeStructure) {
+        return;
+      }
+
+      log('Layouting landscape ...');
+      const boxLayoutMap = await layoutLandscape(flatLandscapeStructure, removedDistrictIds);
+      if (generation !== layoutGenerationRef.current) {
+        return;
+      }
+      log('Layouted landscape: ', boxLayoutMap);
+
+      log('Compute building communication');
+      const buildingCommunications = computeBuildingCommunication(flatLandscapeStructure, aggregatedCommunication);
+
+      // In Remove mode the entity filter applier owns cities/districts/buildings.
+      if (useEntityFilteringStore.getState().filterMode === 'Remove') {
+        useModelStore.getState().setBuildingCommunications(buildingCommunications);
+      } else {
+        useModelStore.getState().setAllModels({
+          cities: Object.values(flatLandscapeStructure.cities),
+          districts: Object.values(flatLandscapeStructure.districts),
+          buildings: Object.values(flatLandscapeStructure.buildings),
+          buildingCommunications: buildingCommunications,
+        });
+      }
+
+      calculateAggregatedCommunications(buildingCommunications);
+
+      // The District tree may have changed (e.g. Districts removed or restored by
+      // the entity filter), which can leave open Districts inside closed ones.
+      reconcileDistrictStatesWithTree();
+
+      useLayoutStore.getState().updateLayouts(boxLayoutMap, flatLandscapeStructure);
+
+      tryApplyPendingSerializedRoom();
+    } finally {
+      // Released after the next paint, once the new city is drawn.
+      endRenderTask();
     }
-
-    log('Layouting landscape ...');
-    const boxLayoutMap = await layoutLandscape(flatLandscapeStructure, removedDistrictIds);
-    if (generation !== layoutGenerationRef.current) {
-      return;
-    }
-    log('Layouted landscape: ', boxLayoutMap);
-
-    log('Compute building communication');
-    const buildingCommunications = computeBuildingCommunication(flatLandscapeStructure, aggregatedCommunication);
-
-    // In Remove mode the entity filter applier owns cities/districts/buildings.
-    if (useEntityFilteringStore.getState().filterMode === 'Remove') {
-      useModelStore.getState().setBuildingCommunications(buildingCommunications);
-    } else {
-      useModelStore.getState().setAllModels({
-        cities: Object.values(flatLandscapeStructure.cities),
-        districts: Object.values(flatLandscapeStructure.districts),
-        buildings: Object.values(flatLandscapeStructure.buildings),
-        buildingCommunications: buildingCommunications,
-      });
-    }
-
-    calculateAggregatedCommunications(buildingCommunications);
-
-    // The District tree may have changed (e.g. Districts removed or restored by
-    // the entity filter), which can leave open Districts inside closed ones.
-    reconcileDistrictStatesWithTree();
-
-    useLayoutStore.getState().updateLayouts(boxLayoutMap, flatLandscapeStructure);
-
-    tryApplyPendingSerializedRoom();
   }, [dynamicLandscapeData, aggregatedFileCommunication, flatLandscapeData, removedDistrictIds, log]);
 
   useEffect(() => {

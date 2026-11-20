@@ -1,6 +1,7 @@
 import { GearIcon, ToolsIcon } from '@primer/octicons-react';
 import VscodeExtensionSettings from 'explorviz-frontend/src/components/collaboration/visualization/page-setup/sidebar/customizationbar/vscode/vscode-extension-settings';
 import HeatmapInfo from 'explorviz-frontend/src/components/heatmap/heatmap-info';
+import LandscapeRenderingIndicator from 'explorviz-frontend/src/components/visualization/rendering/landscape-rendering-indicator';
 import ComponentTabs from 'explorviz-frontend/src/components/visualization/page-setup/sidebar/component-tabs';
 import { ChatbotWidget } from 'explorviz-frontend/src/components/chatbot/chatbot-widget';
 import EntityConfig from 'explorviz-frontend/src/components/visualization/page-setup/sidebar/customizationbar/entity-config/entity-config';
@@ -297,6 +298,8 @@ export default function BrowserRendering({ userApiTokens, visualizationPaused }:
                   )}
 
                   {visualizationSettings.heatmapEnabled.value && <HeatmapInfo />}
+
+                  <LandscapeRenderingIndicator />
 
                   <ContextMenu>
                     <CanvasWrapper key={landscapeToken?.value ?? 'no-token'} landscapeData={landscapeData} />

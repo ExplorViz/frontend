@@ -1,9 +1,9 @@
-import { useImperativeHandle, useMemo, useRef } from 'react';
+import { useImperativeHandle, useMemo, useRef, useState } from 'react';
 
 import BuildingMetricFiltering, {
   BuildingMetricFilteringHandle,
 } from 'explorviz-frontend/src/components/visualization/page-setup/sidebar/toolbar/entity-filtering/structure-filtering/building-metric-filtering';
-import { useEntityFilteringStore } from 'explorviz-frontend/src/stores/entity-filtering-store';
+import { MetricRange, useEntityFilteringStore } from 'explorviz-frontend/src/stores/entity-filtering-store';
 import { useRenderingServiceStore } from 'explorviz-frontend/src/stores/rendering-service';
 import { useVisualizationStore } from 'explorviz-frontend/src/stores/visualization-store';
 import {
@@ -63,10 +63,10 @@ const StructureFiltering = function StructureFiltering({
     filterMode,
     inclusionExpressions,
     exclusionExpressions,
-    metricThresholds,
+    metricRanges,
     hideEmptyDistricts,
     baselineFlatLandscape,
-    setMetricThreshold,
+    setMetricRange,
     setHideEmptyDistricts,
     setMinMethodCount,
     resetFilters,
@@ -75,10 +75,10 @@ const StructureFiltering = function StructureFiltering({
       filterMode: state.filterMode,
       inclusionExpressions: state.inclusionExpressions,
       exclusionExpressions: state.exclusionExpressions,
-      metricThresholds: state.metricThresholds,
+      metricRanges: state.metricRanges,
       hideEmptyDistricts: state.hideEmptyDistricts,
       baselineFlatLandscape: state.baselineFlatLandscape,
-      setMetricThreshold: state.actions.setMetricThreshold,
+      setMetricRange: state.actions.setMetricRange,
       setHideEmptyDistricts: state.actions.setHideEmptyDistricts,
       setMinMethodCount: state.actions.setMinMethodCount,
       resetFilters: state.actions.resetFilters,
@@ -86,6 +86,17 @@ const StructureFiltering = function StructureFiltering({
   );
 
   const filterSourceFlatLandscape = baselineFlatLandscape ?? _flatLandscapeData;
+
+  // Range being dragged but not yet applied. Applying a range rebuilds the city,
+  // so during a drag only the controls and the building count follow the thumb.
+  const [previewedMetricRange, setPreviewedMetricRange] = useState<{ metric: string; range: MetricRange } | null>(null);
+  const displayedMetricRanges = useMemo(
+    () =>
+      previewedMetricRange
+        ? { ...metricRanges, [previewedMetricRange.metric]: previewedMetricRange.range }
+        : metricRanges,
+    [metricRanges, previewedMetricRange]
+  );
 
   const buildingMetricRef = useRef<BuildingMetricFilteringHandle>(null);
   const metricBounds = useMemo(() => getMetricBounds(filterSourceFlatLandscape), [filterSourceFlatLandscape]);
@@ -112,7 +123,7 @@ const StructureFiltering = function StructureFiltering({
           hiddenLanguages,
           inclusionExpressions: inclusionExpressionValues,
           exclusionExpressions: exclusionExpressionValues,
-          metricThresholds,
+          metricRanges: displayedMetricRanges,
         })
       ),
     [
@@ -122,13 +133,23 @@ const StructureFiltering = function StructureFiltering({
       hiddenLanguages,
       inclusionExpressionValues,
       exclusionExpressionValues,
-      metricThresholds,
+      displayedMetricRanges,
     ]
   );
 
-  const updateMetricThreshold = (metric: string, value: number) => {
+  const updateMetricRange = (metric: string, range: MetricRange) => {
+    setPreviewedMetricRange(null);
+    const current = metricRanges[metric];
+    // A click on a thumb without moving it still ends a drag; skip the city rebuild then.
+    if (current && current.min === range.min && current.max === range.max) {
+      return;
+    }
     pauseVisualizationUpdating();
-    setMetricThreshold(metric, value);
+    setMetricRange(metric, range);
+  };
+
+  const previewMetricRange = (metric: string, range: MetricRange) => {
+    setPreviewedMetricRange({ metric, range });
   };
 
   useImperativeHandle(ref, () => ({
@@ -166,8 +187,9 @@ const StructureFiltering = function StructureFiltering({
       <BuildingMetricFiltering
         ref={buildingMetricRef}
         metricBounds={metricBounds}
-        selectedMetricThresholds={metricThresholds}
-        updateMetricThreshold={updateMetricThreshold}
+        selectedMetricRanges={displayedMetricRanges}
+        updateMetricRange={updateMetricRange}
+        previewMetricRange={previewMetricRange}
         remainingEntityCountAfterFiltering={numRemainingBuildingsAfterFiltering}
         initialEntityCount={initialBuildingCount}
       />

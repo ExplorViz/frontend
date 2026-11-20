@@ -20,7 +20,7 @@ const criteria = (overrides: Partial<BuildingFilterCriteria> = {}): BuildingFilt
   hiddenLanguages: new Set(),
   inclusionExpressions: [],
   exclusionExpressions: [],
-  metricThresholds: {},
+  metricRanges: {},
   ...overrides,
 });
 
@@ -41,12 +41,27 @@ describe('building filter pipeline', () => {
     expect(byLanguage.isFiltered({ ...building, language: 'PYTHON' })).toBe(false);
   });
 
-  it('uses inclusive metric thresholds, treating missing metrics as zero', () => {
+  it('uses inclusive lower metric bounds, treating missing metrics as zero', () => {
     const key = BUILDING_METRIC_NAMES[0];
-    const filter = compileBuildingFilter(criteria({ metricThresholds: { [key]: 10 } }));
+    const filter = compileBuildingFilter(criteria({ metricRanges: { [key]: { min: 10, max: Infinity } } }));
     expect(filter.isFiltered(building)).toBe(true);
     expect(filter.isFiltered({ ...building, metrics: { [key]: { current: 9 } } })).toBe(true);
     expect(filter.isFiltered({ ...building, metrics: { [key]: { current: 10 } } })).toBe(false);
+  });
+
+  it('uses inclusive upper metric bounds', () => {
+    const key = BUILDING_METRIC_NAMES[0];
+    const filter = compileBuildingFilter(criteria({ metricRanges: { [key]: { min: 0, max: 20 } } }));
+    expect(filter.isActive).toBe(true);
+    expect(filter.isFiltered(building)).toBe(false);
+    expect(filter.isFiltered({ ...building, metrics: { [key]: { current: 20 } } })).toBe(false);
+    expect(filter.isFiltered({ ...building, metrics: { [key]: { current: 21 } } })).toBe(true);
+  });
+
+  it('treats the default unbounded range as inactive', () => {
+    const key = BUILDING_METRIC_NAMES[0];
+    const filter = compileBuildingFilter(criteria({ metricRanges: { [key]: { min: 0, max: Infinity } } }));
+    expect(filter.isActive).toBe(false);
   });
 
   it('combines inclusion and exclusion, falling back to names without FQNs', () => {

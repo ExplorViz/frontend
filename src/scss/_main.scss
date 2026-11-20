@@ -297,3 +297,32 @@ svg.octicon {
     scrollbar-color: #989898;
   }
 }
+
+.landscape-rendering-indicator {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.375rem 0.75rem;
+  border-radius: 999px;
+  background: var(--bs-body-bg);
+  color: var(--bs-body-color);
+  box-shadow: var(--bs-box-shadow-sm);
+  font-size: 0.875rem;
+  pointer-events: none;
+  // Opacity animations run on the compositor, so the delayed fade-in still
+  // happens while the main thread is busy rebuilding the city.
+  animation: landscape-rendering-indicator-fade-in 150ms ease-out 200ms both;
+}
+
+@keyframes landscape-rendering-indicator-fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}

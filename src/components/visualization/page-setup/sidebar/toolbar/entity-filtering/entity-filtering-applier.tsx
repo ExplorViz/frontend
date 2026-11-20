@@ -3,8 +3,10 @@ import { useEffect, useRef } from 'react';
 import {
   getLanguageCountsFromBuildings,
   getLanguageFileExtensionStatsFromBuildings,
+  MetricRange,
   useEntityFilteringStore,
 } from 'explorviz-frontend/src/stores/entity-filtering-store';
+import { beginLandscapeRenderTask, waitForNextPaint } from 'explorviz-frontend/src/stores/landscape-render-progress';
 import { useLayoutStore } from 'explorviz-frontend/src/stores/layout-store';
 import { useRenderingServiceStore } from 'explorviz-frontend/src/stores/rendering-service';
 import { useModelStore } from 'explorviz-frontend/src/stores/repos/model-repository';
@@ -34,8 +36,15 @@ interface EntityFilteringApplierProps {
 
 const getMetricValue = (building: Building, metricKey: string): number => building.metrics?.[metricKey]?.current ?? 0;
 
-const getDefaultThresholds = (metricBounds: Record<string, { min: number; max: number }>): Record<string, number> =>
-  Object.fromEntries(Object.entries(metricBounds).map(([metricName, bounds]) => [metricName, bounds.min]));
+const getDefaultMetricRanges = (
+  metricBounds: Record<string, { min: number; max: number }>
+): Record<string, MetricRange> =>
+  Object.fromEntries(
+    Object.entries(metricBounds).map(([metricName, bounds]) => [
+      metricName,
+      { min: bounds.min, max: Number.POSITIVE_INFINITY },
+    ])
+  );
 
 const getMetricBounds = (landscape: FlatLandscape): Record<string, { min: number; max: number }> => {
   const buildings = Object.values(landscape.buildings);
@@ -112,17 +121,17 @@ export default function EntityFilteringApplier({ landscapeData }: EntityFilterin
   const setFilterHiddenBuildingIds = useVisualizationStore((state) => state.actions.setFilterHiddenBuildingIds);
   const commitToSelectedTimestamp = useTimestampStore((state) => state.commitToSelectedTimestamps);
 
-  const { filterMode, inclusionExpressions, exclusionExpressions, metricThresholds, hideEmptyDistricts } =
+  const { filterMode, inclusionExpressions, exclusionExpressions, metricRanges, hideEmptyDistricts } =
     useEntityFilteringStore(
       useShallow((state) => ({
         filterMode: state.filterMode,
         inclusionExpressions: state.inclusionExpressions,
         exclusionExpressions: state.exclusionExpressions,
-        metricThresholds: state.metricThresholds,
+        metricRanges: state.metricRanges,
         hideEmptyDistricts: state.hideEmptyDistricts,
       }))
     );
-  const setMetricThresholds = useEntityFilteringStore((state) => state.actions.setMetricThresholds);
+  const setMetricRanges = useEntityFilteringStore((state) => state.actions.setMetricRanges);
   const setBaselineLanguageStats = useEntityFilteringStore((state) => state.actions.setBaselineLanguageStats);
   const setBaselineLanguageFileExtensionStats = useEntityFilteringStore(
     (state) => state.actions.setBaselineLanguageFileExtensionStats
@@ -140,7 +149,7 @@ export default function EntityFilteringApplier({ landscapeData }: EntityFilterin
   const inclusionExpressionValues = inclusionExpressions.map((option) => option.value);
   const exclusionExpressionValues = exclusionExpressions.map((option) => option.value);
 
-  const applyFilters = (thresholds: Record<string, number> = metricThresholds) => {
+  const applyFilters = (ranges: Record<string, MetricRange> = metricRanges) => {
     const baselineFlatLandscape = initialFlatLandscapeData.current;
     const compiledFilter = compileBuildingFilter({
       filterMode,
@@ -148,7 +157,7 @@ export default function EntityFilteringApplier({ landscapeData }: EntityFilterin
       hiddenLanguages,
       inclusionExpressions: inclusionExpressionValues,
       exclusionExpressions: exclusionExpressionValues,
-      metricThresholds: thresholds,
+      metricRanges: ranges,
     });
     const buildingIdsToFilter = collectFilteredBuildings(baselineFlatLandscape.buildings, compiledFilter);
     const renderedFlatLandscape = useRenderingServiceStore.getState()._landscapeData?.flatLandscapeData;
@@ -304,14 +313,31 @@ export default function EntityFilteringApplier({ landscapeData }: EntityFilterin
   }, [landscapeData, flatLandscapeData]);
 
   useEffect(() => {
-    applyFilters();
+    // Filtering can rebuild the whole landscape synchronously. Show the
+    // rendering indicator and let it paint first, so its animation keeps
+    // running while the main thread is busy.
+    const endRenderTask = beginLandscapeRenderTask();
+    let superseded = false;
+    waitForNextPaint()
+      .then(() => {
+        if (!superseded) {
+          applyFilters();
+        }
+      })
+      // Released after the next paint, by which time the landscape watcher holds
+      // its own task for laying out the filtered landscape.
+      .finally(endRenderTask);
+
+    return () => {
+      superseded = true;
+    };
   }, [
     filterMode,
     hiddenModelTypes,
     hiddenLanguages,
     inclusionExpressions,
     exclusionExpressions,
-    metricThresholds,
+    metricRanges,
     hideEmptyDistricts,
   ]);
 
@@ -325,9 +351,9 @@ export default function EntityFilteringApplier({ landscapeData }: EntityFilterin
       initialFlatLandscapeData.current = latestFlatLandscapeDataRef.current;
       removeModePrunedRenderedRef.current = false;
       updateBaseline(latestFlatLandscapeDataRef.current);
-      const defaultThresholds = getDefaultThresholds(getMetricBounds(latestFlatLandscapeDataRef.current));
-      setMetricThresholds(defaultThresholds);
-      applyFilters(defaultThresholds);
+      const defaultRanges = getDefaultMetricRanges(getMetricBounds(latestFlatLandscapeDataRef.current));
+      setMetricRanges(defaultRanges);
+      applyFilters(defaultRanges);
     },
     [commitToSelectedTimestamp]
   );

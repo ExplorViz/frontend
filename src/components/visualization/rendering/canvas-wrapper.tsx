@@ -12,6 +12,7 @@ import {
 import { INITIAL_CAMERA_POSITION, useCameraControls } from 'explorviz-frontend/src/stores/camera-controls-store';
 import { useConfigurationStore } from 'explorviz-frontend/src/stores/configuration';
 import { useImmersiveViewStore } from 'explorviz-frontend/src/stores/immersive-view-store';
+import { beginLandscapeRenderTask } from 'explorviz-frontend/src/stores/landscape-render-progress';
 import { useLayoutStore } from 'explorviz-frontend/src/stores/layout-store';
 import { useModelStore } from 'explorviz-frontend/src/stores/repos/model-repository';
 import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
@@ -384,14 +385,19 @@ function CanvasWrapper({
     if (!landscapeData) return;
 
     const generation = ++layoutGenerationRef.current;
-    const layoutMap = await layoutLandscape(landscapeData.flatLandscapeData, removedDistrictIds);
-    if (generation !== layoutGenerationRef.current) {
-      return;
+    const endRenderTask = beginLandscapeRenderTask();
+    try {
+      const layoutMap = await layoutLandscape(landscapeData.flatLandscapeData, removedDistrictIds);
+      if (generation !== layoutGenerationRef.current) {
+        return;
+      }
+      // Pass the structure along: on first load the model store is not populated
+      // yet, and without it every entity type resolves to null and the layouts
+      // are dropped.
+      useLayoutStore.getState().updateLayouts(layoutMap, landscapeData.flatLandscapeData);
+    } finally {
+      endRenderTask();
     }
-    // Pass the structure along: on first load the model store is not populated
-    // yet, and without it every entity type resolves to null and the layouts
-    // are dropped.
-    useLayoutStore.getState().updateLayouts(layoutMap, landscapeData.flatLandscapeData);
   }, [landscapeData, removedDistrictIds]);
 
   useEffect(() => {

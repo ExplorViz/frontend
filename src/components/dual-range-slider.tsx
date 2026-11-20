@@ -52,6 +52,12 @@ interface DualRangeSliderProps {
   onChange?: (value: [number, number]) => void;
 
   /**
+   * Called once the user has finished dialing in a value: when a drag ends, or after a keyboard step.
+   * Use this instead of {@link onChange} for work too expensive to repeat on every pointer move.
+   */
+  onChangeEnd?: (value: [number, number]) => void;
+
+  /**
    * Function that provides a tooltip string to display over the selected thumb while dialing in a value.
    * If left undefined, the tooltip will simply display the current value as a string.
    */
@@ -73,6 +79,7 @@ export default function DualRangeSlider({
   upperFormName,
   disabled = false,
   onChange,
+  onChangeEnd,
   getTooltipText,
 }: DualRangeSliderProps) {
   initialValue = initialValue.toSorted((a, b) => a - b) as [number, number];
@@ -88,6 +95,12 @@ export default function DualRangeSlider({
     range = [value[0] ?? initialValue[0], value[1] ?? initialValue[1]];
   }
 
+  // Latest range, readable from event handlers that fire before the next render.
+  const latestRangeRef = useRef(range);
+  useEffect(() => {
+    latestRangeRef.current = [range[0], range[1]];
+  }, [range[0], range[1]]);
+
   const updateValue = (index: 0 | 1, newValue: number) => {
     newValue = clamp(newValue, min, max);
     if (range[index] === newValue) {
@@ -100,8 +113,16 @@ export default function DualRangeSlider({
       [newRange[0], newRange[1]] = [newRange[1], newRange[0]];
     }
 
+    latestRangeRef.current = newRange;
     setRange(newRange);
     onChange?.(newRange);
+  };
+
+  const handleChangeEnd = () => onChangeEnd?.(latestRangeRef.current);
+
+  const stepValue = (index: 0 | 1, newValue: number) => {
+    updateValue(index, newValue);
+    handleChangeEnd();
   };
 
   const pointerPositionToValue = (clientX: number) => {
@@ -155,7 +176,8 @@ export default function DualRangeSlider({
       disabled={disabled}
       ref={firstThumbRef}
       onMove={(val) => handleMove(firstIndex, val)}
-      onStep={(val) => updateValue(firstIndex, val)}
+      onStep={(val) => stepValue(firstIndex, val)}
+      onDragEnd={handleChangeEnd}
       getTooltipText={getTooltipText}
     />,
 
@@ -168,7 +190,8 @@ export default function DualRangeSlider({
       disabled={disabled}
       ref={secondThumbRef}
       onMove={(val) => handleMove(secondIndex, val)}
-      onStep={(val) => updateValue(secondIndex, val)}
+      onStep={(val) => stepValue(secondIndex, val)}
+      onDragEnd={handleChangeEnd}
       getTooltipText={getTooltipText}
     />,
   ];
@@ -248,10 +271,22 @@ interface SliderThumbProps {
   ref: React.RefObject<SliderThumbHandle | null>;
   onMove: (clientX: number) => void; // For pointer input
   onStep: (newValue: number) => void; // For keyboard input
+  onDragEnd: () => void;
   getTooltipText?: (value: number) => string;
 }
 
-function SliderThumb({ value, min, max, step, disabled, ref, onMove, onStep, getTooltipText }: SliderThumbProps) {
+function SliderThumb({
+  value,
+  min,
+  max,
+  step,
+  disabled,
+  ref,
+  onMove,
+  onStep,
+  onDragEnd,
+  getTooltipText,
+}: SliderThumbProps) {
   const [isDragging, setIsDragging] = useState<boolean>(false);
   const [pointerIds, setPointerIds] = useState<Set<number>>(() => new Set());
 
@@ -266,7 +301,10 @@ function SliderThumb({ value, min, max, step, disabled, ref, onMove, onStep, get
     }
 
     const handleMove = (e: PointerEvent) => onMove(e.clientX);
-    const handleUp = () => setIsDragging(false);
+    const handleUp = () => {
+      setIsDragging(false);
+      onDragEnd();
+    };
     window.addEventListener('pointermove', handleMove);
     window.addEventListener('pointerup', handleUp);
     window.addEventListener('pointercancel', handleUp);
@@ -276,7 +314,7 @@ function SliderThumb({ value, min, max, step, disabled, ref, onMove, onStep, get
       window.removeEventListener('pointerup', handleUp);
       window.removeEventListener('pointercancel', handleUp);
     };
-  }, [isDragging, disabled, onMove]);
+  }, [isDragging, disabled, onMove, onDragEnd]);
 
   useEffect(() => {
     if (!isDragging || disabled) {
@@ -361,7 +399,12 @@ function SliderThumb({ value, min, max, step, disabled, ref, onMove, onStep, get
           onPointerUp={handlePointerUp}
           onPointerCancel={handlePointerUp}
           onKeyDown={handleKeyDown}
-          onBlur={() => setIsDragging(false)}
+          onBlur={() => {
+            if (isDragging) {
+              setIsDragging(false);
+              onDragEnd();
+            }
+          }}
           draggable="false"
           ref={thumbDivRef}
           style={{
