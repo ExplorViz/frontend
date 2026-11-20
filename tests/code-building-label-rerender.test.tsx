@@ -45,9 +45,7 @@ vi.mock('../src/stores/immersive-view-store', async () => {
   const { create } = await import('zustand');
   return { useImmersiveViewStore: create(() => ({ immersiveLabelBuildingId: null })) };
 });
-vi.mock('../src/stores/layout-store', () => ({
-  useLayoutStore: { getState: () => ({ getBuildingLayouts: () => new Map() }) },
-}));
+vi.mock('../src/stores/layout-store', () => ({ useBuildingLayout: () => undefined }));
 vi.mock('../src/stores/cluster-store', () => ({ useIsWithinCentroidDistance: () => false }));
 
 import CodeBuildingLabel from '../src/view-objects/3d/city/code-building-label';

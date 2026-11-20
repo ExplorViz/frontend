@@ -1,7 +1,7 @@
 import { Text } from '@react-three/drei';
 import { useIsWithinCentroidDistance } from 'explorviz-frontend/src/stores/cluster-store';
 import { useImmersiveViewStore } from 'explorviz-frontend/src/stores/immersive-view-store';
-import { useLayoutStore } from 'explorviz-frontend/src/stores/layout-store';
+import { useBuildingLayout } from 'explorviz-frontend/src/stores/layout-store';
 import { useModelStore } from 'explorviz-frontend/src/stores/repos/model-repository';
 import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
 import { useVisualizationStore } from 'explorviz-frontend/src/stores/visualization-store';
@@ -61,7 +61,7 @@ function CodeBuildingLabel({ buildingId }: { buildingId: string }) {
     isBuildingHighlighted ||
     isParentHighlighted;
 
-  const layout = useLayoutStore.getState().getBuildingLayouts().get(buildingId);
+  const layout = useBuildingLayout(buildingId);
   const sizeMultiplier = 1.0 + (layout?.area ?? 0) / 10000.0;
   const threshold = labelDistanceThreshold * sizeMultiplier;
 
@@ -77,12 +77,20 @@ function CodeBuildingLabel({ buildingId }: { buildingId: string }) {
     return null;
   }
 
-  return <CodeBuildingLabelContent buildingId={buildingId} building={building} />;
+  return <CodeBuildingLabelContent buildingId={buildingId} building={building} layout={layout ?? EMPTY_LAYOUT} />;
 }
 
-function CodeBuildingLabelContent({ buildingId, building }: { buildingId: string; building: Building }) {
-  const layout = useLayoutStore.getState().getBuildingLayouts().get(buildingId) || new BoxLayout();
+const EMPTY_LAYOUT = new BoxLayout();
 
+function CodeBuildingLabelContent({
+  buildingId,
+  building,
+  layout,
+}: {
+  buildingId: string;
+  building: Building;
+  layout: BoxLayout;
+}) {
   const sceneLayers = useVisualizationStore((state) => state.sceneLayers);
   const {
     buildingFootprint,

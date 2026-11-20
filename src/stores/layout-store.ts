@@ -4,6 +4,7 @@ import {
   getFlatLandscapeEntityType,
 } from 'explorviz-frontend/src/utils/landscape-schemes/flat-landscape';
 import BoxLayout from 'explorviz-frontend/src/utils/layout/box-layout';
+import { useRef } from 'react';
 import { create } from 'zustand';
 
 interface LayoutStoreState {
@@ -25,7 +26,7 @@ interface LayoutStoreState {
   clearLayouts: () => void;
 }
 
-function areLayoutsGeometricallyEqual(a: BoxLayout, b: BoxLayout): boolean {
+export function areLayoutsGeometricallyEqual(a: BoxLayout, b: BoxLayout): boolean {
   return (
     a.positionX === b.positionX &&
     a.positionY === b.positionY &&
@@ -204,3 +205,20 @@ export const useLayoutStore = create<LayoutStoreState>((set, get) => ({
     });
   },
 }));
+
+/**
+ * The layout of one building, kept up to date with relayouts (e.g. after
+ * filtering). Returns the previous instance while the geometry is unchanged,
+ * so a relayout that does not move the building does not re-render the caller.
+ */
+export function useBuildingLayout(buildingId: string): BoxLayout | undefined {
+  const previous = useRef<BoxLayout | undefined>(undefined);
+  return useLayoutStore((state) => {
+    const next = state.buildingLayouts.get(buildingId);
+    if (next && previous.current && areLayoutsGeometricallyEqual(next, previous.current)) {
+      return previous.current;
+    }
+    previous.current = next;
+    return next;
+  });
+}
