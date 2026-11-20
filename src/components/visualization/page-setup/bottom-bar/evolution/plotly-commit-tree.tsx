@@ -15,6 +15,7 @@ import {
   buildBranchChartLineSegments,
   buildBranchChartSeries,
   formatCommitDate,
+  getCommitAuthorLabel,
   getCommitAuthorOptionsFromCommitTree,
   getFirstBranchWithCommits,
   getMetricValue,
@@ -1227,6 +1228,11 @@ function markSelectedCommits(
   });
 }
 
+/** Plotly renders hover text as HTML, so user-provided values must be escaped. */
+function escapeHoverHtml(text: string): string {
+  return text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+}
+
 function buildHoverText(chartCommits: CommitNode[], metricName: string): string[] {
   return chartCommits.map((commit) => {
     const lines = [`Commit ID: ${commit.hash}`];
@@ -1234,6 +1240,7 @@ function buildHoverText(chartCommits: CommitNode[], metricName: string): string[
     if (formattedCommitDate) {
       lines.push(`Date: ${formattedCommitDate}`);
     }
+    lines.push(`Author: ${escapeHoverHtml(getCommitAuthorLabel(commit.author))}`);
     if (metricName !== NONE_METRIC) {
       const metricValue = getMetricValue(commit, metricName);
       lines.push(
