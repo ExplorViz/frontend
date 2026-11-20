@@ -136,6 +136,17 @@ export default function useLandscapeDataWatcher(landscapeData: LandscapeData | n
   }, [dynamicLandscapeData, aggregatedFileCommunication, flatLandscapeData, removedDistrictIds, log]);
 
   useEffect(() => {
+    // No data means the visualization session was reset (e.g. another Snapshot of the same Landscape is
+    // being opened), which cleared models and layouts: whatever comes next needs a full update, even if its
+    // structure equals what was shown before. A layout still running for the old data is dropped.
+    if (landscapeData === null) {
+      layoutGenerationRef.current++;
+      lastProcessedLandscapeData.current = null;
+      lastProcessedDynamicData.current = null;
+      lastProcessedFlatLandscapeSignature.current = '';
+      return;
+    }
+
     if (!dynamicLandscapeData || !flatLandscapeData) {
       return;
     }
@@ -165,6 +176,7 @@ export default function useLandscapeDataWatcher(landscapeData: LandscapeData | n
       handleDynamicOnlyUpdate();
     }
   }, [
+    landscapeData,
     dynamicLandscapeData,
     aggregatedFileCommunication,
     flatLandscapeData,

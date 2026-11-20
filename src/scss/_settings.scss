@@ -446,6 +446,106 @@
   gap: 0.375rem;
 }
 
+// Snapshots: list of the saved Snapshots of the shown Landscape
+
+.snapshot-hint {
+  color: var(--settings-muted);
+}
+
+.snapshot-live-row + .snapshot-list {
+  border-top: 1px solid var(--settings-border);
+}
+
+.snapshot-list {
+  max-height: 24rem;
+  margin: 0;
+  padding: 0;
+  overflow-y: auto;
+  list-style: none;
+}
+
+.snapshot-row {
+  position: relative;
+  gap: 0.25rem;
+  padding-left: 0.375rem;
+
+  // An accent bar marks the Snapshot that is shown
+  &.active::before {
+    content: '';
+    position: absolute;
+    top: 0.5rem;
+    bottom: 0.5rem;
+    left: 0;
+    width: 3px;
+    border-radius: 999px;
+    background: var(--settings-accent);
+  }
+}
+
+.snapshot-select {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  align-items: flex-start;
+  min-width: 0;
+  padding: 0.25rem 0.375rem;
+  border: 0;
+  border-radius: var(--ev-radius-md);
+  background: transparent;
+  color: var(--settings-text);
+  text-align: left;
+  transition: background-color var(--ev-transition-fast);
+
+  &:hover {
+    background: var(--settings-hover);
+  }
+
+  &:focus-visible {
+    outline: var(--ev-focus-outline);
+    outline-offset: 1px;
+  }
+
+  .snapshot-row.active & {
+    background: rgba(13, 110, 253, 0.08);
+    cursor: default;
+  }
+}
+
+.snapshot-name {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+  max-width: 100%;
+  font-weight: 500;
+
+  .snapshot-row.active & {
+    color: var(--settings-accent);
+  }
+}
+
+.snapshot-name-text {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.snapshot-date {
+  color: var(--settings-muted);
+  font-size: 0.75rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.snapshot-badge {
+  flex: none;
+  padding: 0 0.375rem;
+  border: 1px solid var(--settings-border);
+  border-radius: 999px;
+  color: var(--settings-muted);
+  font-size: 0.6875rem;
+  font-weight: 500;
+}
+
 // Switch for on/off values (also used outside the settings)
 
 .wide-checkbox-container {

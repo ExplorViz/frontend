@@ -5,6 +5,7 @@ import PlayPauseButton from 'explorviz-frontend/src/components/visualization/ren
 import XrRendering from 'explorviz-frontend/src/components/visualization/rendering/xr-rendering';
 import { useXrAllowed } from 'explorviz-frontend/src/utils/collaboration/screen-wall-tile';
 import { useLocalUserStore } from 'explorviz-frontend/src/stores/collaboration/local-user';
+import { useAnnotationHandlerStore } from 'explorviz-frontend/src/stores/annotation-handler';
 import { useCommitTreeStateStore } from 'explorviz-frontend/src/stores/commit-tree-state';
 import { useEntityFilteringStore } from 'explorviz-frontend/src/stores/entity-filtering-store';
 import { useLandscapeTokenStore } from 'explorviz-frontend/src/stores/landscape-token';
@@ -38,6 +39,7 @@ import { currentRoom, useRoomConnectionStore } from 'explorviz-frontend/src/util
 import { joinRoomFromLink, ROOM_PARAM } from 'explorviz-frontend/src/utils/collaboration/room-link';
 import { leaveRoomToOpenSnapshot, onSnapshotClosedForRoom } from 'explorviz-frontend/src/utils/collaboration/snapshots';
 import { restoreSnapshotFromToken } from 'explorviz-frontend/src/utils/snapshot/snapshot-helpers';
+import { onSnapshotSwitch, SnapshotSwitch } from 'explorviz-frontend/src/utils/snapshot/switch-snapshot';
 import TimelineDataObjectHandler from 'explorviz-frontend/src/utils/timeline/timeline-data-object-handler';
 import globalBundlingService from 'explorviz-frontend/src/view-objects/3d/city/global-bundling-service';
 import { HAPSystemManager } from 'explorviz-frontend/src/view-objects/3d/city/hap-system-manager';
@@ -142,6 +144,9 @@ export default function Visualization() {
   const [countdown, setCountdown] = useState<number>(10);
   // Counts switches from one Landscape to another while the page is open (in a Room, the Host's switch).
   const [landscapeSwitches, setLandscapeSwitches] = useState(0);
+  // The Snapshot chosen in the sidebar that the next switch opens. Kept here rather than read from the URL,
+  // since the router applies the new search params only after the switch has started loading.
+  const snapshotToOpenOnSwitch = useRef<SnapshotSwitch>(null);
 
   // # endregion
 
@@ -314,6 +319,33 @@ export default function Visualization() {
     [setSearchParams]
   );
 
+  // Another Snapshot (or the live Landscape) was chosen in the sidebar: load it as if the page was opened anew.
+  useEffect(
+    () =>
+      onSnapshotSwitch((target) => {
+        // Annotations are not part of the session reset; the next Snapshot restores its own.
+        useAnnotationHandlerStore.getState().cleanup();
+        if (target) {
+          const { snapshot, isShared } = target;
+          useSnapshotTokenStore.setState({ snapshotToken: null, snapshotSelected: true });
+          snapshotToOpenOnSwitch.current = target;
+          setSearchParams({
+            landscapeToken: snapshot.landscapeToken.value,
+            sharedSnapshot: String(isShared),
+            owner: snapshot.owner,
+            createdAt: snapshot.createdAt.toString(),
+          });
+        } else {
+          const landscapeToken = useLandscapeTokenStore.getState().token?.value;
+          useSnapshotTokenStore.setState({ snapshotToken: null, snapshotSelected: false });
+          snapshotToOpenOnSwitch.current = null;
+          if (landscapeToken) setSearchParams(landscapeSearchParams(landscapeToken));
+        }
+        setLandscapeSwitches((switches) => switches + 1);
+      }),
+    [setSearchParams]
+  );
+
   // Entering a Room closed the open Snapshot: load the Landscape's live data, as after a switch.
   useEffect(
     () =>
@@ -372,12 +404,17 @@ export default function Visualization() {
 
       setVisualizationPausedRenderingService(false);
 
-      const snapshotOwner = searchParams.get('owner');
-      const snapshotCreatedAt = searchParams.get('createdAt');
-      const isSharedSnapshot = searchParams.get('sharedSnapshot') === 'true';
-      // After a Landscape switch the new Landscape is loaded, not the Snapshot of the old one.
+      const switchedTo = snapshotToOpenOnSwitch.current;
+      snapshotToOpenOnSwitch.current = null;
+      const snapshotOwner = switchedTo ? switchedTo.snapshot.owner : searchParams.get('owner');
+      const snapshotCreatedAt = switchedTo ? switchedTo.snapshot.createdAt.toString() : searchParams.get('createdAt');
+      const isSharedSnapshot = switchedTo ? switchedTo.isShared : searchParams.get('sharedSnapshot') === 'true';
+      // After a Landscape switch the new Landscape is loaded, not the Snapshot of the old one,
+      // unless the switch was to another Snapshot.
+      const openSnapshot = landscapeSwitches === 0 || switchedTo !== null;
       const shouldRestoreSnapshot =
-        landscapeSwitches === 0 && (snapshotSelected || (snapshotOwner !== null && snapshotCreatedAt !== null));
+        openSnapshot &&
+        (useSnapshotTokenStore.getState().snapshotSelected || (snapshotOwner !== null && snapshotCreatedAt !== null));
 
       if (shouldRestoreSnapshot) {
         // A Snapshot is opened alone, never in a Room.
