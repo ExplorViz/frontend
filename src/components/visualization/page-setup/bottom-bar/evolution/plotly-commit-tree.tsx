@@ -1241,6 +1241,10 @@ function buildHoverText(chartCommits: CommitNode[], metricName: string): string[
       lines.push(`Date: ${formattedCommitDate}`);
     }
     lines.push(`Author: ${escapeHoverHtml(getCommitAuthorLabel(commit.author))}`);
+    if (commit.tags?.length) {
+      const tagLabel = commit.tags.length === 1 ? 'Tag' : 'Tags';
+      lines.push(`${tagLabel}: ${escapeHoverHtml(commit.tags.join(', '))}`);
+    }
     if (metricName !== NONE_METRIC) {
       const metricValue = getMetricValue(commit, metricName);
       lines.push(
