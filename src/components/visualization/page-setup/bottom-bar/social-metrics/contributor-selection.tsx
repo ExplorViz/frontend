@@ -97,7 +97,7 @@ export default function ContributorSelection() {
               <span className="social-metrics-contributor-row">
                 <img
                   className="social-metrics-avatar"
-                  src={c.avatarUrl || 'https://avatars.githubusercontent.com/u/10137?v=4'}
+                  src={c.avatarUrl || '/images/default-avatar.svg'}
                   alt=""
                   loading="lazy"
                 />
