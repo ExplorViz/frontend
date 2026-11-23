@@ -595,7 +595,7 @@ export const defaultVizSettings: VisualizationSettings = {
   // Layout settings
   layoutEngine: {
     level: SettingLevel.DEFAULT,
-    value: 'elk',
+    value: 'maxrects',
     options: ['elk', 'maxrects'],
     group: 'Layout',
     displayName: 'Layout Engine',
@@ -1039,7 +1039,7 @@ export const defaultVizSettings: VisualizationSettings = {
   // Camera settings
   cameraNear: {
     level: SettingLevel.DEFAULT,
-    value: 0.1,
+    value: 0.25,
     range: { min: 0.01, max: 5.0, step: 0.01 },
     group: 'Camera',
     displayName: 'Render Near',
@@ -1048,8 +1048,8 @@ export const defaultVizSettings: VisualizationSettings = {
   },
   cameraFar: {
     level: SettingLevel.DEFAULT,
-    value: 100,
-    range: { min: 5.0, max: 500.0, step: 1.0 },
+    value: 250,
+    range: { min: 5.0, max: 1000.0, step: 1.0 },
     group: 'Camera',
     displayName: 'Render Far',
     description: 'Determines far render distance',
