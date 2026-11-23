@@ -47,6 +47,7 @@ interface AnalysisRequestPayload {
   applications?: ApplicationSpec[];
   includeDataStructures: boolean;
   sendToRemote: boolean;
+  anonymize: boolean;
   fetchSocialData: boolean;
   syncSocialWindow: boolean;
   fetchEndDate?: string;
@@ -124,12 +125,18 @@ function buildPayload(
   repoType: RepoType,
   formData: Omit<
     AnalysisRequestPayload,
-    'includeDataStructures' | 'sendToRemote' | 'fetchSocialData' | 'syncSocialWindow' | 'firstParentCommitsOnly'
+    | 'includeDataStructures'
+    | 'sendToRemote'
+    | 'anonymize'
+    | 'fetchSocialData'
+    | 'syncSocialWindow'
+    | 'firstParentCommitsOnly'
   > & {
     includeDataStructures: boolean;
     sendToRemote: boolean;
+    anonymize: boolean;
     fetchSocialData: boolean;
-    syncSocialData: boolean;
+    syncSocialWindow: boolean;
     firstParentCommitsOnly: boolean;
   },
   inclusionExpressions: readonly InputOption[],
@@ -139,7 +146,8 @@ function buildPayload(
   const payload: Partial<AnalysisRequestPayload> = {
     includeDataStructures: formData.includeDataStructures,
     sendToRemote: formData.sendToRemote,
-    fetchSocialData: formData.fetchSocialData,
+    anonymize: formData.anonymize,
+    fetchSocialData: formData.fetchSocialData && !formData.anonymize,
     syncSocialWindow: formData.syncSocialWindow,
     firstParentCommitsOnly: formData.firstParentCommitsOnly,
   };
@@ -256,6 +264,7 @@ export default function CodeAnalysisTriggerForm({ landscapeToken, assignRandomTo
     socialDataTimeFrameDays: undefined as number | undefined,
     includeDataStructures: true,
     sendToRemote: true,
+    anonymize: false,
     fetchSocialData: false,
     syncSocialWindow: true,
   });
@@ -351,6 +360,7 @@ export default function CodeAnalysisTriggerForm({ landscapeToken, assignRandomTo
       socialDataTimeFrameDays: undefined,
       includeDataStructures: true,
       sendToRemote: true,
+      anonymize: false,
       fetchSocialData: false,
       syncSocialWindow: true,
     });
@@ -874,6 +884,21 @@ export default function CodeAnalysisTriggerForm({ landscapeToken, assignRandomTo
             />
             <Form.Check
               type="checkbox"
+              id="anonymize"
+              label={
+                <span className="d-inline-flex align-items-center">
+                  Anonymize Contributors
+                  <HelpTooltip
+                    title="Replaces contributor names and emails with pseudonyms and skips social data. Code structure, commit hashes and the repository URL are kept, so data of public repositories can still be traced back to its origin."
+                    placement="top"
+                  />
+                </span>
+              }
+              checked={formData.anonymize}
+              onChange={(e) => handleInputChange('anonymize', e.target.checked)}
+            />
+            <Form.Check
+              type="checkbox"
               id="fetch-social-data"
               label={
                 <span className="d-inline-flex align-items-center">
@@ -881,7 +906,8 @@ export default function CodeAnalysisTriggerForm({ landscapeToken, assignRandomTo
                   <HelpTooltip title="Whether to fetch social data." placement="top" />
                 </span>
               }
-              checked={formData.fetchSocialData}
+              checked={formData.fetchSocialData && !formData.anonymize}
+              disabled={formData.anonymize}
               onChange={(e) => handleInputChange('fetchSocialData', e.target.checked)}
             />
             <Form.Check
