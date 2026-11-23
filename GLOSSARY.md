@@ -39,7 +39,7 @@ A person in a Room.
 _Avoid_: Player, User (a user who is not in a Room is not a Participant)
 
 **Host**:
-The Participant who may switch the Room's Landscape and District sharing, mute and kick other Participants, and hand the Host right over.
+The Participant who may switch the Room's Landscape and District sharing, decide the Room's layout, mute and kick other Participants, and hand the Host right over.
 
 **Room code**:
 The six-character code that identifies a Room while it exists; people join a Room by entering it or by opening a room link (`/visualization?room=<code>`).

@@ -169,6 +169,8 @@ export type LabelSettings = {
 export type LabelSettingId = keyof LabelSettings;
 
 export type LayoutSettings = {
+  layoutEngine: SelectSetting<string>;
+  recomputeLayout: ButtonSetting;
   cityLayoutAlgorithm: SelectSetting<string>;
   districtLayoutAlgorithm: SelectSetting<string>;
   buildingLayoutAlgorithm: SelectSetting<string>;
@@ -348,6 +350,18 @@ export type SettingDependency =
        * The setting is displayed if the dependent setting's value is NOT one of these values.
        */
       notValues: any[];
+    }
+  | {
+      /**
+       * The setting is displayed if all of these conditions are met.
+       */
+      allOf: SettingDependency[];
+    }
+  | {
+      /**
+       * The setting is displayed if at least one of these conditions is met.
+       */
+      anyOf: SettingDependency[];
     };
 
 export type Setting<T> = {
@@ -485,6 +499,51 @@ export function isColorSetting(x: unknown): x is ColorSetting {
 
 export function isFlagSetting(x: unknown): x is FlagSetting {
   return {}.hasOwnProperty.call(x, 'isFlagSetting');
+}
+
+/**
+ * Checks if a setting's dependency condition is met.
+ * Returns true if the setting has no dependency or if the dependency is satisfied.
+ */
+export function isSettingDependencyMet(
+  dependsOn: SettingDependency | undefined,
+  allSettings: VisualizationSettings
+): boolean {
+  if (dependsOn === undefined) {
+    return true;
+  }
+
+  if ('allOf' in dependsOn) {
+    return dependsOn.allOf.every((dependency) => isSettingDependencyMet(dependency, allSettings));
+  }
+
+  if ('anyOf' in dependsOn) {
+    return dependsOn.anyOf.some((dependency) => isSettingDependencyMet(dependency, allSettings));
+  }
+
+  const dependentValue = allSettings[dependsOn.settingId].value;
+
+  // Check for single value equality
+  if ('value' in dependsOn) {
+    return dependentValue === dependsOn.value;
+  }
+
+  // Check for array of allowed values
+  if ('values' in dependsOn) {
+    return dependsOn.values.includes(dependentValue);
+  }
+
+  // Check for not equal condition
+  if ('notEqual' in dependsOn) {
+    return dependentValue !== dependsOn.notEqual;
+  }
+
+  // Check for array of not allowed values
+  if ('notValues' in dependsOn) {
+    return !dependsOn.notValues.includes(dependentValue);
+  }
+
+  return false;
 }
 
 export function isButtonSetting(x: unknown): x is ButtonSetting {

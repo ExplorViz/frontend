@@ -104,6 +104,7 @@
     "jszip": "^3.10.2",
     "keycloak-js": "^26.2.4",
     "loader.js": "4.7.0",
+    "maxrects-packer": "^3.0.0",
     "meshline": "3.3.1",
     "multer": "^2.4.0",
     "plotly.js-dist": "^3.5.1",

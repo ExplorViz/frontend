@@ -13,39 +13,12 @@ import {
 import { formatBuildingMetricDisplayName } from 'explorviz-frontend/src/utils/settings/building-metrics';
 import {
   SelectedBuildingMetric,
-  SettingDependency,
+  isSettingDependencyMet,
   VisualizationSettingId,
   VisualizationSettings,
 } from 'explorviz-frontend/src/utils/settings/settings-schemas';
 import { useState } from 'react';
 import { Button } from 'react-bootstrap';
-
-function isDependencyMet(dependsOn: SettingDependency | undefined, allSettings: VisualizationSettings): boolean {
-  if (dependsOn === undefined) {
-    return true;
-  }
-
-  const dependentSetting = allSettings[dependsOn.settingId];
-  const dependentValue = dependentSetting.value;
-
-  if ('value' in dependsOn) {
-    return dependentValue === dependsOn.value;
-  }
-
-  if ('values' in dependsOn) {
-    return dependsOn.values.includes(dependentValue);
-  }
-
-  if ('notEqual' in dependsOn) {
-    return dependentValue !== dependsOn.notEqual;
-  }
-
-  if ('notValues' in dependsOn) {
-    return !dependsOn.notValues.includes(dependentValue);
-  }
-
-  return false;
-}
 
 function formatBuildingMetricOptionLabel(option: unknown, isCommitComparisonMode: boolean): string {
   return formatBuildingMetricDisplayName(option as SelectedBuildingMetric, isCommitComparisonMode);
@@ -76,7 +49,7 @@ function DimensionMetricCard({
   const metricValue = visualizationSettings[metricSettingId].value;
   const showMultiplier =
     metricValue !== SelectedBuildingMetric.None &&
-    isDependencyMet(visualizationSettings[multiplierSettingId].dependsOn, visualizationSettings);
+    isSettingDependencyMet(visualizationSettings[multiplierSettingId].dependsOn, visualizationSettings);
 
   return (
     <div className="building-config-metric-card">

@@ -6,6 +6,7 @@ import { getAnnotations } from 'explorviz-frontend/src/utils/collaboration/annot
 import { useCameraControlsStore } from 'explorviz-frontend/src/stores/camera-controls-store';
 import { useLocalUserStore } from 'explorviz-frontend/src/stores/collaboration/local-user';
 import { useConfigurationStore } from 'explorviz-frontend/src/stores/configuration';
+import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
 import { addPopup } from 'explorviz-frontend/src/utils/collaboration/popups';
 import { useRenderingServiceStore } from 'explorviz-frontend/src/stores/rendering-service';
 import { useModelStore } from 'explorviz-frontend/src/stores/repos/model-repository';
@@ -28,6 +29,7 @@ import { type ContextMenuHitEntity, contextMenuPickAt } from 'explorviz-frontend
 import { requestRenameCity } from 'explorviz-frontend/src/utils/landscape-http-request-util';
 import { pingByModelId } from 'explorviz-frontend/src/view-objects/3d/city/ping-animation';
 import { useDistricts } from 'explorviz-frontend/src/utils/collaboration/districts';
+import { requestLayoutRecompute, useLayoutDecidedByHost } from 'explorviz-frontend/src/utils/collaboration/layout';
 import { useXrAllowed } from 'explorviz-frontend/src/utils/collaboration/screen-wall-tile';
 
 export type ContextMenuItem = {
@@ -136,10 +138,17 @@ export default function ContextMenu({ children }: ContextMenuProps) {
 
   const setVisualizationMode = useLocalUserStore((state) => state.setVisualizationMode);
   const xrAllowed = useXrAllowed();
+  const layoutDecidedByHost = useLayoutDecidedByHost();
+  const isLayoutStable = useUserSettingsStore((state) => state.visualizationSettings.layoutEngine.value === 'maxrects');
+  // In a Room only the Host recomputes the layout
+  const canRecomputeLayout = isLayoutStable && !layoutDecidedByHost;
 
   const backgroundMenuItems: ContextMenuItem[] = useMemo(
     () => [
       { id: 'bg-reset-view', title: 'Reset View', action: resetView },
+      ...(canRecomputeLayout
+        ? [{ id: 'bg-recompute-layout', title: 'Recompute Layout', action: requestLayoutRecompute }]
+        : []),
       {
         id: 'bg-open-close-all-districts',
         title: closedDistrictIds.size > 0 ? 'Open All Districts' : 'Close All Districts',
@@ -179,7 +188,7 @@ export default function ContextMenu({ children }: ContextMenuProps) {
           ]
         : []),
     ],
-    [closedDistrictIds, resetView, isCommRendered, pingAnnotations, setVisualizationMode, xrAllowed]
+    [closedDistrictIds, resetView, canRecomputeLayout, isCommRendered, pingAnnotations, setVisualizationMode, xrAllowed]
   );
 
   const getFoundationMenuItems = (cityId: string) => {

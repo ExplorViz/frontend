@@ -45,6 +45,57 @@ interface UserSettingsState {
 
 export type ExplorVizColors = Record<ColorSettingId, THREE.Color>;
 
+/**
+ * Carries over the stored values that are compatible with the current
+ * settings. Settings that are missing (e.g. added after the settings were
+ * saved) or have an incompatible value type keep the value of `base`, the
+ * defaults unless given. Metadata such as select options always comes from
+ * the current defaults.
+ */
+export function mergeWithDefaultSettings(
+  stored: unknown,
+  source: string,
+  base: VisualizationSettings = defaultVizSettings
+): VisualizationSettings {
+  const merged = Object.fromEntries(
+    Object.entries(defaultVizSettings).map(([id, setting]) => [
+      id,
+      {
+        ...JSON.parse(JSON.stringify(setting)),
+        value: JSON.parse(JSON.stringify(base[id as keyof VisualizationSettings].value)),
+      },
+    ])
+  ) as unknown as VisualizationSettings;
+  if (!stored || typeof stored !== 'object') {
+    return merged;
+  }
+  const storedSettings = stored as Partial<Record<keyof VisualizationSettings, { value: unknown } | null>>;
+
+  let settingId: keyof VisualizationSettings;
+  for (settingId in merged) {
+    const defaultSetting = merged[settingId];
+    const storedSetting = storedSettings[settingId];
+
+    if (storedSetting === undefined || storedSetting === null) {
+      console.warn(`[UserSettings] Setting "${settingId}" is missing from ${source}. Keeping its current value.`);
+      continue;
+    }
+
+    const defaultValueType = typeof defaultSetting.value;
+    const storedValueType = typeof storedSetting.value;
+    if (storedValueType !== defaultValueType) {
+      console.warn(
+        `[UserSettings] Setting "${settingId}" from ${source} has incompatible value type ` +
+          `(expected "${defaultValueType}", got "${storedValueType}"). Keeping its current value.`
+      );
+      continue;
+    }
+
+    (merged as Record<string, unknown>)[settingId] = { ...defaultSetting, value: storedSetting.value };
+  }
+  return merged;
+}
+
 function deepClone<T>(obj: T): T {
   return JSON.parse(JSON.stringify(obj));
 }
@@ -95,7 +146,11 @@ export const useUserSettingsStore = create<UserSettingsState>()(
       },
 
       updateSettings: (settings: VisualizationSettings) => {
-        set({ visualizationSettings: settings });
+        // Presets, Snapshots and Rooms may have been saved before settings were added or changed;
+        // what they do not hold stays as it is
+        set({
+          visualizationSettings: mergeWithDefaultSettings(settings, 'loaded settings', get().visualizationSettings),
+        });
         get().setColorsFromSettings();
       },
 
@@ -284,45 +339,10 @@ export const useUserSettingsStore = create<UserSettingsState>()(
       merge: (persistedState: any, currentState) => {
         if (!persistedState) return currentState;
 
-        // Safely merge visualization settings: only carry over persisted values
-        // that are compatible with the current default settings. Any incompatible
-        // or missing entries fall back to the default and are logged to the console.
-        let mergedVisualizationSettings = {
-          ...currentState.visualizationSettings,
-        };
-
-        if (persistedState.visualizationSettings && typeof persistedState.visualizationSettings === 'object') {
-          let settingId: keyof VisualizationSettings;
-          for (settingId in currentState.visualizationSettings) {
-            const defaultSetting = currentState.visualizationSettings[settingId];
-            const storedSetting = persistedState.visualizationSettings[settingId];
-
-            if (storedSetting === undefined || storedSetting === null) {
-              console.warn(
-                `[UserSettings] Stored setting "${settingId}" is missing from localStorage. Using default value.`
-              );
-              continue;
-            }
-
-            const defaultValueType = typeof defaultSetting.value;
-            const storedValueType = typeof storedSetting.value;
-
-            if (storedValueType !== defaultValueType) {
-              console.warn(
-                `[UserSettings] Stored setting "${settingId}" has incompatible value type ` +
-                  `(expected "${defaultValueType}", got "${storedValueType}"). Using default value.`
-              );
-              continue;
-            }
-
-            // Value type is compatible — keep the stored value but use current
-            // defaults for metadata such as select options.
-            mergedVisualizationSettings[settingId] = {
-              ...defaultSetting,
-              value: storedSetting.value,
-            };
-          }
-        }
+        const mergedVisualizationSettings = mergeWithDefaultSettings(
+          persistedState.visualizationSettings,
+          'localStorage'
+        );
 
         return {
           ...currentState,

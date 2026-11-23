@@ -5,7 +5,7 @@
  * Version of the room contract (state definition and message types).
  * Raise it whenever a change to the contract breaks older frontends.
  */
-export const CONTRACT_VERSION = 2;
+export const CONTRACT_VERSION = 3;
 
 /** The name under which the Room type is registered. */
 export const ROOM_NAME = "collaboration";
@@ -60,6 +60,11 @@ export type StartingState = {
   highlights?: string[];
   /** All annotations, open or minimized. */
   annotations?: StartingAnnotation[];
+  /**
+   * The layout options. The creator's stable arrangement follows with
+   * "layoutArrangement" messages, as it may not fit into the join request.
+   */
+  layoutOptions?: LayoutOptions;
 };
 
 /**
@@ -392,13 +397,15 @@ export type LandscapeBoundState = {
   highlights: Clearable;
   popups: Clearable;
   annotations: Clearable;
+  layout: { arrangement: Clearable };
 };
 
 /**
  * Everything in the Room that is tied to its Landscape, cleared on a
  * Landscape switch: every District open and shown, no highlights, shared
- * popups or annotations. The rest of the Room (Participants, Host, chat
- * history, mutes, the District sharing option) stays.
+ * popups, annotations or stable layout arrangement. The rest of the Room
+ * (Participants, Host, chat history, mutes, the District sharing option, the
+ * layout options) stays.
  *
  * A capability whose Room state names entities of the Landscape adds its
  * line here.
@@ -411,6 +418,7 @@ export function clearLandscapeState(state: LandscapeBoundState): void {
   state.highlights.clear();
   state.popups.clear();
   state.annotations.clear();
+  state.layout.arrangement.clear();
 }
 
 /**
@@ -448,6 +456,74 @@ export function tileRectangle(tile: ScreenWallTileConfig): TileRectangle {
     width: (diagonalCm * tile.width) / diagonalPx,
     height: (diagonalCm * tile.height) / diagonalPx,
   };
+}
+
+/**
+ * The Room's layout options: the Host's settings that decide where Cities,
+ * Districts and Buildings are and how large they are, as setting id -> value
+ * encoded as JSON. Which settings these are is the frontend's business; the
+ * service only keeps them.
+ */
+export type LayoutOptions = Record<string, string>;
+
+/** At most this many layout options are kept. */
+export const MAX_LAYOUT_OPTIONS = 100;
+
+/** A layout option value (JSON) is at most this long. */
+export const MAX_LAYOUT_OPTION_LENGTH = 2000;
+
+/**
+ * Where a container (the Landscape, a City or a District, by its entity id;
+ * "landscape" for the Landscape) puts its children: the width it packs them
+ * into and, per child entity id, the place [x, z, width, depth] relative to
+ * the container's content area.
+ */
+export type LayoutContainerPlaces = {
+  width: number;
+  places: Record<string, [number, number, number, number]>;
+};
+
+/**
+ * Part of the stable layout's arrangement, by container id. Only the Host
+ * sends it, as the containers its layout changed; places are added or
+ * replaced, never removed (the layout only grows until it is recomputed).
+ */
+export type LayoutArrangement = Record<string, LayoutContainerPlaces>;
+
+/** A message stays well below the 64 KB message limit. */
+const MAX_LAYOUT_CHUNK_BYTES = 48 * 1024;
+
+/**
+ * Splits an arrangement into parts that each fit into one message. A
+ * container with too many places to fit is split across several parts.
+ */
+export function layoutArrangementChunks(arrangement: LayoutArrangement): LayoutArrangement[] {
+  const chunks: LayoutArrangement[] = [];
+  let chunk: LayoutArrangement = {};
+  let size = 0;
+  const flush = () => {
+    if (size > 0) chunks.push(chunk);
+    chunk = {};
+    size = 0;
+  };
+  for (const [containerId, { width, places }] of Object.entries(arrangement)) {
+    let part: LayoutContainerPlaces = { width, places: {} };
+    chunk[containerId] = part;
+    size += containerId.length + 32;
+    for (const [childId, place] of Object.entries(places)) {
+      const placeSize = childId.length + JSON.stringify(place).length + 4;
+      if (size + placeSize > MAX_LAYOUT_CHUNK_BYTES) {
+        flush();
+        part = { width, places: {} };
+        chunk[containerId] = part;
+        size = containerId.length + 32;
+      }
+      part.places[childId] = place;
+      size += placeSize;
+    }
+  }
+  flush();
+  return chunks;
 }
 
 /**
@@ -527,6 +603,23 @@ export type ClientMessages = {
    * spectating the Host at once.
    */
   screenWallApply: { tiles: ScreenWallTileConfig[] };
+  /**
+   * Host only: these become the Room's layout options, replacing the old ones.
+   * At most MAX_LAYOUT_OPTIONS, each value at most MAX_LAYOUT_OPTION_LENGTH
+   * long; anything else is ignored.
+   */
+  layoutOptions: { options: LayoutOptions };
+  /**
+   * Host only: forgets the stable layout's arrangement, so it is packed
+   * afresh. The Host then sends the new one with "layoutArrangement".
+   */
+  layoutRecompute: Record<string, never>;
+  /**
+   * Host only: adds or replaces these places of the stable layout's
+   * arrangement. Large arrangements go in several messages (see
+   * layoutArrangementChunks).
+   */
+  layoutArrangement: { containers: LayoutArrangement };
   /** Host only: ends the Screen Wall. Its Tiles stop spectating; the Tiles stay in the state. */
   screenWallStop: Record<string, never>;
   /** Host only: every Participant receives "screenWallIdentify" and, if they show a Tile, shows its number. */
@@ -599,6 +692,7 @@ export type CollaborationState = {
   popups: Record<string, SharedPopup>;
   annotations: Record<string, Annotation>;
   screenWall: ScreenWall;
+  layout: Layout;
 };
 
 export type Participant = {
@@ -650,6 +744,11 @@ export type ScreenWall = {
   tiles: ScreenWallTile[];
 };
 
+export type Layout = {
+  options: Record<string, string>;
+  arrangement: Record<string, LayoutContainer>;
+};
+
 export type ScreenWallTile = {
   name: string;
   width: number;
@@ -657,4 +756,16 @@ export type ScreenWallTile = {
   diagonal: number;
   x: number;
   y: number;
+};
+
+export type LayoutContainer = {
+  width: number;
+  places: Record<string, LayoutPlace>;
+};
+
+export type LayoutPlace = {
+  x: number;
+  z: number;
+  width: number;
+  depth: number;
 };

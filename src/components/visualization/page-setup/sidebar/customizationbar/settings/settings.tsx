@@ -11,7 +11,9 @@ import SelectSetting from 'explorviz-frontend/src/components/visualization/page-
 import { useLocalUserStore } from 'explorviz-frontend/src/stores/collaboration/local-user';
 import { useToastHandlerStore } from 'explorviz-frontend/src/stores/toast-handler';
 import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
+import { requestLayoutRecompute, useLayoutDecidedByHost } from 'explorviz-frontend/src/utils/collaboration/layout';
 import { deleteTraceData } from 'explorviz-frontend/src/utils/landscape-http-request-util';
+import { isLayoutSetting } from 'explorviz-frontend/src/utils/settings/layout-settings';
 import { ColorSchemeId } from 'explorviz-frontend/src/utils/settings/color-schemes';
 import {
   isButtonSetting,
@@ -20,7 +22,7 @@ import {
   isRangeSetting,
   isSelectSetting,
   RangeSetting as RangeSettingSchema,
-  SettingDependency,
+  isSettingDependencyMet,
   SettingGroup,
   SettingLevel,
   VisualizationSettingId,
@@ -40,6 +42,7 @@ export default function Settings({ enterFullscreen, setGamepadSupport }: Setting
   const showSuccessToastMessage = useToastHandlerStore((state) => state.showSuccessToastMessage);
   const showErrorToastMessage = useToastHandlerStore((state) => state.showErrorToastMessage);
   const minimapCamera = useLocalUserStore((state) => state.minimapCamera);
+  const layoutDecidedByHost = useLayoutDecidedByHost();
 
   const { applyDefaultSettings, applyDefaultSettingsForGroup, setColorScheme } = useUserSettingsStore(
     useShallow((state) => ({
@@ -48,41 +51,6 @@ export default function Settings({ enterFullscreen, setGamepadSupport }: Setting
       setColorScheme: state.setColorScheme,
     }))
   );
-
-  /**
-   * Checks if a setting's dependency condition is met.
-   * Returns true if the setting has no dependency or if the dependency is satisfied.
-   */
-  const isDependencyMet = (dependsOn: SettingDependency | undefined, allSettings: VisualizationSettings): boolean => {
-    if (dependsOn === undefined) {
-      return true;
-    }
-
-    const dependentSetting = allSettings[dependsOn.settingId];
-    const dependentValue = dependentSetting.value;
-
-    // Check for single value equality
-    if ('value' in dependsOn) {
-      return dependentValue === dependsOn.value;
-    }
-
-    // Check for array of allowed values
-    if ('values' in dependsOn) {
-      return dependsOn.values.includes(dependentValue);
-    }
-
-    // Check for not equal condition
-    if ('notEqual' in dependsOn) {
-      return dependentValue !== dependsOn.notEqual;
-    }
-
-    // Check for array of not allowed values
-    if ('notValues' in dependsOn) {
-      return !dependsOn.notValues.includes(dependentValue);
-    }
-
-    return false;
-  };
 
   const filteredSettingsByGroup = (() => {
     const settingGroupToSettingIds: Record<SettingGroup, VisualizationSettingId[]> = {
@@ -110,7 +78,7 @@ export default function Settings({ enterFullscreen, setGamepadSupport }: Setting
       // Filter settings level
       if (setting.level <= (visualizationSettings.showExtendedSettings.value as unknown as SettingLevel)) {
         // Check if dependency condition is met
-        if (isDependencyMet(setting.dependsOn, visualizationSettings)) {
+        if (isSettingDependencyMet(setting.dependsOn, visualizationSettings)) {
           const groupSettings = settingGroupToSettingIds[setting.group];
           if (!groupSettings) {
             continue;
@@ -174,6 +142,9 @@ export default function Settings({ enterFullscreen, setGamepadSupport }: Setting
         if (enterFullscreen) {
           enterFullscreen();
         }
+        break;
+      case 'recomputeLayout':
+        requestLayoutRecompute();
         break;
       case 'resetToDefaults':
         resetSettingsAndUpdate();
@@ -315,34 +286,48 @@ export default function Settings({ enterFullscreen, setGamepadSupport }: Setting
           {groupId === 'Colors' && (
             <ColorSchemeSelector colorSchemes={colorSchemes} applyColorScheme={applyColorScheme} />
           )}
+          {groupId === 'Layout' && layoutDecidedByHost && (
+            <p className="text-muted small mb-2">In this room, the Host decides the layout.</p>
+          )}
           {settingIdArray.map((settingId) => {
-            const setting = visualizationSettings[settingId];
-            if (isFlagSetting(setting)) {
-              return <FlagSetting key={settingId} settingId={settingId} onChange={updateFlagSetting} />;
-            } else if (isRangeSetting(setting)) {
-              return <RangeSetting key={settingId} settingId={settingId} onChange={updateRangeSetting} />;
-            } else if (isColorSetting(setting)) {
+            const control = renderSetting(settingId);
+            // In a Room the Host decides the layout for everyone
+            if (control && layoutDecidedByHost && (isLayoutSetting(settingId) || settingId === 'recomputeLayout')) {
               return (
-                <ColorPicker
-                  key={settingId}
-                  label={camelCaseToLabel(setting.displayName)}
-                  value={setting.value}
-                  onChange={(v) => updateSetting(settingId, v)}
-                />
+                <fieldset key={settingId} disabled title="The Host decides the layout in this room">
+                  {control}
+                </fieldset>
               );
-            } else if (isButtonSetting(setting)) {
-              return (
-                <ButtonSetting key={settingId} setting={setting} settingId={settingId} onClick={updateButtonSetting} />
-              );
-            } else if (isSelectSetting(setting)) {
-              return <SelectSetting key={settingId} settingId={settingId} onChange={updateSelectSetting} />;
             }
-            return null;
+            return control;
           })}
         </div>
       </section>
     );
   });
+
+  function renderSetting(settingId: VisualizationSettingId) {
+    const setting = visualizationSettings[settingId];
+    if (isFlagSetting(setting)) {
+      return <FlagSetting key={settingId} settingId={settingId} onChange={updateFlagSetting} />;
+    } else if (isRangeSetting(setting)) {
+      return <RangeSetting key={settingId} settingId={settingId} onChange={updateRangeSetting} />;
+    } else if (isColorSetting(setting)) {
+      return (
+        <ColorPicker
+          key={settingId}
+          label={camelCaseToLabel(setting.displayName)}
+          value={setting.value}
+          onChange={(v) => updateSetting(settingId, v)}
+        />
+      );
+    } else if (isButtonSetting(setting)) {
+      return <ButtonSetting key={settingId} setting={setting} settingId={settingId} onClick={updateButtonSetting} />;
+    } else if (isSelectSetting(setting)) {
+      return <SelectSetting key={settingId} settingId={settingId} onChange={updateSelectSetting} />;
+    }
+    return null;
+  }
 
   // Get available setting groups for navigation
   const availableGroups = Object.entries(filteredSettingsByGroup)

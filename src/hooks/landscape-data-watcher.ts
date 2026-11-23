@@ -20,7 +20,7 @@ import {
 } from 'explorviz-frontend/src/utils/landscape-schemes/flat-landscape';
 import { LandscapeData } from 'explorviz-frontend/src/utils/landscape-schemes/landscape-data';
 import { DynamicLandscapeData } from 'explorviz-frontend/src/utils/landscape-schemes/telemetry/traces';
-import layoutLandscape from 'explorviz-frontend/src/utils/layout/elk-layouter';
+import layoutLandscape from 'explorviz-frontend/src/utils/layout/landscape-layouter';
 import { tryApplyPendingSerializedRoom } from 'explorviz-frontend/src/utils/snapshot/snapshot-helpers';
 
 function refreshBuildingCommunications(

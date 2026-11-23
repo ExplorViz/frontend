@@ -25,7 +25,6 @@ import {
 } from 'explorviz-frontend/src/stores/timestamp-polling';
 import { useToastHandlerStore } from 'explorviz-frontend/src/stores/toast-handler';
 import { ApiToken, useUserApiTokenStore } from 'explorviz-frontend/src/stores/user-api-token';
-import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
 import { useVisibilityServiceStore } from 'explorviz-frontend/src/stores/visibility-service';
 import { useVisualizationStore } from 'explorviz-frontend/src/stores/visualization-store';
 import { ALL_BUILDING_COMPARISONS_VISIBLE } from 'explorviz-frontend/src/utils/city-rendering/building-comparison-visibility';
@@ -251,18 +250,6 @@ export default function Visualization() {
     };
 
     loadUserAPITokens();
-  }, []);
-
-  // Load preset when visualization opens
-  useEffect(() => {
-    const { selectedPreset, loadPreset, listPresets } = useUserSettingsStore.getState();
-    if (selectedPreset) {
-      // Verify preset still exists before loading
-      const presets = listPresets();
-      if (presets.includes(selectedPreset)) {
-        loadPreset(selectedPreset);
-      }
-    }
   }, []);
 
   useEffect(() => {

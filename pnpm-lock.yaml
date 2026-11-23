@@ -280,6 +280,9 @@ importers:
       loader.js:
         specifier: 4.7.0
         version: 4.7.0
+      maxrects-packer:
+        specifier: ^3.0.0
+        version: 3.0.0
       meshline:
         specifier: 3.3.1
         version: 3.3.1(three@0.186.1)
@@ -3888,6 +3891,9 @@ packages:
   math-intrinsics@1.1.0:
     resolution: {integrity: sha512-/IXtbwEk5HTPyEwyKX6hGkYXxM9nbj64B+ilVJnC/R6B0pH5G4V3b0pVbL7DBj4tkhBAppbQUlf6F6Xl9LHu1g==}
     engines: {node: '>= 0.4'}
+
+  maxrects-packer@3.0.0:
+    resolution: {integrity: sha512-ICKt2ji3L/ETwRhlpxit2jTtaqTtBLZHZmsosDuygzE1CBV9e3DB96d/UQIw0dUbMNxT/vNfN/eBEE9lGAasSg==}
 
   mdast-util-definitions@5.1.2:
     resolution: {integrity: sha512-8SVPMuHqlPME/z3gqVwWY4zVXn8lqKv/pAhC57FuJ40ImXyBpmO5ukh98zB2v7Blql2FiHjHv9LVztSIqjY+MA==}
@@ -9342,6 +9348,8 @@ snapshots:
   material-colors@1.2.6: {}
 
   math-intrinsics@1.1.0: {}
+
+  maxrects-packer@3.0.0: {}
 
   mdast-util-definitions@5.1.2:
     dependencies:

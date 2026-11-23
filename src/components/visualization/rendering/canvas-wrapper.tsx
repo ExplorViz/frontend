@@ -30,7 +30,8 @@ import {
   isDistrict,
 } from 'explorviz-frontend/src/utils/landscape-schemes/flat-landscape';
 import { LandscapeData } from 'explorviz-frontend/src/utils/landscape-schemes/landscape-data';
-import layoutLandscape from 'explorviz-frontend/src/utils/layout/elk-layouter';
+import { useRoomLayout } from 'explorviz-frontend/src/utils/collaboration/layout';
+import layoutLandscape from 'explorviz-frontend/src/utils/layout/landscape-layouter';
 import AutoDistrictOpenerR3F from 'explorviz-frontend/src/view-objects/3d/auto-district-opener-r3f';
 import { AnimatedPing } from 'explorviz-frontend/src/view-objects/3d/city/animated-ping-r3f';
 import CodeCity from 'explorviz-frontend/src/view-objects/3d/city/code-city';
@@ -93,6 +94,9 @@ function CanvasWrapper({
   xrStore?: XRStore | undefined;
 }) {
   const layoutMap = useLayoutStore((state) => state.fullLayoutMap);
+  const layoutRevision = useLayoutStore((state) => state.layoutRevision);
+  // In a Room, the Host's places and options lay out everyone's landscape
+  const roomLayout = useRoomLayout();
   const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
   // Stable store: createXRStore() during render leaked WebGL contexts via IWER.
   const [desktopXrStore] = useState(() => createXRStore({ offerSession: false, emulate: false }));
@@ -139,6 +143,7 @@ function CanvasWrapper({
     closedDistrictHeight,
     openedDistrictHeight,
     enableClustering,
+    layoutEngine,
     autoOpenCloseDistricts,
     districtLabelMargin,
     districtPadding,
@@ -185,6 +190,7 @@ function CanvasWrapper({
       districtLabelPlacement: state.visualizationSettings.districtLabelPlacement.value,
       openedDistrictHeight: state.visualizationSettings.openedDistrictHeight,
       enableClustering: state.visualizationSettings.enableClustering.value,
+      layoutEngine: state.visualizationSettings.layoutEngine.value,
       autoOpenCloseDistricts: state.visualizationSettings.autoOpenCloseDistricts.value,
       districtLabelMargin: state.visualizationSettings.districtLabelMargin,
       districtPadding: state.visualizationSettings.districtPadding,
@@ -425,7 +431,10 @@ function CanvasWrapper({
     districtLabelMargin,
     districtLayoutAlgorithm,
     districtPadding,
+    layoutEngine,
+    layoutRevision,
     removedDistrictIds,
+    roomLayout,
     spiralCenterOffset,
     spiralGap,
     updateLayout,

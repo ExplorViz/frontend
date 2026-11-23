@@ -21,6 +21,7 @@ export default defineConfig({
         'src/utils/response-error.ts',
         'src/utils/search-expression-matcher.ts',
         'src/utils/layout/box-layout.ts',
+        'src/utils/layout/maxrects-layouter.ts',
         'src/utils/city-rendering/building-comparison-visibility.ts',
         'src/utils/city-rendering/building-filter.ts',
         'src/utils/city-rendering/flat-landscape-filter.ts',

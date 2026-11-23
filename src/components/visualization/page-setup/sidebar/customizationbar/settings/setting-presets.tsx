@@ -77,7 +77,7 @@ export default function SettingPresets() {
       showSuccessToastMessage(`Preset "${name}" created`);
       setNewPresetName('');
       setSelectedPreset(name);
-      // Note: Preset is not auto-loaded, it will be loaded when visualization opens
+      // The preset holds the current settings, so there is nothing to load
     } else {
       showErrorToastMessage(`Preset "${name}" already exists. Use Save to overwrite or choose a different name.`);
     }

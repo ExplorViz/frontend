@@ -593,6 +593,30 @@ export const defaultVizSettings: VisualizationSettings = {
     isSelectSetting: true,
   },
   // Layout settings
+  layoutEngine: {
+    level: SettingLevel.DEFAULT,
+    value: 'elk',
+    options: ['elk', 'maxrects'],
+    group: 'Layout',
+    displayName: 'Layout Engine',
+    description:
+      'elk recomputes the layout whenever the landscape changes. maxrects keeps the layout stable: Cities, Districts and Buildings keep their place, new ones are put into free space, and the layout is only recomputed on request or when a layout setting changes.',
+    isSelectSetting: true,
+  },
+  recomputeLayout: {
+    level: SettingLevel.DEFAULT,
+    value: false,
+    type: 'secondary',
+    group: 'Layout',
+    displayName: 'Recompute Layout',
+    description: 'Packs the landscape afresh, closing the gaps that entities which are no longer shown left behind',
+    buttonText: 'Recompute',
+    dependsOn: {
+      settingId: 'layoutEngine',
+      value: 'maxrects',
+    },
+    isButtonSetting: true,
+  },
   cityLayoutAlgorithm: {
     level: SettingLevel.DEFAULT,
     value: 'box',
@@ -600,6 +624,10 @@ export const defaultVizSettings: VisualizationSettings = {
     group: 'Layout',
     displayName: 'City Layout Algorithm',
     description: 'Determines the layout algorithm for cities',
+    dependsOn: {
+      settingId: 'layoutEngine',
+      value: 'elk',
+    },
     isSelectSetting: true,
   },
   cityDistance: {
@@ -610,8 +638,10 @@ export const defaultVizSettings: VisualizationSettings = {
     displayName: 'City Distance',
     description: 'Determines a preferred distance between cities for force-based layouts',
     dependsOn: {
-      settingId: 'cityLayoutAlgorithm',
-      values: ['force', 'stress'],
+      allOf: [
+        { settingId: 'layoutEngine', value: 'elk' },
+        { settingId: 'cityLayoutAlgorithm', values: ['force', 'stress'] },
+      ],
     },
     isRangeSetting: true,
   },
@@ -630,10 +660,12 @@ export const defaultVizSettings: VisualizationSettings = {
     range: { min: 0.0, max: 100.0, step: 1.0 },
     group: 'Layout',
     displayName: 'City Margin',
-    description: 'Minimum spacing between cities (ELK spacing.nodeNode on the landscape)',
+    description: 'Minimum spacing between cities',
     dependsOn: {
-      settingId: 'cityLayoutAlgorithm',
-      values: ['box', 'random', 'rectpacking', 'sporeOverlap'],
+      anyOf: [
+        { settingId: 'layoutEngine', value: 'maxrects' },
+        { settingId: 'cityLayoutAlgorithm', values: ['box', 'random', 'rectpacking', 'sporeOverlap'] },
+      ],
     },
     isRangeSetting: true,
   },
@@ -643,7 +675,7 @@ export const defaultVizSettings: VisualizationSettings = {
     range: { min: 0.0, max: 20.0, step: 0.5 },
     group: 'Layout',
     displayName: 'City Padding',
-    description: 'Inner padding around city contents (ELK padding inside each city node)',
+    description: 'Inner padding around city contents',
     isRangeSetting: true,
   },
   districtLayoutAlgorithm: {
@@ -653,6 +685,10 @@ export const defaultVizSettings: VisualizationSettings = {
     group: 'Layout',
     displayName: 'District Layout Algorithm',
     description: 'Determines the layout algorithm for districts',
+    dependsOn: {
+      settingId: 'layoutEngine',
+      value: 'elk',
+    },
     isSelectSetting: true,
   },
   districtPadding: {
@@ -661,7 +697,7 @@ export const defaultVizSettings: VisualizationSettings = {
     range: { min: 0.0, max: 20.0, step: 0.5 },
     group: 'Layout',
     displayName: 'District Padding',
-    description: 'Inner padding around district contents (ELK padding inside each district node)',
+    description: 'Inner padding around district contents',
     isRangeSetting: true,
   },
   openedDistrictHeight: {

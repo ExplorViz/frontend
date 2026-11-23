@@ -79,6 +79,9 @@ const ScreenWallTile = schema(
   'ScreenWallTile'
 );
 const ScreenWall = schema({ active: t.boolean().default(false), tiles: t.array(ScreenWallTile) }, 'ScreenWall');
+const LayoutPlace = schema({ x: t.number(), z: t.number(), width: t.number(), depth: t.number() }, 'LayoutPlace');
+const LayoutContainer = schema({ width: t.number(), places: t.map(LayoutPlace) }, 'LayoutContainer');
+const Layout = schema({ options: t.map('string'), arrangement: t.map(LayoutContainer) }, 'Layout');
 const CollaborationState = schema(
   {
     participants: t.map(Participant),
@@ -93,6 +96,7 @@ const CollaborationState = schema(
     popups: t.map(SharedPopup),
     annotations: t.map(Annotation),
     screenWall: ScreenWall,
+    layout: Layout,
   },
   'CollaborationState'
 );
@@ -127,6 +131,31 @@ const MESSAGE_HANDLERS: Record<string, (state: ServerState, payload: any, from: 
     state.landscapeToken = landscapeToken;
     state.landscapeName = landscapeName ?? '';
     clearLandscapeState(state);
+  },
+  // As the service: the layout is the Host's to decide.
+  layoutOptions: (state, { options }, from) => {
+    if (from !== state.hostId) return;
+    state.layout.options.clear();
+    for (const [id, value] of Object.entries(options as Record<string, string>)) state.layout.options.set(id, value);
+  },
+  layoutRecompute: (state, _payload, from) => {
+    if (from === state.hostId) state.layout.arrangement.clear();
+  },
+  layoutArrangement: (state, { containers }, from) => {
+    if (from !== state.hostId) return;
+    for (const [containerId, { width, places }] of Object.entries(
+      containers as Record<string, { width: number; places: Record<string, number[]> }>
+    )) {
+      let container = state.layout.arrangement.get(containerId);
+      if (!container) {
+        container = new LayoutContainer();
+        state.layout.arrangement.set(containerId, container);
+      }
+      container.width = width;
+      for (const [childId, [x, z, placeWidth, depth]] of Object.entries(places)) {
+        container.places.set(childId, new LayoutPlace({ x, z, width: placeWidth, depth }));
+      }
+    }
   },
   // As the service: the first to share a popup is recorded; anyone closes it.
   sharePopup: (state, { entityId }, from) => {
@@ -531,6 +560,12 @@ export class FakeCollaborationService {
     // As the service: the creator's highlights become theirs.
     room.update((state) => {
       for (const entityId of options.startingState?.highlights ?? []) state.highlights.set(entityId, creator.sessionId);
+      // As the service: the creator's layout options become the Room's.
+      for (const [id, value] of Object.entries(
+        (options.startingState?.layoutOptions ?? {}) as Record<string, string>
+      )) {
+        state.layout.options.set(id, value);
+      }
     });
     return creator;
   }

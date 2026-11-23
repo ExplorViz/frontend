@@ -15,6 +15,12 @@ interface LayoutStoreState {
   buildingLayouts: Map<string, BoxLayout>;
   fullLayoutMap: Map<string, BoxLayout>;
   maxDistrictDepth: number | null;
+  /**
+   * Increases whenever the layout has to be computed afresh instead of being
+   * kept stable, e.g. when the user asks for it. Only the stable (maxrects)
+   * layout keeps its arrangement across layouts and reacts to it.
+   */
+  layoutRevision: number;
 
   // Actions
   updateLayouts: (boxLayoutMap: Map<string, BoxLayout>, flatLandscape?: FlatLandscape) => void;
@@ -24,6 +30,7 @@ interface LayoutStoreState {
   getDistrictLayouts: () => Map<string, BoxLayout>;
   getBuildingLayouts: () => Map<string, BoxLayout>;
   clearLayouts: () => void;
+  recomputeLayout: () => void;
 }
 
 export function areLayoutsGeometricallyEqual(a: BoxLayout, b: BoxLayout): boolean {
@@ -66,6 +73,7 @@ export const useLayoutStore = create<LayoutStoreState>((set, get) => ({
   buildingLayouts: new Map<string, BoxLayout>(),
   fullLayoutMap: new Map<string, BoxLayout>(),
   maxDistrictDepth: null,
+  layoutRevision: 0,
 
   updateLayouts: (boxLayoutMap: Map<string, BoxLayout>, flatLandscape?: FlatLandscape) => {
     const modelStore = useModelStore.getState();
@@ -202,7 +210,13 @@ export const useLayoutStore = create<LayoutStoreState>((set, get) => ({
       buildingLayouts: new Map<string, BoxLayout>(),
       fullLayoutMap: new Map<string, BoxLayout>(),
       maxDistrictDepth: null,
+      // A new visualization session starts with a fresh layout
+      layoutRevision: get().layoutRevision + 1,
     });
+  },
+
+  recomputeLayout: () => {
+    set({ layoutRevision: get().layoutRevision + 1 });
   },
 }));
 

@@ -11,24 +11,16 @@ import BoxLayout from 'explorviz-frontend/src/utils/layout/box-layout';
 import { applyCircleLayoutToClasses as applyCircleLayoutToBuildings } from 'explorviz-frontend/src/utils/layout/circle-layouter';
 import getElk from 'explorviz-frontend/src/utils/layout/elk-instance';
 import {
-  getCityLabelFontSize,
-  getTextWidth,
-  MIN_CITY_LABEL_MARGIN,
-} from 'explorviz-frontend/src/utils/layout/label-utils';
-import {
-  applySpiralLayoutToClasses as applySpiralLayoutToBuildings,
-  calculateSpiralSideLength,
-  countCityBuildings,
-} from 'explorviz-frontend/src/utils/layout/spiral-layouter';
-import {
-  applyMetricMapping,
-  getBuildingMetricValueForSizing,
-  getCachedBuildingMetricBounds,
-  getMetricMappingMultiplier,
-  MetricBounds,
-  MetricKey,
-} from 'explorviz-frontend/src/utils/settings/building-metrics';
-import { BuildingMetricMapping, SelectedBuildingMetric } from 'explorviz-frontend/src/utils/settings/settings-schemas';
+  BuildingSizing,
+  getBuildingFootprint,
+  getCustomBuildingLayoutCitySize,
+  getMinimumCitySize,
+  getPaddingForLabelPlacement as getPadding,
+  hasVisibleBuildingsRecursively,
+} from 'explorviz-frontend/src/utils/layout/layout-dimensions';
+import { applySpiralLayoutToClasses as applySpiralLayoutToBuildings } from 'explorviz-frontend/src/utils/layout/spiral-layouter';
+import { getCachedBuildingMetricBounds } from 'explorviz-frontend/src/utils/settings/building-metrics';
+import { VisualizationSettings } from 'explorviz-frontend/src/utils/settings/settings-schemas';
 
 // Prefixes with leading non-number characters are temporarily added
 // since ELK cannot handle IDs with leading numbers
@@ -39,22 +31,13 @@ const DISTRICT_PREFIX = 'dist-';
 const BUILDING_PREFIX = 'buil-';
 const DUMMY_PREFIX = 'dumy-';
 
-const MINIMUM_CITY_WIDTH = 50;
-const MINIMUM_CITY_HEIGHT = 50;
-
 let CITY_ALGORITHM: string;
 let DISTRICT_ALGORITHM: string;
 let BUILDING_ALGORITHM: string;
 let DESIRED_EDGE_LENGTH: number;
 let ASPECT_RATIO: number;
 let BUILDING_FOOTPRINT: number;
-let WIDTH_METRIC: SelectedBuildingMetric;
-let WIDTH_METRIC_MULTIPLIER: number;
-let WIDTH_METRIC_BOUNDS: MetricBounds;
-let DEPTH_METRIC: SelectedBuildingMetric;
-let DEPTH_METRIC_MULTIPLIER: number;
-let DEPTH_METRIC_BOUNDS: MetricBounds;
-let METRIC_MAPPING: BuildingMetricMapping;
+let BUILDING_SIZING: BuildingSizing;
 let BUILDING_MARGIN: number;
 let CITY_LABEL_MARGIN: number;
 let CITY_PADDING: number;
@@ -63,7 +46,7 @@ let DISTRICT_LABEL_MARGIN: number;
 let DISTRICT_PADDING: number;
 let DISTRICT_HEIGHT: number;
 let DISTRICT_LABEL_PLACEMENT: string;
-let METRIC_BUCKETS: number;
+let VISUALIZATION_SETTINGS: VisualizationSettings;
 
 //Caching for performance reasons
 let cachedLayoutResult: Map<string, BoxLayout> | null = null;
@@ -116,18 +99,13 @@ function layoutInputSignature(landscape: FlatLandscape, removedDistrictIds: Set<
 function setVisualizationSettings() {
   const { visualizationSettings: vs } = useUserSettingsStore.getState();
 
+  VISUALIZATION_SETTINGS = vs;
   CITY_ALGORITHM = vs.cityLayoutAlgorithm.value;
   DISTRICT_ALGORITHM = vs.districtLayoutAlgorithm.value;
   BUILDING_ALGORITHM = vs.buildingLayoutAlgorithm.value;
   DESIRED_EDGE_LENGTH = vs.cityDistance.value;
   ASPECT_RATIO = vs.cityAspectRatio.value;
   BUILDING_FOOTPRINT = vs.buildingFootprint.value;
-  WIDTH_METRIC = vs.buildingWidthMetric.value;
-  WIDTH_METRIC_MULTIPLIER = vs.buildingWidthMultiplier.value;
-  DEPTH_METRIC = vs.buildingDepthMetric.value;
-  DEPTH_METRIC_MULTIPLIER = vs.buildingDepthMultiplier.value;
-  METRIC_MAPPING = vs.buildingMetricMapping.value;
-  METRIC_BUCKETS = vs.buildingMetricBuckets.value;
   BUILDING_MARGIN = vs.buildingMargin.value;
   CITY_LABEL_MARGIN = vs.cityLabelMargin.value;
   CITY_PADDING = vs.cityPadding.value;
@@ -138,72 +116,8 @@ function setVisualizationSettings() {
   DISTRICT_LABEL_PLACEMENT = vs.districtLabelPlacement.value;
 }
 
-/**
- * Computes the minimum size a city needs such that its
- * label fits without overlapping the borders. The label runs along the side
- * given by the label placement: For top/bottom it needs width, for left/right
- * it needs depth (when the label is rotated).
- */
-function getMinimumSizeForLabel(
-  name: string,
-  fontSize: number,
-  margin: number,
-  minimumSize: { width: number; height: number }
-): { width: number; height: number } {
-  let { width, height } = minimumSize;
-
-  // Reserve some space for the annotation icon which can be appended to the name
-  const labelWidth = getTextWidth(name, fontSize) + getTextWidth(' 📝', fontSize);
-  const neededSpaceForLabel = labelWidth + 2 * margin;
-  if (DISTRICT_LABEL_PLACEMENT === 'left' || DISTRICT_LABEL_PLACEMENT === 'right') {
-    height = Math.max(height, neededSpaceForLabel);
-  } else {
-    width = Math.max(width, neededSpaceForLabel);
-  }
-
-  return { width, height };
-}
-
-function getMinimumCitySize(city: City): { width: number; height: number } {
-  const minimumSize = {
-    width: MINIMUM_CITY_WIDTH,
-    height: MINIMUM_CITY_HEIGHT,
-  };
-
-  if (CITY_LABEL_MARGIN <= MIN_CITY_LABEL_MARGIN) {
-    return minimumSize;
-  }
-
-  const minimumLabelSize = getMinimumSizeForLabel(
-    city.name,
-    getCityLabelFontSize(CITY_LABEL_MARGIN),
-    CITY_PADDING,
-    minimumSize
-  );
-
-  // Geometry overrides can only be applied to empty cities
-  // since layouting of city contents relies on box layout
-  if (city.districtIds.length === 0 && city.buildingIds.length === 0) {
-    const geometryOverride =
-      useUserSettingsStore.getState().visualizationSettings.cityGeometryOverrides.value.modelType[city.type];
-
-    if (geometryOverride === 'Cylinder') {
-      // Cylinder should always have a 1:1 aspect ratio,
-      // so we change the minimum size to reflect this
-      const edgeSize = Math.max(minimumLabelSize.width, minimumLabelSize.height);
-      return { width: edgeSize, height: edgeSize };
-    }
-  }
-
-  return minimumLabelSize;
-}
-
 function getPaddingForLabelPlacement(labelPlacement: string, labelMargin: number, baseMargin: number): string {
-  const top = labelPlacement === 'top' ? labelMargin : baseMargin;
-  const bottom = labelPlacement === 'bottom' ? labelMargin : baseMargin;
-  const left = labelPlacement === 'left' ? labelMargin : baseMargin;
-  const right = labelPlacement === 'right' ? labelMargin : baseMargin;
-
+  const { top, left, bottom, right } = getPadding(labelPlacement, labelMargin, baseMargin);
   return `[top=${top},left=${left},bottom=${bottom},right=${right}]`;
 }
 
@@ -274,8 +188,11 @@ export default async function layoutLandscape(landscape: FlatLandscape, removedD
 }
 
 async function computeLayout(landscape: FlatLandscape, removedDistrictIds: Set<string>) {
-  WIDTH_METRIC_BOUNDS = getCachedBuildingMetricBounds(landscape.buildings, WIDTH_METRIC);
-  DEPTH_METRIC_BOUNDS = getCachedBuildingMetricBounds(landscape.buildings, DEPTH_METRIC);
+  BUILDING_SIZING = {
+    vs: VISUALIZATION_SETTINGS,
+    widthBounds: getCachedBuildingMetricBounds(landscape.buildings, VISUALIZATION_SETTINGS.buildingWidthMetric.value),
+    depthBounds: getCachedBuildingMetricBounds(landscape.buildings, VISUALIZATION_SETTINGS.buildingDepthMetric.value),
+  };
 
   const useCircleLayout = BUILDING_ALGORITHM === 'circle';
   const useSpiralLayout = BUILDING_ALGORITHM === 'spiral';
@@ -297,35 +214,9 @@ async function computeLayout(landscape: FlatLandscape, removedDistrictIds: Set<s
   // Add buildings
   const cities = Object.values(landscape.cities);
   cities.forEach((city) => {
-    const buildingCount = useCustomBuildingLayout
-      ? countCityBuildings(landscape, city)
-      : city.allContainedBuildingIds.length;
     if (useCustomBuildingLayout) {
-      let citySideLength: number;
-      if (useCircleLayout) {
-        const circumference = buildingCount * (BUILDING_FOOTPRINT * 2 + BUILDING_MARGIN * 2);
-        if (buildingCount <= 2) {
-          citySideLength = BUILDING_FOOTPRINT * 4;
-        } else {
-          citySideLength = circumference / Math.PI;
-        }
-      } else {
-        const { visualizationSettings: vs } = useUserSettingsStore.getState();
-
-        citySideLength = calculateSpiralSideLength(
-          buildingCount,
-          BUILDING_FOOTPRINT,
-          BUILDING_MARGIN,
-          vs.spiralGap.value,
-          vs.spiralCenterOffset.value
-        );
-      }
-      const minimumSize = getMinimumCitySize(city);
       landscapeGraph.children.push(
-        createdFixedSizeCity(city, {
-          width: Math.max(citySideLength, minimumSize.width),
-          depth: Math.max(citySideLength, minimumSize.height),
-        })
+        createdFixedSizeCity(city, getCustomBuildingLayoutCitySize(landscape, city, VISUALIZATION_SETTINGS))
       );
       // Layout without special class layout algorithm
     } else {
@@ -353,7 +244,7 @@ async function computeLayout(landscape: FlatLandscape, removedDistrictIds: Set<s
 }
 
 function createCityGraph(landscape: FlatLandscape, city: City, removedDistrictIds: Set<string>) {
-  const minimumSize = getMinimumCitySize(city);
+  const minimumSize = getMinimumCitySize(city, VISUALIZATION_SETTINGS);
   const cityGraph = {
     id: CITY_PREFIX + city.id,
     children: [],
@@ -460,54 +351,13 @@ function populateDistrict(
   });
 }
 
-function hasVisibleBuildingsRecursively(
-  landscape: FlatLandscape,
-  district: District,
-  removedDistrictIds: Set<string>
-): boolean {
-  const hasDirectBuildings = district.buildingIds.some((buildingId) => !!landscape.buildings[buildingId]);
-  if (hasDirectBuildings) {
-    return true;
-  }
-
-  return district.districtIds.some((childDistrictId) => {
-    if (removedDistrictIds.has(childDistrictId)) {
-      return false;
-    }
-    const childDistrict = landscape.districts[childDistrictId];
-    if (!childDistrict) {
-      return false;
-    }
-    return hasVisibleBuildingsRecursively(landscape, childDistrict, removedDistrictIds);
-  });
-}
-
 function createBuildingNode(building: Building) {
-  const widthByMetric =
-    WIDTH_METRIC_MULTIPLIER *
-    getMetricMappingMultiplier(WIDTH_METRIC as MetricKey, METRIC_MAPPING) *
-    applyMetricMapping(
-      getBuildingMetricValueForSizing(building, WIDTH_METRIC),
-      METRIC_MAPPING,
-      WIDTH_METRIC_BOUNDS,
-      METRIC_BUCKETS
-    );
-
-  const depthByMetric =
-    DEPTH_METRIC_MULTIPLIER *
-    getMetricMappingMultiplier(DEPTH_METRIC as MetricKey, METRIC_MAPPING) *
-    applyMetricMapping(
-      getBuildingMetricValueForSizing(building, DEPTH_METRIC),
-      METRIC_MAPPING,
-      DEPTH_METRIC_BOUNDS,
-      METRIC_BUCKETS
-    );
-
+  const { width, depth } = getBuildingFootprint(building, BUILDING_SIZING);
   return {
     id: BUILDING_PREFIX + building.id,
     children: [],
-    width: BUILDING_FOOTPRINT + widthByMetric,
-    height: BUILDING_FOOTPRINT + depthByMetric,
+    width,
+    height: depth,
   };
 }
 
