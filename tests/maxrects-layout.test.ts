@@ -3,6 +3,11 @@ import { beforeEach, describe, expect, it } from 'vitest';
 import { useLayoutStore } from '../src/stores/layout-store';
 import { useUserSettingsStore } from '../src/stores/user-settings';
 import type { Building, City, District, FlatLandscape } from '../src/utils/landscape-schemes/flat-landscape';
+import {
+  collapseDistrictsWithoutBuildings,
+  pruneFlatLandscapeByRemainingBuildings,
+} from '../src/utils/city-rendering/flat-landscape-filter';
+import { markFilteredFrom } from '../src/utils/city-rendering/filtered-landscapes';
 import type BoxLayout from '../src/utils/layout/box-layout';
 import layoutLandscapeWithMaxRects, { resetMaxRectsLayout } from '../src/utils/layout/maxrects-layouter';
 import { defaultVizSettings } from '../src/utils/settings/default-settings';
@@ -222,15 +227,53 @@ describe('stable maxrects layout', () => {
     expect(snapshot(layout(landscape))).toEqual(before);
   });
 
-  it('keeps all places when a District is filtered', () => {
+  it('closes the room of a filtered District and shows the same layout again once the filter is removed', () => {
     const landscape = createLandscape(SPEC);
     const before = snapshot(layout(landscape));
 
-    const filtered = snapshot(layout(landscape, new Set(['shop.checkout'])));
-    for (const [id, box] of Object.entries(filtered)) {
-      expect(box).toEqual(before[id]);
-    }
+    const filteredMap = layout(landscape, new Set(['shop.checkout']));
+    const filtered = snapshot(filteredMap);
+    expectValidNesting(landscape, filteredMap);
     expect(filtered['shop.checkout']).toBeUndefined();
+    // The shop closes up
+    expect(filtered.shop[2] * filtered.shop[3]).toBeLessThan(before.shop[2] * before.shop[3]);
+    // Untouched Districts keep their contents as they were
+    for (const id of Object.keys(before).filter((id) => id.startsWith('billing.') || id.startsWith('auth.'))) {
+      expect(filtered[id]).toEqual(before[id]);
+    }
+
+    expect(snapshot(layout(landscape))).toEqual(before);
+  });
+
+  it('closes the room of filtered entities and leaves no gaps once the filter is removed', () => {
+    const landscape = createLandscape(SPEC);
+    const before = snapshot(layout(landscape));
+
+    // As the Remove filter does: a pruned copy, here with the checkout's own Buildings
+    // filtered, so its inner Districts move up into the shop
+    const pruned = structuredClone(landscape);
+    for (let i = 0; i < 5; i++) delete pruned.buildings[`shop.checkout.b${i}`];
+    pruneFlatLandscapeByRemainingBuildings(pruned);
+    collapseDistrictsWithoutBuildings(pruned);
+    markFilteredFrom(pruned, landscape);
+    expect(pruned.cities.shop.districtIds).toContain('shop.checkout.payment');
+
+    const filteredMap = layout(pruned);
+    expectValidNesting(pruned, filteredMap);
+    expect(snapshot(filteredMap).shop[2] * snapshot(filteredMap).shop[3]).toBeLessThan(before.shop[2] * before.shop[3]);
+
+    expect(snapshot(layout(landscape))).toEqual(before);
+  });
+
+  it('keeps the places of Buildings that another Timestamp lacks, as that is no filter', () => {
+    const landscape = createLandscape(SPEC);
+    const before = snapshot(layout(landscape));
+
+    const otherTimestamp = withoutBuilding(landscape, 'shop.catalog.b3');
+    const after = snapshot(layout(otherTimestamp));
+
+    expect(after.shop).toEqual(before.shop);
+    expect(after['shop.catalog']).toEqual(before['shop.catalog']);
   });
 
   it('lets a District grow where it is and keeps the arrangement around it', () => {

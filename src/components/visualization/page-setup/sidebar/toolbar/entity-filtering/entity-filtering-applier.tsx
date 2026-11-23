@@ -16,6 +16,7 @@ import {
   collectFilteredBuildings,
   compileBuildingFilter,
 } from 'explorviz-frontend/src/utils/city-rendering/building-filter';
+import { markFilteredFrom } from 'explorviz-frontend/src/utils/city-rendering/filtered-landscapes';
 import {
   collapseDistrictsWithoutBuildings,
   pruneFlatLandscapeByRemainingBuildings,
@@ -244,6 +245,7 @@ export default function EntityFilteringApplier({ landscapeData }: EntityFilterin
     if (removesDistrictsWithoutBuildings) {
       collapseDistrictsWithoutBuildings(deepCopyFlatLandscape);
     }
+    markFilteredFrom(deepCopyFlatLandscape, baselineFlatLandscape);
 
     syncModelStoreToFlatLandscape(deepCopyFlatLandscape);
 

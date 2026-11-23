@@ -2,6 +2,7 @@ import {
   BuildingComparisonVisibility,
   isBuildingComparisonFilterActive,
 } from 'explorviz-frontend/src/utils/city-rendering/building-comparison-visibility';
+import { markFilteredFrom } from 'explorviz-frontend/src/utils/city-rendering/filtered-landscapes';
 import { District, FlatLandscape } from 'explorviz-frontend/src/utils/landscape-schemes/flat-landscape';
 
 function districtSubtreeHasRemainingBuildings(
@@ -69,6 +70,7 @@ export function filterFlatLandscapeByBuildingComparisonVisibility(
   }
 
   pruneFlatLandscapeByRemainingBuildings(filteredFlatLandscape);
+  markFilteredFrom(filteredFlatLandscape, flatLandscape);
 
   return filteredFlatLandscape;
 }

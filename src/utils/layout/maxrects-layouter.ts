@@ -1,5 +1,6 @@
 import { getSharedArrangements, layoutArrangementChanged } from 'explorviz-frontend/src/utils/collaboration/layout';
 import { City, District, FlatLandscape } from 'explorviz-frontend/src/utils/landscape-schemes/flat-landscape';
+import { getUnfilteredLandscape } from 'explorviz-frontend/src/utils/city-rendering/filtered-landscapes';
 import BoxLayout from 'explorviz-frontend/src/utils/layout/box-layout';
 import { applyCircleLayoutToClasses as applyCircleLayoutToBuildings } from 'explorviz-frontend/src/utils/layout/circle-layouter';
 import {
@@ -32,7 +33,7 @@ import { IRectangleInput, MaxRectsBin, PACKING_LOGIC, Rectangle } from 'maxrects
  * Unlike the ELK layout, which is recomputed from scratch for every change of
  * the landscape, every container (the landscape, a City or a District)
  * remembers where it put each of its children. When the landscape changes
- * (another Timestamp or Commit, filters), a child keeps its place, a new child
+ * (another Timestamp or Commit), a child keeps its place, a new child
  * is put into free space as far to the top left as possible, and a child that
  * is gone leaves its place reserved, so that it comes back to the same spot.
  * A child that outgrew its place grows where it is; if a sibling is in the
@@ -43,6 +44,10 @@ import { IRectangleInput, MaxRectsBin, PACKING_LOGIC, Rectangle } from 'maxrects
  *
  * Only plain geometry is remembered (the places and the packing width); the
  * free space is derived from the places whenever new children are added.
+ *
+ * Filters are a view on the data, not a change of it: the places are always
+ * made from the landscape before any filter, and a filtered landscape is shown
+ * with the room of the filtered entities closed up, without changing them.
  *
  * The remembered arrangement is discarded, and the landscape packed afresh,
  * when the user asks for it (`useLayoutStore.recomputeLayout`), when a setting
@@ -74,8 +79,16 @@ type LayoutNode = {
 /** The places a layout works with, and where it notes the containers whose places it changed. */
 type ArrangementTarget = { arrangements: Arrangements; changed: Set<string> };
 
+/** Arranges the children of a container: their places and the size of its content area. */
+type Arranger = (
+  containerId: string,
+  children: Footprint[],
+  spacing: number,
+  aspectRatio: number
+) => { slots: Map<string, Slot>; width: number; depth: number };
+
 type LayoutContext = {
-  target: ArrangementTarget;
+  arrange: Arranger;
   landscape: FlatLandscape;
   removedDistrictIds: Set<string>;
   vs: VisualizationSettings;
@@ -389,8 +402,7 @@ function measureContents(context: LayoutContext, buildingIds: string[], district
 
 function measureDistrict(context: LayoutContext, district: District): LayoutNode {
   const children = measureContents(context, district.buildingIds, district.districtIds);
-  const { slots, width, depth } = arrangeChildren(
-    context.target,
+  const { slots, width, depth } = context.arrange(
     district.id,
     children,
     context.vs.buildingMargin.value,
@@ -418,8 +430,7 @@ function measureCity(context: LayoutContext, city: City): LayoutNode {
   }
 
   const children = measureContents(context, city.buildingIds, city.districtIds);
-  const { slots, width, depth } = arrangeChildren(
-    context.target,
+  const { slots, width, depth } = context.arrange(
     city.id,
     children,
     context.vs.buildingMargin.value,
@@ -473,25 +484,108 @@ function addBoxLayouts(
   }
 }
 
+/** Whether two lists of children hold the same children with the same sizes. */
+function sameFootprints(children: Footprint[], others: Footprint[]): boolean {
+  if (children.length !== others.length) return false;
+  const byId = new Map(others.map((other) => [other.id, other]));
+  return children.every((child) => {
+    const other = byId.get(child.id);
+    return !!other && Math.abs(other.width - child.width) < EPSILON && Math.abs(other.depth - child.depth) < EPSILON;
+  });
+}
+
+/** Packs children in the given order, each as far to the top left as possible, like text reflowing. */
+function packInOrder(children: Footprint[], width: number, spacing: number): Map<string, Slot> {
+  const bin = new MaxRectsBin(width, UNBOUNDED, spacing, {
+    smart: false,
+    pot: false,
+    square: false,
+    allowRotation: false,
+    border: 0,
+    logic: PACKING_LOGIC.FILL_WIDTH,
+  });
+  const slots = new Map<string, Slot>();
+  for (const child of children) {
+    slots.set(child.id, toSlot(bin.add(new Rectangle(child.width, child.depth)), child));
+  }
+  return slots;
+}
+
+/**
+ * Arranges the children of a container as a filter leaves them, without
+ * changing the remembered places. A container that still holds the same
+ * children as without the filter shows its remembered places. Otherwise its
+ * remaining children are reflowed in the order of their remembered places, so
+ * the gaps of the filtered ones close.
+ */
+function arrangeFiltered(
+  arrangements: Arrangements,
+  unfilteredChildren: Map<string, Footprint[]>,
+  containerId: string,
+  children: Footprint[],
+  spacing: number,
+  aspectRatio: number
+) {
+  const remembered = arrangements.get(containerId);
+  const unfiltered = unfilteredChildren.get(containerId);
+  if (remembered && unfiltered && sameFootprints(children, unfiltered)) {
+    return { slots: remembered.slots, ...getExtent(remembered.slots.values()) };
+  }
+
+  const placeOf = (child: Footprint) => remembered?.slots.get(child.id);
+  const ordered = [...children].sort((a, b) => {
+    const placeA = placeOf(a);
+    const placeB = placeOf(b);
+    if (placeA && placeB) return placeA.z - placeB.z || placeA.x - placeB.x;
+    if (placeA || placeB) return placeA ? -1 : 1;
+    return compareForPacking(a, b);
+  });
+  const widestChild = Math.max(0, ...children.map((child) => child.width));
+  const targetWidth = getTargetWidth(getPackedArea(children, spacing), widestChild, aspectRatio);
+  const width = Math.max(widestChild, Math.min(remembered?.width ?? targetWidth, targetWidth));
+  const slots = packInOrder(ordered, width, spacing);
+  return { slots, ...getExtent(slots.values()) };
+}
+
+/** Measures and arranges the landscape bottom-up, from Buildings to Cities. */
+function measureLandscape(context: LayoutContext): LayoutNode {
+  const cityNodes = Object.values(context.landscape.cities).map((city) => measureCity(context, city));
+  const { slots, width, depth } = context.arrange(LANDSCAPE_ID, cityNodes, context.vs.cityMargin.value, 1);
+  // Same outer padding as the ELK layout uses for the landscape
+  const padding = context.cityPadding;
+  positionChildren(cityNodes, slots, padding);
+
+  return {
+    id: LANDSCAPE_ID,
+    isBuilding: false,
+    width: padding.left + width + padding.right,
+    depth: padding.top + depth + padding.bottom,
+    x: 0,
+    z: 0,
+    children: cityNodes,
+  };
+}
+
+/**
+ * Lays out the landscape stably. The remembered places are always made from
+ * the landscape before any filter, so that filters neither reserve room for
+ * what they filter nor leave gaps once they are removed. A filtered landscape
+ * is then shown with the filtered entities' room closed up.
+ */
 export default function layoutLandscapeWithMaxRects(
   landscape: FlatLandscape,
   removedDistrictIds: Set<string>
 ): Map<string, BoxLayout> {
   const vs = getVisualizationSettings();
   const labelPlacement = vs.districtLabelPlacement.value;
-  // In a Room, everyone but the Host lays out with the Room's places. What they
-  // place themselves (entities the Host has not laid out yet) is not kept.
-  const shared = getSharedArrangements();
-  const target = shared ? { arrangements: shared, changed: new Set<string>() } : getOwnArrangements();
-  const context: LayoutContext = {
-    target,
-    landscape,
-    removedDistrictIds,
+  const unfiltered = getUnfilteredLandscape(landscape);
+  // Sizes come from the unfiltered landscape, so a filter does not resize what it keeps
+  const common = {
     vs,
     buildingSizing: {
       vs,
-      widthBounds: getCachedBuildingMetricBounds(landscape.buildings, vs.buildingWidthMetric.value),
-      depthBounds: getCachedBuildingMetricBounds(landscape.buildings, vs.buildingDepthMetric.value),
+      widthBounds: getCachedBuildingMetricBounds(unfiltered.buildings, vs.buildingWidthMetric.value),
+      depthBounds: getCachedBuildingMetricBounds(unfiltered.buildings, vs.buildingDepthMetric.value),
     },
     cityPadding: getPaddingForLabelPlacement(labelPlacement, vs.cityLabelMargin.value, vs.cityPadding.value),
     districtPadding: getPaddingForLabelPlacement(
@@ -501,35 +595,47 @@ export default function layoutLandscapeWithMaxRects(
     ),
   };
 
-  const cities = Object.values(landscape.cities);
-  const cityNodes = cities.map((city) => measureCity(context, city));
-  const { slots, width, depth } = arrangeChildren(context.target, LANDSCAPE_ID, cityNodes, vs.cityMargin.value, 1);
-  // Same outer padding as the ELK layout uses for the landscape
-  const padding = context.cityPadding;
-  positionChildren(cityNodes, slots, padding);
+  // In a Room, everyone but the Host lays out with the Room's places. What they
+  // place themselves (entities the Host has not laid out yet) is not kept.
+  const shared = getSharedArrangements();
+  const target: ArrangementTarget = shared ? { arrangements: shared, changed: new Set() } : getOwnArrangements();
+  const unfilteredChildren = new Map<string, Footprint[]>();
+  const unfilteredNode = measureLandscape({
+    ...common,
+    landscape: unfiltered,
+    removedDistrictIds: new Set(),
+    arrange: (containerId, children, spacing, aspectRatio) => {
+      unfilteredChildren.set(
+        containerId,
+        children.map(({ id, width, depth }) => ({ id, width, depth }))
+      );
+      return arrangeChildren(target, containerId, children, spacing, aspectRatio);
+    },
+  });
+  if (!shared) layoutArrangementChanged();
 
-  const landscapeNode: LayoutNode = {
-    id: LANDSCAPE_ID,
-    isBuilding: false,
-    width: padding.left + width + padding.right,
-    depth: padding.top + depth + padding.bottom,
-    x: 0,
-    z: 0,
-    children: cityNodes,
-  };
+  const isFiltered = unfiltered !== landscape || removedDistrictIds.size > 0;
+  const shownNode = isFiltered
+    ? measureLandscape({
+        ...common,
+        landscape,
+        removedDistrictIds,
+        arrange: (containerId, children, spacing, aspectRatio) =>
+          arrangeFiltered(target.arrangements, unfilteredChildren, containerId, children, spacing, aspectRatio),
+      })
+    : unfilteredNode;
 
   const layoutMap = new Map<string, BoxLayout>();
-  addBoxLayouts(landscapeNode, layoutMap, 0, 0, 0, vs);
+  addBoxLayouts(shownNode, layoutMap, 0, 0, 0, vs);
 
   if (usesCustomBuildingLayout(vs)) {
+    const cities = Object.values(landscape.cities);
     if (vs.buildingLayoutAlgorithm.value === 'circle') {
       applyCircleLayoutToBuildings(layoutMap, landscape, cities);
     } else {
       applySpiralLayoutToBuildings(layoutMap, landscape, cities);
     }
   }
-
-  if (!shared) layoutArrangementChanged();
 
   return layoutMap;
 }
