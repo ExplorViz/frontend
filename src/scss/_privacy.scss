@@ -1,0 +1,16 @@
+// html and body do not scroll (see _main.scss), so the page scrolls itself
+.privacy-page {
+  height: 100vh;
+  overflow-y: auto;
+  touch-action: auto;
+
+  h2 {
+    margin-top: 2rem;
+    font-size: 1.5rem;
+  }
+
+  h3 {
+    margin-top: 1.5rem;
+    font-size: 1.15rem;
+  }
+}

@@ -1,6 +1,7 @@
 import 'bootstrap/dist/css/bootstrap.min.css';
 import Application from 'explorviz-frontend/src/pages/application.tsx';
 import Landscapes from 'explorviz-frontend/src/pages/landscapes.tsx';
+import Privacy from 'explorviz-frontend/src/pages/privacy.tsx';
 import Settings from 'explorviz-frontend/src/pages/settings.tsx';
 import Visualization from 'explorviz-frontend/src/pages/visualization.tsx';
 import 'explorviz-frontend/src/scss/app.scss';
@@ -11,6 +12,7 @@ import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
 ReactDOM.createRoot(document.getElementById('root')).render(
   <BrowserRouter>
     <Routes>
+      <Route path="/privacy" element={<Privacy />} />
       <Route element={<Application />}>
         <Route path="/" element={<Navigate to="/landscapes" />} />
         <Route path="/landscapes" element={<Landscapes />} />

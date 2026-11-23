@@ -14,7 +14,8 @@
   overflow: hidden !important;
   // The navbar is absolutely positioned on top of the page
   margin-top: 5rem !important;
-  margin-bottom: 3rem !important;
+  // Leaves room below for the footer
+  margin-bottom: 1rem !important;
   font-size: large;
 }
 
@@ -80,4 +81,10 @@
       }
     }
   }
+}
+
+.landscapes-footer {
+  padding-bottom: 1rem;
+  text-align: center;
+  font-size: 0.875rem;
 }

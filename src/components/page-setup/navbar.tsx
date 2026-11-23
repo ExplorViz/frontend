@@ -1,4 +1,13 @@
-import { GitBranchIcon, IdBadgeIcon, PersonIcon, SignOutIcon, UndoIcon, VscodeIcon } from '@primer/octicons-react';
+import {
+  GitBranchIcon,
+  IdBadgeIcon,
+  LawIcon,
+  PersonIcon,
+  ShieldLockIcon,
+  SignOutIcon,
+  UndoIcon,
+  VscodeIcon,
+} from '@primer/octicons-react';
 import StatusIcons from 'explorviz-frontend/src/components/page-setup/status-icons';
 import { useIdeWebsocketStore } from 'explorviz-frontend/src/ide/ide-websocket';
 import { useAuthStore } from 'explorviz-frontend/src/stores/auth';
@@ -121,6 +130,14 @@ export default function Navbar() {
                 Logout
               </Dropdown.Item>
               <Dropdown.Divider />
+              <Dropdown.Item onClick={() => navigate('/privacy')}>
+                <ShieldLockIcon size="small" className="me-2" />
+                Datenschutz
+              </Dropdown.Item>
+              <Dropdown.Item href="https://www.uni-kiel.de/de/impressum" target="_blank" rel="noopener noreferrer">
+                <LawIcon size="small" className="me-2" />
+                Impressum
+              </Dropdown.Item>
               <Dropdown.Item disabled>Version: {versionTag()}</Dropdown.Item>
             </DropdownButton>
           </div>

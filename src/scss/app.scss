@@ -20,6 +20,7 @@
 @use '_login';
 @use '_kubediagrams';
 @use '_web_view';
+@use '_privacy';
 
 :root {
   --ev-radius-sm: 0.25rem;

@@ -12,7 +12,7 @@ import { leaveRoomToOpenSnapshot } from 'explorviz-frontend/src/utils/collaborat
 import { getResponseErrorMessage } from 'explorviz-frontend/src/utils/response-error';
 import { useEffect, useRef, useState } from 'react';
 import { Button, Modal, Tab, Tabs } from 'react-bootstrap';
-import { createSearchParams, useNavigate } from 'react-router-dom';
+import { createSearchParams, Link, useNavigate } from 'react-router-dom';
 import { RepoAnalysisModal } from '../components/repo-analysis-modal';
 
 export default function Landscapes() {
@@ -302,6 +302,14 @@ export default function Landscapes() {
           </Tab>
         </Tabs>
       </div>
+
+      <footer className="landscapes-footer">
+        <Link to="/privacy">Datenschutz</Link>
+        <span className="mx-2">·</span>
+        <a href="https://www.uni-kiel.de/de/impressum" target="_blank" rel="noopener noreferrer">
+          Impressum
+        </a>
+      </footer>
 
       <div>
         <Modal
