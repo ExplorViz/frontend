@@ -163,7 +163,7 @@ export default function Privacy() {
           Log-Einträge oder Anfrageparameter können solche Daten enthalten. Diese Daten kann jeder einsehen, der den
           Landschafts-Token kennt oder die Instanz nutzt. Wer Daten hochlädt, muss selbst sicherstellen, dass er sie
           verarbeiten darf, und sollte personenbezogene Inhalte möglichst vermeiden oder pseudonymisieren. Die Daten
-          werden gespeichert, bis die Landschaft gelöscht wird oder [Löschfrist für Laufzeit- und Analysedaten].
+          werden gespeichert, bis die Landschaft gelöscht wird.
         </p>
 
         <h3>7.4 Gemeinsames Arbeiten (Kollaboration)</h3>
