@@ -15,13 +15,14 @@ import { defaultVizSettings } from 'explorviz-frontend/src/utils/settings/defaul
 import { VisualizationSettings } from 'explorviz-frontend/src/utils/settings/settings-schemas';
 import { use } from 'react';
 import { toIsoTime } from './chart-query';
+import { summarizeCities } from './landscape-query';
 
 const ASSISTANT_INSTRUCTIONS = `You are the assistant embedded in ExplorViz, a tool that visualizes software systems from static and dynamic program analysis as a 3D landscape using the city metaphor.
 
 Model:
 - City: the top-level unit, e.g. an application, service, or repository.
 - District: a grouping inside a city, e.g. a package or directory. Districts can be nested. A closed district hides its content.
-- Building: a leaf, e.g. a source file or class, with metrics such as lines of code.
+- Building: a leaf, e.g. a source file or class, with metrics such as lines of code. What is inside a file (imports, functions, data structures) is available from query-file-data.
 - Commit chart: the analyzed commits of the repositories. Selected commits determine which code is visualized; two of a repository are compared, the older one with the newer one.
 - Runtime chart: Timestamps with the number of spans that start until the next one. The selected Timestamp determines which runtime data is visualized.
 By default all districts are open and nothing is highlighted.
@@ -74,45 +75,6 @@ export function CopilotResources({ cities }: CopilotResourcesProps) {
     return result;
   };
 
-  const summarizeCities = (cities: City[]) =>
-    cities.map((city) => {
-      const districtCount = city.allContainedDistrictIds.length;
-      const buildingCount = city.allContainedBuildingIds.length;
-      let languages: string[] = [];
-      let functionCount = 0;
-      let linesOfCode = 0;
-      let sourceCodeLines = 0;
-      let commentedLines = 0;
-      let combinedFileSizeInBytes = 0;
-
-      city.allContainedBuildingIds.forEach((buildingId) => {
-        const building = useModelStore.getState().getBuilding(buildingId);
-        const language = building?.language;
-        functionCount += building?.metrics?.functionCount?.current ?? 0;
-        linesOfCode += building?.metrics?.lineCount?.current ?? 0;
-        sourceCodeLines += building?.metrics?.sloc?.current ?? 0;
-        commentedLines += building?.metrics?.cloc?.current ?? 0;
-        combinedFileSizeInBytes += building?.metrics?.size?.current ?? 0;
-        if (language && !languages.includes(language)) {
-          languages.push(language);
-        }
-      });
-
-      return {
-        id: city.id,
-        name: city.name,
-        languages,
-        originOfData: city.originOfData,
-        districtCount,
-        buildingCount,
-        functionCount,
-        linesOfCode,
-        sourceCodeLines,
-        commentedLines,
-        combinedFileSizeInBytes,
-      };
-    });
-
   const { showToolsSidebar, showSettingsSidebar, selectedToolbarTool, selectedSettingsSidebarTab } =
     use(ChatbotContext);
 
@@ -131,7 +93,7 @@ export function CopilotResources({ cities }: CopilotResourcesProps) {
 
   useAgentContext({
     description: 'Cities of the landscape with their totals. For anything more detailed use query-landscape-data.',
-    value: JSON.stringify(summarizeCities(cities ?? [])),
+    value: JSON.stringify(summarizeCities(cities ?? [], useModelStore.getState().getBuilding)),
   });
 
   useAgentContext({

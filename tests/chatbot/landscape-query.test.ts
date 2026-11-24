@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import {
   queryLandscape,
   referenceEarlierResult,
+  summarizeCities,
   type ConversationMessage,
   type LandscapeModels,
 } from '../../src/components/chatbot/landscape-query';
@@ -129,6 +130,60 @@ describe('querying the landscape for the chatbot', () => {
       { id: 'building-0', fqn: 'shop.checkout.Class0', parentId: 'checkout', cityId: 'city' },
     ]);
     expect(result.unknownIds).toEqual(['gone']);
+  });
+});
+
+describe('metrics of commits, which the landscape service sends as strings', () => {
+  function withStrings(): LandscapeModels {
+    const models = landscapeOf(3);
+    const metricsOf = [
+      { lineCount: { current: '9.0', previous: '9.0' }, functionCount: { current: '2.0' } },
+      { lineCount: { current: '100.0', previous: '20.0' }, functionCount: { current: '3.0' } },
+      { lineCount: { current: null, previous: '7.0' } },
+    ] as unknown as Building['metrics'][];
+    return {
+      ...models,
+      getBuilding: (id) => ({ ...models.getBuilding(id)!, metrics: metricsOf[Number(id.slice(-1))] }),
+    };
+  }
+
+  it('sums them up per city', () => {
+    const { getAllCities, getBuilding } = withStrings();
+
+    expect(summarizeCities(getAllCities(), getBuilding)).toEqual([
+      {
+        id: 'city',
+        name: 'Shop',
+        languages: ['JAVA'],
+        originOfData: undefined,
+        districtCount: 2,
+        buildingCount: 3,
+        functionCount: 5,
+        linesOfCode: 109,
+        sourceCodeLines: 0,
+        commentedLines: 0,
+        combinedFileSizeInBytes: 0,
+      },
+    ]);
+  });
+
+  it('returns and sorts them as numbers', () => {
+    const full = queryLandscape({ detailLevel: 'full' }, withStrings()).buildings;
+    expect(full?.map(({ metrics }) => metrics)).toEqual([
+      { lineCount: 9, functionCount: 2 },
+      { lineCount: { current: 100, previous: 20 }, functionCount: 3 },
+      { lineCount: { current: null, previous: 7 } },
+    ]);
+
+    const sorted = queryLandscape({ sortByMetric: 'lineCount' }, withStrings()).buildings;
+    expect(sorted?.map(({ lineCount }) => lineCount)).toEqual([100, 9, undefined]);
+  });
+
+  it('ignores buildings that are missing', () => {
+    expect(summarizeCities(withStrings().getAllCities(), () => undefined)[0]).toMatchObject({
+      languages: [],
+      linesOfCode: 0,
+    });
   });
 });
 

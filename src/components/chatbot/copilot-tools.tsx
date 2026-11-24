@@ -16,6 +16,7 @@ import {
   isSelectSetting,
   VisualizationSettings,
 } from 'explorviz-frontend/src/utils/settings/settings-schemas';
+import { requestFileDetailedData } from 'explorviz-frontend/src/utils/landscape-http-request-util';
 import { pingByModelId } from 'explorviz-frontend/src/view-objects/3d/city/ping-animation';
 import * as htmlToImage from 'html-to-image';
 import { use } from 'react';
@@ -40,6 +41,7 @@ import {
   resolveCopilotSettingsTab,
   resolveCopilotToolbarTool,
 } from './copilot-sidebar-map';
+import { DEFAULT_MAX_ENTRIES, FILE_SECTIONS, MAX_FILES, queryFiles } from './file-query';
 import {
   DEFAULT_MAX_BUILDINGS,
   DEFAULT_MAX_DISTRICTS,
@@ -225,6 +227,54 @@ export function CopilotTools() {
           component={{
             name: labelParts.length ? labelParts.join(' | ') : 'landscape data',
           }}
+        />
+      );
+    },
+  });
+
+  useChatbotTool({
+    name: 'query-file-data',
+    description: `Inspects files (buildings from static analysis): their imports, functions, and data structures (classes, interfaces, enums, etc.) with superclasses, fields, and functions. Only reads, opens nothing. Functions are given as "name: return type", fields as "name: type". Data structures inside others are named "Outer.Inner". "counts" are the totals of the file, "omitted" states how many matches were cut off. Not available: source code, function parameters, enum values, and other versions of a file than the one in the landscape (while two commits are compared, the newer one; for removed files the older one). Inspect only files that the question is about, do not scan the landscape file by file.`,
+    parameters: z.object({
+      ids: z.array(z.string()).describe(`Building ids from query-landscape-data, at most ${MAX_FILES}.`),
+      sections: z
+        .array(z.enum(FILE_SECTIONS))
+        .optional()
+        .describe(
+          'Default: all. functions: top-level functions and functions of data structures. dataStructures: their type, superclasses, and fields.'
+        ),
+      search: z
+        .string()
+        .optional()
+        .describe(
+          'Only imports, functions, fields, and data structures whose name or type contains this. A data structure whose name contains it is returned completely.'
+        ),
+      includeMetrics: z
+        .boolean()
+        .optional()
+        .describe('Also metrics of the file, its functions, and its data structures. Default false.'),
+      maxEntries: z.number().optional().describe(`Per file. Default ${DEFAULT_MAX_ENTRIES}.`),
+    }),
+    // @ts-ignore
+    _isRenderAndWait: true,
+    handler: async (query, { agent, toolCall }) => {
+      const { getBuilding } = useModelStore.getState();
+      const result = JSON.stringify(await queryFiles(query, getBuilding, (id) => requestFileDetailedData(id)));
+      return referenceEarlierResult(result, agent?.messages ?? [], toolCall.id);
+    },
+    render: ({ status, args, result }) => {
+      const ids = args.ids ?? [];
+      const building = ids.length === 1 && ids[0] ? useModelStore.getState().getBuilding(ids[0]) : undefined;
+      return (
+        <ToolCallCard
+          status={status}
+          action="queryFileData"
+          errorMessage={getErrorMessage(result)}
+          component={
+            building
+              ? { id: building.id, name: building.name }
+              : { name: ids.length > 0 ? `${ids.length} ${ids.length === 1 ? 'file' : 'files'}` : undefined }
+          }
         />
       );
     },

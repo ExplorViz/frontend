@@ -31,6 +31,7 @@ type Action =
   | 'redoEdit'
   | 'screenshot'
   | 'queryLandscapeData'
+  | 'queryFileData'
   | 'queryCommitChart'
   | 'queryRuntimeChart'
   | 'selectCommits'
@@ -166,6 +167,8 @@ function getMessage(
           return 'Taking screenshot';
         case 'queryLandscapeData':
           return 'Querying landscape data';
+        case 'queryFileData':
+          return 'Inspecting';
         case 'queryCommitChart':
           return 'Reading commit chart';
         case 'queryRuntimeChart':
@@ -234,6 +237,11 @@ function getMessage(
           return 'Took screenshot';
         case 'queryLandscapeData':
           return 'Fetched landscape data for';
+        case 'queryFileData':
+          if (errorMessage) {
+            return `Inspecting files failed: ${errorMessage}`;
+          }
+          return 'Inspected';
         case 'queryCommitChart':
           if (errorMessage) {
             return `Reading commit chart failed: ${errorMessage}`;

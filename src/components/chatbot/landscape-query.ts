@@ -1,3 +1,4 @@
+import { coerceMetricNumber } from 'explorviz-frontend/src/components/visualization/rendering/popups/city-popups/building-metrics-utils';
 import {
   Building,
   City,
@@ -74,19 +75,22 @@ function nameOf(entity: { name: string; fqn?: string }) {
   return entity.fqn ? { fqn: entity.fqn } : { name: entity.name };
 }
 
+/** Despite its type, the landscape service sends the metrics of commits as strings such as "593.0". */
+function getMetric(building: Building | undefined, name: string) {
+  return coerceMetricNumber(building?.metrics?.[name]?.current);
+}
+
 function toMetrics(metrics: Building['metrics']) {
   const result: Entry = {};
   for (const [name, value] of Object.entries(metrics ?? {})) {
-    if (value.current === null || value.current === undefined) {
-      // Removed by the newer of two compared commits.
-      if (value.previous !== null && value.previous !== undefined) {
-        result[name] = { current: null, previous: value.previous };
-      }
-      continue;
+    const current = coerceMetricNumber(value.current);
+    const previous = coerceMetricNumber(value.previous);
+    if (previous !== null && previous !== current) {
+      // Without a current value, the newer of two compared commits removed it.
+      result[name] = { current, previous };
+    } else if (current !== null) {
+      result[name] = current;
     }
-    const hasOtherPrevious =
-      value.previous !== undefined && value.previous !== null && value.previous !== value.current;
-    result[name] = hasOtherPrevious ? { current: value.current, previous: value.previous } : value.current;
   }
   return Object.keys(result).length > 0 ? result : undefined;
 }
@@ -152,7 +156,7 @@ function toBuildingEntry(
     ...changeOf(building, isComparing),
     ...(withCityId && { cityId: building.parentCityId }),
     // Without this, a sorted list would not show the values it is sorted by.
-    ...(!isFull && sortByMetric && { [sortByMetric]: building.metrics?.[sortByMetric]?.current }),
+    ...(!isFull && sortByMetric && { [sortByMetric]: getMetric(building, sortByMetric) }),
     ...(isFull && {
       type: building.type,
       language: building.language,
@@ -171,6 +175,28 @@ function withOmitted(result: LandscapeQueryResult, omittedDistricts: number, omi
     };
   }
   return result;
+}
+
+/** The cities with the totals of their buildings. */
+export function summarizeCities(cities: City[], getBuilding: LandscapeModels['getBuilding']) {
+  return cities.map((city) => {
+    const buildings = city.allContainedBuildingIds.map(getBuilding);
+    const sumOf = (metric: string) => buildings.reduce((sum, building) => sum + (getMetric(building, metric) ?? 0), 0);
+
+    return {
+      id: city.id,
+      name: city.name,
+      languages: [...new Set(buildings.map((building) => building?.language).filter(Boolean))],
+      originOfData: city.originOfData,
+      districtCount: city.allContainedDistrictIds.length,
+      buildingCount: city.allContainedBuildingIds.length,
+      functionCount: sumOf('functionCount'),
+      linesOfCode: sumOf('lineCount'),
+      sourceCodeLines: sumOf('sloc'),
+      commentedLines: sumOf('cloc'),
+      combinedFileSizeInBytes: sumOf('size'),
+    };
+  });
 }
 
 function lookUpByIds(
@@ -282,7 +308,7 @@ export function queryLandscape(
   }
 
   if (sortByMetric) {
-    const valueOf = (building: Building) => building.metrics?.[sortByMetric]?.current ?? Number.NEGATIVE_INFINITY;
+    const valueOf = (building: Building) => getMetric(building, sortByMetric) ?? Number.NEGATIVE_INFINITY;
     buildings.sort((a, b) => valueOf(b) - valueOf(a));
   }
 
