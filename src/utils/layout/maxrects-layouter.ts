@@ -2,7 +2,6 @@ import { getSharedArrangements, layoutArrangementChanged } from 'explorviz-front
 import { City, District, FlatLandscape } from 'explorviz-frontend/src/utils/landscape-schemes/flat-landscape';
 import { getUnfilteredLandscape } from 'explorviz-frontend/src/utils/city-rendering/filtered-landscapes';
 import BoxLayout from 'explorviz-frontend/src/utils/layout/box-layout';
-import { applyCircleLayoutToClasses as applyCircleLayoutToBuildings } from 'explorviz-frontend/src/utils/layout/circle-layouter';
 import {
   BuildingSizing,
   getBuildingFootprint,
@@ -14,13 +13,13 @@ import {
   Padding,
   usesCustomBuildingLayout,
 } from 'explorviz-frontend/src/utils/layout/layout-dimensions';
+import { LANDSCAPE_ID, type LayoutNode, toBoxLayouts } from 'explorviz-frontend/src/utils/layout/layout-tree';
 import {
   type Arrangements,
   getOwnArrangements,
   resetMaxRectsLayout,
   type Slot,
 } from 'explorviz-frontend/src/utils/layout/stable-arrangement';
-import { applySpiralLayoutToClasses as applySpiralLayoutToBuildings } from 'explorviz-frontend/src/utils/layout/spiral-layouter';
 import { getCachedBuildingMetricBounds } from 'explorviz-frontend/src/utils/settings/building-metrics';
 import { VisualizationSettings } from 'explorviz-frontend/src/utils/settings/settings-schemas';
 import { IRectangleInput, MaxRectsBin, PACKING_LOGIC, Rectangle } from 'maxrects-packer';
@@ -58,23 +57,10 @@ import { IRectangleInput, MaxRectsBin, PACKING_LOGIC, Rectangle } from 'maxrects
 /** Packing area that never runs out in the direction the containers grow (z). */
 const UNBOUNDED = 1e9;
 
-const LANDSCAPE_ID = 'landscape';
-
 /** Tolerance for comparing positions, which are sums of floating point sizes. */
 const EPSILON = 1e-6;
 
 type Footprint = { id: string; width: number; depth: number };
-
-/** A measured and arranged entity; `x` and `z` are relative to its parent's origin. */
-type LayoutNode = {
-  id: string;
-  isBuilding: boolean;
-  width: number;
-  depth: number;
-  x: number;
-  z: number;
-  children: LayoutNode[];
-};
 
 /** The places a layout works with, and where it notes the containers whose places it changed. */
 type ArrangementTarget = { arrangements: Arrangements; changed: Set<string> };
@@ -451,39 +437,6 @@ function measureCity(context: LayoutContext, city: City): LayoutNode {
   };
 }
 
-/**
- * Converts the layout tree into box layouts, following the conventions of
- * the ELK layouter: Cities are positioned in the landscape, everything
- * inside a City relative to the City.
- */
-function addBoxLayouts(
-  node: LayoutNode,
-  layoutMap: Map<string, BoxLayout>,
-  level: number,
-  offsetX: number,
-  offsetZ: number,
-  vs: VisualizationSettings
-): void {
-  const districtHeight = vs.openedDistrictHeight.value;
-  const boxLayout = new BoxLayout();
-  boxLayout.width = node.width || vs.buildingFootprint.value;
-  boxLayout.depth = node.depth || vs.buildingFootprint.value;
-  boxLayout.height = node.isBuilding ? vs.buildingFootprint.value : districtHeight;
-  boxLayout.positionX = offsetX + node.x;
-  boxLayout.positionY = districtHeight * level;
-  boxLayout.positionZ = offsetZ + node.z;
-  boxLayout.level = level;
-  layoutMap.set(node.id, boxLayout);
-
-  // The children of a City are positioned relative to the City
-  const isCity = level === 1;
-  const childOffsetX = isCity ? 0 : boxLayout.positionX;
-  const childOffsetZ = isCity ? 0 : boxLayout.positionZ;
-  for (const child of node.children) {
-    addBoxLayouts(child, layoutMap, level + 1, childOffsetX, childOffsetZ, vs);
-  }
-}
-
 /** Whether two lists of children hold the same children with the same sizes. */
 function sameFootprints(children: Footprint[], others: Footprint[]): boolean {
   if (children.length !== others.length) return false;
@@ -625,17 +578,5 @@ export default function layoutLandscapeWithMaxRects(
       })
     : unfilteredNode;
 
-  const layoutMap = new Map<string, BoxLayout>();
-  addBoxLayouts(shownNode, layoutMap, 0, 0, 0, vs);
-
-  if (usesCustomBuildingLayout(vs)) {
-    const cities = Object.values(landscape.cities);
-    if (vs.buildingLayoutAlgorithm.value === 'circle') {
-      applyCircleLayoutToBuildings(layoutMap, landscape, cities);
-    } else {
-      applySpiralLayoutToBuildings(layoutMap, landscape, cities);
-    }
-  }
-
-  return layoutMap;
+  return toBoxLayouts(shownNode, landscape, vs);
 }

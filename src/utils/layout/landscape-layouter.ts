@@ -3,8 +3,9 @@ import { FlatLandscape } from 'explorviz-frontend/src/utils/landscape-schemes/fl
 import BoxLayout from 'explorviz-frontend/src/utils/layout/box-layout';
 import layoutLandscapeWithElk from 'explorviz-frontend/src/utils/layout/elk-layouter';
 import layoutLandscapeWithMaxRects from 'explorviz-frontend/src/utils/layout/maxrects-layouter';
+import layoutLandscapeWithTreemap from 'explorviz-frontend/src/utils/layout/treemap-layouter';
 
-export type LayoutEngine = 'elk' | 'maxrects';
+export type LayoutEngine = 'elk' | 'maxrects' | 'treemap';
 
 export function getLayoutEngine(): LayoutEngine {
   return useUserSettingsStore.getState().visualizationSettings.layoutEngine.value as LayoutEngine;
@@ -17,15 +18,19 @@ export function isLayoutStable(): boolean {
 
 /**
  * Layouts the landscape with the layout engine chosen in the settings:
- * ELK recomputes the layout for every change of the landscape, maxrects keeps
- * it stable until the user asks for a new one.
+ * ELK and treemap recompute the layout for every change of the landscape,
+ * maxrects keeps it stable until the user asks for a new one.
  */
 export default async function layoutLandscape(
   landscape: FlatLandscape,
   removedDistrictIds: Set<string>
 ): Promise<Map<string, BoxLayout>> {
-  if (getLayoutEngine() === 'maxrects') {
-    return layoutLandscapeWithMaxRects(landscape, removedDistrictIds);
+  switch (getLayoutEngine()) {
+    case 'maxrects':
+      return layoutLandscapeWithMaxRects(landscape, removedDistrictIds);
+    case 'treemap':
+      return layoutLandscapeWithTreemap(landscape, removedDistrictIds);
+    default:
+      return layoutLandscapeWithElk(landscape, removedDistrictIds);
   }
-  return layoutLandscapeWithElk(landscape, removedDistrictIds);
 }

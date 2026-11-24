@@ -596,11 +596,11 @@ export const defaultVizSettings: VisualizationSettings = {
   layoutEngine: {
     level: SettingLevel.DEFAULT,
     value: 'maxrects',
-    options: ['elk', 'maxrects'],
+    options: ['elk', 'maxrects', 'treemap'],
     group: 'Layout',
     displayName: 'Layout Engine',
     description:
-      'elk recomputes the layout whenever the landscape changes. maxrects keeps the layout stable: Cities, Districts and Buildings keep their place, new ones are put into free space, and the layout is only recomputed on request or when a layout setting changes.',
+      'elk recomputes the layout whenever the landscape changes. maxrects keeps the layout stable: Cities, Districts and Buildings keep their place, new ones are put into free space, and the layout is only recomputed on request or when a layout setting changes. treemap divides the landscape into Cities and Districts whose areas reflect their contents, and is recomputed whenever the landscape changes.',
     isSelectSetting: true,
   },
   recomputeLayout: {
@@ -663,7 +663,7 @@ export const defaultVizSettings: VisualizationSettings = {
     description: 'Minimum spacing between cities',
     dependsOn: {
       anyOf: [
-        { settingId: 'layoutEngine', value: 'maxrects' },
+        { settingId: 'layoutEngine', values: ['maxrects', 'treemap'] },
         { settingId: 'cityLayoutAlgorithm', values: ['box', 'random', 'rectpacking', 'sporeOverlap'] },
       ],
     },
