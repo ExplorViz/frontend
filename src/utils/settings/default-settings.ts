@@ -595,7 +595,7 @@ export const defaultVizSettings: VisualizationSettings = {
   // Layout settings
   layoutEngine: {
     level: SettingLevel.DEFAULT,
-    value: 'maxrects',
+    value: 'treemap',
     options: ['elk', 'maxrects', 'treemap'],
     group: 'Layout',
     displayName: 'Layout Engine',
