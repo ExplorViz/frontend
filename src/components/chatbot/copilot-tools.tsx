@@ -21,8 +21,18 @@ import * as htmlToImage from 'html-to-image';
 import { use } from 'react';
 import { z } from 'zod';
 import { EditingContext } from '../editing/editing-context-store';
+import { BottomBarChartView, BottomBarContext } from '../visualization/page-setup/bottom-bar/bottom-bar-context';
 import { SettingsSidebarTab } from '../visualization/page-setup/sidebar/customizationbar/settings-sidebar-context';
 import { ToolbarTool } from '../visualization/page-setup/sidebar/toolbar/toolbar-context';
+import { DEFAULT_MAX_COMMITS, DEFAULT_MAX_TIMESTAMPS, queryCommitChart, queryRuntimeChart } from './chart-query';
+import {
+  assertRequestedByUser,
+  getCommitChart,
+  getRuntimeChart,
+  isComparingCommits,
+  selectCommits,
+  selectTimestamp,
+} from './chart-selection';
 import { CHATBOT_WIDGET_CLASS, ChatbotContext } from './chatbot-context-store';
 import {
   copilotSettingComponentIds,
@@ -33,10 +43,12 @@ import {
 import {
   DEFAULT_MAX_BUILDINGS,
   DEFAULT_MAX_DISTRICTS,
+  COMMIT_COMPARISONS,
   LANDSCAPE_DETAIL_LEVELS,
   queryLandscape,
   referenceEarlierResult,
 } from './landscape-query';
+import { getErrorMessage, reportErrors } from './tool-errors';
 
 const SCREENSHOT_MAX_WIDTH = 1280;
 const SCREENSHOT_MAX_HEIGHT = 720;
@@ -109,6 +121,17 @@ function assertKnownEntityIds(ids: string[]) {
   }
 }
 
+/** A tool whose errors reach the chatbot, so that it can correct its call or tell the user. */
+const useChatbotTool: typeof useFrontendTool = (tool, deps) =>
+  useFrontendTool({ ...tool, handler: tool.handler && reportErrors(tool.handler) }, deps);
+
+const ONLY_ON_REQUEST =
+  'Changes what the user sees: call this only if the latest user message explicitly asks to select, show, switch to, compare in the visualization, or unselect this. Never call it to answer a question, to look something up, or on your own initiative.';
+
+const userRequestParameter = z
+  .string()
+  .describe('The words of the latest user message that ask for this selection, quoted verbatim.');
+
 const settingsPromptDescription = buildSettingsPromptDescription();
 
 export function CopilotTools() {
@@ -130,10 +153,17 @@ export function CopilotTools() {
     entitySearchControllerRef,
   } = use(ChatbotContext);
 
-  useFrontendTool({
+  const { setIsExpanded, setSelectedChart } = use(BottomBarContext);
+
+  const showChart = (chart: BottomBarChartView) => {
+    setSelectedChart(chart);
+    setIsExpanded(true);
+  };
+
+  useChatbotTool({
     name: 'query-landscape-data',
     description:
-      'Looks up cities, districts, and buildings of the landscape. All name filters are case-insensitive substring matches on the name or fully qualified name. Lists are limited; "omitted" states how many matches were cut off. Each entry has "fqn" (or "name" if there is none) and "parentId" (the id of its parent district; absent directly below a city). If the answer is {"unchanged": true}, the data is identical to an earlier result in this conversation: use that result. Request only what you need and do not repeat a query whose result you already have.',
+      'Looks up cities, districts, and buildings of the landscape. All name filters are case-insensitive substring matches on the name or fully qualified name. Lists are limited; "omitted" states how many matches were cut off. Each entry has "fqn" (or "name" if there is none) and "parentId" (the id of its parent district; absent directly below a city). If the answer is {"unchanged": true}, the data is identical to an earlier result in this conversation: use that result. Request only what you need and do not repeat a query whose result you already have. While two commits are compared, entries have "commitComparison" unless UNCHANGED, and cities count their buildings by it; buildings hidden by the comparison filter of the commit chart are missing.',
     parameters: z.object({
       ids: z
         .array(z.string())
@@ -160,13 +190,19 @@ export function CopilotTools() {
         .describe(
           'Sort buildings by this metric, largest first, and return buildings only, e.g. lineCount, sloc, cloc, size, functionCount. Combine with maxBuildings for "top N" questions.'
         ),
+      commitComparison: z
+        .array(z.enum(COMMIT_COMPARISONS))
+        .optional()
+        .describe(
+          'Only while two commits are compared: return only buildings that were changed like this from the older to the newer commit. Combine with detailLevel full to get metrics as current (newer) and previous (older) value.'
+        ),
       maxDistricts: z.number().optional().describe(`Default ${DEFAULT_MAX_DISTRICTS}.`),
       maxBuildings: z.number().optional().describe(`Default ${DEFAULT_MAX_BUILDINGS}.`),
     }),
     // @ts-ignore
     _isRenderAndWait: true,
     handler: async (query, { agent, toolCall }) => {
-      const result = JSON.stringify(queryLandscape(query, useModelStore.getState()));
+      const result = JSON.stringify(queryLandscape(query, useModelStore.getState(), isComparingCommits()));
       return referenceEarlierResult(result, agent?.messages ?? [], toolCall.id);
     },
     render: ({ status, args }) => {
@@ -194,7 +230,154 @@ export function CopilotTools() {
     },
   });
 
-  useFrontendTool({
+  useChatbotTool({
+    name: 'query-commit-chart',
+    description:
+      'Reads the data of the commit chart: the analyzed commits per repository and branch with their date, tags, and metrics. Only reads, never selects. Respects the filters set in the chart, which are stated as "activeChartFilters". Commits are listed newest first; "omitted" states how many were cut off. Hashes are shortened unless looked up with the hashes parameter. Metrics are totals of the commit: for what differs between two selected commits inside the code, also use query-landscape-data with commitComparison.',
+    parameters: z.object({
+      detailLevel: z
+        .enum(['summary', 'commits'])
+        .optional()
+        .describe(
+          'summary: only repositories and branches with commit counts, date ranges, and names of available metrics. commits (default): the commits.'
+        ),
+      repository: z.string().optional().describe('Default: all.'),
+      branch: z.string().optional().describe('Default: all.'),
+      search: z.string().optional().describe('Start of a commit hash or part of a tag.'),
+      hashes: z
+        .array(z.string())
+        .optional()
+        .describe(
+          'Only these commits, shortened hashes are allowed. For two commits, the differences of their metrics are returned as well.'
+        ),
+      from: z.string().optional().describe('ISO 8601, UTC if without offset, inclusive.'),
+      to: z.string().optional().describe('ISO 8601, UTC if without offset, exclusive.'),
+      metrics: z
+        .array(z.string())
+        .optional()
+        .describe(
+          'Metrics to return per commit, e.g. lineCount, sloc, cloc, classCount, functionCount. Default: all if hashes are given, otherwise none.'
+        ),
+      sortByMetric: z.string().optional().describe('Largest value of this metric first.'),
+      sortByMetricChange: z
+        .string()
+        .optional()
+        .describe(
+          'Largest increase or decrease of this metric compared to the previous analyzed commit of the branch first, returned as "change".'
+        ),
+      author: z.string().optional().describe('Only commits whose author name contains this.'),
+      includeAuthors: z.boolean().optional().describe('Personal data: set only if the user asks about authors.'),
+      maxCommits: z.number().optional().describe(`Default ${DEFAULT_MAX_COMMITS}.`),
+    }),
+    // @ts-ignore
+    _isRenderAndWait: true,
+    handler: async (query, { agent, toolCall }) => {
+      const result = JSON.stringify(queryCommitChart(query, getCommitChart()));
+      return referenceEarlierResult(result, agent?.messages ?? [], toolCall.id);
+    },
+    render: ({ status, result }) => (
+      <ToolCallCard status={status} action="queryCommitChart" errorMessage={getErrorMessage(result)} />
+    ),
+  });
+
+  useChatbotTool({
+    name: 'query-runtime-chart',
+    description:
+      'Reads the data of the runtime chart: the Timestamps with the number of spans (labeled "Requests" in the chart) and traces that start in the Time Window until the next one. Only reads, never selects. There is one timeline for all runtime data ("cross-commit") or, while commits are selected, one per selected commit. Timestamps are listed newest first; "omitted" states how many were cut off, "matching..." are the totals including those.',
+    parameters: z.object({
+      detailLevel: z
+        .enum(['summary', 'timestamps'])
+        .optional()
+        .describe(
+          'summary: only totals, range, and selection per timeline. timestamps (default): also the Timestamps.'
+        ),
+      commit: z.string().optional().describe('Only the timeline of this commit. Default: all.'),
+      from: z.string().optional().describe('ISO 8601, UTC if without offset, inclusive.'),
+      to: z.string().optional().describe('ISO 8601, UTC if without offset, exclusive.'),
+      minSpanCount: z.number().optional(),
+      sortBySpanCount: z.boolean().optional().describe('Largest number of spans first, e.g. to find peaks.'),
+      maxTimestamps: z.number().optional().describe(`Default ${DEFAULT_MAX_TIMESTAMPS}.`),
+    }),
+    // @ts-ignore
+    _isRenderAndWait: true,
+    handler: async (query, { agent, toolCall }) => {
+      const result = JSON.stringify(queryRuntimeChart(query, getRuntimeChart()));
+      return referenceEarlierResult(result, agent?.messages ?? [], toolCall.id);
+    },
+    render: ({ status, result }) => (
+      <ToolCallCard status={status} action="queryRuntimeChart" errorMessage={getErrorMessage(result)} />
+    ),
+  });
+
+  useChatbotTool({
+    name: 'select-commits',
+    description: `Selects commits in the commit chart and renders them: one commit of a repository shows its code, two compare them. Replaces the selection of the repositories the commits belong to. ${ONLY_ON_REQUEST}`,
+    parameters: z.object({
+      userRequest: userRequestParameter,
+      commits: z
+        .array(z.string())
+        .describe('Commit hashes from query-commit-chart, at most two per repository. Empty: unselect all commits.'),
+      repository: z
+        .string()
+        .optional()
+        .describe('The repository of the commits, or the only one to unselect the commits of.'),
+    }),
+    // @ts-ignore
+    _isRenderAndWait: true,
+    handler: async ({ userRequest, commits, repository }, { agent }) => {
+      assertRequestedByUser(userRequest, agent?.messages ?? []);
+      return JSON.stringify(await selectCommits(commits, repository));
+    },
+    render: ({ status, args, result }) => (
+      <ToolCallCard
+        status={status}
+        action="selectCommits"
+        messageArgs={args}
+        errorMessage={getErrorMessage(result)}
+        component={
+          getErrorMessage(result) ? undefined : { name: args.commits?.map((hash) => hash?.slice(0, 10)).join(', ') }
+        }
+        onClick={() => showChart('commit-chart')}
+      />
+    ),
+  });
+
+  useChatbotTool({
+    name: 'select-timestamp',
+    description: `Selects a Timestamp in the runtime chart and renders its runtime data. The visualization then no longer follows the newest Timestamp. Replaces the Timestamp selected before in the same timeline. ${ONLY_ON_REQUEST}`,
+    parameters: z.object({
+      userRequest: userRequestParameter,
+      time: z
+        .string()
+        .optional()
+        .describe(
+          'Time of the Timestamp, as returned by query-runtime-chart, or any time in its Time Window. ISO 8601, UTC if without offset (the chart shows UTC). Required unless clear is set.'
+        ),
+      clear: z.boolean().optional().describe('Unselect the Timestamp instead.'),
+      commit: z.string().optional().describe('The commit of the timeline. Required if there are several timelines.'),
+    }),
+    // @ts-ignore
+    _isRenderAndWait: true,
+    handler: async ({ userRequest, time, clear, commit }, { agent }) => {
+      assertRequestedByUser(userRequest, agent?.messages ?? []);
+      if (Boolean(time) === Boolean(clear)) {
+        throw new Error('Pass either time or clear.');
+      }
+      return JSON.stringify(await selectTimestamp(clear ? undefined : time, commit));
+    },
+    render: ({ status, args, result }) => (
+      <ToolCallCard
+        status={status}
+        action="selectTimestamp"
+        messageArgs={args}
+        errorMessage={getErrorMessage(result)}
+        component={getErrorMessage(result) ? undefined : { name: args.time }}
+        onClick={() => showChart('runtime-chart')}
+      />
+    ),
+  });
+
+  useChatbotTool({
     name: 'highlight-entities',
     description: 'Highlights cities, districts, or buildings, or removes their highlight.',
     parameters: z.object({
@@ -215,7 +398,7 @@ export function CopilotTools() {
     },
   });
 
-  useFrontendTool({
+  useChatbotTool({
     name: 'open-close-tools-sidebar',
     description: 'Opens or closes the tools sidebar (top left of the screen).',
     parameters: z.object({
@@ -237,7 +420,7 @@ export function CopilotTools() {
     ),
   });
 
-  useFrontendTool({
+  useChatbotTool({
     name: 'open-close-settings-sidebar',
     description: 'Opens or closes the settings sidebar (top right of the screen).',
     parameters: z.object({
@@ -259,7 +442,7 @@ export function CopilotTools() {
     ),
   });
 
-  useFrontendTool({
+  useChatbotTool({
     name: 'open-close-tools-component',
     description: `Opens or closes a component inside the tools sidebar. Opening a component also opens the sidebar. Component ids: ${copilotToolComponentIds.join(', ')}.`,
     parameters: z.object({
@@ -288,7 +471,7 @@ export function CopilotTools() {
     ),
   });
 
-  useFrontendTool({
+  useChatbotTool({
     name: 'open-close-settings-component',
     description: `Opens or closes a component inside the settings sidebar. Opening a component also opens the sidebar. Component ids: ${copilotSettingComponentIds.join(', ')}.`,
     parameters: z.object({
@@ -317,7 +500,7 @@ export function CopilotTools() {
     ),
   });
 
-  useFrontendTool({
+  useChatbotTool({
     name: 'filter-entities',
     description:
       'Hides buildings below the given thresholds using the Entity Filtering panel, which is opened for the user.',
@@ -339,7 +522,7 @@ export function CopilotTools() {
     ),
   });
 
-  useFrontendTool({
+  useChatbotTool({
     name: 'update-visualization-settings',
     description: `Sets visualization settings to new values and/or resets them to their defaults. Settings, one per line as "id (default, allowed values): meaning":\n${settingsPromptDescription}`,
     parameters: z.object({
@@ -403,7 +586,7 @@ export function CopilotTools() {
     ),
   });
 
-  useFrontendTool({
+  useChatbotTool({
     name: 'entity-search',
     description:
       'Shows the user the cities, districts, and buildings whose fully qualified name matches the query in the search panel, optionally selecting all results. Returns no data: to look something up yourself, use query-landscape-data.',
@@ -427,7 +610,7 @@ export function CopilotTools() {
     ),
   });
 
-  useFrontendTool({
+  useChatbotTool({
     name: 'open-close-district',
     description:
       'Opens or closes a district: its children are shown (open) or hidden (closed). Closing a district also closes its nested districts. Pass a city id to open or close all districts of that city.',
@@ -466,7 +649,7 @@ export function CopilotTools() {
     },
   });
 
-  useFrontendTool({
+  useChatbotTool({
     name: 'ping-entities',
     description:
       "Plays a temporary ping animation on cities, districts, or buildings to draw the user's attention to them. Changes no state.",
@@ -486,7 +669,7 @@ export function CopilotTools() {
     ),
   });
 
-  useFrontendTool({
+  useChatbotTool({
     name: 'move-camera-to-entity',
     description: 'Moves the camera to focus on a city, district, or building.',
     parameters: z.object({
@@ -501,7 +684,7 @@ export function CopilotTools() {
     render: ({ args, status }) => <ToolCallCard component={{ id: args.id }} status={status} action="moveCamera" />,
   });
 
-  useFrontendTool({
+  useChatbotTool({
     name: 'reset-camera',
     description: 'Resets the camera to its default position and orientation.',
     parameters: z.object({}),
@@ -513,7 +696,7 @@ export function CopilotTools() {
     render: ({ status }) => <ToolCallCard status={status} action="resetCamera" />,
   });
 
-  useFrontendTool({
+  useChatbotTool({
     name: 'add-application',
     description:
       'Adds a new city (application) with the given classes to the landscape and returns its id. Each class needs its fully qualified name; methods are optional.',
@@ -550,7 +733,7 @@ export function CopilotTools() {
     ),
   });
 
-  useFrontendTool({
+  useChatbotTool({
     name: 'add-classes-to-application',
     description:
       'Adds classes to an existing city (application). Each class needs its fully qualified name; methods are optional.',
@@ -590,7 +773,7 @@ export function CopilotTools() {
     ),
   });
 
-  useFrontendTool({
+  useChatbotTool({
     name: 'remove-component-from-landscape',
     description: 'Removes a city, district, or building from the landscape. This can be undone with undo-edit.',
     parameters: z.object({
@@ -607,7 +790,7 @@ export function CopilotTools() {
     ),
   });
 
-  useFrontendTool({
+  useChatbotTool({
     name: 'undo-edit',
     description: 'Undoes the last edit of the landscape (added or removed entities).',
     parameters: z.object({}),
@@ -622,7 +805,7 @@ export function CopilotTools() {
     render: ({ status }) => <ToolCallCard status={status} action="undoEdit" />,
   });
 
-  useFrontendTool({
+  useChatbotTool({
     name: 'redo-edit',
     description: 'Redoes the edit of the landscape that was undone last.',
     parameters: z.object({}),
@@ -637,7 +820,7 @@ export function CopilotTools() {
     render: ({ status }) => <ToolCallCard status={status} action="redoEdit" />,
   });
 
-  useFrontendTool({
+  useChatbotTool({
     name: 'take-screenshot',
     description:
       'Returns a screenshot of the browser window (at most 1280x720) without the chat window. Images are expensive: take one only to see what the context and query-landscape-data cannot tell you, such as UI outside the 3D landscape, and reuse a screenshot that still shows the current state. If it fails, tell the user why.',
@@ -656,18 +839,14 @@ export function CopilotTools() {
       ];
     },
     render: ({ status, result }) => (
-      <ToolCallCard
-        status={status}
-        action="screenshot"
-        errorMessage={typeof result === 'string' && result.startsWith('Error: ') ? result.slice(7) : undefined}
-      />
+      <ToolCallCard status={status} action="screenshot" errorMessage={getErrorMessage(result)} />
     ),
   });
 
-  useFrontendTool({
+  useChatbotTool({
     name: 'click-on-screen',
     description:
-      'Clicks a position of the browser window, for UI that no other tool can operate (prefer the other tools). Steps: 1. Use a screenshot of the current state (take-screenshot). 2. Locate the center of the target element in the image in pixels (x_px, y_px). 3. Pass x = x_px / image width and y = y_px / image height, each between 0 and 1 with 5 decimals. If the target is ambiguous or hidden, ask the user instead of clicking. Afterwards verify the effect; if nothing changed, retry once with a 3 to 5 px offset.',
+      'Clicks a position of the browser window, for UI that no other tool can operate (prefer the other tools). Never use it to select data points of the charts. Steps: 1. Use a screenshot of the current state (take-screenshot). 2. Locate the center of the target element in the image in pixels (x_px, y_px). 3. Pass x = x_px / image width and y = y_px / image height, each between 0 and 1 with 5 decimals. If the target is ambiguous or hidden, ask the user instead of clicking. Afterwards verify the effect; if nothing changed, retry once with a 3 to 5 px offset.',
     parameters: z.object({
       x: z.number().min(0).max(1).describe('Horizontal position, 0 = left edge, 1 = right edge.'),
       y: z.number().min(0).max(1).describe('Vertical position, 0 = top edge, 1 = bottom edge.'),

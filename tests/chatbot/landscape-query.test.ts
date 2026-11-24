@@ -4,8 +4,8 @@ import {
   referenceEarlierResult,
   type ConversationMessage,
   type LandscapeModels,
-} from '../src/components/chatbot/landscape-query';
-import type { Building, City, District } from '../src/utils/landscape-schemes/flat-landscape';
+} from '../../src/components/chatbot/landscape-query';
+import type { Building, City, District } from '../../src/utils/landscape-schemes/flat-landscape';
 
 function landscapeOf(buildingCount: number): LandscapeModels {
   const buildings: Building[] = Array.from({ length: buildingCount }, (_, index) => ({
@@ -129,6 +129,47 @@ describe('querying the landscape for the chatbot', () => {
       { id: 'building-0', fqn: 'shop.checkout.Class0', parentId: 'checkout', cityId: 'city' },
     ]);
     expect(result.unknownIds).toEqual(['gone']);
+  });
+});
+
+describe('querying the landscape while two commits are compared', () => {
+  function comparisonOf(): LandscapeModels {
+    const models = landscapeOf(4);
+    const changes = {
+      'building-0': { commitComparison: 'ADDED' },
+      'building-1': { commitComparison: 'REMOVED', metrics: { lineCount: { current: null, previous: 7 } } },
+      'building-2': { commitComparison: 'MODIFIED', metrics: { lineCount: { current: 9, previous: 4 } } },
+    } as Record<string, Partial<Building>>;
+    return { ...models, getBuilding: (id) => ({ ...models.getBuilding(id)!, ...changes[id] }) };
+  }
+
+  it('counts the buildings by how they changed', () => {
+    const [city] = queryLandscape({ detailLevel: 'summary' }, comparisonOf(), true).cities;
+    expect(city.buildingsByCommitComparison).toEqual({ ADDED: 1, REMOVED: 1, MODIFIED: 1, UNCHANGED: 1 });
+  });
+
+  it('returns only buildings that changed as asked for, with both values of their metrics', () => {
+    const result = queryLandscape(
+      { commitComparison: ['MODIFIED', 'REMOVED'], detailLevel: 'full' },
+      comparisonOf(),
+      true
+    );
+
+    expect(result.districts).toBeUndefined();
+    expect(result.buildings).toMatchObject([
+      { id: 'building-1', commitComparison: 'REMOVED', metrics: { lineCount: { current: null, previous: 7 } } },
+      { id: 'building-2', commitComparison: 'MODIFIED', metrics: { lineCount: { current: 9, previous: 4 } } },
+    ]);
+  });
+
+  it('takes buildings for unchanged if nothing else is known', () => {
+    const { buildings } = queryLandscape({ commitComparison: ['UNCHANGED'] }, comparisonOf(), true);
+    expect(buildings).toEqual([{ id: 'building-3', fqn: 'shop.checkout.Class3', parentId: 'checkout' }]);
+  });
+
+  it('says nothing about changes while no commits are compared', () => {
+    expect(JSON.stringify(queryLandscape({}, comparisonOf()))).not.toContain('omparison');
+    expect(() => queryLandscape({ commitComparison: ['ADDED'] }, comparisonOf())).toThrow('no two commits');
   });
 });
 

@@ -1,4 +1,9 @@
-import { Building, City, District } from 'explorviz-frontend/src/utils/landscape-schemes/flat-landscape';
+import {
+  Building,
+  City,
+  CommitComparison,
+  District,
+} from 'explorviz-frontend/src/utils/landscape-schemes/flat-landscape';
 
 /**
  * How much the chatbot gets per entity. Every level costs more tokens than the
@@ -10,6 +15,8 @@ export type LandscapeDetailLevel = (typeof LANDSCAPE_DETAIL_LEVELS)[number];
 export const DEFAULT_MAX_DISTRICTS = 50;
 export const DEFAULT_MAX_BUILDINGS = 50;
 
+export const COMMIT_COMPARISONS = ['ADDED', 'REMOVED', 'MODIFIED', 'UNCHANGED'] as const satisfies CommitComparison[];
+
 export interface LandscapeQuery {
   ids?: string[];
   cityIds?: string[];
@@ -18,6 +25,7 @@ export interface LandscapeQuery {
   buildingName?: string;
   detailLevel?: LandscapeDetailLevel;
   sortByMetric?: string;
+  commitComparison?: CommitComparison[];
   maxDistricts?: number;
   maxBuildings?: number;
 }
@@ -70,6 +78,10 @@ function toMetrics(metrics: Building['metrics']) {
   const result: Entry = {};
   for (const [name, value] of Object.entries(metrics ?? {})) {
     if (value.current === null || value.current === undefined) {
+      // Removed by the newer of two compared commits.
+      if (value.previous !== null && value.previous !== undefined) {
+        result[name] = { current: null, previous: value.previous };
+      }
       continue;
     }
     const hasOtherPrevious =
@@ -77,6 +89,26 @@ function toMetrics(metrics: Building['metrics']) {
     result[name] = hasOtherPrevious ? { current: value.current, previous: value.previous } : value.current;
   }
   return Object.keys(result).length > 0 ? result : undefined;
+}
+
+/** How a building changed between the compared commits. Other data may still carry a value from a former comparison. */
+function getComparison(entity: { commitComparison?: CommitComparison }, isComparing: boolean) {
+  return isComparing ? (entity.commitComparison ?? 'UNCHANGED') : undefined;
+}
+
+/** Most buildings are unchanged, so only the others say how they changed. */
+function changeOf(entity: { commitComparison?: CommitComparison }, isComparing: boolean) {
+  const comparison = getComparison(entity, isComparing);
+  return comparison === 'UNCHANGED' ? {} : { commitComparison: comparison };
+}
+
+function countByComparison(buildings: Building[]) {
+  const counts: Partial<Record<CommitComparison, number>> = {};
+  for (const building of buildings) {
+    const comparison = building.commitComparison ?? 'UNCHANGED';
+    counts[comparison] = (counts[comparison] ?? 0) + 1;
+  }
+  return counts;
 }
 
 function toCityEntry(city: City, isFull: boolean): Entry {
@@ -89,11 +121,12 @@ function toCityEntry(city: City, isFull: boolean): Entry {
   });
 }
 
-function toDistrictEntry(district: District, isFull: boolean, withCityId: boolean): Entry {
+function toDistrictEntry(district: District, isFull: boolean, withCityId: boolean, isComparing: boolean): Entry {
   return compact({
     id: district.id,
     ...nameOf(district),
     parentId: district.parentDistrictId,
+    ...changeOf(district, isComparing),
     ...(withCityId && { cityId: district.parentCityId }),
     ...(isFull && {
       districtCount: district.districtIds.length,
@@ -105,11 +138,18 @@ function toDistrictEntry(district: District, isFull: boolean, withCityId: boolea
   });
 }
 
-function toBuildingEntry(building: Building, isFull: boolean, withCityId: boolean, sortByMetric?: string): Entry {
+function toBuildingEntry(
+  building: Building,
+  isFull: boolean,
+  withCityId: boolean,
+  isComparing: boolean,
+  sortByMetric?: string
+): Entry {
   return compact({
     id: building.id,
     ...nameOf(building),
     parentId: building.parentDistrictId,
+    ...changeOf(building, isComparing),
     ...(withCityId && { cityId: building.parentCityId }),
     // Without this, a sorted list would not show the values it is sorted by.
     ...(!isFull && sortByMetric && { [sortByMetric]: building.metrics?.[sortByMetric]?.current }),
@@ -133,7 +173,12 @@ function withOmitted(result: LandscapeQueryResult, omittedDistricts: number, omi
   return result;
 }
 
-function lookUpByIds(ids: string[], isFull: boolean, models: LandscapeModels): LandscapeQueryResult {
+function lookUpByIds(
+  ids: string[],
+  isFull: boolean,
+  models: LandscapeModels,
+  isComparing: boolean
+): LandscapeQueryResult {
   const result: LandscapeQueryResult = { cities: [] };
   const unknownIds: string[] = [];
 
@@ -144,9 +189,9 @@ function lookUpByIds(ids: string[], isFull: boolean, models: LandscapeModels): L
     if (city) {
       result.cities.push(toCityEntry(city, isFull));
     } else if (district) {
-      (result.districts ??= []).push(toDistrictEntry(district, isFull, true));
+      (result.districts ??= []).push(toDistrictEntry(district, isFull, true, isComparing));
     } else if (building) {
-      (result.buildings ??= []).push(toBuildingEntry(building, isFull, true));
+      (result.buildings ??= []).push(toBuildingEntry(building, isFull, true, isComparing));
     } else {
       unknownIds.push(id);
     }
@@ -163,12 +208,21 @@ function lookUpByIds(ids: string[], isFull: boolean, models: LandscapeModels): L
  * as the query allows: absent fields are dropped, lists are limited, and what
  * the limits cut off is reported as a count.
  */
-export function queryLandscape(query: LandscapeQuery, models: LandscapeModels): LandscapeQueryResult {
+export function queryLandscape(
+  query: LandscapeQuery,
+  models: LandscapeModels,
+  isComparing = false
+): LandscapeQueryResult {
   const detailLevel = query.detailLevel ?? 'structure';
   const isFull = detailLevel === 'full';
 
   if (query.ids && query.ids.length > 0) {
-    return lookUpByIds(query.ids, isFull, models);
+    return lookUpByIds(query.ids, isFull, models, isComparing);
+  }
+
+  const comparisons = query.commitComparison?.length ? query.commitComparison : undefined;
+  if (comparisons && !isComparing) {
+    throw new Error('commitComparison has no meaning now: no two commits of a repository are selected.');
   }
 
   const cityName = normalize(query.cityName);
@@ -183,7 +237,7 @@ export function queryLandscape(query: LandscapeQuery, models: LandscapeModels): 
   const withCityId = cities.length > 1;
 
   // A query for buildings only does not need every district listed alongside.
-  const listsDistricts = Boolean(districtName) || (!buildingName && !sortByMetric);
+  const listsDistricts = Boolean(districtName) || (!buildingName && !sortByMetric && !comparisons);
 
   const result: LandscapeQueryResult = { cities: [] };
   const districts: District[] = [];
@@ -201,13 +255,15 @@ export function queryLandscape(query: LandscapeQuery, models: LandscapeModels): 
         (building): building is Building =>
           !!building &&
           matchesName(building, buildingName) &&
+          (!comparisons || comparisons.includes(building.commitComparison ?? 'UNCHANGED')) &&
           (!districtName || (!!building.parentDistrictId && districtIds.has(building.parentDistrictId)))
       );
 
-    const isFiltered = Boolean(districtName || buildingName);
+    const isFiltered = Boolean(districtName || buildingName || comparisons);
     result.cities.push(
       compact({
         ...toCityEntry(city, isFull),
+        ...(isComparing && { buildingsByCommitComparison: countByComparison(cityBuildings) }),
         ...(isFiltered && {
           matchingDistrictCount: listsDistricts ? cityDistricts.length : undefined,
           matchingBuildingCount: cityBuildings.length,
@@ -236,11 +292,11 @@ export function queryLandscape(query: LandscapeQuery, models: LandscapeModels): 
   if (listsDistricts) {
     result.districts = districts
       .slice(0, maxDistricts)
-      .map((district) => toDistrictEntry(district, isFull, withCityId));
+      .map((district) => toDistrictEntry(district, isFull, withCityId, isComparing));
   }
   result.buildings = buildings
     .slice(0, maxBuildings)
-    .map((building) => toBuildingEntry(building, isFull, withCityId, sortByMetric));
+    .map((building) => toBuildingEntry(building, isFull, withCityId, isComparing, sortByMetric));
 
   return withOmitted(result, listsDistricts ? districts.length - maxDistricts : 0, buildings.length - maxBuildings);
 }
@@ -288,6 +344,6 @@ export function referenceEarlierResult(
 
   return JSON.stringify({
     unchanged: true,
-    note: `The landscape data did not change: this result is identical to the result of ${source}. Use that result.`,
+    note: `The data did not change: this result is identical to the result of ${source}. Use that result.`,
   });
 }

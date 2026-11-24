@@ -124,7 +124,7 @@ export default class TimelineDataObjectHandler {
     useVisibilityServiceStore.getState().applyEvolutionModeRenderingConfiguration(mergedConfig);
     useRenderingServiceStore.getState().setAnalysisModeFromEvolutionRenderingConfig(mergedConfig);
 
-    useRenderingServiceStore.getState().triggerRenderingForGivenTimestamps(commitToSelectedTimestampMap);
+    await useRenderingServiceStore.getState().triggerRenderingForGivenTimestamps(commitToSelectedTimestampMap);
   };
 
   // #endregion

@@ -31,6 +31,10 @@ type Action =
   | 'redoEdit'
   | 'screenshot'
   | 'queryLandscapeData'
+  | 'queryCommitChart'
+  | 'queryRuntimeChart'
+  | 'selectCommits'
+  | 'selectTimestamp'
   | 'clickOnScreen';
 type Status = 'inProgress' | 'executing' | 'complete';
 
@@ -162,6 +166,14 @@ function getMessage(
           return 'Taking screenshot';
         case 'queryLandscapeData':
           return 'Querying landscape data';
+        case 'queryCommitChart':
+          return 'Reading commit chart';
+        case 'queryRuntimeChart':
+          return 'Reading runtime chart';
+        case 'selectCommits':
+          return messageArgs?.commits?.length === 0 ? 'Unselecting commits' : 'Selecting in commit chart:';
+        case 'selectTimestamp':
+          return messageArgs?.clear ? 'Unselecting timestamp' : 'Selecting in runtime chart:';
         case 'clickOnScreen':
           return 'Clicking on screen at';
         default:
@@ -222,6 +234,26 @@ function getMessage(
           return 'Took screenshot';
         case 'queryLandscapeData':
           return 'Fetched landscape data for';
+        case 'queryCommitChart':
+          if (errorMessage) {
+            return `Reading commit chart failed: ${errorMessage}`;
+          }
+          return 'Read commit chart';
+        case 'queryRuntimeChart':
+          if (errorMessage) {
+            return `Reading runtime chart failed: ${errorMessage}`;
+          }
+          return 'Read runtime chart';
+        case 'selectCommits':
+          if (errorMessage) {
+            return `Selecting commits failed: ${errorMessage}`;
+          }
+          return messageArgs?.commits?.length === 0 ? 'Unselected commits' : 'Selected in commit chart:';
+        case 'selectTimestamp':
+          if (errorMessage) {
+            return `Selecting timestamp failed: ${errorMessage}`;
+          }
+          return messageArgs?.clear ? 'Unselected timestamp' : 'Selected in runtime chart:';
         case 'clickOnScreen':
           return 'Clicked on screen at';
         default:
