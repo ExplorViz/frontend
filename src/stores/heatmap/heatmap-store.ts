@@ -26,12 +26,12 @@ export enum SelectedBuildingHeatmapMetric {
   classCount = 'classCount',
   functionCount = 'functionCount',
   variableCount = 'variableCount',
-  cyclomatic_complexity = 'cyclomatic_complexity',
-  cyclomatic_complexity_weighted = 'cyclomatic_complexity_weighted',
-  npath_complexity = 'npath_complexity',
+  cyclomaticComplexity = 'cyclomaticComplexity',
+  averageCyclomaticComplexity = 'averageCyclomaticComplexity',
+  npathComplexity = 'npathComplexity',
   nestedBlockDepth = 'nestedBlockDepth',
-  LCOM4 = 'LCOM4',
-  unmaintainability_index = 'unmaintainability_index',
+  lcom4 = 'lcom4',
+  unmaintainabilityIndex = 'unmaintainabilityIndex',
   commitCount = 'commitCount',
   commitActivity = 'commitActivity',
   coreContributorActivity = 'coreContributorActivity',
@@ -52,12 +52,12 @@ export enum BuildingMetricIds {
   classCount = 'classCount',
   functionCount = 'functionCount',
   variableCount = 'variableCount',
-  cyclomatic_complexity = 'cyclomatic_complexity',
-  cyclomatic_complexity_weighted = 'cyclomatic_complexity_weighted',
-  npath_complexity = 'npath_complexity',
+  cyclomaticComplexity = 'cyclomaticComplexity',
+  averageCyclomaticComplexity = 'averageCyclomaticComplexity',
+  npathComplexity = 'npathComplexity',
   nestedBlockDepth = 'nestedBlockDepth',
-  LCOM4 = 'LCOM4',
-  unmaintainability_index = 'unmaintainability_index',
+  lcom4 = 'lcom4',
+  unmaintainabilityIndex = 'unmaintainabilityIndex',
   commitCount = 'commitCount',
   commitActivity = 'commitActivity',
   coreContributorActivity = 'coreContributorActivity',
@@ -78,12 +78,12 @@ export const ORDERED_BUILDING_METRIC_IDS: BuildingMetricIds[] = [
   BuildingMetricIds.classCount,
   BuildingMetricIds.functionCount,
   BuildingMetricIds.variableCount,
-  BuildingMetricIds.cyclomatic_complexity,
-  BuildingMetricIds.cyclomatic_complexity_weighted,
-  BuildingMetricIds.npath_complexity,
+  BuildingMetricIds.cyclomaticComplexity,
+  BuildingMetricIds.averageCyclomaticComplexity,
+  BuildingMetricIds.npathComplexity,
   BuildingMetricIds.nestedBlockDepth,
-  BuildingMetricIds.LCOM4,
-  BuildingMetricIds.unmaintainability_index,
+  BuildingMetricIds.lcom4,
+  BuildingMetricIds.unmaintainabilityIndex,
   BuildingMetricIds.commitCount,
   BuildingMetricIds.commitActivity,
   BuildingMetricIds.coreContributorActivity,
@@ -184,12 +184,12 @@ export const useHeatmapStore = create<HeatmapConfigurationState>((set, get) => (
       case BuildingMetricIds.classCount:
       case BuildingMetricIds.functionCount:
       case BuildingMetricIds.variableCount:
-      case BuildingMetricIds.cyclomatic_complexity:
-      case BuildingMetricIds.cyclomatic_complexity_weighted:
-      case BuildingMetricIds.npath_complexity:
+      case BuildingMetricIds.cyclomaticComplexity:
+      case BuildingMetricIds.averageCyclomaticComplexity:
+      case BuildingMetricIds.npathComplexity:
       case BuildingMetricIds.nestedBlockDepth:
-      case BuildingMetricIds.LCOM4:
-      case BuildingMetricIds.unmaintainability_index:
+      case BuildingMetricIds.lcom4:
+      case BuildingMetricIds.unmaintainabilityIndex:
       case BuildingMetricIds.commitCount:
       case BuildingMetricIds.commitActivity:
       case BuildingMetricIds.coreContributorActivity:

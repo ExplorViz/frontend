@@ -35,12 +35,12 @@ import './setup-dom';
 
 /** Keys of the code analyzer, see its docs/code-metrics.md. */
 const CODE_METRICS = [
-  'cyclomatic_complexity',
-  'cyclomatic_complexity_weighted',
-  'npath_complexity',
+  'cyclomaticComplexity',
+  'averageCyclomaticComplexity',
+  'npathComplexity',
   'nestedBlockDepth',
-  'LCOM4',
-  'unmaintainability_index',
+  'lcom4',
+  'unmaintainabilityIndex',
 ];
 
 describe.each(CODE_METRICS)('code metric %s', (metric) => {
@@ -94,14 +94,14 @@ describe.each(CODE_METRICS)('code metric %s', (metric) => {
 
 describe('values of code metrics', () => {
   it('shows decimals of fractional metrics only', () => {
-    expect(formatMetricValue('unmaintainability_index', 28.4838)).toBe('28.48');
-    expect(formatMetricValue('cyclomatic_complexity_weighted', 1.75)).toBe('1.75');
-    expect(formatMetricValue('npath_complexity', 1000.4)).toBe('1,000');
+    expect(formatMetricValue('unmaintainabilityIndex', 28.4838)).toBe('28.48');
+    expect(formatMetricValue('averageCyclomaticComplexity', 1.75)).toBe('1.75');
+    expect(formatMetricValue('npathComplexity', 1000.4)).toBe('1,000');
   });
 });
 
 describe('range filter of fractional metrics', () => {
-  const metric = 'unmaintainability_index';
+  const metric = 'unmaintainabilityIndex';
 
   function renderFilter(max: number) {
     const updateMetricRange = vi.fn();
@@ -217,8 +217,8 @@ describe('sum and average of buildings', () => {
 
   it('formats the average behind the sum', () => {
     expect(formatAggregatedMetric('sloc', { sum: 2092, average: 82.04 })).toBe('2,092 (82 avg)');
-    expect(formatAggregatedMetric('LCOM4', { sum: 14, average: 1.4 })).toBe('14 (1.4 avg)');
-    expect(formatAggregatedMetric('unmaintainability_index', { sum: 110.5, average: 36.8333 })).toBe(
+    expect(formatAggregatedMetric('lcom4', { sum: 14, average: 1.4 })).toBe('14 (1.4 avg)');
+    expect(formatAggregatedMetric('unmaintainabilityIndex', { sum: 110.5, average: 36.8333 })).toBe(
       '110.5 (36.83 avg)'
     );
     expect(formatAggregatedMetric('size', { sum: 4096, average: 2048 })).toBe('4 KiloBytes (2 KiloBytes avg)');
@@ -227,7 +227,7 @@ describe('sum and average of buildings', () => {
 
   it('formats differences with the precision of the metric', () => {
     expect(formatMetricDifference('sloc', 12)).toBe('+12');
-    expect(formatMetricDifference('unmaintainability_index', -0.4)).toBe('-0.4');
+    expect(formatMetricDifference('unmaintainabilityIndex', -0.4)).toBe('-0.4');
   });
 
   it('is shown in the table of districts and foundations', () => {

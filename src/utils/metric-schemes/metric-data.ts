@@ -16,20 +16,20 @@ export type ApplicationMetrics = {
 
 export type ClassMetricCode = {
   lineCount: string;
-  LCOM4: string;
-  cyclomatic_complexity_weighted: string;
-  cyclomatic_complexity: string;
+  lcom4: string;
+  averageCyclomaticComplexity: string;
+  cyclomaticComplexity: string;
 };
 
 export type MethodMetricCode = {
   lineCount: string;
   nestedBlockDepth: string;
-  cyclomatic_complexity: string;
+  cyclomaticComplexity: string;
 };
 
 export type FileMetricCode = {
   lineCount: string;
-  cyclomatic_complexity: string;
+  cyclomaticComplexity: string;
 };
 
 export type ApplicationMetricsCode = {
@@ -45,19 +45,19 @@ export type ApplicationMetricsCode = {
 export type CommitComparisonMetric = {
   entityName: string; // fqn
   metricMap: {
-    LCOM4:
+    lcom4:
       | {
           oldValue: string | null;
           newValue: string;
         }
       | undefined;
-    cyclomatic_complexity:
+    cyclomaticComplexity:
       | {
           oldValue: string | null;
           newValue: string;
         }
       | undefined;
-    cyclomatic_complexity_weighted:
+    averageCyclomaticComplexity:
       | {
           oldValue: string | null;
           newValue: string;
