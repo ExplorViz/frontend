@@ -21,7 +21,11 @@ import { getImmersiveTargetWorldPosition } from 'explorviz-frontend/src/utils/ci
 import { emitContextMenuFromWorld } from 'explorviz-frontend/src/utils/context-menu-bridge';
 import { getSourceReferenceCommitHash } from 'explorviz-frontend/src/utils/evolution-data-helpers';
 import { getMetricValues } from 'explorviz-frontend/src/utils/heatmap/building-heatmap-helper';
-import { getColorGradient, getSimpleHeatmapColor } from 'explorviz-frontend/src/utils/heatmap/simple-heatmap';
+import {
+  getColorGradient,
+  getNoValueColor,
+  getSimpleHeatmapColor,
+} from 'explorviz-frontend/src/utils/heatmap/simple-heatmap';
 import calculateColorBrightness from 'explorviz-frontend/src/utils/helpers/threejs-helpers';
 import { requestFileDetailedData } from 'explorviz-frontend/src/utils/landscape-http-request-util';
 import { type Building, type City } from 'explorviz-frontend/src/utils/landscape-schemes/flat-landscape';
@@ -279,7 +283,7 @@ const GeometryGroup: React.FC<GeometryGroupProps> = ({ geometryType, buildingIds
     if (heatmapActive) {
       const metricValues = getMetricValues(building, selectedBuildingMetric!);
       if (metricValues.current === null) {
-        return new THREE.Color('white');
+        return new THREE.Color(getNoValueColor(selectedGradient));
       }
       return new THREE.Color(
         getSimpleHeatmapColor(

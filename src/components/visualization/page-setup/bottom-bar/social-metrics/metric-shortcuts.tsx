@@ -24,7 +24,7 @@ export default function MetricShortcuts() {
       <span className="social-metrics-control-label">
         Shortcuts
         <HelpTooltip
-          title="Toggle the Heatmap and Entity Config panels to select and display the social metrics."
+          title="Toggle the Heatmap and Entity Config panels to select and display the social metrics. Only metrics that are enabled in the settings are listed there."
           placement="top"
         />
       </span>

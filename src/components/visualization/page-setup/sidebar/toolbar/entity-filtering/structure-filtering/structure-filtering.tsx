@@ -3,15 +3,17 @@ import { useImperativeHandle, useMemo, useRef, useState } from 'react';
 import BuildingMetricFiltering, {
   BuildingMetricFilteringHandle,
 } from 'explorviz-frontend/src/components/visualization/page-setup/sidebar/toolbar/entity-filtering/structure-filtering/building-metric-filtering';
+import useDisabledMetrics from 'explorviz-frontend/src/hooks/useDisabledMetrics';
 import { MetricRange, useEntityFilteringStore } from 'explorviz-frontend/src/stores/entity-filtering-store';
 import { useRenderingServiceStore } from 'explorviz-frontend/src/stores/rendering-service';
 import { useVisualizationStore } from 'explorviz-frontend/src/stores/visualization-store';
 import {
   compileBuildingFilter,
   countRemainingBuildings,
+  getMetricFilterBounds,
 } from 'explorviz-frontend/src/utils/city-rendering/building-filter';
-import { Building, FlatLandscape } from 'explorviz-frontend/src/utils/landscape-schemes/flat-landscape';
-import { BUILDING_METRIC_NAMES } from 'explorviz-frontend/src/utils/settings/settings-schemas';
+import { FlatLandscape } from 'explorviz-frontend/src/utils/landscape-schemes/flat-landscape';
+import { isActiveMetricRange } from 'explorviz-frontend/src/utils/settings/metric-settings';
 import Form from 'react-bootstrap/Form';
 import { useShallow } from 'zustand/react/shallow';
 
@@ -22,32 +24,6 @@ interface StructureFilteringProps {
 export type StructureFilteringHandle = {
   setMinMethodCount: (value: number) => void;
   reset: () => void;
-};
-
-const getMetricValue = (building: Building, metricKey: string): number => building.metrics?.[metricKey]?.current ?? 0;
-
-const getMetricBounds = (landscape: FlatLandscape): Record<string, { min: number; max: number }> => {
-  const buildings = Object.values(landscape.buildings);
-  const metricBounds: Record<string, { min: number; max: number }> = {};
-
-  BUILDING_METRIC_NAMES.forEach((metricName) => {
-    if (buildings.length === 0) {
-      metricBounds[metricName] = { min: 0, max: 0 };
-      return;
-    }
-
-    const max = buildings.reduce((acc, building) => {
-      const val = getMetricValue(building, metricName);
-      return Math.max(acc, val);
-    }, Number.NEGATIVE_INFINITY);
-
-    metricBounds[metricName] = {
-      min: 0,
-      max: Number.isFinite(max) ? max : 0,
-    };
-  });
-
-  return metricBounds;
 };
 
 const StructureFiltering = function StructureFiltering({
@@ -99,7 +75,21 @@ const StructureFiltering = function StructureFiltering({
   );
 
   const buildingMetricRef = useRef<BuildingMetricFilteringHandle>(null);
-  const metricBounds = useMemo(() => getMetricBounds(filterSourceFlatLandscape), [filterSourceFlatLandscape]);
+  const metricBounds = useMemo(
+    () => getMetricFilterBounds(filterSourceFlatLandscape.buildings),
+    [filterSourceFlatLandscape]
+  );
+  const disabledMetrics = useDisabledMetrics();
+  // A disabled metric stays listed while it filters, i.e. if its range was set without these controls.
+  const listedMetricBounds = useMemo(
+    () =>
+      Object.fromEntries(
+        Object.entries(metricBounds).filter(
+          ([metric]) => !disabledMetrics.has(metric) || isActiveMetricRange(metricRanges[metric])
+        )
+      ),
+    [metricBounds, disabledMetrics, metricRanges]
+  );
   const initialBuildingCount = Object.keys(filterSourceFlatLandscape.buildings).length;
 
   // Deriving these inline made them new arrays on every render, which defeated
@@ -186,7 +176,7 @@ const StructureFiltering = function StructureFiltering({
 
       <BuildingMetricFiltering
         ref={buildingMetricRef}
-        metricBounds={metricBounds}
+        metricBounds={listedMetricBounds}
         selectedMetricRanges={displayedMetricRanges}
         updateMetricRange={updateMetricRange}
         previewMetricRange={previewMetricRange}

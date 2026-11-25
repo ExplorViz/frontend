@@ -10,7 +10,12 @@ import {
 } from '../src/components/visualization/rendering/popups/city-popups/building-metrics-utils';
 import BuildingMetricFiltering from '../src/components/visualization/page-setup/sidebar/toolbar/entity-filtering/structure-filtering/building-metric-filtering';
 import { UNBOUNDED_METRIC_RANGE, useEntityFilteringStore } from '../src/stores/entity-filtering-store';
-import { BuildingMetricIds, ORDERED_BUILDING_METRIC_IDS, useHeatmapStore } from '../src/stores/heatmap/heatmap-store';
+import {
+  BuildingMetricIds,
+  HeatmapGradient,
+  ORDERED_BUILDING_METRIC_IDS,
+  useHeatmapStore,
+} from '../src/stores/heatmap/heatmap-store';
 import { useModelStore } from '../src/stores/repos/model-repository';
 import { compileBuildingFilter } from '../src/utils/city-rendering/building-filter';
 import {
@@ -28,7 +33,14 @@ import {
 import { getMetricValues } from '../src/utils/heatmap/building-heatmap-helper';
 import type { Building } from '../src/utils/landscape-schemes/flat-landscape';
 import { BUILDING_CONFIG_METRIC_OPTIONS } from '../src/utils/settings/building-config-settings';
-import { getMetricMappingMultiplier } from '../src/utils/settings/building-metrics';
+import { getColorGradient, getNoValueColor } from '../src/utils/heatmap/simple-heatmap';
+import {
+  applyMetricMapping,
+  getBuildingMetricValueForSizing,
+  getMetricBoundsForBuildings,
+  getMetricMappingMultiplier,
+  getMetricValueForSizing,
+} from '../src/utils/settings/building-metrics';
 import { BuildingMetricMapping, SelectedBuildingMetric } from '../src/utils/settings/settings-schemas';
 import { building } from './fixtures/landscape';
 import './setup-dom';
@@ -136,6 +148,41 @@ describe('range filter of fractional metrics', () => {
   });
 });
 
+describe('metrics that could not be computed', () => {
+  const metric = 'unmaintainabilityIndex';
+  const withValue = (current: number | null, previous?: number): Building => ({
+    ...building,
+    metrics: { [metric]: { current, previous } },
+  });
+
+  it('have no value for the size of buildings, unlike zero', () => {
+    expect(getBuildingMetricValueForSizing(building, metric, false)).toBeNull();
+    expect(getBuildingMetricValueForSizing(withValue(null), metric, false)).toBeNull();
+    expect(getBuildingMetricValueForSizing(withValue(0), metric, false)).toBe(0);
+  });
+
+  it('are ignored for the bounds and buckets of sizes', () => {
+    const bounds = getMetricBoundsForBuildings([building, withValue(null), withValue(4), withValue(6)], metric);
+    expect(bounds).toEqual({ min: 4, max: 6, sortedValues: [4, 6] });
+    expect(getMetricBoundsForBuildings([building], metric)).toEqual({ min: 0, max: 0, sortedValues: [] });
+
+    expect(applyMetricMapping(null, BuildingMetricMapping.BucketCount, bounds)).toBe(0);
+    expect(applyMetricMapping(4, BuildingMetricMapping.BucketCount, bounds)).toBe(1);
+  });
+
+  it('have no difference between commits', () => {
+    expect(getMetricValueForSizing({ current: null }, true)).toBeNull();
+    expect(getMetricValueForSizing({ current: 3, previous: 3 }, true)).toBe(0);
+    expect(getMetricValueForSizing({ current: null, previous: 3 }, true)).toBe(3);
+  });
+
+  it('have their own color in every gradient of the heatmap', () => {
+    for (const gradient of Object.values(HeatmapGradient)) {
+      expect(Object.values(getColorGradient(gradient))).not.toContain(getNoValueColor(gradient));
+    }
+  });
+});
+
 describe('sum and average of commits', () => {
   const commit = (hash: string, metrics: object, metricFileCounts?: object) =>
     normalizeCommitNode({ hash, hasAccumulatedMetrics: true, metrics, metricFileCounts } as CommitNode);
@@ -155,6 +202,12 @@ describe('sum and average of commits', () => {
   it.each(['unused', 'fileCount', 'unknown'])('has no average for %s', (metric) => {
     expect(getMetricValue(analyzed, metric, 'average')).toBeNull();
     expect(hasAverageMetric(branchOf(analyzed), metric)).toBe(false);
+  });
+
+  it('has no sum if no file has the metric', () => {
+    expect(getMetricValue(analyzed, 'unused')).toBeNull();
+    expect(getMetricValue(analyzed, 'fileCount')).toBe(10);
+    expect(getMetricValue(commit('d', { sloc: 0 }, { sloc: 1 }), 'sloc')).toBe(0);
   });
 
   it('has no average for commits without file counts', () => {

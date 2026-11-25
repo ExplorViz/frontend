@@ -4,13 +4,14 @@ import {
   collectFilteredBuildings,
   compileBuildingFilter,
   countRemainingBuildings,
+  getMetricFilterBounds,
   type BuildingFilterCriteria,
 } from '../src/utils/city-rendering/building-filter';
 import {
   filterFlatLandscapeByBuildingComparisonVisibility,
   pruneFlatLandscapeByRemainingBuildings,
 } from '../src/utils/city-rendering/flat-landscape-filter';
-import type { FlatLandscape } from '../src/utils/landscape-schemes/flat-landscape';
+import type { Building, FlatLandscape } from '../src/utils/landscape-schemes/flat-landscape';
 import { BUILDING_METRIC_NAMES } from '../src/utils/settings/settings-schemas';
 import { building, city, district } from './fixtures/landscape';
 
@@ -41,7 +42,7 @@ describe('building filter pipeline', () => {
     expect(byLanguage.isFiltered({ ...building, language: 'PYTHON' })).toBe(false);
   });
 
-  it('uses inclusive lower metric bounds, treating missing metrics as zero', () => {
+  it('uses inclusive lower metric bounds', () => {
     const key = BUILDING_METRIC_NAMES[0];
     const filter = compileBuildingFilter(criteria({ metricRanges: { [key]: { min: 10, max: Infinity } } }));
     expect(filter.isFiltered(building)).toBe(true);
@@ -53,9 +54,39 @@ describe('building filter pipeline', () => {
     const key = BUILDING_METRIC_NAMES[0];
     const filter = compileBuildingFilter(criteria({ metricRanges: { [key]: { min: 0, max: 20 } } }));
     expect(filter.isActive).toBe(true);
-    expect(filter.isFiltered(building)).toBe(false);
+    expect(filter.isFiltered({ ...building, metrics: { [key]: { current: 0 } } })).toBe(false);
     expect(filter.isFiltered({ ...building, metrics: { [key]: { current: 20 } } })).toBe(false);
     expect(filter.isFiltered({ ...building, metrics: { [key]: { current: 21 } } })).toBe(true);
+  });
+
+  it.each([
+    { min: 1, max: Infinity },
+    { min: 0, max: 20 },
+  ])('excludes buildings without the metric from the range %o', (range) => {
+    const key = BUILDING_METRIC_NAMES[0];
+    const filter = compileBuildingFilter(criteria({ metricRanges: { [key]: range } }));
+    expect(filter.isFiltered(building)).toBe(true);
+    expect(filter.isFiltered({ ...building, metrics: { [key]: { current: null } } })).toBe(true);
+    expect(filter.isFiltered({ ...building, metrics: { [key]: { current: null, previous: 5 } } })).toBe(true);
+  });
+
+  it('filters removed buildings by their previous value', () => {
+    const key = BUILDING_METRIC_NAMES[0];
+    const filter = compileBuildingFilter(criteria({ metricRanges: { [key]: { min: 0, max: 20 } } }));
+    const removed = (previous: number) =>
+      ({ ...building, commitComparison: 'REMOVED', metrics: { [key]: { current: null, previous } } }) as Building;
+    expect(filter.isFiltered(removed(20))).toBe(false);
+    expect(filter.isFiltered(removed(21))).toBe(true);
+  });
+
+  it('derives the bounds from the buildings that have the metric', () => {
+    const [key, other] = BUILDING_METRIC_NAMES;
+    const bounds = getMetricFilterBounds({
+      a: { ...building, metrics: { [key]: { current: 7 }, [other]: { current: null } } },
+      b: building,
+    });
+    expect(bounds[key]).toEqual({ min: 0, max: 7 });
+    expect(bounds[other]).toEqual({ min: 0, max: 0 });
   });
 
   it('treats the default unbounded range as inactive', () => {

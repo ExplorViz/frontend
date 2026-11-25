@@ -30,6 +30,13 @@
   text-align: center;
 }
 
+.heatmap-legend-no-value {
+  width: 1rem;
+  height: 1rem;
+  margin-right: 0.5rem;
+  border: 1px solid var(--bs-border-color, #dee2e6);
+}
+
 .heatmap-legend-toggle {
   display: none;
 }

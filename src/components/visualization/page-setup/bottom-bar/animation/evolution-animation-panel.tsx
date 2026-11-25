@@ -13,8 +13,10 @@ import {
   FloatingPanelPosition,
   useFloatingPanel,
 } from 'explorviz-frontend/src/components/visualization/page-setup/bottom-bar/animation/floating-panel.ts';
+import useDisabledMetrics from 'explorviz-frontend/src/hooks/useDisabledMetrics';
 import { useCommitTreeStateStore } from 'explorviz-frontend/src/stores/commit-tree-state';
 import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
+import { getSelectableMetrics } from 'explorviz-frontend/src/utils/settings/metric-settings';
 import {
   BuildingMetricMapping,
   SELECTED_BUILDING_METRIC_OPTIONS,
@@ -101,6 +103,7 @@ export default function EvolutionAnimationPanel({ onClose }: { onClose: () => vo
   const [timeUnit, setTimeUnit] = useState(86400000);
   const [agingTimeCount, setAgingTimeCount] = useState(Math.max(1, Math.round(agingMs / 2592000000)));
   const [agingTimeUnit, setAgingTimeUnit] = useState(2592000000);
+  const disabledMetrics = useDisabledMetrics();
   const heightMetric = useUserSettingsStore((s) => s.visualizationSettings.buildingHeightMetric.value);
   const metricMapping = useUserSettingsStore((s) => s.visualizationSettings.buildingMetricMapping.value);
   const metricBuckets = useUserSettingsStore((s) => s.visualizationSettings.buildingMetricBuckets.value);
@@ -410,7 +413,7 @@ export default function EvolutionAnimationPanel({ onClose }: { onClose: () => vo
               value={heightMetric}
               onChange={(e) => updateSetting('buildingHeightMetric', e.target.value)}
             >
-              {SELECTED_BUILDING_METRIC_OPTIONS.map((m) => (
+              {getSelectableMetrics(SELECTED_BUILDING_METRIC_OPTIONS, disabledMetrics, heightMetric).map((m) => (
                 <option key={m} value={m}>
                   {m}
                 </option>

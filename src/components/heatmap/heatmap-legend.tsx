@@ -8,7 +8,7 @@ import {
   useHeatmapStore,
 } from 'explorviz-frontend/src/stores/heatmap/heatmap-store';
 import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
-import { getColorGradient, revertKey } from 'explorviz-frontend/src/utils/heatmap/simple-heatmap';
+import { getColorGradient, getNoValueColor, revertKey } from 'explorviz-frontend/src/utils/heatmap/simple-heatmap';
 import { CloseButton } from 'react-bootstrap';
 import Button from 'react-bootstrap/Button';
 import OverlayTrigger from 'react-bootstrap/OverlayTrigger';
@@ -171,6 +171,13 @@ export default function HeatmapLegend() {
                 ))}
               </div>
             </>
+          </div>
+          <div className="d-flex align-items-center mt-2">
+            <span
+              className="heatmap-legend-no-value"
+              style={{ backgroundColor: getNoValueColor(selectedGradient) }}
+            ></span>
+            Not computed
           </div>
         </div>
       )}

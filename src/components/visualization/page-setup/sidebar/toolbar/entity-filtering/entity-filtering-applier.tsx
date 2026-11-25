@@ -15,6 +15,7 @@ import { useVisualizationStore } from 'explorviz-frontend/src/stores/visualizati
 import {
   collectFilteredBuildings,
   compileBuildingFilter,
+  getMetricFilterBounds,
 } from 'explorviz-frontend/src/utils/city-rendering/building-filter';
 import { markFilteredFrom } from 'explorviz-frontend/src/utils/city-rendering/filtered-landscapes';
 import {
@@ -22,20 +23,16 @@ import {
   pruneFlatLandscapeByRemainingBuildings,
 } from 'explorviz-frontend/src/utils/city-rendering/flat-landscape-filter';
 import {
-  Building,
   FlatLandscape,
   getFlatLandscapeEntityType,
 } from 'explorviz-frontend/src/utils/landscape-schemes/flat-landscape';
 import { LandscapeData } from 'explorviz-frontend/src/utils/landscape-schemes/landscape-data';
 import BoxLayout from 'explorviz-frontend/src/utils/layout/box-layout';
-import { BUILDING_METRIC_NAMES } from 'explorviz-frontend/src/utils/settings/settings-schemas';
 import { useShallow } from 'zustand/react/shallow';
 
 interface EntityFilteringApplierProps {
   readonly landscapeData: LandscapeData;
 }
-
-const getMetricValue = (building: Building, metricKey: string): number => building.metrics?.[metricKey]?.current ?? 0;
 
 const getDefaultMetricRanges = (
   metricBounds: Record<string, { min: number; max: number }>
@@ -46,30 +43,6 @@ const getDefaultMetricRanges = (
       { min: bounds.min, max: Number.POSITIVE_INFINITY },
     ])
   );
-
-const getMetricBounds = (landscape: FlatLandscape): Record<string, { min: number; max: number }> => {
-  const buildings = Object.values(landscape.buildings);
-  const metricBounds: Record<string, { min: number; max: number }> = {};
-
-  BUILDING_METRIC_NAMES.forEach((metricName) => {
-    if (buildings.length === 0) {
-      metricBounds[metricName] = { min: 0, max: 0 };
-      return;
-    }
-
-    const max = buildings.reduce((acc, building) => {
-      const val = getMetricValue(building, metricName);
-      return Math.max(acc, val);
-    }, Number.NEGATIVE_INFINITY);
-
-    metricBounds[metricName] = {
-      min: 0,
-      max: Number.isFinite(max) ? max : 0,
-    };
-  });
-
-  return metricBounds;
-};
 
 function syncLayoutStoreWithFlatLandscape(flatLandscape: FlatLandscape): void {
   const layoutState = useLayoutStore.getState();
@@ -353,7 +326,7 @@ export default function EntityFilteringApplier({ landscapeData }: EntityFilterin
       initialFlatLandscapeData.current = latestFlatLandscapeDataRef.current;
       removeModePrunedRenderedRef.current = false;
       updateBaseline(latestFlatLandscapeDataRef.current);
-      const defaultRanges = getDefaultMetricRanges(getMetricBounds(latestFlatLandscapeDataRef.current));
+      const defaultRanges = getDefaultMetricRanges(getMetricFilterBounds(latestFlatLandscapeDataRef.current.buildings));
       setMetricRanges(defaultRanges);
       applyFilters(defaultRanges);
     },

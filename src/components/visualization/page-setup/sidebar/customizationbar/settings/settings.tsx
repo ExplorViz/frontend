@@ -15,6 +15,7 @@ import { requestLayoutRecompute, useLayoutDecidedByHost } from 'explorviz-fronte
 import { deleteTraceData } from 'explorviz-frontend/src/utils/landscape-http-request-util';
 import { isLayoutSetting } from 'explorviz-frontend/src/utils/settings/layout-settings';
 import { ColorSchemeId } from 'explorviz-frontend/src/utils/settings/color-schemes';
+import { changeMetricSettings } from 'explorviz-frontend/src/utils/settings/release-metrics';
 import {
   isButtonSetting,
   isColorSetting,
@@ -65,6 +66,7 @@ export default function Settings({ enterFullscreen, setGamepadSupport }: Setting
       Label: [],
       Layout: [],
       Magnifier: [],
+      Metrics: [],
       Minimap: [],
       'Semantic Zoom': [],
       'Virtual Reality': [],
@@ -177,7 +179,7 @@ export default function Settings({ enterFullscreen, setGamepadSupport }: Setting
 
   const updateFlagSetting = (settingId: VisualizationSettingId, value?: boolean) => {
     try {
-      updateSetting(settingId, value);
+      changeMetricSettings(() => updateSetting(settingId, value));
     } catch (e: any) {
       showErrorToastMessage(e.message);
     }
@@ -217,11 +219,11 @@ export default function Settings({ enterFullscreen, setGamepadSupport }: Setting
   };
 
   const resetGroup = (groupId: string) => {
-    applyDefaultSettingsForGroup(groupId);
+    changeMetricSettings(() => applyDefaultSettingsForGroup(groupId));
   };
 
   const resetSettingsAndUpdate = async () => {
-    applyDefaultSettings(true);
+    changeMetricSettings(() => applyDefaultSettings(true));
   };
 
   // Walk up the DOM until we find an ancestor that actually scrolls.
@@ -285,6 +287,11 @@ export default function Settings({ enterFullscreen, setGamepadSupport }: Setting
         <div className="settings-list">
           {groupId === 'Colors' && (
             <ColorSchemeSelector colorSchemes={colorSchemes} applyColorScheme={applyColorScheme} />
+          )}
+          {groupId === 'Metrics' && (
+            <p className="text-muted small mb-2">
+              Only enabled metrics are shown in the commit chart, heatmap, filters, popups and Building Config.
+            </p>
           )}
           {groupId === 'Layout' && layoutDecidedByHost && (
             <p className="text-muted small mb-2">In this room, the Host decides the layout.</p>

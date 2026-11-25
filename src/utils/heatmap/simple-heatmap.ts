@@ -47,6 +47,13 @@ export function getMonochromeGradient() {
   };
 }
 
+/** Color of buildings that do not have the metric, which must not be part of the gradient. */
+export function getNoValueColor(
+  gradientSetting: HeatmapGradient = useHeatmapStore.getState().selectedGradient
+): string {
+  return gradientSetting === HeatmapGradient.MONOCHROME_GRADIENT ? 'rgb(216, 185, 138)' : 'rgb(255, 255, 255)';
+}
+
 /**
  * Convert "rgb(r, g, b)" (or "rgba(r,g,b,a)") into [r,g,b].
  */

@@ -11,13 +11,15 @@ export default function SelectSetting({
   onChange,
   settingId,
   formatOptionLabel,
+  options = (defaultVizSettings[settingId] as SelectSettingData<unknown>).options,
 }: {
   onChange: (settingId: VisualizationSettingId, value: unknown) => void;
   settingId: VisualizationSettingId;
   formatOptionLabel?: (option: unknown) => string;
+  /** The options to choose from, all options of the setting by default. */
+  options?: readonly unknown[];
 }) {
   const setting = useUserSettingsStore((state) => state.visualizationSettings[settingId]) as SelectSettingData<unknown>;
-  const options = (defaultVizSettings[settingId] as SelectSettingData<unknown>).options;
   const defaultValue = defaultVizSettings[settingId].value;
   const selectId = `setting-${settingId}`;
 

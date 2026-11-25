@@ -4,6 +4,7 @@ import {
   formatMetricDifference,
 } from 'explorviz-frontend/src/components/visualization/rendering/popups/city-popups/building-metrics-utils';
 import { useLiveBuildings } from 'explorviz-frontend/src/components/visualization/rendering/popups/city-popups/use-live-flat-entity';
+import useDisabledMetrics from 'explorviz-frontend/src/hooks/useDisabledMetrics';
 import { getOrderedBuildingMetricEntries } from 'explorviz-frontend/src/utils/settings/settings-schemas';
 import { useMemo } from 'react';
 
@@ -20,7 +21,11 @@ export default function AggregatedBuildingMetricsTable({ buildingIds }: Aggregat
     [buildingIds, buildingIdsKey, buildings]
   );
 
-  const metricEntries = useMemo(() => getOrderedBuildingMetricEntries(aggregatedMetrics), [aggregatedMetrics]);
+  const disabledMetrics = useDisabledMetrics();
+  const metricEntries = useMemo(
+    () => getOrderedBuildingMetricEntries(aggregatedMetrics).filter(([name]) => !disabledMetrics.has(name)),
+    [aggregatedMetrics, disabledMetrics]
+  );
 
   if (buildingIds.length === 0) {
     return <div className="text-center text-muted py-3">No contained buildings</div>;

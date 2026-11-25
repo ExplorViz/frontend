@@ -95,9 +95,13 @@ export const metricMappingMultipliers = {
   },
 } as const;
 
-function toSafeMetricValue(value: number | null | undefined): number {
+/** Without a value, the metric could not be computed, which is not the same as a value of zero. */
+function toSafeMetricValue(value: number | null | undefined): number | null {
+  if (value === null || value === undefined) {
+    return null;
+  }
   const numericValue = Number(value);
-  return Number.isFinite(numericValue) ? Math.max(0, numericValue) : 0;
+  return Number.isFinite(numericValue) ? Math.max(0, numericValue) : null;
 }
 
 let cachedDiffModeCommits: Map<string, unknown[]> | null = null;
@@ -122,14 +126,15 @@ export function isCommitComparisonDiffMode(): boolean {
   return cachedDiffMode;
 }
 
+/** Returns null if the building does not have the metric. */
 export function getBuildingMetricValueForSizing(
   building: Building,
   metricKey: string,
   useCommitComparisonDiff = isCommitComparisonDiffMode()
-): number {
+): number | null {
   const metric = building.metrics?.[metricKey];
   if (!metric) {
-    return 0;
+    return null;
   }
 
   const shouldUseComparisonDiff = useCommitComparisonDiff && building.commitComparison !== undefined;
@@ -140,7 +145,7 @@ export function getBuildingMetricValueForSizing(
 export function getMetricValueForSizing(
   metric: MetricValue,
   useCommitComparisonDiff = isCommitComparisonDiffMode()
-): number {
+): number | null {
   const current = toSafeMetricValue(metric.current);
 
   if (!useCommitComparisonDiff) {
@@ -148,26 +153,15 @@ export function getMetricValueForSizing(
   }
 
   const previous = toSafeMetricValue(metric.previous);
-  return Math.abs(current - previous);
+  if (current === null && previous === null) {
+    return null;
+  }
+  // A value that only exists in one of the commits has changed as a whole, e.g. for added files.
+  return Math.abs((current ?? 0) - (previous ?? 0));
 }
 
 export function getBuildingMetricValueForHeatmap(building: Building, metricKey: string): number | null {
-  const metric = building.metrics?.[metricKey];
-  if (!metric) {
-    return null;
-  }
-
-  const shouldUseComparisonDiff = isCommitComparisonDiffMode() && building.commitComparison !== undefined;
-
-  if (!shouldUseComparisonDiff) {
-    if (metric.current === null || metric.current === undefined) {
-      return null;
-    }
-
-    return toSafeMetricValue(metric.current);
-  }
-
-  return getMetricValueForSizing(metric, true);
+  return getBuildingMetricValueForSizing(building, metricKey);
 }
 
 export function formatBuildingMetricDisplayName(metric: string, useDiffSuffix: boolean): string {
@@ -223,13 +217,17 @@ export function getBucketEdges(sorted: number[], buckets: number): number[] {
   return edges;
 }
 
+/** A metric without a value does not contribute to the size. */
 export function applyMetricMapping(
-  value: number,
+  value: number | null,
   mapping: BuildingMetricMapping,
   bounds?: MetricBounds,
   buckets: number = DEFAULT_METRIC_BUCKETS
 ): number {
   const safeValue = toSafeMetricValue(value);
+  if (safeValue === null) {
+    return 0;
+  }
 
   if (mapping === BuildingMetricMapping.BucketCount) {
     const sorted = bounds?.sortedValues;
@@ -278,9 +276,16 @@ export function getMetricBoundsForBuildings(buildings: Building[], metricKey: st
 
   for (const building of buildings) {
     const safeValue = getBuildingMetricValueForSizing(building, metricKey, useCommitComparisonDiff);
+    if (safeValue === null) {
+      continue;
+    }
     values.push(safeValue);
     if (safeValue < min) min = safeValue;
     if (safeValue > max) max = safeValue;
+  }
+
+  if (values.length === 0) {
+    return { min: 0, max: 0, sortedValues: [] };
   }
 
   values.sort((a, b) => a - b);

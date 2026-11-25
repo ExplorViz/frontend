@@ -1,16 +1,19 @@
 import { LinkIcon, UnlinkIcon } from '@primer/octicons-react';
 import RangeSetting from 'explorviz-frontend/src/components/visualization/page-setup/sidebar/customizationbar/settings/setting-type/range-setting';
 import SelectSetting from 'explorviz-frontend/src/components/visualization/page-setup/sidebar/customizationbar/settings/setting-type/select-setting';
+import useDisabledMetrics from 'explorviz-frontend/src/hooks/useDisabledMetrics';
 import { useCommitTreeStateStore } from 'explorviz-frontend/src/stores/commit-tree-state';
 import { useToastHandlerStore } from 'explorviz-frontend/src/stores/toast-handler';
 import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
 import {
+  BUILDING_CONFIG_METRIC_OPTIONS,
   BUILDING_DIMENSION_SETTINGS,
   BUILDING_FOOTPRINT_SETTING_ID,
   BUILDING_METRIC_MAPPING_SETTING_ID,
   BuildingDimension,
 } from 'explorviz-frontend/src/utils/settings/building-config-settings';
 import { formatBuildingMetricDisplayName } from 'explorviz-frontend/src/utils/settings/building-metrics';
+import { getSelectableMetrics } from 'explorviz-frontend/src/utils/settings/metric-settings';
 import {
   SelectedBuildingMetric,
   isSettingDependencyMet,
@@ -45,6 +48,7 @@ function DimensionMetricCard({
   onMultiplierChange: (settingId: VisualizationSettingId, value: number) => void;
 }) {
   const visualizationSettings = useUserSettingsStore((state) => state.visualizationSettings);
+  const disabledMetrics = useDisabledMetrics();
   const { label, metricSettingId, multiplierSettingId } = BUILDING_DIMENSION_SETTINGS[dimension];
   const metricValue = visualizationSettings[metricSettingId].value;
   const showMultiplier =
@@ -59,6 +63,7 @@ function DimensionMetricCard({
       </div>
       <SelectSetting
         settingId={metricSettingId}
+        options={getSelectableMetrics(BUILDING_CONFIG_METRIC_OPTIONS, disabledMetrics, String(metricValue))}
         onChange={onMetricChange}
         formatOptionLabel={(option) => formatBuildingMetricOptionLabel(option, isCommitComparisonMode)}
       />

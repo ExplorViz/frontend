@@ -1,3 +1,4 @@
+import { coerceMetricNumber } from 'explorviz-frontend/src/components/visualization/rendering/popups/city-popups/building-metrics-utils';
 import { type EntityFilterMode, type MetricRange } from 'explorviz-frontend/src/stores/entity-filtering-store';
 import { ModelType, type Building, type Language } from 'explorviz-frontend/src/utils/landscape-schemes/flat-landscape';
 import { normalizeLanguage } from 'explorviz-frontend/src/utils/language-utils';
@@ -5,6 +6,7 @@ import {
   compileSearchExpressions,
   matchesAnyCompiledExpression,
 } from 'explorviz-frontend/src/utils/search-expression-matcher';
+import { isActiveMetricRange } from 'explorviz-frontend/src/utils/settings/metric-settings';
 import { BUILDING_METRIC_NAMES } from 'explorviz-frontend/src/utils/settings/settings-schemas';
 
 export type BuildingFilterCriteria = {
@@ -25,7 +27,26 @@ export type CompiledBuildingFilter = {
   readonly isFiltered: (building: Building) => boolean;
 };
 
-const getMetricValue = (building: Building, metricKey: string): number => building.metrics?.[metricKey]?.current ?? 0;
+/** Returns null if the metric could not be computed. Removed buildings only have their previous value. */
+function getMetricValue(building: Building, metricKey: string): number | null {
+  const metric = building.metrics?.[metricKey];
+  const value = building.commitComparison === 'REMOVED' ? (metric?.current ?? metric?.previous) : metric?.current;
+  return coerceMetricNumber(value);
+}
+
+/** Bounds of the metric ranges to choose from. */
+export function getMetricFilterBounds(buildings: Record<string, Building>): Record<string, MetricRange> {
+  const buildingList = Object.values(buildings);
+  return Object.fromEntries(
+    BUILDING_METRIC_NAMES.map((metricName) => [
+      metricName,
+      {
+        min: 0,
+        max: buildingList.reduce((max, building) => Math.max(max, getMetricValue(building, metricName) ?? 0), 0),
+      },
+    ])
+  );
+}
 
 const NOTHING_FILTERED: CompiledBuildingFilter = {
   isActive: false,
@@ -43,11 +64,11 @@ export function compileBuildingFilter(criteria: BuildingFilterCriteria): Compile
   // than by removing the building from the landscape.
   const filtersByLanguage = criteria.filterMode === 'Remove' && criteria.hiddenLanguages.size > 0;
 
-  // Metric values default to zero and ranges default to [0, Infinity], so only a
-  // positive lower bound or a finite upper bound can exclude anything.
+  // Ranges default to [0, Infinity], so only a positive lower bound or a finite
+  // upper bound excludes anything, including buildings without the metric.
   const activeMetricRanges = BUILDING_METRIC_NAMES.flatMap((metricName) => {
     const range = criteria.metricRanges[metricName];
-    return range && (range.min > 0 || Number.isFinite(range.max)) ? [[metricName, range] as const] : [];
+    return isActiveMetricRange(range) ? [[metricName, range] as const] : [];
   });
 
   const inclusionExpressions = compileSearchExpressions(criteria.inclusionExpressions);
@@ -69,7 +90,7 @@ export function compileBuildingFilter(criteria: BuildingFilterCriteria): Compile
 
     for (const [metricName, range] of activeMetricRanges) {
       const value = getMetricValue(building, metricName);
-      if (value < range.min || value > range.max) {
+      if (value === null || value < range.min || value > range.max) {
         return true;
       }
     }

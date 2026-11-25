@@ -1,5 +1,6 @@
 import { BUILDING_CONFIG_METRIC_OPTIONS } from 'explorviz-frontend/src/utils/settings/building-config-settings';
 import { defaultColors } from 'explorviz-frontend/src/utils/settings/color-schemes';
+import { DEFAULT_METRIC_SETTINGS } from 'explorviz-frontend/src/utils/settings/metric-settings';
 import {
   BUILDING_GEOMETRY_OPTIONS,
   BuildingMetricMapping,
@@ -11,6 +12,7 @@ import {
 export const MOUSE_ACTIONS = ['NONE', 'ROTATE', 'TRUCK', 'SCREEN_PAN', 'OFFSET', 'DOLLY', 'ZOOM'];
 
 export const defaultVizSettings: VisualizationSettings = {
+  ...DEFAULT_METRIC_SETTINGS,
   // Color Settings
   backgroundColor: {
     level: SettingLevel.DEFAULT,

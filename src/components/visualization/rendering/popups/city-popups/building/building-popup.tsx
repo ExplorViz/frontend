@@ -9,6 +9,7 @@ import {
 } from 'explorviz-frontend/src/components/visualization/rendering/popups/city-popups/building-metrics-utils';
 import BuildingFileHistoryTab from 'explorviz-frontend/src/components/visualization/rendering/popups/city-popups/building/building-file-history-tab';
 import PopupData from 'explorviz-frontend/src/components/visualization/rendering/popups/popup-data';
+import useDisabledMetrics from 'explorviz-frontend/src/hooks/useDisabledMetrics';
 import { useCommitTreeStateStore } from 'explorviz-frontend/src/stores/commit-tree-state';
 import { getPopup, updatePopup } from 'explorviz-frontend/src/utils/collaboration/popups';
 import { getSourceReferenceCommitHash } from 'explorviz-frontend/src/utils/evolution-data-helpers';
@@ -187,6 +188,10 @@ function FileTabContent({ detailedData, uuid }: { detailedData: FileDetailedDto 
 
 export default function BuildingPopup({ popupData }: BuildingPopupProps) {
   const building = popupData.entity as Building;
+  const disabledMetrics = useDisabledMetrics();
+  const visibleMetricEntries = getOrderedBuildingMetricEntries(building.metrics ?? {}).filter(
+    ([name]) => !disabledMetrics.has(name)
+  );
 
   const uuid = useMemo(() => generateUuidv4(), []);
   const [history, setHistory] = useState<FileHistory[] | undefined>(undefined);
@@ -292,33 +297,34 @@ export default function BuildingPopup({ popupData }: BuildingPopupProps) {
                     <td className="fw-bold">Origin:</td>
                     <td className="text-right text-break pl-1">{building.originOfData}</td>
                   </tr>
-                  {building.metrics &&
-                    getOrderedBuildingMetricEntries(building.metrics).map(([name, value]) => {
-                      const currentValue = coerceMetricNumber(value.current);
-                      const previousValue = coerceMetricNumber(value.previous);
-                      const hasChanged = previousValue !== null && currentValue !== previousValue;
-                      const diff = previousValue !== null ? (currentValue ?? 0) - previousValue : 0;
-                      const diffText = formatMetricDifference(name, diff);
+                  {visibleMetricEntries.map(([name, value]) => {
+                    const currentValue = coerceMetricNumber(value.current);
+                    const previousValue = coerceMetricNumber(value.previous);
+                    const hasChanged = previousValue !== null && currentValue !== previousValue;
+                    // There is no difference to a value that could not be computed, only to removed files.
+                    const hasDiff = currentValue !== null || building.commitComparison === 'REMOVED';
+                    const diff = previousValue !== null ? (currentValue ?? 0) - previousValue : 0;
+                    const diffText = formatMetricDifference(name, diff);
 
-                      return (
-                        <tr key={name}>
-                          <td className="fw-bold">{name}:</td>
-                          <td className="text-right">
-                            {!hasChanged ? (
-                              formatMetricValue(name, value.current)
-                            ) : (
-                              <>
-                                <span className={diff < 0 ? 'text-danger' : 'text-success'}>{diffText}</span>
-                                <span className="ml-2 small text-muted">
-                                  (C1: {formatMetricValue(name, value.previous)}, C2:{' '}
-                                  {formatMetricValue(name, value.current)})
-                                </span>
-                              </>
-                            )}
-                          </td>
-                        </tr>
-                      );
-                    })}
+                    return (
+                      <tr key={name}>
+                        <td className="fw-bold">{name}:</td>
+                        <td className="text-right">
+                          {!hasChanged ? (
+                            formatMetricValue(name, value.current)
+                          ) : (
+                            <>
+                              {hasDiff && <span className={diff < 0 ? 'text-danger' : 'text-success'}>{diffText}</span>}
+                              <span className="ml-2 small text-muted">
+                                (C1: {formatMetricValue(name, value.previous)}, C2:{' '}
+                                {formatMetricValue(name, value.current)})
+                              </span>
+                            </>
+                          )}
+                        </td>
+                      </tr>
+                    );
+                  })}
                 </tbody>
               </table>
             </div>

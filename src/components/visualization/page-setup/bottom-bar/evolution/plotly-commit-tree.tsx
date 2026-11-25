@@ -5,6 +5,7 @@ import CommitChartAuthorFilters from 'explorviz-frontend/src/components/visualiz
 import CommitChartFilters from 'explorviz-frontend/src/components/visualization/page-setup/bottom-bar/evolution/commit-chart-filters';
 import CommitChartSearch from 'explorviz-frontend/src/components/visualization/page-setup/bottom-bar/evolution/commit-chart-search';
 import CommitStatisticsWindow from 'explorviz-frontend/src/components/visualization/page-setup/bottom-bar/evolution/commit-statistics-window';
+import useDisabledMetrics from 'explorviz-frontend/src/hooks/useDisabledMetrics';
 import { useCommitTreeStateStore } from 'explorviz-frontend/src/stores/commit-tree-state';
 import { useRenderingServiceStore } from 'explorviz-frontend/src/stores/rendering-service';
 import { useEvolutionDataRepositoryStore } from 'explorviz-frontend/src/stores/repos/evolution-data-repository';
@@ -322,7 +323,10 @@ export default function PlotlyCommitTree() {
   const chartLinkLabel = getCommitChartLinkLabel(selectedCommitsForRepo.length);
   const chartLinkTooltip = getCommitChartLinkTooltip(selectedCommitsForRepo.length);
   const selectedBranch = commitTree?.branches.find((branch) => branch.name === selectedBranchName);
-  const availableMetrics = selectedBranch ? getAvailableMetricNames(selectedBranch) : [];
+  const disabledMetrics = useDisabledMetrics();
+  const availableMetrics = selectedBranch
+    ? getAvailableMetricNames(selectedBranch).filter((metric) => !disabledMetrics.has(metric))
+    : [];
   const isAverageAvailable = selectedBranch !== undefined && hasAverageMetric(selectedBranch, selectedMetric);
   const aggregation = isAverageAvailable ? selectedAggregation : 'sum';
   const hasActiveFilters = hasActiveCommitTreeFilters(appliedCommitTreeFilters, appliedMetricChangeThreshold);
@@ -368,7 +372,7 @@ export default function PlotlyCommitTree() {
       return;
     }
 
-    setSelectedMetric(getDefaultMetricName(selectedBranch));
+    setSelectedMetric(getDefaultMetricName(availableMetrics));
     hasInitializedMetricRef.current = true;
   }, [selectedBranch]);
 
@@ -378,7 +382,7 @@ export default function PlotlyCommitTree() {
     }
 
     if (selectedMetric !== NONE_METRIC && !availableMetrics.includes(selectedMetric)) {
-      setSelectedMetric(getDefaultMetricName(selectedBranch));
+      setSelectedMetric(getDefaultMetricName(availableMetrics));
     }
   }, [selectedBranch, selectedMetric, availableMetrics]);
 

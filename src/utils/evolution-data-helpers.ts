@@ -635,8 +635,8 @@ export function hasSkippedCommitsBetweenVisiblePoints(originalIndices: number[])
 }
 
 /**
- * Value of a metric for a commit. Averages only consider the files that have the metric and are
- * missing if there is no such file.
+ * Value of a metric for a commit, which is missing if none of its files has the metric. Averages
+ * only consider the files that have the metric.
  */
 export function getMetricValue(
   commit: CommitNode,
@@ -647,11 +647,12 @@ export function getMetricValue(
   if (sum == null || Number.isNaN(sum)) {
     return null;
   }
+  const fileCount = commit.metricFileCounts?.[metricName];
   if (aggregation === 'sum') {
-    return sum;
+    // The file counts are unknown for older commits.
+    return fileCount === 0 ? null : sum;
   }
 
-  const fileCount = commit.metricFileCounts?.[metricName];
   return fileCount ? sum / fileCount : null;
 }
 

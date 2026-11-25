@@ -184,8 +184,7 @@ export function getAvailableMetricNames(branch: Branch): string[] {
   return [...names].sort((a, b) => a.localeCompare(b));
 }
 
-export function getDefaultMetricName(branch: Branch): string {
-  const availableMetrics = getAvailableMetricNames(branch);
+export function getDefaultMetricName(availableMetrics: string[]): string {
   if (availableMetrics.includes('lineCount')) {
     return 'lineCount';
   }

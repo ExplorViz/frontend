@@ -12,6 +12,7 @@ export type SettingGroup =
   | 'Layout'
   | 'Label'
   | 'Magnifier'
+  | 'Metrics'
   | 'Minimap'
   | 'Semantic Zoom'
   | 'Virtual Reality';
@@ -249,6 +250,11 @@ export type MagnifierSettings = {
 };
 export type MagnifierSettingId = keyof MagnifierSettings;
 
+/** Metrics of buildings and, like the number of files, of commits only. */
+export type ToggleableMetric = `${BuildingMetrics}` | 'fileCount';
+export type MetricSettingId = `metric${Capitalize<ToggleableMetric>}`;
+export type MetricSettings = Record<MetricSettingId, FlagSetting>;
+
 export type XrSettingId = 'autoEnterVr';
 export type XrSettings = Record<XrSettingId, FlagSetting>;
 
@@ -264,6 +270,7 @@ export type VisualizationSettingId =
   | LayoutSettingId
   | LabelSettingId
   | MagnifierSettingId
+  | MetricSettingId
   | MinimapSettingId
   | SemanticZoomSettingId
   | 'autoEnterVr'
@@ -282,6 +289,7 @@ export type VisualizationSettings = CameraSettings &
   LayoutSettings &
   LabelSettings &
   MagnifierSettings &
+  MetricSettings &
   MinimapSettings &
   SemanticZoomSettings &
   XrSettings &

@@ -1,3 +1,4 @@
+import useDisabledMetrics from 'explorviz-frontend/src/hooks/useDisabledMetrics';
 import { useCommitTreeStateStore } from 'explorviz-frontend/src/stores/commit-tree-state';
 import {
   BuildingMetricIds,
@@ -6,6 +7,7 @@ import {
 } from 'explorviz-frontend/src/stores/heatmap/heatmap-store';
 import { useModelStore } from 'explorviz-frontend/src/stores/repos/model-repository';
 import { formatBuildingMetricDisplayName } from 'explorviz-frontend/src/utils/settings/building-metrics';
+import { getSelectableMetrics } from 'explorviz-frontend/src/utils/settings/metric-settings';
 import { useEffect } from 'react';
 import { useShallow } from 'zustand/react/shallow';
 
@@ -13,6 +15,7 @@ export default function MetricSelector() {
   const currentSelectedRepo = useCommitTreeStateStore((state) => state._currentSelectedRepositoryName);
   const isCommitComparisonMode =
     (useCommitTreeStateStore((state) => state._selectedCommits.get(currentSelectedRepo)?.length) ?? 0) === 2;
+  const disabledMetrics = useDisabledMetrics();
   const buildings = useModelStore((state) => state.buildings);
 
   const { selectedClassMetric, setSelectedClassMetric, refreshSelectedMetricBounds } = useHeatmapStore(
@@ -42,7 +45,7 @@ export default function MetricSelector() {
       aria-label="Select metric"
       className="border rounded-md px-2 py-1 w-full"
     >
-      {ORDERED_BUILDING_METRIC_IDS.map((name) => (
+      {getSelectableMetrics(ORDERED_BUILDING_METRIC_IDS, disabledMetrics, selectedClassMetric.name).map((name) => (
         <option key={name} value={name}>
           {formatBuildingMetricDisplayName(name, isCommitComparisonMode)}
         </option>
