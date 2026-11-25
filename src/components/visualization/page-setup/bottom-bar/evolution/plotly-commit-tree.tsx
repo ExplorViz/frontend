@@ -18,7 +18,9 @@ import {
   getCommitAuthorLabel,
   getCommitAuthorOptionsFromCommitTree,
   getFirstBranchWithCommits,
+  getMetricLabel,
   getMetricValue,
+  hasAverageMetric,
   hasSkippedCommitsBetweenVisiblePoints,
   removeCommitsNotInCommitTrees,
   removeFilteredCommitsFromSelection,
@@ -34,6 +36,7 @@ import {
   getDefaultMetricName,
   hasActiveAuthorFilter,
   hasActiveCommitTreeFilters,
+  MetricAggregation,
   NONE_METRIC,
   RepoNameCommitTreeMap,
 } from 'explorviz-frontend/src/utils/evolution-schemes/evolution-data';
@@ -298,6 +301,7 @@ export default function PlotlyCommitTree() {
   const setSelectedBranchNameForRepo = useCommitTreeStateStore((state) => state.setSelectedBranchNameForRepo);
   const selectedBranchName = repoNameToSelectedBranchNameMap.get(selectedRepoName) ?? '';
   const [selectedMetric, setSelectedMetric] = useState(NONE_METRIC);
+  const [selectedAggregation, setSelectedAggregation] = useState<MetricAggregation>('sum');
   const hasInitializedMetricRef = useRef(false);
   const [appliedMetricChangeThreshold, setAppliedMetricChangeThreshold] = useState(DEFAULT_METRIC_CHANGE_THRESHOLD);
   const [showFiltersRow, setShowFiltersRow] = useState(false);
@@ -319,6 +323,8 @@ export default function PlotlyCommitTree() {
   const chartLinkTooltip = getCommitChartLinkTooltip(selectedCommitsForRepo.length);
   const selectedBranch = commitTree?.branches.find((branch) => branch.name === selectedBranchName);
   const availableMetrics = selectedBranch ? getAvailableMetricNames(selectedBranch) : [];
+  const isAverageAvailable = selectedBranch !== undefined && hasAverageMetric(selectedBranch, selectedMetric);
+  const aggregation = isAverageAvailable ? selectedAggregation : 'sum';
   const hasActiveFilters = hasActiveCommitTreeFilters(appliedCommitTreeFilters, appliedMetricChangeThreshold);
   const hasAuthorOptions = useMemo(() => getCommitAuthorOptionsFromCommitTree(commitTree).length > 0, [commitTree]);
   const isAuthorFilterActive = hasActiveAuthorFilter(appliedCommitTreeFilters);
@@ -381,6 +387,7 @@ export default function PlotlyCommitTree() {
   const authorKeys = appliedCommitTreeFilters.authorKeys;
 
   const branchChartSeriesOptions = {
+    aggregation,
     ...(isMetricChangeFilterActive ? { metricChangeThreshold } : {}),
     ...(authorKeys !== undefined ? { authorKeys } : {}),
   };
@@ -391,7 +398,15 @@ export default function PlotlyCommitTree() {
     }
 
     return buildBranchChartSeries(selectedBranch, xAxisPlacement, selectedMetric, branchChartSeriesOptions);
-  }, [selectedBranch, xAxisPlacement, selectedMetric, isMetricChangeFilterActive, metricChangeThreshold, authorKeys]);
+  }, [
+    selectedBranch,
+    xAxisPlacement,
+    selectedMetric,
+    aggregation,
+    isMetricChangeFilterActive,
+    metricChangeThreshold,
+    authorKeys,
+  ]);
   const updateAnimationPositionBar = () => {
     const plotlyDiv = plotlyCommitDivRef.current;
     if (!plotlyDiv || !chartSeries || !selectedBranch) {
@@ -434,8 +449,8 @@ export default function PlotlyCommitTree() {
   }, [chartSeries, isMetricChangeFilterActive]);
 
   const hoverText = useMemo(
-    () => (chartSeries ? buildHoverText(chartSeries.commits, selectedMetric) : []),
-    [chartSeries, selectedMetric]
+    () => (chartSeries ? buildHoverText(chartSeries.commits, selectedMetric, aggregation) : []),
+    [chartSeries, selectedMetric, aggregation]
   );
 
   const baseMarkerStyles = useMemo(() => {
@@ -458,12 +473,13 @@ export default function PlotlyCommitTree() {
 
     return buildLayout(
       selectedMetric,
+      aggregation,
       chartSeries.yValues,
       chartSeries.xValues,
       xAxisPlacement,
       chartSeries.commits.length
     );
-  }, [chartSeries, selectedMetric, xAxisPlacement]);
+  }, [chartSeries, selectedMetric, aggregation, xAxisPlacement]);
 
   const chartUiRevision = useMemo(() => {
     if (!chartSeries || !selectedBranch) {
@@ -476,6 +492,7 @@ export default function PlotlyCommitTree() {
     return [
       selectedBranch.name,
       selectedMetric,
+      aggregation,
       xAxisPlacement,
       appliedMetricChangeThreshold,
       authorKeys?.join('|') ?? 'all-authors',
@@ -483,7 +500,15 @@ export default function PlotlyCommitTree() {
       firstCommitHash,
       lastCommitHash,
     ].join(':');
-  }, [chartSeries, selectedBranch, selectedMetric, xAxisPlacement, appliedMetricChangeThreshold, authorKeys]);
+  }, [
+    chartSeries,
+    selectedBranch,
+    selectedMetric,
+    aggregation,
+    xAxisPlacement,
+    appliedMetricChangeThreshold,
+    authorKeys,
+  ]);
 
   const chartCommitsRef = useRef<CommitNode[]>([]);
   const chartXValuesRef = useRef<number[]>([]);
@@ -543,7 +568,8 @@ export default function PlotlyCommitTree() {
       repoNameCommitTreeMap,
       selectedMetric,
       isMetricChangeFilterActive ? metricChangeThreshold : 0,
-      authorKeys
+      authorKeys,
+      aggregation
     );
 
     if (updatedSelectedCommits === selectedCommits) {
@@ -557,6 +583,7 @@ export default function PlotlyCommitTree() {
     metricChangeThreshold,
     authorKeys,
     selectedMetric,
+    aggregation,
     selectedRepoName,
     repoNameCommitTreeMap,
     selectedCommits,
@@ -710,7 +737,14 @@ export default function PlotlyCommitTree() {
     // Plotly mutates layout ranges while panning and zooming. Rebuild the
     // bounds from the current series so refocusing always fits all visible commits.
     const { xRange, yRange } = getLayoutAxisRanges(
-      buildLayout(selectedMetric, chartSeries.yValues, chartSeries.xValues, xAxisPlacement, chartSeries.commits.length)
+      buildLayout(
+        selectedMetric,
+        aggregation,
+        chartSeries.yValues,
+        chartSeries.xValues,
+        xAxisPlacement,
+        chartSeries.commits.length
+      )
     );
 
     if (!xRange || !yRange) {
@@ -766,7 +800,8 @@ export default function PlotlyCommitTree() {
         repoNameCommitTreeMap,
         selectedMetric,
         selectedMetric !== NONE_METRIC && metricChangeThreshold > 0 ? metricChangeThreshold : 0,
-        authorKeys
+        authorKeys,
+        aggregation
       );
     }
 
@@ -876,6 +911,24 @@ export default function PlotlyCommitTree() {
                 {metricName}
               </option>
             ))}
+          </select>
+        </label>
+        <label className="commit-metrics-chart-control">
+          <span className="commit-metrics-chart-control-label">Calculation</span>
+          <select
+            value={aggregation}
+            onChange={(event) => setSelectedAggregation(event.target.value as MetricAggregation)}
+            disabled={!isAverageAvailable}
+            aria-label="Select metric calculation"
+            title={
+              isAverageAvailable
+                ? 'Sum over all files or average of the files that have the metric'
+                : 'No average available for this metric'
+            }
+            className="commit-metrics-chart-select"
+          >
+            <option value="sum">Sum</option>
+            <option value="average">Average</option>
           </select>
         </label>
         <label className="commit-metrics-chart-control">
@@ -1233,7 +1286,7 @@ function escapeHoverHtml(text: string): string {
   return text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 }
 
-function buildHoverText(chartCommits: CommitNode[], metricName: string): string[] {
+function buildHoverText(chartCommits: CommitNode[], metricName: string, aggregation: MetricAggregation): string[] {
   return chartCommits.map((commit) => {
     const lines = [`Commit ID: ${commit.hash}`];
     const formattedCommitDate = formatCommitDate(commit);
@@ -1246,10 +1299,10 @@ function buildHoverText(chartCommits: CommitNode[], metricName: string): string[
       lines.push(`${tagLabel}: ${escapeHoverHtml(commit.tags.join(', '))}`);
     }
     if (metricName !== NONE_METRIC) {
-      const metricValue = getMetricValue(commit, metricName);
-      lines.push(
-        metricValue == null ? `${metricName}: pending` : `${metricName}: ${metricValue.toLocaleString('en-US')}`
-      );
+      const metricValue = getMetricValue(commit, metricName, aggregation);
+      const label = getMetricLabel(metricName, aggregation);
+      const missingText = commit.hasAccumulatedMetrics ? 'not available' : 'pending';
+      lines.push(`${label}: ${metricValue == null ? missingText : metricValue.toLocaleString('en-US')}`);
     }
     if (!commit.hasAccumulatedMetrics) {
       lines.push('Metrics pending');
@@ -1282,6 +1335,7 @@ function getNumericMinMax(values: Array<number | null>): {
 
 function buildLayout(
   metricName: string,
+  aggregation: MetricAggregation,
   yValues: Array<number | null>,
   xValues: number[],
   placement: CommitXAxisPlacement,
@@ -1317,11 +1371,12 @@ function buildLayout(
       showticklabels: metricName !== NONE_METRIC,
       automargin: false,
       ticklabeloverflow: 'allow',
-      tickformat: metricName === NONE_METRIC ? undefined : '.2s',
+      // Averages often change too little for two significant digits.
+      tickformat: metricName === NONE_METRIC || aggregation === 'average' ? undefined : '.2s',
       tickfont: { color: '#7f7f7f', size: 11 },
       title: {
         font: { color: '#7f7f7f', size: 13 },
-        text: metricName === NONE_METRIC ? '' : metricName,
+        text: metricName === NONE_METRIC ? '' : getMetricLabel(metricName, aggregation),
       },
     },
     annotations: [],

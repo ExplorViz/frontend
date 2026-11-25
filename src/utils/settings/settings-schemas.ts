@@ -392,6 +392,12 @@ export enum BuildingMetrics {
   classCount = 'classCount',
   functionCount = 'functionCount',
   variableCount = 'variableCount',
+  cyclomatic_complexity = 'cyclomatic_complexity',
+  cyclomatic_complexity_weighted = 'cyclomatic_complexity_weighted',
+  npath_complexity = 'npath_complexity',
+  nestedBlockDepth = 'nestedBlockDepth',
+  LCOM4 = 'LCOM4',
+  unmaintainability_index = 'unmaintainability_index',
   commitCount = 'commitCount',
   commitActivity = 'commitActivity',
   coreContributorActivity = 'coreContributorActivity',
@@ -404,6 +410,12 @@ export enum BuildingMetrics {
 
 export const BUILDING_METRIC_NAMES = Object.values(BuildingMetrics);
 
+/** Code metrics whose values are not integers. */
+export const FRACTIONAL_CODE_METRICS: ReadonlySet<string> = new Set([
+  BuildingMetrics.cyclomatic_complexity_weighted,
+  BuildingMetrics.unmaintainability_index,
+]);
+
 export enum SelectedBuildingMetric {
   None = 'None',
   size = 'size',
@@ -414,6 +426,12 @@ export enum SelectedBuildingMetric {
   classCount = 'classCount',
   functionCount = 'functionCount',
   variableCount = 'variableCount',
+  cyclomatic_complexity = 'cyclomatic_complexity',
+  cyclomatic_complexity_weighted = 'cyclomatic_complexity_weighted',
+  npath_complexity = 'npath_complexity',
+  nestedBlockDepth = 'nestedBlockDepth',
+  LCOM4 = 'LCOM4',
+  unmaintainability_index = 'unmaintainability_index',
   commitCount = 'commitCount',
   commitActivity = 'commitActivity',
   coreContributorActivity = 'coreContributorActivity',
@@ -434,6 +452,12 @@ export const SELECTED_BUILDING_METRIC_OPTIONS: SelectedBuildingMetric[] = [
   SelectedBuildingMetric.classCount,
   SelectedBuildingMetric.functionCount,
   SelectedBuildingMetric.variableCount,
+  SelectedBuildingMetric.cyclomatic_complexity,
+  SelectedBuildingMetric.cyclomatic_complexity_weighted,
+  SelectedBuildingMetric.npath_complexity,
+  SelectedBuildingMetric.nestedBlockDepth,
+  SelectedBuildingMetric.LCOM4,
+  SelectedBuildingMetric.unmaintainability_index,
   SelectedBuildingMetric.commitCount,
   SelectedBuildingMetric.commitActivity,
   SelectedBuildingMetric.coreContributorActivity,

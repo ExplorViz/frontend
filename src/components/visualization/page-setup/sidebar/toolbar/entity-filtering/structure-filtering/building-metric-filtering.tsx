@@ -3,7 +3,10 @@ import React, { useEffect, useImperativeHandle, useState } from 'react';
 import DualRangeSlider from 'explorviz-frontend/src/components/dual-range-slider';
 import { formatWithUpToTwoDecimals } from 'explorviz-frontend/src/components/visualization/rendering/popups/city-popups/building-metrics-utils';
 import { MetricRange, UNBOUNDED_METRIC_RANGE } from 'explorviz-frontend/src/stores/entity-filtering-store';
-import { sortBuildingMetricNames } from 'explorviz-frontend/src/utils/settings/settings-schemas';
+import {
+  FRACTIONAL_CODE_METRICS,
+  sortBuildingMetricNames,
+} from 'explorviz-frontend/src/utils/settings/settings-schemas';
 
 type MetricBounds = { min: number; max: number };
 
@@ -25,13 +28,16 @@ export type BuildingMetricFilteringHandle = {
 
 const isNormalizedMetricBounds = (bounds: MetricBounds) => bounds.min === 0 && bounds.max <= 1;
 
-const getMetricStep = (bounds: MetricBounds) => (isNormalizedMetricBounds(bounds) ? 0.01 : 1);
+const getMetricStep = (metricName: string, bounds: MetricBounds) =>
+  isNormalizedMetricBounds(bounds) || FRACTIONAL_CODE_METRICS.has(metricName) ? 0.01 : 1;
 
 /** Clamps a dialed or typed value into the bounds and snaps it to the metric's step. */
-const snapMetricValue = (value: number, bounds: MetricBounds) => {
+const snapMetricValue = (value: number, bounds: MetricBounds, step: number) => {
   const clamped = Math.min(bounds.max, Math.max(bounds.min, value));
   // Rounding via toFixed avoids float noise such as 0.29000000000000004 from step snapping.
-  return isNormalizedMetricBounds(bounds) ? Number(clamped.toFixed(2)) : Math.round(clamped);
+  const snapped = step < 1 ? Number(clamped.toFixed(2)) : Math.round(clamped);
+  // Rounding up must not exceed the largest value, as this would exclude its building.
+  return Math.min(bounds.max, snapped);
 };
 
 /**
@@ -39,8 +45,8 @@ const snapMetricValue = (value: number, bounds: MetricBounds) => {
  * value in the landscape is stored as unbounded, so the filter does not start
  * excluding buildings once a later landscape contains larger values.
  */
-const toMetricRange = (lower: number, upper: number, bounds: MetricBounds): MetricRange => {
-  const [min, max] = [snapMetricValue(lower, bounds), snapMetricValue(upper, bounds)].sort((a, b) => a - b);
+const toMetricRange = (lower: number, upper: number, bounds: MetricBounds, step: number): MetricRange => {
+  const [min, max] = [snapMetricValue(lower, bounds, step), snapMetricValue(upper, bounds, step)].sort((a, b) => a - b);
   return { min, max: max >= bounds.max ? Number.POSITIVE_INFINITY : max };
 };
 
@@ -79,6 +85,7 @@ const BuildingMetricFiltering = function BuildingMetricFiltering({
       <div className="building-metric-filter-grid">
         {sortBuildingMetricNames(Object.keys(metricBounds)).map((metricName, index) => {
           const bounds = metricBounds[metricName];
+          const step = getMetricStep(metricName, bounds);
           const range = selectedMetricRanges[metricName] ?? UNBOUNDED_METRIC_RANGE;
           const lower = Math.min(bounds.max, Math.max(bounds.min, range.min));
           const upper = Math.min(bounds.max, Math.max(bounds.min, range.max));
@@ -93,15 +100,15 @@ const BuildingMetricFiltering = function BuildingMetricFiltering({
                 <DualRangeSlider
                   min={bounds.min}
                   max={bounds.max}
-                  step={getMetricStep(bounds)}
+                  step={step}
                   value={[lower, upper]}
                   // A slider without any span would divide by zero when placing its thumbs.
                   disabled={bounds.max <= bounds.min}
                   onChange={([newLower, newUpper]) =>
-                    previewMetricRange(metricName, toMetricRange(newLower, newUpper, bounds))
+                    previewMetricRange(metricName, toMetricRange(newLower, newUpper, bounds, step))
                   }
                   onChangeEnd={([newLower, newUpper]) =>
-                    updateMetricRange(metricName, toMetricRange(newLower, newUpper, bounds))
+                    updateMetricRange(metricName, toMetricRange(newLower, newUpper, bounds, step))
                   }
                   getTooltipText={formatWithUpToTwoDecimals}
                 />
@@ -111,16 +118,18 @@ const BuildingMetricFiltering = function BuildingMetricFiltering({
                 ariaLabel={`${metricName} minimum`}
                 value={lower}
                 bounds={bounds}
+                step={step}
                 style={{ gridColumn: 2, gridRow: rowStart + 1 }}
-                onCommit={(value) => updateMetricRange(metricName, toMetricRange(value, upper, bounds))}
+                onCommit={(value) => updateMetricRange(metricName, toMetricRange(value, upper, bounds, step))}
               />
               <MetricBoundInput
                 className="building-metric-filter-value building-metric-filter-value--max"
                 ariaLabel={`${metricName} maximum`}
                 value={upper}
                 bounds={bounds}
+                step={step}
                 style={{ gridColumn: 3, gridRow: rowStart + 1 }}
-                onCommit={(value) => updateMetricRange(metricName, toMetricRange(lower, value, bounds))}
+                onCommit={(value) => updateMetricRange(metricName, toMetricRange(lower, value, bounds, step))}
               />
             </React.Fragment>
           );
@@ -135,6 +144,7 @@ interface MetricBoundInputProps {
   ariaLabel: string;
   value: number;
   bounds: MetricBounds;
+  step: number;
   style: React.CSSProperties;
   onCommit: (value: number) => void;
 }
@@ -144,7 +154,7 @@ interface MetricBoundInputProps {
  * and only applies it on blur or Enter, so intermediate input such as an empty
  * field does not refilter the whole city on every keystroke.
  */
-function MetricBoundInput({ className, ariaLabel, value, bounds, style, onCommit }: MetricBoundInputProps) {
+function MetricBoundInput({ className, ariaLabel, value, bounds, step, style, onCommit }: MetricBoundInputProps) {
   const [draft, setDraft] = useState(String(value));
 
   useEffect(() => setDraft(String(value)), [value]);
@@ -166,7 +176,7 @@ function MetricBoundInput({ className, ariaLabel, value, bounds, style, onCommit
       type="number"
       min={bounds.min}
       max={bounds.max}
-      step={getMetricStep(bounds)}
+      step={step}
       value={draft}
       aria-label={ariaLabel}
       style={style}

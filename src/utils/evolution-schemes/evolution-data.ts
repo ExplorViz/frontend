@@ -10,6 +10,9 @@ export type CommitTree = {
 
 export type CommitXAxisPlacement = 'equidistant' | 'time';
 
+/** How the metric of a commit is calculated from its files. */
+export type MetricAggregation = 'sum' | 'average';
+
 export type CommitSampling = 'none' | 'daily' | 'monthly' | 'yearly';
 
 export type CommitTreeFilters = {
@@ -58,7 +61,10 @@ export type CommitNode = {
   hash: string;
   commitDate?: string;
   author?: CommitAuthor;
+  /** Sums over all files of the commit. */
   metrics?: Record<string, number>;
+  /** For each metric, the number of files that have it. Missing in older data. */
+  metricFileCounts?: Record<string, number>;
   hasAccumulatedMetrics?: boolean;
   tags?: string[];
 };
@@ -117,6 +123,7 @@ export function normalizeCommitNode(commit: CommitNode | string): CommitNode {
     ...(commit.commitDate != null && { commitDate: commit.commitDate }),
     ...(normalizedAuthor && { author: normalizedAuthor }),
     ...(hasAccumulatedMetrics && metrics && { metrics }),
+    ...(hasAccumulatedMetrics && commit.metricFileCounts && { metricFileCounts: commit.metricFileCounts }),
     ...(tags.length > 0 && { tags }),
     hasAccumulatedMetrics,
   };

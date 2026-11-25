@@ -5,6 +5,7 @@ import {
   CommitNode,
   CommitTree,
   CommitXAxisPlacement,
+  MetricAggregation,
   NONE_METRIC,
   RepoNameCommitTreeMap,
 } from 'explorviz-frontend/src/utils/evolution-schemes/evolution-data';
@@ -210,6 +211,7 @@ export type BranchChartSeries = {
 export type BranchChartSeriesOptions = {
   metricChangeThreshold?: number;
   authorKeys?: string[];
+  aggregation?: MetricAggregation;
 };
 
 export type CommitAuthorOption = {
@@ -270,14 +272,15 @@ export function isCommitVisibleWithAuthorFilter(commit: CommitNode, authorKeys: 
 export function getMetricChangeMagnitude(
   commit: CommitNode,
   previousCommit: CommitNode | undefined,
-  metricName: string
+  metricName: string,
+  aggregation: MetricAggregation = 'sum'
 ): number {
   if (!previousCommit) {
     return Number.POSITIVE_INFINITY;
   }
 
-  const current = getMetricValue(commit, metricName);
-  const previous = getMetricValue(previousCommit, metricName);
+  const current = getMetricValue(commit, metricName, aggregation);
+  const previous = getMetricValue(previousCommit, metricName, aggregation);
 
   if (current == null && previous == null) {
     return 0;
@@ -293,13 +296,14 @@ export function meetsMetricChangeThreshold(
   commit: CommitNode,
   previousCommit: CommitNode | undefined,
   metricName: string,
-  threshold: number
+  threshold: number,
+  aggregation: MetricAggregation = 'sum'
 ): boolean {
   if (!previousCommit) {
     return true;
   }
 
-  const magnitude = getMetricChangeMagnitude(commit, previousCommit, metricName);
+  const magnitude = getMetricChangeMagnitude(commit, previousCommit, metricName, aggregation);
 
   if (!Number.isFinite(magnitude)) {
     return true;
@@ -312,13 +316,20 @@ export function isMetricChangeTriggerAtIndex(
   branch: Branch,
   index: number,
   metricName: string,
-  threshold: number
+  threshold: number,
+  aggregation: MetricAggregation = 'sum'
 ): boolean {
   if (index <= 0) {
     return false;
   }
 
-  return meetsMetricChangeThreshold(branch.commits[index], branch.commits[index - 1], metricName, threshold);
+  return meetsMetricChangeThreshold(
+    branch.commits[index],
+    branch.commits[index - 1],
+    metricName,
+    threshold,
+    aggregation
+  );
 }
 
 /**
@@ -341,7 +352,8 @@ export function getCommitIndicesWithAnalyzedMetrics(branch: Branch): number[] {
 export function getCommitIndicesMeetingMetricChangeThreshold(
   branch: Branch,
   metricName: string,
-  threshold: number
+  threshold: number,
+  aggregation: MetricAggregation = 'sum'
 ): number[] {
   const visibleIndices = new Set<number>();
 
@@ -352,7 +364,7 @@ export function getCommitIndicesMeetingMetricChangeThreshold(
       continue;
     }
 
-    if (!isMetricChangeTriggerAtIndex(branch, index, metricName, threshold)) {
+    if (!isMetricChangeTriggerAtIndex(branch, index, metricName, threshold, aggregation)) {
       continue;
     }
 
@@ -367,7 +379,8 @@ export function isCommitVisibleWithMetricChangeFilter(
   branch: Branch,
   commitId: string,
   metricName: string,
-  threshold: number
+  threshold: number,
+  aggregation: MetricAggregation = 'sum'
 ): boolean {
   const commitIndex = branch.commits.findIndex((commit) => commit.hash === commitId);
   if (commitIndex === -1 || !commitHasAnalyzedMetrics(branch.commits[commitIndex])) {
@@ -378,7 +391,7 @@ export function isCommitVisibleWithMetricChangeFilter(
     return true;
   }
 
-  return getCommitIndicesMeetingMetricChangeThreshold(branch, metricName, threshold).includes(commitIndex);
+  return getCommitIndicesMeetingMetricChangeThreshold(branch, metricName, threshold, aggregation).includes(commitIndex);
 }
 
 export function removeFilteredCommitsFromSelection(
@@ -387,7 +400,8 @@ export function removeFilteredCommitsFromSelection(
   repoNameCommitTreeMap: RepoNameCommitTreeMap,
   metricName: string,
   threshold: number,
-  authorKeys?: string[]
+  authorKeys?: string[],
+  aggregation: MetricAggregation = 'sum'
 ): Map<string, Commit[]> {
   const commitTree = repoNameCommitTreeMap.get(repoName);
   if (!commitTree) {
@@ -410,7 +424,7 @@ export function removeFilteredCommitsFromSelection(
       return false;
     }
 
-    return isCommitVisibleWithMetricChangeFilter(branch, commit.commitId, metricName, threshold);
+    return isCommitVisibleWithMetricChangeFilter(branch, commit.commitId, metricName, threshold, aggregation);
   });
 
   if (visibleSelectedCommits.length === selectedForRepo.length) {
@@ -431,7 +445,8 @@ function buildBranchChartSeriesForIndices(
   branch: Branch,
   placement: CommitXAxisPlacement,
   metricName: string,
-  indices: number[]
+  indices: number[],
+  aggregation: MetricAggregation
 ): BranchChartSeries {
   const commits = indices.map((index) => branch.commits[index]);
 
@@ -443,7 +458,7 @@ function buildBranchChartSeriesForIndices(
       yValues:
         metricName === NONE_METRIC
           ? commits.map(() => 0)
-          : commits.map((commit) => getMetricValue(commit, metricName) ?? null),
+          : commits.map((commit) => getMetricValue(commit, metricName, aggregation)),
     };
   }
 
@@ -457,7 +472,7 @@ function buildBranchChartSeriesForIndices(
     yValues:
       metricName === NONE_METRIC
         ? commits.map(() => 0)
-        : commits.map((commit) => getMetricValue(commit, metricName) ?? null),
+        : commits.map((commit) => getMetricValue(commit, metricName, aggregation)),
   };
 }
 
@@ -468,10 +483,11 @@ export function buildBranchChartSeries(
   metricName: string,
   options: BranchChartSeriesOptions = {}
 ): BranchChartSeries {
+  const aggregation = options.aggregation ?? 'sum';
   const shouldFilterByMetricChange =
     options.metricChangeThreshold != null && options.metricChangeThreshold > 0 && metricName !== NONE_METRIC;
   const indices = shouldFilterByMetricChange
-    ? getCommitIndicesMeetingMetricChangeThreshold(branch, metricName, options.metricChangeThreshold!)
+    ? getCommitIndicesMeetingMetricChangeThreshold(branch, metricName, options.metricChangeThreshold!, aggregation)
     : getCommitIndicesWithAnalyzedMetrics(branch);
 
   const filteredIndices =
@@ -479,7 +495,7 @@ export function buildBranchChartSeries(
       ? indices
       : indices.filter((index) => isCommitVisibleWithAuthorFilter(branch.commits[index], options.authorKeys));
 
-  return buildBranchChartSeriesForIndices(branch, placement, metricName, filteredIndices);
+  return buildBranchChartSeriesForIndices(branch, placement, metricName, filteredIndices, aggregation);
 }
 
 export type BranchChartLineSegments = {
@@ -618,9 +634,34 @@ export function hasSkippedCommitsBetweenVisiblePoints(originalIndices: number[])
   return originalIndices.some((index, chartIndex) => chartIndex > 0 && originalIndices[chartIndex - 1] + 1 !== index);
 }
 
-export function getMetricValue(commit: CommitNode, metricName: string): number | null {
-  const value = commit.metrics?.[metricName];
-  return value == null || Number.isNaN(value) ? null : value;
+/**
+ * Value of a metric for a commit. Averages only consider the files that have the metric and are
+ * missing if there is no such file.
+ */
+export function getMetricValue(
+  commit: CommitNode,
+  metricName: string,
+  aggregation: MetricAggregation = 'sum'
+): number | null {
+  const sum = commit.metrics?.[metricName];
+  if (sum == null || Number.isNaN(sum)) {
+    return null;
+  }
+  if (aggregation === 'sum') {
+    return sum;
+  }
+
+  const fileCount = commit.metricFileCounts?.[metricName];
+  return fileCount ? sum / fileCount : null;
+}
+
+/** Some metrics have no average, e.g. the number of files and metrics of older data. */
+export function hasAverageMetric(branch: Branch, metricName: string): boolean {
+  return branch.commits.some((commit) => getMetricValue(commit, metricName, 'average') !== null);
+}
+
+export function getMetricLabel(metricName: string, aggregation: MetricAggregation): string {
+  return aggregation === 'average' ? `${metricName} (avg)` : metricName;
 }
 
 export function formatCommitDate(commit: CommitNode): string | undefined {

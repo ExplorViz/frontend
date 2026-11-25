@@ -4,7 +4,7 @@ import ModelTypeBadge from 'explorviz-frontend/src/components/badges/model-type-
 import LinkButton from 'explorviz-frontend/src/components/link-button.tsx';
 import {
   coerceMetricNumber,
-  formatInteger,
+  formatMetricDifference,
   formatMetricValue,
 } from 'explorviz-frontend/src/components/visualization/rendering/popups/city-popups/building-metrics-utils';
 import BuildingFileHistoryTab from 'explorviz-frontend/src/components/visualization/rendering/popups/city-popups/building/building-file-history-tab';
@@ -298,7 +298,7 @@ export default function BuildingPopup({ popupData }: BuildingPopupProps) {
                       const previousValue = coerceMetricNumber(value.previous);
                       const hasChanged = previousValue !== null && currentValue !== previousValue;
                       const diff = previousValue !== null ? (currentValue ?? 0) - previousValue : 0;
-                      const diffText = diff > 0 ? `+${formatInteger(diff)}` : `${formatInteger(diff)}`;
+                      const diffText = formatMetricDifference(name, diff);
 
                       return (
                         <tr key={name}>

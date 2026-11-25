@@ -63,6 +63,18 @@ export function getMetricValues(
     case SelectedBuildingHeatmapMetric.functionCount:
     case BuildingMetricIds.variableCount:
     case SelectedBuildingHeatmapMetric.variableCount:
+    case BuildingMetricIds.cyclomatic_complexity:
+    case SelectedBuildingHeatmapMetric.cyclomatic_complexity:
+    case BuildingMetricIds.cyclomatic_complexity_weighted:
+    case SelectedBuildingHeatmapMetric.cyclomatic_complexity_weighted:
+    case BuildingMetricIds.npath_complexity:
+    case SelectedBuildingHeatmapMetric.npath_complexity:
+    case BuildingMetricIds.nestedBlockDepth:
+    case SelectedBuildingHeatmapMetric.nestedBlockDepth:
+    case BuildingMetricIds.LCOM4:
+    case SelectedBuildingHeatmapMetric.LCOM4:
+    case BuildingMetricIds.unmaintainability_index:
+    case SelectedBuildingHeatmapMetric.unmaintainability_index:
     case BuildingMetricIds.commitCount:
     case SelectedBuildingHeatmapMetric.commitCount:
     case BuildingMetricIds.commitActivity:
