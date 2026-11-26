@@ -23,7 +23,20 @@ interface SocialMetricsState {
   selectedTimeRange: { from: number; to: number } | null;
   normalization: { logScale: boolean; quantile: number };
 
-  initializeForSelection: (repositoryName: string, commits: SelectedCommit[]) => Promise<void>;
+  /** The metrics fetched for the selection, until they are replaced by those of another selection. */
+  _loadedMetrics: SocialMetricDto[] | null;
+  /**
+   * Fetches the contributors and social metrics of the selection, without touching the landscape; that is
+   * what `applyLoadedMetrics` does. Resolves to whether they were fetched and still belong to the latest
+   * selection.
+   */
+  loadForSelection: (repositoryName: string, commits: SelectedCommit[]) => Promise<boolean>;
+  /**
+   * Merges the fetched metrics into the evolution landscape. With `render`, the landscape on screen is
+   * updated as well; without, that is left to the caller, who is about to render the landscape anyway.
+   * Returns false if there are no fetched metrics (yet).
+   */
+  applyLoadedMetrics: (options: { render: boolean }) => boolean;
   updateSocialMetrics: () => Promise<void>;
   setSelectedContributorIds: (ids: Set<number>) => void;
   setSelectedTimeRange: (range: { from: number; to: number } | null) => void;
@@ -31,6 +44,10 @@ interface SocialMetricsState {
   reset: () => void;
   _applyAndRender: (dtos: SocialMetricDto[]) => void;
 }
+
+// Counts the selections metrics were fetched for, so a response that arrives after the selection changed
+// again (or was reset) is dropped.
+let latestLoad = 0;
 
 const EMPTY_STATE = {
   repositoryName: null,
@@ -40,16 +57,20 @@ const EMPTY_STATE = {
   selectedContributorIds: new Set<number>(),
   selectedTimeRange: null,
   normalization: { logScale: true, quantile: 0.99 }, // possibly null this out instead, cleaner and should be handled
+  _loadedMetrics: null,
 };
 
 export const useSocialMetricsStore = create<SocialMetricsState>((set, get) => ({
   ...EMPTY_STATE,
 
-  initializeForSelection: async (repositoryName, commits) => {
+  loadForSelection: async (repositoryName, commits) => {
     if (commits.length === 0) {
       get().reset();
-      return;
+      return false;
     }
+
+    const load = ++latestLoad;
+    set({ _loadedMetrics: null });
 
     // determine latest selected commit
     const sorted = sortSelectedCommitsForComparison(
@@ -65,6 +86,9 @@ export const useSocialMetricsStore = create<SocialMetricsState>((set, get) => ({
         fetchService.fetchContributors(repositoryName),
         fetchService.fetchSocialMetrics(repositoryName, commit),
       ]);
+      if (load !== latestLoad) {
+        return false;
+      }
 
       set({
         repositoryName,
@@ -73,12 +97,31 @@ export const useSocialMetricsStore = create<SocialMetricsState>((set, get) => ({
         availableTimeRange: contributorsResponse.timeRange,
         selectedContributorIds: new Set(contributorsResponse.contributors.map((c) => c.contributorId)),
         selectedTimeRange: null,
+        _loadedMetrics: dtos,
       });
-      get()._applyAndRender(dtos);
+      return true;
     } catch (e) {
-      get().reset();
+      if (load === latestLoad) {
+        get().reset();
+      }
       console.error(`Failed to fetch social metrics for repoName: ${repositoryName}, reason: ${e}`);
+      return false;
     }
+  },
+
+  applyLoadedMetrics: ({ render }) => {
+    const { repositoryName, _loadedMetrics } = get();
+    if (!repositoryName || !_loadedMetrics) {
+      return false;
+    }
+
+    if (render) {
+      get()._applyAndRender(_loadedMetrics);
+    } else {
+      invalidateBuildingMetricBoundsCache();
+      useEvolutionDataRepositoryStore.getState().applySocialMetrics(_loadedMetrics);
+    }
+    return true;
   },
 
   updateSocialMetrics: async () => {
@@ -101,7 +144,10 @@ export const useSocialMetricsStore = create<SocialMetricsState>((set, get) => ({
   setSelectedContributorIds: (ids) => set({ selectedContributorIds: ids }),
   setSelectedTimeRange: (range) => set({ selectedTimeRange: range }),
   setNormalization: (normalization) => set({ normalization }),
-  reset: () => set(EMPTY_STATE),
+  reset: () => {
+    latestLoad++;
+    set(EMPTY_STATE);
+  },
 
   _applyAndRender: (dtos) => {
     const { repositoryName } = get();

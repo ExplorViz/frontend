@@ -402,9 +402,20 @@ export const useRenderingServiceStore = create<RenderingServiceState>((set, get)
       _analysisMode: hasTwoCommitsInAnyRepository ? 'evolution comparison' : 'evolution',
     });
 
-    await useEvolutionDataRepositoryStore
+    // The social metrics do not depend on the structure, so both are requested at once.
+    const structureStored = useEvolutionDataRepositoryStore
       .getState()
       .fetchAndStoreEvolutionDataForSelectedCommits(repoNameToSelectedCommits);
+    const socialMetricsLoaded = useSocialMetricsStore
+      .getState()
+      .loadForSelection(repositoryName, repoNameToSelectedCommits.get(repositoryName) ?? []);
+
+    await structureStored;
+
+    // Social metrics that are there already become part of the landscape before it is rendered. Later
+    // ones are merged into the rendered landscape when they arrive, which the landscape does not wait for.
+    const hasStructure = useEvolutionDataRepositoryStore.getState().getRepoNameToFlatLandscapeMap().size > 0;
+    const socialMetricsApplied = hasStructure && useSocialMetricsStore.getState().applyLoadedMetrics({ render: false });
 
     const evolutionLandscapeMap = useEvolutionDataRepositoryStore.getState().getRepoNameToFlatLandscapeMap();
 
@@ -451,9 +462,13 @@ export const useRenderingServiceStore = create<RenderingServiceState>((set, get)
         combinedDynamicLandscapeData,
         { metrics: {}, communications: [], fromUnixNano: 0n, toUnixNano: 0n } // Default for evolution mode for now
       );
-      void useSocialMetricsStore
-        .getState()
-        .initializeForSelection(repositoryName, repoNameToSelectedCommits.get(repositoryName) ?? []);
+      if (!socialMetricsApplied) {
+        void socialMetricsLoaded.then((loaded) => {
+          if (loaded) {
+            useSocialMetricsStore.getState().applyLoadedMetrics({ render: true });
+          }
+        });
+      }
     }
 
     useTimestampRepositoryStore.getState().restartTimestampPollingAndVizUpdate(flattenedSelectedCommits);

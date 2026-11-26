@@ -253,3 +253,10 @@ export const useHeatmapStore = create<HeatmapConfigurationState>((set, get) => (
     });
   },
 }));
+
+// The bounds of the selected metric belong to the buildings on screen, so they follow them.
+useModelStore.subscribe((state, previous) => {
+  if (state.buildings !== previous.buildings) {
+    useHeatmapStore.getState().refreshSelectedMetricBounds();
+  }
+});

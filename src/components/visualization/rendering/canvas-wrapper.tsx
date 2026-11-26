@@ -12,7 +12,6 @@ import {
 import { INITIAL_CAMERA_POSITION, useCameraControls } from 'explorviz-frontend/src/stores/camera-controls-store';
 import { useConfigurationStore } from 'explorviz-frontend/src/stores/configuration';
 import { useImmersiveViewStore } from 'explorviz-frontend/src/stores/immersive-view-store';
-import { beginLandscapeRenderTask } from 'explorviz-frontend/src/stores/landscape-render-progress';
 import { useLayoutStore } from 'explorviz-frontend/src/stores/layout-store';
 import { useModelStore } from 'explorviz-frontend/src/stores/repos/model-repository';
 import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
@@ -31,7 +30,6 @@ import {
 } from 'explorviz-frontend/src/utils/landscape-schemes/flat-landscape';
 import { LandscapeData } from 'explorviz-frontend/src/utils/landscape-schemes/landscape-data';
 import { useRoomLayout } from 'explorviz-frontend/src/utils/collaboration/layout';
-import layoutLandscape from 'explorviz-frontend/src/utils/layout/landscape-layouter';
 import AutoDistrictOpenerR3F from 'explorviz-frontend/src/view-objects/3d/auto-district-opener-r3f';
 import { AnimatedPing } from 'explorviz-frontend/src/view-objects/3d/city/animated-ping-r3f';
 import CodeCity from 'explorviz-frontend/src/view-objects/3d/city/code-city';
@@ -114,7 +112,6 @@ function CanvasWrapper({
 
   const hapSystemManager = HAPSystemManager.getInstance();
   const lastFlatLandscapeIdsRef = useRef<string[]>([]);
-  const layoutGenerationRef = useRef(0);
 
   const [directionalLight, setDirectionalLight] = useState<THREE.DirectionalLight | null>(null);
 
@@ -323,7 +320,7 @@ function CanvasWrapper({
     }))
   );
 
-  useLandscapeDataWatcher(landscapeData);
+  const relayout = useLandscapeDataWatcher(landscapeData);
 
   const { resetVisualizationState } = useVisualizationStore(
     useShallow((state) => ({
@@ -388,27 +385,10 @@ function CanvasWrapper({
     useVisualizationStore.getState().actions.filterEntityIds(entityIds);
   }, [landscapeData, buildingCommunications, removedDistrictIds, hapSystemManager]);
 
-  const updateLayout = useCallback(async () => {
-    if (!landscapeData) return;
-
-    const generation = ++layoutGenerationRef.current;
-    const endRenderTask = beginLandscapeRenderTask();
-    try {
-      const layoutMap = await layoutLandscape(landscapeData.flatLandscapeData, removedDistrictIds);
-      if (generation !== layoutGenerationRef.current) {
-        return;
-      }
-      // Pass the structure along: on first load the model store is not populated
-      // yet, and without it every entity type resolves to null and the layouts
-      // are dropped.
-      useLayoutStore.getState().updateLayouts(layoutMap, landscapeData.flatLandscapeData);
-    } finally {
-      endRenderTask();
-    }
-  }, [landscapeData, removedDistrictIds]);
-
+  // The landscape data watcher lays the landscape out when its data changes; this covers everything
+  // else the layout depends on.
   useEffect(() => {
-    updateLayout();
+    relayout();
   }, [
     districtLabelPlacement,
     cityLabelMargin,
@@ -437,7 +417,7 @@ function CanvasWrapper({
     roomLayout,
     spiralCenterOffset,
     spiralGap,
-    updateLayout,
+    relayout,
   ]);
 
   useEffect(() => {

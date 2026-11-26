@@ -1,5 +1,5 @@
 import { LandscapeData } from 'explorviz-frontend/src/utils/landscape-schemes/landscape-data';
-import { PropsWithChildren, useEffect, useRef, useState } from 'react';
+import { PropsWithChildren, useEffect, useState } from 'react';
 import { useShallow } from 'zustand/react/shallow';
 import { useRenderingServiceStore } from '../../stores/rendering-service';
 import { useVisualizationStore } from '../../stores/visualization-store';
@@ -20,18 +20,24 @@ export function EditingProvider({ children }: PropsWithChildren) {
 
   // always +1 of the currently rendered element in history
   const [editingCursor, setEditingCursor] = useState(0);
-  const hasInitializedHistory = useRef(false);
 
-  const addToHistory = (landscapeData: LandscapeData, removedIds?: Set<string>) => {
+  const addToHistory = (editedLandscapeData: LandscapeData, removedIds?: Set<string>) => {
+    // The history starts with the landscape as it was before the first edit. That copy is only taken now:
+    // copying every landscape as it is loaded held up loading and kept a second copy of it in memory.
+    const landscapeBeforeFirstEdit = editingCursor === 0 ? landscapeData : null;
+
     setHistory((prevHistory) => {
-      const currentCursor = editingCursor;
+      const entriesBefore: [LandscapeData, Set<string>][] =
+        prevHistory.length === 0 && landscapeBeforeFirstEdit
+          ? [[structuredClone(landscapeBeforeFirstEdit), removedComponentIds]]
+          : prevHistory.slice(0, editingCursor);
       return [
-        ...prevHistory.slice(0, currentCursor),
-        [structuredClone(landscapeData), removedComponentIds.union(removedIds || new Set<string>())],
+        ...entriesBefore,
+        [structuredClone(editedLandscapeData), removedComponentIds.union(removedIds || new Set<string>())],
       ];
     });
-    setLandscapeData(landscapeData);
-    setEditingCursor((cursor) => cursor + 1);
+    setLandscapeData(editedLandscapeData);
+    setEditingCursor((cursor) => (cursor === 0 && landscapeBeforeFirstEdit ? 2 : cursor + 1));
     if (removedIds) {
       actions.setRemovedDistricts(removedIds);
     }
@@ -43,18 +49,11 @@ export function EditingProvider({ children }: PropsWithChildren) {
   };
 
   useEffect(() => {
-    // Initialize history with the current state on first render when landscapeData is available
-    if (!hasInitializedHistory.current && landscapeData && history.length === 0) {
-      hasInitializedHistory.current = true;
-      setHistory([[structuredClone(landscapeData), removedComponentIds]]);
-      setEditingCursor(1);
-    }
     // Reset history when landscapeData is null
     if (!landscapeData && history.length > 0) {
       reset();
-      hasInitializedHistory.current = false;
     }
-  }, [landscapeData, history.length, reset, removedComponentIds]);
+  }, [landscapeData, history.length, reset]);
 
   const canGoBack = editingCursor > 1;
   const canGoForward = editingCursor < history.length;

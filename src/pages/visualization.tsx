@@ -170,9 +170,6 @@ export default function Visualization() {
     (state) => state.restartTimestampPollingAndVizUpdate
   );
   const manualPollTimestamps = useTimestampPollingStore((state) => state.manuallyPollTimestamps);
-  const fetchAndStoreRepositoryCommitTrees = useEvolutionDataRepositoryStore(
-    (state) => state.fetchAndStoreRepositoryCommitTrees
-  );
   const hasCommitData = useEvolutionDataRepositoryStore((state) =>
     Array.from(state._repoNameCommitTreeMap.values()).some((tree) =>
       tree.branches.some((branch) => branch.commits.length > 0)
@@ -450,7 +447,13 @@ export default function Visualization() {
       restartTimestampPollingAndVizUpdate([]);
 
       // Fetch repositories for evolution mode
-      await fetchAndStoreRepositoryCommitTrees();
+      const fetchedCommitTrees = await useEvolutionDataRepositoryStore.getState().fetchRepositoryCommitTrees();
+
+      // Storing the commit trees makes React draw the commit chart before anything that is awaited from here
+      // on continues. So they are stored only now, and everything up to the request for the landscape of the
+      // selected commits below runs without an await in between: the request is on its way before the chart
+      // is drawn, instead of waiting for it.
+      useEvolutionDataRepositoryStore.getState().storeRepositoryCommitTrees(fetchedCommitTrees);
 
       const repoNameCommitTreeMap = useEvolutionDataRepositoryStore.getState()._repoNameCommitTreeMap;
 

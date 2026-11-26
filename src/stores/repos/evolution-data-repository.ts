@@ -35,6 +35,10 @@ interface EvolutionDataRepositoryState {
   _repoNameCommitTreeMap: RepoNameCommitTreeMap;
   _repoNameToFlatLandscapeMap: Map<string, FlatLandscape>;
   getRepoNameToFlatLandscapeMap: () => Map<string, FlatLandscape>;
+  /** The commit trees of all repositories, without storing them; undefined if they could not be fetched. */
+  fetchRepositoryCommitTrees: () => Promise<RepoNameCommitTreeMap | undefined>;
+  /** Stores fetched commit trees; `undefined` (a failed fetch) empties the stored ones. Returns whether there were any. */
+  storeRepositoryCommitTrees: (repoNameCommitTreeMap: RepoNameCommitTreeMap | undefined) => boolean;
   fetchAndStoreRepositoryCommitTrees: () => Promise<boolean>;
   fetchAndStoreEvolutionDataForSelectedCommits: (
     repoNameToSelectedCommits: Map<string, SelectedCommit[]>
@@ -58,7 +62,7 @@ export const useEvolutionDataRepositoryStore = create<EvolutionDataRepositorySta
     return get()._repoNameToFlatLandscapeMap;
   },
 
-  fetchAndStoreRepositoryCommitTrees: async (): Promise<boolean> => {
+  fetchRepositoryCommitTrees: async (): Promise<RepoNameCommitTreeMap | undefined> => {
     try {
       const filters = useCommitTreeStateStore.getState().getCommitTreeFilters();
       const filterOptions: CommitTreeFilterOptions = {
@@ -77,14 +81,24 @@ export const useEvolutionDataRepositoryStore = create<EvolutionDataRepositorySta
         }
       }
 
-      set({ _repoNameCommitTreeMap: repoNameCommitTreeMap });
+      return repoNameCommitTreeMap;
     } catch (error) {
-      get().resetRepoNameCommitTreeMap();
       console.error(`Failed to build RepoNameCommitTreeMap, reason: ${error}`);
+      return undefined;
+    }
+  },
+
+  storeRepositoryCommitTrees: (repoNameCommitTreeMap: RepoNameCommitTreeMap | undefined): boolean => {
+    if (!repoNameCommitTreeMap) {
+      get().resetRepoNameCommitTreeMap();
       return false;
     }
-
+    set({ _repoNameCommitTreeMap: repoNameCommitTreeMap });
     return true;
+  },
+
+  fetchAndStoreRepositoryCommitTrees: async (): Promise<boolean> => {
+    return get().storeRepositoryCommitTrees(await get().fetchRepositoryCommitTrees());
   },
 
   fetchAndStoreEvolutionDataForSelectedCommits: async (
