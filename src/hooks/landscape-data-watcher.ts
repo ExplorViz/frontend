@@ -1,7 +1,6 @@
 import { useCallback, useEffect, useRef } from 'react';
 
 import debug from 'debug';
-import { useEntityFilteringStore } from 'explorviz-frontend/src/stores/entity-filtering-store';
 import { beginLandscapeRenderTask, waitForNextPaint } from 'explorviz-frontend/src/stores/landscape-render-progress';
 import { useLayoutStore } from 'explorviz-frontend/src/stores/layout-store';
 import { useRenderingServiceStore } from 'explorviz-frontend/src/stores/rendering-service';
@@ -23,6 +22,23 @@ import { DynamicLandscapeData } from 'explorviz-frontend/src/utils/landscape-sch
 import layoutLandscape from 'explorviz-frontend/src/utils/layout/landscape-layouter';
 import { tryApplyPendingSerializedRoom } from 'explorviz-frontend/src/utils/snapshot/snapshot-helpers';
 
+/**
+ * Replaces the models by those of the given landscape. Only to be called for a landscape that is laid
+ * out, or together with its layout: the meshes on screen are built from models and layout, and those
+ * without a model are drawn in a warning color until the next layout replaces them.
+ */
+function setModels(flatLandscapeStructure: FlatLandscape, aggregatedCommunication: CommSummary | undefined) {
+  const buildingCommunications = computeBuildingCommunication(flatLandscapeStructure, aggregatedCommunication);
+
+  useModelStore.getState().setAllModels({
+    cities: Object.values(flatLandscapeStructure.cities),
+    districts: Object.values(flatLandscapeStructure.districts),
+    buildings: Object.values(flatLandscapeStructure.buildings),
+    buildingCommunications: buildingCommunications,
+  });
+  calculateAggregatedCommunications(buildingCommunications);
+}
+
 function refreshBuildingCommunications(
   flatLandscapeStructure: FlatLandscape,
   aggregatedCommunication: CommSummary | undefined
@@ -34,9 +50,10 @@ function refreshBuildingCommunications(
 }
 
 /**
- * Brings the given landscape to the screen and is the one place that lays it out: when its structure
- * changes, the models, communications and layout are updated; for any other change of its data, the
- * communications are refreshed and the layout is computed again (its sizes can depend on metric values).
+ * Brings the given landscape to the screen and is the one place that lays it out and that takes over its
+ * models: when its structure changes, the models and communications are replaced together with the
+ * layout, so the previous landscape stays on screen until then; for any other change of its data, they
+ * are replaced at once and the layout is computed again (its sizes can depend on metric values).
  *
  * Returns `relayout`, to be called when something else the layout depends on changed, e.g. a setting.
  */
@@ -86,8 +103,16 @@ export default function useLandscapeDataWatcher(landscapeData: LandscapeData | n
       return;
     }
 
-    log('Refresh building communication only');
-    refreshBuildingCommunications(flatLandscapeStructure, aggregatedCommunication);
+    // An update for a changed structure that is under way takes over the models of this data with its
+    // layout; the models on screen still belong to the previous structure.
+    if (structureUpdateRef.current) {
+      log('Refresh building communication only');
+      refreshBuildingCommunications(flatLandscapeStructure, aggregatedCommunication);
+      return;
+    }
+
+    log('Refresh models and building communication');
+    setModels(flatLandscapeStructure, aggregatedCommunication);
   };
 
   const relayout = useCallback(async () => {
@@ -156,22 +181,21 @@ export default function useLandscapeDataWatcher(landscapeData: LandscapeData | n
       }
       log('Layouted landscape: ', boxLayoutMap);
 
-      log('Compute building communication');
-      const buildingCommunications = computeBuildingCommunication(flatLandscapeStructure, aggregatedCommunication);
+      // Data of the same structure that arrived while the layout was computed (e.g. social metrics) is
+      // what belongs on screen by now.
+      const latestLandscapeData = useRenderingServiceStore.getState()._landscapeData;
+      const latestHasSameStructure =
+        latestLandscapeData?.flatLandscapeData !== undefined &&
+        getFlatLandscapeStructureSignature(latestLandscapeData.flatLandscapeData) ===
+          getFlatLandscapeStructureSignature(flatLandscapeStructure);
 
-      // In Remove mode the entity filter applier owns cities/districts/buildings.
-      if (useEntityFilteringStore.getState().filterMode === 'Remove') {
-        useModelStore.getState().setBuildingCommunications(buildingCommunications);
+      // Models and layout are set in one go, so the meshes are rebuilt once, from both.
+      log('Set models and building communication');
+      if (latestHasSameStructure) {
+        setModels(latestLandscapeData.flatLandscapeData, latestLandscapeData.aggregatedFileCommunication);
       } else {
-        useModelStore.getState().setAllModels({
-          cities: Object.values(flatLandscapeStructure.cities),
-          districts: Object.values(flatLandscapeStructure.districts),
-          buildings: Object.values(flatLandscapeStructure.buildings),
-          buildingCommunications: buildingCommunications,
-        });
+        setModels(flatLandscapeStructure, aggregatedCommunication);
       }
-
-      calculateAggregatedCommunications(buildingCommunications);
 
       // The District tree may have changed (e.g. Districts removed or restored by
       // the entity filter), which can leave open Districts inside closed ones.

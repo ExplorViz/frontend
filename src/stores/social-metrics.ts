@@ -4,13 +4,11 @@ import {
   SocialMetricDto,
   useEvolutionDataFetchServiceStore,
 } from 'explorviz-frontend/src/stores/evolution-data-fetch-service';
-import { BuildingMetricIds, useHeatmapStore } from 'explorviz-frontend/src/stores/heatmap/heatmap-store';
 import { useRenderingServiceStore } from 'explorviz-frontend/src/stores/rendering-service';
 import {
   sortSelectedCommitsForComparison,
   useEvolutionDataRepositoryStore,
 } from 'explorviz-frontend/src/stores/repos/evolution-data-repository';
-import { useModelStore } from 'explorviz-frontend/src/stores/repos/model-repository';
 import { invalidateBuildingMetricBoundsCache } from 'explorviz-frontend/src/utils/settings/building-metrics';
 import { create } from 'zustand';
 
@@ -159,20 +157,7 @@ export const useSocialMetricsStore = create<SocialMetricsState>((set, get) => ({
 
     useEvolutionDataRepositoryStore.getState().applySocialMetrics(dtos);
 
-    const mergedFlat = useEvolutionDataRepositoryStore.getState()._repoNameToFlatLandscapeMap.get(repositoryName);
-
-    if (mergedFlat) {
-      const visible = useRenderingServiceStore.getState()._applyEvolutionLayoutFilter(mergedFlat);
-
-      useModelStore.getState().setBuildings(Object.values(visible.buildings));
-    }
-
-    const heatmap = useHeatmapStore.getState();
-    const selected = heatmap.getSelectedBuildingMetric();
-    if (selected && selected.name !== BuildingMetricIds.None) {
-      heatmap.setSelectedBuildingMetric(selected.name);
-    }
-
+    // Rendering the landscape updates its models, which the bounds of the heatmap metric follow.
     useRenderingServiceStore.getState().refreshCurrentEvolutionLandscape();
   },
 }));

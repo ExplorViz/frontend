@@ -78,7 +78,20 @@ function shouldRefreshFilterBaseline(currentBaseline: FlatLandscape, candidateFl
   );
 }
 
+/**
+ * Shows the filtered landscape at once, before the landscape watcher has laid it out again. That only
+ * works for a landscape whose buildings all have a place in the current layout, i.e. one filtered from
+ * what is on screen. Any other (e.g. that of another commit) is left to the watcher, which sets the
+ * models together with their layout.
+ */
 function syncModelStoreToFlatLandscape(flatLandscape: FlatLandscape): void {
+  const { buildingLayouts } = useLayoutStore.getState();
+  for (const buildingId in flatLandscape.buildings) {
+    if (!buildingLayouts.has(buildingId)) {
+      return;
+    }
+  }
+
   useModelStore.getState().setCities(Object.values(flatLandscape.cities));
   useModelStore.getState().setDistricts(Object.values(flatLandscape.districts));
   useModelStore.getState().setBuildings(Object.values(flatLandscape.buildings));
@@ -166,8 +179,6 @@ export default function EntityFilteringApplier({ landscapeData }: EntityFilterin
         return;
       }
 
-      // Remove mode: the landscape watcher only updates communications here,
-      // so we must keep the model store in sync ourselves.
       if (removeModePrunedRenderedRef.current && renderedFlatLandscape !== baselineFlatLandscape) {
         syncModelStoreToFlatLandscape(baselineFlatLandscape);
 
@@ -178,10 +189,10 @@ export default function EntityFilteringApplier({ landscapeData }: EntityFilterin
           initialLandscapeData.current.aggregatedFileCommunication
         );
         removeModePrunedRenderedRef.current = false;
-        return;
       }
 
-      syncModelStoreToFlatLandscape(renderedFlatLandscape ?? baselineFlatLandscape);
+      // Otherwise the landscape that is rendered is the unfiltered one, whose models the landscape
+      // watcher sets.
       return;
     }
 
@@ -264,11 +275,6 @@ export default function EntityFilteringApplier({ landscapeData }: EntityFilterin
     if (baselineRefreshed) {
       removeModePrunedRenderedRef.current = false;
       applyFilters();
-    } else if (filterMode === 'Remove') {
-      // The landscape watcher skips model updates in Remove mode, so sync when
-      // an external filter (e.g. commit-chart building comparison) shrinks the
-      // rendered landscape without refreshing the entity-filter baseline.
-      syncModelStoreToFlatLandscape(nextFlatLandscapeData);
     }
   };
 
