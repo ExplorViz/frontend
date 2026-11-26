@@ -20,3 +20,10 @@ it('leaves results that are no errors as they are', async () => {
   expect(getErrorMessage(parts)).toBeUndefined();
   expect(getErrorMessage('{"commits":[]}')).toBeUndefined();
 });
+
+it('tells the chatbot that a tool without a result succeeded', async () => {
+  const result = await reportErrors(async () => {})();
+
+  expect(result).toBe('Done.');
+  expect(getErrorMessage(result)).toBeUndefined();
+});

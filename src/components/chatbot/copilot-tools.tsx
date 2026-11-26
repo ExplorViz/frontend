@@ -104,6 +104,13 @@ function buildSettingsPromptDescription() {
     .join('\n');
 }
 
+/** The value of every setting as JSON, for telling which ones a change affected. */
+function settingValues(settings: VisualizationSettings) {
+  return Object.fromEntries(
+    Object.entries(settings).map(([id, setting]) => [id, JSON.stringify((setting as { value: unknown }).value)])
+  );
+}
+
 /** The ids that are neither a city, a district, nor a building of the landscape. */
 function findUnknownEntityIds(ids: string[]) {
   const { getCity, getDistrict, getBuilding } = useModelStore.getState();
@@ -123,7 +130,7 @@ function assertKnownEntityIds(ids: string[]) {
   }
 }
 
-/** A tool whose errors reach the chatbot, so that it can correct its call or tell the user. */
+/** A tool whose outcome reaches the chatbot, see reportErrors. */
 const useChatbotTool: typeof useFrontendTool = (tool, deps) =>
   useFrontendTool({ ...tool, handler: tool.handler && reportErrors(tool.handler) }, deps);
 
@@ -432,17 +439,24 @@ export function CopilotTools() {
     description: 'Highlights cities, districts, or buildings, or removes their highlight.',
     parameters: z.object({
       ids: z.array(z.string()),
-      areHighlighted: z.boolean().default(true).describe('false removes the highlight.'),
+      areHighlighted: z.boolean().optional().describe('Default true. false removes the highlight.'),
     }),
     // @ts-ignore
     _isRenderAndWait: true,
+    // The arguments arrive as the chatbot sent them, without defaults of the
+    // schema: a left out areHighlighted is undefined and means "highlight".
     handler: async ({ ids, areHighlighted }) => {
       assertKnownEntityIds(ids);
-      setHighlightingByIds(ids, areHighlighted);
+      setHighlightingByIds(ids, areHighlighted !== false);
     },
     render: ({ args, status }) => {
+      // While the arguments are still streaming, it is not yet known whether areHighlighted was left out.
       const action =
-        args.areHighlighted === undefined ? undefined : args.areHighlighted ? 'highlight' : 'removeHighlight';
+        args.areHighlighted === false
+          ? 'removeHighlight'
+          : status === 'inProgress' && args.areHighlighted === undefined
+            ? undefined
+            : 'highlight';
 
       return <ToolCallCard component={{ name: args.ids?.toString() }} status={status} action={action} />;
     },
@@ -585,6 +599,7 @@ export function CopilotTools() {
     handler: async ({ settings, resetIds, resetAll }) => {
       const { visualizationSettings, updateSetting, applyDefaultSettings } = useUserSettingsStore.getState();
       const unknownIds: string[] = [];
+      const valuesBefore = settingValues(visualizationSettings);
       if (resetAll) {
         applyDefaultSettings();
       } else if (Array.isArray(resetIds) && resetIds.length > 0) {
@@ -608,10 +623,16 @@ export function CopilotTools() {
         });
       }
 
+      // The chatbot must learn that its call took effect: the context it gets
+      // next already holds the new values, which looks as if nothing changed.
+      const valuesAfter = settingValues(useUserSettingsStore.getState().visualizationSettings);
+      const changedIds = Object.keys(valuesAfter).filter((id) => valuesAfter[id] !== valuesBefore[id]);
+      const outcome =
+        changedIds.length > 0
+          ? `Applied. Settings that changed: ${changedIds.join(', ')}. Do not call this tool again for this request.`
+          : 'Nothing changed: all of these settings already had the requested values.';
       // The known settings are applied; the chatbot must still learn which ones were not.
-      if (unknownIds.length > 0) {
-        return `Unknown setting ids were ignored: ${unknownIds.join(', ')}. The other settings were applied.`;
-      }
+      return unknownIds.length > 0 ? `${outcome} Unknown setting ids were ignored: ${unknownIds.join(', ')}.` : outcome;
     },
     render: ({ status, args }) => (
       <ToolCallCard
