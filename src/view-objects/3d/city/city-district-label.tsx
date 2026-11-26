@@ -9,7 +9,7 @@ import BoxLayout from 'explorviz-frontend/src/utils/layout/box-layout';
 import { getOpenDistrictLabelFontSize, truncateLabelToWidth } from 'explorviz-frontend/src/utils/layout/label-utils';
 import { getLabelRotation } from 'explorviz-frontend/src/view-objects/utils/label-utils';
 import gsap from 'gsap';
-import { useEffect, useState } from 'react';
+import { memo, Suspense, useEffect, useState } from 'react';
 import * as THREE from 'three';
 import { useShallow } from 'zustand/react/shallow';
 import { useDistricts } from 'explorviz-frontend/src/utils/collaboration/districts';
@@ -48,7 +48,11 @@ function computeDistrictLabelPosition(
   }
 }
 
-export default function CityDistrictLabel({ district, layout }: { district: District; layout: BoxLayout }) {
+// Memoized: rendered once per district, so a re-rendering city must not
+// re-render every label.
+export default memo(CityDistrictLabel);
+
+function CityDistrictLabel({ district, layout }: { district: District; layout: BoxLayout }) {
   const { districtLabelMargin, labelDistanceThreshold, enableClustering } = useUserSettingsStore(
     useShallow((state) => ({
       districtLabelMargin: state.visualizationSettings.districtLabelMargin.value,
@@ -73,7 +77,12 @@ export default function CityDistrictLabel({ district, layout }: { district: Dist
     return null;
   }
 
-  return <CityDistrictLabelContent district={district} layout={layout} isOpen={isOpen} fontSize={fontSize} />;
+  // The text waits for its font in a boundary of its own (see CityFoundation).
+  return (
+    <Suspense>
+      <CityDistrictLabelContent district={district} layout={layout} isOpen={isOpen} fontSize={fontSize} />
+    </Suspense>
+  );
 }
 
 function CityDistrictLabelContent({

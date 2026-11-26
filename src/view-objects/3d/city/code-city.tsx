@@ -68,6 +68,7 @@ function LabelChunkGroup({ children }: { children: ReactNode }) {
 function CodeCity({ cityId }: { cityId: string }) {
   const city = useModelStore((state) => state.cities[cityId])!;
   const districtLayouts = useLayoutStore((state) => state.districtLayouts);
+  const buildingLayouts = useLayoutStore((state) => state.buildingLayouts);
   const cityLayout = useLayoutStore((state) => state.cityLayouts.get(cityId));
   const visibilityContext = useSharedEntityVisibilityContext();
   const evolutionAnimation = useEvolutionAnimationStore(
@@ -118,9 +119,17 @@ function CodeCity({ cityId }: { cityId: string }) {
     [filterMode, districtMeshIds, visibleDistrictIds]
   );
 
+  // A label is only mounted once its building has a layout. The buildings of a
+  // new landscape are known before they are laid out, and a label per building
+  // that mounts first and renders again when the layout arrives doubles the
+  // most expensive part of bringing a large landscape to the screen.
   const buildingLabelChunks = useMemo(
-    () => chunkVisibleIds(cityBuildingIds, visibleBuildingIds),
-    [cityBuildingIds, visibleBuildingIds]
+    () =>
+      chunkVisibleIds(
+        cityBuildingIds,
+        visibleBuildingIds.filter((buildingId) => buildingLayouts.has(buildingId))
+      ),
+    [cityBuildingIds, visibleBuildingIds, buildingLayouts]
   );
   const districtLabelChunks = useMemo(
     () => chunkVisibleIds(cityDistrictIds, visibleDistrictIds),

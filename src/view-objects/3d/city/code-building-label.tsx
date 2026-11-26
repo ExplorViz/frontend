@@ -18,7 +18,7 @@ import {
   computeMappedBuildingHeight,
   getCachedBuildingMetricBounds,
 } from 'explorviz-frontend/src/utils/settings/building-metrics';
-import { memo, useEffect, useRef, useState } from 'react';
+import { memo, Suspense, useEffect, useRef, useState } from 'react';
 import * as THREE from 'three';
 import { useShallow } from 'zustand/react/shallow';
 
@@ -77,7 +77,12 @@ function CodeBuildingLabel({ buildingId }: { buildingId: string }) {
     return null;
   }
 
-  return <CodeBuildingLabelContent buildingId={buildingId} building={building} layout={layout ?? EMPTY_LAYOUT} />;
+  // The text waits for its font in a boundary of its own (see CityFoundation).
+  return (
+    <Suspense>
+      <CodeBuildingLabelContent buildingId={buildingId} building={building} layout={layout ?? EMPTY_LAYOUT} />
+    </Suspense>
+  );
 }
 
 const EMPTY_LAYOUT = new BoxLayout();

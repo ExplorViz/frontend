@@ -146,8 +146,13 @@ export function useDistricts<T>(select: (districts: DistrictState) => T): T {
     select({ closedDistrictIds: state.closedDistrictIds, hiddenDistrictIds: state.hiddenDistrictIds })
   );
   const roomDistricts = useRoomStatePart('districts');
-  const all = useModelStore((state) => state.districts) as DistrictRecord;
-  return inRoom && roomDistricts?.shared !== false ? select(fromRoomSnapshot(roomDistricts, all)) : own;
+  const showsRoomDistricts = inRoom && roomDistricts?.shared !== false;
+  // Only the Room's Districts are expanded against the Landscape's. Outside of
+  // a Room, a changed Landscape must not re-render every reader (e.g. a label
+  // per District).
+  const all = useModelStore((state) => (showsRoomDistricts ? state.districts : undefined)) as
+    DistrictRecord | undefined;
+  return showsRoomDistricts && all ? select(fromRoomSnapshot(roomDistricts, all)) : own;
 }
 
 /** Both sets of the shown Districts, for rendering. */

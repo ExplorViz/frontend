@@ -15,7 +15,7 @@ import BoxLayout from 'explorviz-frontend/src/utils/layout/box-layout';
 import { getCityLabelFontSize, MIN_CITY_LABEL_MARGIN } from 'explorviz-frontend/src/utils/layout/label-utils';
 import { getLabelRotation } from 'explorviz-frontend/src/view-objects/utils/label-utils';
 import { gsap } from 'gsap';
-import { useEffect, useState } from 'react';
+import { Suspense, useEffect, useState } from 'react';
 import * as THREE from 'three';
 import { useShallow } from 'zustand/react/shallow';
 
@@ -212,20 +212,26 @@ export default function CityFoundation({ city, layout }: { city: City; layout: B
         <meshBasicMaterial color={computeColor()} transparent={entityOpacity < 1.0} opacity={entityOpacity} />
       )}
       {geometryOverride === 'Cylinder' ? <cylinderGeometry /> : <boxGeometry />}
+      {/* In its own Suspense boundary: the first text to mount waits for its
+          font. Without a boundary that suspends the whole scene, and whatever
+          was mounting along with it (a label per building of a new landscape)
+          is rendered again once the font is there. */}
       {cityLabelMargin > MIN_CITY_LABEL_MARGIN && (
-        <group scale={inverseScale}>
-          <Text
-            layers={sceneLayers.Label}
-            color={foundationTextColor}
-            outlineColor={'white'}
-            position={getLabelPosition()}
-            rotation={getLabelRotation(districtLabelPlacement)}
-            fontSize={getCityLabelFontSize(cityLabelMargin)}
-            raycast={() => null}
-          >
-            {getEntityDisplayName(city.name, city.id)}
-          </Text>
-        </group>
+        <Suspense>
+          <group scale={inverseScale}>
+            <Text
+              layers={sceneLayers.Label}
+              color={foundationTextColor}
+              outlineColor={'white'}
+              position={getLabelPosition()}
+              rotation={getLabelRotation(districtLabelPlacement)}
+              fontSize={getCityLabelFontSize(cityLabelMargin)}
+              raycast={() => null}
+            >
+              {getEntityDisplayName(city.name, city.id)}
+            </Text>
+          </group>
+        </Suspense>
       )}
     </mesh>
   );
