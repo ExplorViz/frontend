@@ -37,6 +37,25 @@ server {
   proxy_read_timeout 300s;
   client_max_body_size 100m;
 
+  # Compress the frontend bundle and the JSON responses of the backend services
+  # (text/html is always compressed). Event streams are not listed and stay
+  # uncompressed. gzip_proxied is needed because requests arriving through an
+  # outer reverse proxy would otherwise be excluded.
+  gzip on;
+  gzip_comp_level 5;
+  gzip_min_length 1024;
+  gzip_proxied any;
+  gzip_vary on;
+  gzip_types
+    application/javascript
+    application/json
+    application/manifest+json
+    application/wasm
+    image/svg+xml
+    text/css
+    text/javascript
+    text/plain;
+
   # BEGIN code-analyzer
   location /api/analysis {
     set $upstream_code_analyzer ${CODE_ANALYZER_URL};
