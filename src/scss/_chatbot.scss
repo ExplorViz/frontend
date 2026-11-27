@@ -90,6 +90,47 @@
   --background: transparent;
 }
 
+// CopilotKit spaces its messages for a full-page chat. In the small window
+// that leaves large blank areas after an answer: 40px above every user
+// message, 36px rows for the message actions (invisible until hovered for
+// user messages), and 32px plus a padded disclaimer above and below the input.
+.chatbot-window {
+  --chatbot-message-gap: 0.75rem;
+  --chatbot-action-size: 1.75rem;
+
+  [data-testid='copilot-user-message'] {
+    padding-top: var(--chatbot-message-gap);
+  }
+
+  [data-testid='copilot-user-toolbar'],
+  [data-testid='copilot-assistant-toolbar'] {
+    margin-top: 0;
+
+    button {
+      width: var(--chatbot-action-size);
+      height: var(--chatbot-action-size);
+      padding: 0;
+    }
+  }
+
+  // CopilotKit keeps 32px more than the height of the input free below the
+  // messages. It measures the content box, so moving a part of the height
+  // into the padding shrinks that room to the gap between messages.
+  [data-testid='copilot-input-overlay'] {
+    --chatbot-input-inset: calc(32px - var(--chatbot-message-gap));
+    padding-bottom: var(--chatbot-input-inset);
+
+    > * {
+      margin-bottom: calc(-1 * var(--chatbot-input-inset));
+    }
+  }
+
+  [data-testid='copilot-input-overlay'] [class*='text-xs'] {
+    padding-top: 0.25rem;
+    padding-bottom: 0.375rem;
+  }
+}
+
 .tool-call-card {
   border-radius: 12px;
   background-color: rgba(var(--bs-primary-rgb), 0.05);

@@ -24,6 +24,7 @@ type Action =
   | 'ping'
   | 'moveCamera'
   | 'resetCamera'
+  | 'wait'
   | 'addApplication'
   | 'addClasses'
   | 'removeComponent'
@@ -153,6 +154,8 @@ function getMessage(
           return 'Moving camera to';
         case 'resetCamera':
           return 'Resetting camera';
+        case 'wait':
+          return `Waiting ${messageArgs?.seconds ?? '?'} s`;
         case 'addApplication':
           return 'Adding application';
         case 'addClasses':
@@ -220,6 +223,8 @@ function getMessage(
           return 'Moved camera to';
         case 'resetCamera':
           return 'Reset camera';
+        case 'wait':
+          return `Waited ${messageArgs?.seconds ?? '?'} s`;
         case 'addApplication':
           return 'Added application';
         case 'addClasses':

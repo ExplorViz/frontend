@@ -111,6 +111,9 @@ function settingValues(settings: VisualizationSettings) {
   );
 }
 
+/** Longest pause the chatbot may take with one call of the wait tool. */
+const MAX_WAIT_IN_SECONDS = 60;
+
 /** The ids that are neither a city, a district, nor a building of the landscape. */
 function findUnknownEntityIds(ids: string[]) {
   const { getCity, getDistrict, getBuilding } = useModelStore.getState();
@@ -765,6 +768,26 @@ export function CopilotTools() {
       resetCamera();
     },
     render: ({ status }) => <ToolCallCard status={status} action="resetCamera" />,
+  });
+
+  useChatbotTool({
+    name: 'wait',
+    description:
+      'Pauses before your next step, e.g. to give the user time to look at a stop of a tour. Use only if the user asks for a pause.',
+    parameters: z.object({
+      seconds: z.number().positive().max(MAX_WAIT_IN_SECONDS),
+    }),
+    // @ts-ignore
+    _isRenderAndWait: true,
+    handler: async ({ seconds }) => {
+      // The arguments are not validated against the schema before they arrive here.
+      const waitInSeconds = Math.min(Math.max(Number(seconds) || 0, 0), MAX_WAIT_IN_SECONDS);
+      await new Promise((resolve) => setTimeout(resolve, waitInSeconds * 1000));
+      return `Waited ${waitInSeconds} seconds.`;
+    },
+    render: ({ args, status }) => (
+      <ToolCallCard status={status} action="wait" messageArgs={{ seconds: args.seconds }} />
+    ),
   });
 
   useChatbotTool({
